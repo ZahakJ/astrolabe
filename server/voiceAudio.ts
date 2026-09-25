@@ -137,3 +137,62 @@ export function toPcm16(samples: Float32Array): Int16Array {
   }
   return out;
 }
+
+// ── Windows ─────────────────────────────────────────────────────────────────
+//
+// whisper reads thirty seconds at a time. The ONNX engine (server/voiceWorker.ts,
+// the processor's path) hears the first thirty seconds and drops the rest;
+// whisper.cpp walks a long recording on its own but detects its language once,
+// from the start, and hears the rest as that language. So a recording is cut
+// into windows here, each at most WINDOW_MAX long, and each cut is made at the
+// quietest tenth of a second in the window's last stretch — between words,
+// where a cut loses nothing. Both engines hear each window on its own, which
+// is why a note that changes language halfway comes back in both: every
+// window detects its own. A window that straddles the change is still heard
+// in one language (its first); cutting at the LONGEST pause instead, on the
+// theory that a speaker changes language at a sentence, measured worse on
+// the test notes (34% of the words wrong against 12%), because a pause
+// between sentences is as long as a pause between languages.
+
+/** A window's longest: under whisper's thirty, so the model's own padding
+ *  never clips the last word. */
+export const WINDOW_MAX = 28 * WHISPER_RATE;
+/** Where the search for a quiet cut begins inside a full window. */
+const WINDOW_SEARCH_FROM = 18 * WHISPER_RATE;
+/** The unit a cut is chosen in: a tenth of a second. */
+const FRAME = WHISPER_RATE / 10;
+/** A window quieter than this (RMS) is silence, and is not sent to a model
+ *  that answers silence with "Thank you." */
+const SILENCE_RMS = 0.003;
+
+function rms(samples: Float32Array, from: number, to: number): number {
+  let acc = 0;
+  for (let i = from; i < to; i++) acc += samples[i] * samples[i];
+  return to > from ? Math.sqrt(acc / (to - from)) : 0;
+}
+
+/** The recording as `[start, end)` sample ranges, in order, covering all of
+ *  it except the windows that are silence. */
+export function speechWindows(samples: Float32Array): Array<[number, number]> {
+  const out: Array<[number, number]> = [];
+  let start = 0;
+  while (start < samples.length) {
+    let end = samples.length;
+    if (end - start > WINDOW_MAX) {
+      // The quietest frame in [start + 18 s, start + 28 s), cut at its middle.
+      let best = start + WINDOW_MAX;
+      let bestRms = Infinity;
+      for (let f = start + WINDOW_SEARCH_FROM; f + FRAME <= start + WINDOW_MAX; f += FRAME) {
+        const r = rms(samples, f, f + FRAME);
+        if (r < bestRms) {
+          bestRms = r;
+          best = f + FRAME / 2;
+        }
+      }
+      end = best;
+    }
+    if (rms(samples, start, end) >= SILENCE_RMS) out.push([start, end]);
+    start = end;
+  }
+  return out;
+}

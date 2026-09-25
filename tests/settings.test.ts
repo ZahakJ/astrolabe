@@ -5,7 +5,7 @@
 // that fails anywhere lands nothing at all.
 
 import assert from "node:assert/strict";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, utimesSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, before, beforeEach, describe, it } from "node:test";
@@ -719,20 +719,20 @@ describe("inheritedSettings", () => {
   });
 });
 
-describe("voice notes: settings.voice (3.24.0)", () => {
-  it("defaults to the Arabic-tested model, detection and keeping the audio", () => {
+describe("voice notes: settings.voice (3.24.0; the backend and the processor default after it)", () => {
+  it("defaults to the processor-friendly model, auto backend, detection and keeping the audio", () => {
     patchSettings({ voice: null });
     assert.equal(getSettings().voice, undefined);
-    assert.deepEqual(effectiveSettings().voice, { model: "large-v3-turbo-q5_0", language: "auto", keepAudio: true });
+    assert.deepEqual(effectiveSettings().voice, { model: "small-q5_1", backend: "auto", language: "auto", keepAudio: true });
   });
 
   it("merges sub-keys, deletes a value equal to its default, and clears with null", () => {
     patchSettings({ voice: { language: "ar" } });
     patchSettings({ voice: { keepAudio: false } });
     assert.deepEqual(getSettings().voice, { language: "ar", keepAudio: false });
-    patchSettings({ voice: { model: "small-q5_1" } });
-    assert.deepEqual(effectiveSettings().voice, { model: "small-q5_1", language: "ar", keepAudio: false });
-    patchSettings({ voice: { model: "large-v3-turbo-q5_0", language: "auto", keepAudio: true } });
+    patchSettings({ voice: { model: "base-q5_1" } });
+    assert.deepEqual(effectiveSettings().voice, { model: "base-q5_1", backend: "auto", language: "ar", keepAudio: false });
+    patchSettings({ voice: { model: "small-q5_1", backend: "auto", language: "auto", keepAudio: true } });
     assert.equal(getSettings().voice, undefined, "every sub-key back at its default leaves no key at all");
     patchSettings({ voice: { model: "off" } });
     assert.equal(effectiveSettings().voice.model, "off");
@@ -740,8 +740,49 @@ describe("voice notes: settings.voice (3.24.0)", () => {
     assert.equal(getSettings().voice, undefined);
   });
 
-  it("refuses an unknown model, language or sub-key, and lands nothing", () => {
+  it("stores the backend choice: cpu is kept, auto is the default's absence", () => {
+    patchSettings({ voice: { backend: "cpu" } });
+    assert.deepEqual(getSettings().voice, { backend: "cpu" });
+    assert.equal(effectiveSettings().voice.backend, "cpu");
+    patchSettings({ voice: { model: "large-v3-turbo-q5_0" } });
+    assert.deepEqual(getSettings().voice, { backend: "cpu", model: "large-v3-turbo-q5_0" }, "the model and the backend are two sub-keys");
+    patchSettings({ voice: { backend: "auto" } });
+    assert.deepEqual(getSettings().voice, { model: "large-v3-turbo-q5_0" });
+    patchSettings({ voice: { backend: null } });
+    assert.equal(effectiveSettings().voice.backend, "auto");
+    patchSettings({ voice: null });
+  });
+
+  it("migrates: the old implicit default follows the new one, an explicit large turbo is kept", () => {
+    const file = path.join(data, "settings.json");
+    const write = (body: unknown, at: number): void => {
+      writeFileSync(file, JSON.stringify(body));
+      // The settings cache is mtime-checked; a hand edit in the same
+      // millisecond would read as the old file.
+      utimesSync(file, at, at);
+    };
+    // An instance that never chose: the large turbo was the default and was
+    // stored as its absence — it gets the new default.
+    write({}, 1_000_000);
+    assert.equal(effectiveSettings().voice.model, "small-q5_1");
+    write({ voice: { keepAudio: false } }, 1_000_010);
+    assert.equal(effectiveSettings().voice.model, "small-q5_1", "other voice keys do not pin the model");
+    // An instance that wrote the large turbo down keeps it.
+    write({ voice: { model: "large-v3-turbo-q5_0" } }, 1_000_020);
+    assert.equal(effectiveSettings().voice.model, "large-v3-turbo-q5_0");
+    // And choosing it in the row from now on is written down, because it is
+    // no longer the default — so the next default change cannot take it.
+    patchSettings({ voice: null });
+    patchSettings({ voice: { model: "large-v3-turbo-q5_0" } });
+    assert.deepEqual(getSettings().voice, { model: "large-v3-turbo-q5_0" });
+    patchSettings({ voice: { model: "small-q5_1" } });
+    assert.equal(getSettings().voice, undefined, "choosing the new default is its absence");
+    patchSettings({ voice: null });
+  });
+
+  it("refuses an unknown model, backend, language or sub-key, and lands nothing", () => {
     assert.match(refuse({ voice: { model: "large-v4" } }), /voice\.model/);
+    assert.match(refuse({ voice: { backend: "gpu" } }), /voice\.backend/);
     assert.match(refuse({ voice: { language: "fr" } }), /voice\.language/);
     assert.match(refuse({ voice: { keepAudio: "yes" } }), /voice\.keepAudio/);
     assert.match(refuse({ voice: { engine: "onnx" } }), /voice\.engine/);

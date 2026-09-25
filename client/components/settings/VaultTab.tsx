@@ -11,13 +11,14 @@ import { Select } from "../controls/Select.tsx";
 import { PeriodicForm } from "./PeriodicForm.tsx";
 import { ClipperControl } from "./ClipperControl.tsx";
 import { FeedsFields, UniqueNoteFields } from "./PairControls.tsx";
-import { modelSize, VoiceEngineNote, voiceModelLabel } from "./VoiceEngineNote.tsx";
-import { VOICE_MODELS } from "../../../shared/voice.ts";
+import { useVoiceEngine, VoiceEngineNote, VoiceModelFields } from "./VoiceEngineNote.tsx";
 import { Row } from "./Row.tsx";
 import { FOLDER_MAX, enumLabel } from "./form.ts";
 
 export default function VaultTab() {
   const { initial, pocket, form, setForm, errors, field, onOffSegments, eff, inh } = useSettings();
+  const voiceSaved = `${initial?.voiceModel ?? ""}|${initial?.voiceBackend ?? ""}`;
+  const voiceState = useVoiceEngine(!pocket, voiceSaved);
   return (
     <section data-section="vault">
       {/* WHERE THIS INSTANCE PUTS THINGS, all in one tab. Templates
@@ -141,23 +142,23 @@ export default function VaultTab() {
           are named here instead (docs/import.md). */}
       {!pocket && <p className="s-smodal__note">{t("importDoorsNote")}</p>}
       {/* VOICE NOTES (docs/capture.md "Voice"): the model that
-          turns a recording into words on THIS machine, and
+          turns a recording into words on THIS machine and where it
+          runs (one row, two controls: the tab holds eighteen), and
           whether the recording stays once they have landed. The
           language pin is on the Language tab, with the other
           questions about which language a thing is in. A pocket
           vault runs no model and keeps every recording, so both
           rows are its locked facts. */}
-      <Row locked={pocket} label={t("rowVoiceModel")} hint={t("hintVoiceModel")} more={t("moreVoiceModel")}>
-        <Select
-          label={t("rowVoiceModel")}
-          options={[
-            ...VOICE_MODELS.map((m) => ({ value: m.id, label: voiceModelLabel(m.id), note: modelSize(m.bytes) })),
-            { value: "off", label: t("voiceModelOff") },
-          ]}
-          {...field("voiceModel")}
+      <Row locked={pocket} label={t("rowVoiceModel")} hint={t("hintVoiceModel")} more={t("moreVoiceModel")} wide>
+        <VoiceModelFields
+          model={form.voiceModel}
+          onModel={field("voiceModel").onChange}
+          backend={form.voiceBackend}
+          onBackend={field("voiceBackend").onChange}
+          state={voiceState}
         />
       </Row>
-      {!pocket && <VoiceEngineNote model={form.voiceModel} saved={initial?.voiceModel ?? ""} />}
+      {!pocket && <VoiceEngineNote model={form.voiceModel} backend={form.voiceBackend} saved={voiceSaved} state={voiceState} />}
       <Row locked={pocket} label={t("rowVoiceKeepAudio")} hint={t("hintVoiceKeepAudio")}>
         <Toggle
           label={t("rowVoiceKeepAudio")}

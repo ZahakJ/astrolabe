@@ -405,7 +405,13 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 3.33.0 = read aloud merged over 3.32.0 (video): both measured against
 // 3.31.1, so the overages add — entry 759.3, blog 1063.9, admin 1022.2,
 // phone 869.2. Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 870 * 1024;
+// 3.33.1 = voice notes without a GPU merged over 3.33.0: measured alone the
+// round was +0.6 kB, but over read aloud's dictionary the transcription row's
+// words land at +3.0 — entry 762.3, blog 1066.9, admin 1025.2, phone 872.2.
+// Budgets = the summed actual, rounded up.
+const PHONE_BUDGET = 873 * 1024;
+// VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
+// same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
 // a build of 3.30.2: entry 750.8 → 751.5 (+0.7: the store's toggleChromeLang,
 // langPref's chromeLangPref, the chord in globalKeys, the palette's alias
@@ -1050,7 +1056,13 @@ const AUDIENCES = [
   // `speakStatus` / `speakInstall` and the chord in globalKeys.ts. The player,
   // the chip, the doors and the editor half are lazy (SpeechLayer, doors,
   // editorSpeak, player). 754 → 759.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 760 * 1024 },
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 763 * 1024 },
+  // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
+  // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
+  // row's second control (Auto / Processor only), each model's cost on two
+  // cores, the status line naming the model and where it ran, and the ⓘ
+  // rewritten for a machine with no GPU — in the larger language. The row
+  // lives in the settings chunk. Budget 754 → 755.
   // THE AUDIT'S LEFTOVERS: 768,771 → 769,042 bytes, +271, measured against a
   // build of 3.30.2 (d3b5398) with only client/ reverted. All of it is the
   // entry stylesheet's RTL glyph rules: the tree's chevron (every panel
@@ -1421,7 +1433,7 @@ const AUDIENCES = [
   // film). 1057 → 1060.
   // READ ALOUD: 1056.0 → 1060.4 kB, +4.4 — the entry's +4.3 and nothing
   // else of weight: the blog's SpeechLayer is a lazy boundary. 1057 → 1061.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1064 * 1024 },
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1067 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1717,7 +1729,7 @@ const AUDIENCES = [
   // entry's 1.2 kB and the settings form's `externalVideo`. 1017 → 1018.5.
   // READ ALOUD: 1016.2 → 1020.7 kB, +4.5 — the entry's +4.3 and the palette
   // and shortcut sheet rows. 1017 → 1021.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1023 * 1024 },
+  { name: "admin first paint", keys: withLanguage(app), budget: 1026 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy

@@ -30,7 +30,7 @@ import {
   normalizeFolder,
   type FolderProblem,
 } from "../shared/attachments.ts";
-import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
+import { isVoiceBackend, isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
 import { isSpeakEngine, isSpeakLang, isVoiceOf, SPEAK_ENGINE_DEFAULT, SPEAK_RATES, speakEffective, type SpeakSettings } from "../shared/speech.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
 import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
@@ -549,6 +549,7 @@ export function getSettings(): SettingsData {
     const v = voice as Record<string, unknown>;
     const vs: VoiceSettings = {};
     if (isVoiceModelSetting(v.model)) vs.model = v.model;
+    if (isVoiceBackend(v.backend) && v.backend !== "auto") vs.backend = v.backend;
     if (isVoiceLanguage(v.language)) vs.language = v.language;
     if (typeof v.keepAudio === "boolean") vs.keepAudio = v.keepAudio;
     if (Object.keys(vs).length > 0) out.voice = vs;
@@ -1600,7 +1601,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         ? { ...(raw.voice as Record<string, unknown>) }
         : {};
     for (const key of Object.keys(v)) {
-      if (key !== "model" && key !== "language" && key !== "keepAudio") {
+      if (key !== "model" && key !== "backend" && key !== "language" && key !== "keepAudio") {
         throw new VaultError(400, `Unknown settings key: voice.${key}`);
       }
     }
@@ -1613,6 +1614,13 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
           `Settings key "voice.model" must be one of: ${[...VOICE_MODELS.map((m) => m.id), "off"].join(", ")}`,
         );
       }
+    }
+    // Where it runs (3.31.x): "auto" is the default and is stored as absence;
+    // "cpu" pins the processor.
+    if ("backend" in v) {
+      if (v.backend === null || v.backend === "" || v.backend === "auto") delete current.backend;
+      else if (isVoiceBackend(v.backend)) current.backend = v.backend;
+      else throw new VaultError(400, 'Settings key "voice.backend" must be one of: auto, cpu');
     }
     if ("language" in v) {
       if (v.language === null || v.language === "" || v.language === "auto") delete current.language;

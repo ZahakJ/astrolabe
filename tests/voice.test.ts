@@ -26,7 +26,7 @@ import {
   wordCount,
 } from "../shared/voice.ts";
 import { createVoiceQueue, type VoiceWork } from "../server/voiceQueue.ts";
-import { resample, WHISPER_RATE } from "../server/voiceAudio.ts";
+import { resample, speechWindows, WHISPER_RATE, WINDOW_MAX } from "../server/voiceAudio.ts";
 import { appendWithPrecondition, landVoiceNote } from "../server/voice.ts";
 import { initIndexer, registerAttachment } from "../server/indexer.ts";
 import { listUnusedAttachments } from "../server/unusedAttachments.ts";
@@ -119,9 +119,12 @@ describe("the note-writing rule", () => {
     assert.equal(appendBullet("- x", "- a\n"), "- x\n- a\n");
   });
 
-  it("defaults: the Arabic-tested model, auto language, the audio kept", () => {
-    assert.deepEqual(voiceEffective(undefined), { model: "large-v3-turbo-q5_0", language: "auto", keepAudio: true });
-    assert.deepEqual(voiceEffective({ language: "ar", keepAudio: false }), { model: "large-v3-turbo-q5_0", language: "ar", keepAudio: false });
+  it("defaults: the model a processor runs faster than speech, auto backend and language, the audio kept", () => {
+    assert.deepEqual(voiceEffective(undefined), { model: "small-q5_1", backend: "auto", language: "auto", keepAudio: true });
+    assert.deepEqual(voiceEffective({ language: "ar", keepAudio: false }), { model: "small-q5_1", backend: "auto", language: "ar", keepAudio: false });
+    // The migration: a stored model is a choice and survives the new default.
+    assert.equal(voiceEffective({ model: "large-v3-turbo-q5_0" }).model, "large-v3-turbo-q5_0");
+    assert.equal(voiceEffective({ backend: "cpu" }).backend, "cpu");
   });
 });
 
@@ -149,6 +152,48 @@ describe("the recording", () => {
     const rms = (a: Float32Array): number => Math.sqrt(a.reduce((s, v) => s + v * v, 0) / a.length);
     assert.ok(rms(outLow) > 0.6, `speech band kept (${rms(outLow)})`);
     assert.ok(rms(outHigh) < 0.05, `12 kHz filtered before decimation (${rms(outHigh)})`);
+  });
+
+  // The processor's engine hears thirty seconds at a time (server/voiceAudio.ts).
+  const tone = (seconds: number, quietAt: number[] = []): Float32Array => {
+    const out = new Float32Array(Math.round(seconds * WHISPER_RATE));
+    for (let i = 0; i < out.length; i++) out[i] = 0.3 * Math.sin((2 * Math.PI * 220 * i) / WHISPER_RATE);
+    // Half a second of silence centred on each pause.
+    for (const at of quietAt) out.fill(0, Math.round((at - 0.25) * WHISPER_RATE), Math.round((at + 0.25) * WHISPER_RATE));
+    return out;
+  };
+
+  it("keeps a short recording whole", () => {
+    assert.deepEqual(speechWindows(tone(10)), [[0, 10 * WHISPER_RATE]]);
+  });
+
+  it("cuts a long one into windows under thirty seconds, at its pauses, losing nothing", () => {
+    const samples = tone(70, [21, 44]);
+    const windows = speechWindows(samples);
+    assert.equal(windows.length, 3);
+    assert.equal(windows[0][0], 0);
+    assert.equal(windows[windows.length - 1][1], samples.length, "the last sample is heard");
+    for (let i = 1; i < windows.length; i++) assert.equal(windows[i][0], windows[i - 1][1], "contiguous: no gap, no overlap");
+    for (const [a, b] of windows) assert.ok(b - a <= WINDOW_MAX, `${(b - a) / WHISPER_RATE} s is under whisper's thirty`);
+    // Each cut lands inside a pause, not in the middle of a word.
+    const cut = (i: number): number => windows[i][1] / WHISPER_RATE;
+    assert.ok(Math.abs(cut(0) - 21) < 0.3, `first cut at ${cut(0)} s`);
+    assert.ok(Math.abs(cut(1) - 44) < 0.3, `second cut at ${cut(1)} s`);
+  });
+
+  it("cuts a recording with no pause at the window's length rather than never", () => {
+    const windows = speechWindows(tone(60));
+    assert.ok(windows.every(([a, b]) => b - a <= WINDOW_MAX));
+    assert.equal(windows[windows.length - 1][1], 60 * WHISPER_RATE);
+  });
+
+  it("does not send silence to a model that answers it with words", () => {
+    assert.deepEqual(speechWindows(new Float32Array(40 * WHISPER_RATE)), []);
+    const speechThenSilence = new Float32Array(50 * WHISPER_RATE);
+    speechThenSilence.set(tone(20));
+    const windows = speechWindows(speechThenSilence);
+    assert.equal(windows.length, 1, "the silent tail is dropped");
+    assert.equal(windows[0][0], 0);
   });
 });
 
