@@ -1,0 +1,158 @@
+/* Read aloud (docs/read-aloud.md): the floating player, the chip over a
+   reading selection, and the sentence being spoken, lit in the page. */
+
+/* The sentence being spoken, in the page: the Custom Highlight API, like the
+   annotation marks — the prose is never rewritten to show it. */
+::highlight(astrolabe-speaking) {
+  background: var(--accent-soft);
+  color: inherit;
+}
+
+.s-speak {
+  position: fixed;
+  z-index: 90;
+  inset-inline: 0;
+  /* Clear of the status bar (≈32px) that the desktop shell keeps at the foot;
+     the phone sets its own footing in phone.css. */
+  inset-block-end: max(48px, env(safe-area-inset-bottom));
+  margin-inline: auto;
+  inline-size: min(560px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px 8px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-raised);
+  color: var(--text);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+  font-size: 0.9rem;
+}
+
+.s-speak__controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+}
+
+.s-speak__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 36px;
+  block-size: 36px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.s-speak__btn:hover {
+  background: var(--bg-hover, rgba(127, 127, 127, 0.14));
+}
+
+.s-speak__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.s-speak__btn--main {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+.s-speak__btn--main:hover {
+  background: var(--accent);
+  filter: brightness(1.08);
+}
+
+.s-speak__rate {
+  font-size: 0.8rem;
+  min-inline-size: 44px;
+}
+
+.s-speak__text {
+  min-inline-size: 0;
+  flex: 1;
+}
+
+.s-speak__sentence {
+  margin: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.4;
+}
+
+.s-speak__sentence mark {
+  background: none;
+  color: inherit;
+}
+
+.s-speak__meta {
+  margin: 2px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.s-speak__note {
+  color: var(--text-muted);
+}
+
+.s-speak__dot {
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+  animation: s-speak-pulse 1s ease-in-out infinite;
+}
+
+@keyframes s-speak-pulse {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-speak__dot {
+    animation: none;
+  }
+}
+
+/* The chip under a reading selection. Below the selection's end, where the
+   annotation button (above, centred) and the phone's own selection callout
+   (above) are not. */
+.s-speak-chip {
+  position: fixed;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+
+.s-speak-chip:hover,
+.s-speak-chip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}

@@ -117,6 +117,10 @@ const ListSheet = lazySurface(() => import("./ListSheet.tsx"));
 // business carrying them (check-bundle's phone audience).
 const NoteSheet = lazySurface(() => import("./NoteSheet.tsx"));
 const MoveSheet = lazySurface(() => import("./MoveSheet.tsx"));
+// Read aloud (docs/read-aloud.md): the chip under a selection (the editor's too, here) and the
+// floating player — the same layer the desktop mounts, styled for the phone
+// in phone.css.
+const SpeechLayer = lazySurface(() => import("../speech/SpeechLayer.tsx"));
 
 // The store's own modal surfaces, as the desktop mounts them (App.tsx), each
 // behind its flag. On a phone they are LAYERS: each takes a history entry, so
@@ -849,6 +853,9 @@ export default function PhoneShell() {
           })}
           <ConfirmSheetHost />
         </div>
+        <Suspense fallback={null}>
+          <SpeechLayer owner={admin && !previewVisitor} phone />
+        </Suspense>
         {/* The store's own layers, as the desktop mounts them. */}
         {layerUp("palette") && (
           <Suspense fallback={null}>
