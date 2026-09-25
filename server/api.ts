@@ -7,7 +7,7 @@ import { bodyLimit } from "hono/body-limit";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { contentTypeFor } from "../shared/attachments.ts";
 import { stripNoteExt } from "../shared/noteFormat.ts";
-import { DECK_IMPORT_MAX_BYTES, NOTES_IMPORT_MAX_BYTES, UPLOAD_MAX_BYTES } from "../shared/limits.ts";
+import { DECK_IMPORT_MAX_BYTES, NOTES_IMPORT_MAX_BYTES, VIDEO_UPLOAD_MAX_BYTES } from "../shared/limits.ts";
 import { VOICE_MAX_BYTES } from "../shared/voice.ts";
 import { editTrackerFence, setTrackerFields, setTrackerProgress, trackerFenceSpans, type TrackerFields } from "../shared/tracker.ts";
 import { applyEdit, editRoutinePlan, logEditFor, routineFenceSpans, type EntryPatch } from "../shared/routine.ts";
@@ -92,7 +92,9 @@ const COMMENT_BODY_MAX = 64 * 1024; //    64 KB: comment posts + login
 // client drop-zone hint states the same number in words.
 // The multipart envelope (boundary lines, field headers) rides on top of the
 // image bytes, so the wire cap leaves a little headroom above the image cap.
-const UPLOAD_BODY_MAX = UPLOAD_MAX_BYTES + 64 * 1024;
+// The route itself holds a picture to its own 10 MB (server/fileRoutes.ts, by
+// the SNIFFED kind); the wire has to let the larger film cap through.
+const UPLOAD_BODY_MAX = VIDEO_UPLOAD_MAX_BYTES + 64 * 1024;
 // A font upload is its own, tighter cap (CUSTOM_FONT_MAX_BYTES ≈ 5 MB): the
 // route sniffs magic bytes, so the only thing this stops is a body that never
 // had to be read at all. The multipart envelope rides on top of the file.

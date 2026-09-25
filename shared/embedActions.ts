@@ -1,7 +1,8 @@
 // AN EMBED YOU CAN PICK UP — the pure half.
 //
-// A picture, a file card, a drawn PDF page or a drawing in a note is a line of
-// source (`![[pic.png|300]]`, `![[Book.pdf#page=42]]`, `![alt](media/x.png)`),
+// A picture, a file card, a drawn PDF page, a drawing, a sound or a film in a
+// note is a line of source (`![[pic.png|300]]`, `![[Book.pdf#page=42]]`,
+// `![alt](media/x.png)`, `![[clip.mp4#t=12]]`),
 // and everything the reader can now do to one is arithmetic on that line:
 //
 //   · dragged WITHIN its note, the line moves to the drop point — widths,
@@ -22,7 +23,7 @@ import { parseAlignMarker } from "./blockAlign.ts";
 /** What an embed draws as. Notes and blocks (`![[Note]]`) are transclusions
  *  and are not picked up this way: their card is the note's words, and a
  *  right-click on words belongs to the words. */
-export type EmbedKind = "image" | "file" | "pdfpage" | "drawing" | "audio";
+export type EmbedKind = "image" | "file" | "pdfpage" | "drawing" | "audio" | "video";
 
 /** One embed's source span in a document, in document offsets. */
 export interface EmbedSpan {

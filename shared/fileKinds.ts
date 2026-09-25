@@ -30,7 +30,7 @@ const KINDS: Readonly<Record<string, AttachmentKind>> = {
   svg: "image", bmp: "image", ico: "image", tif: "image", tiff: "image", heic: "image",
   pdf: "book", epub: "book",
   mp3: "audio", m4a: "audio", wav: "audio", ogg: "audio", oga: "audio", flac: "audio", aac: "audio", opus: "audio",
-  mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video",
+  mp4: "video", webm: "video", mov: "video", mkv: "video", m4v: "video", ogv: "video",
 };
 
 /** The kind of a vault file by its extension. */
