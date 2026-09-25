@@ -162,9 +162,9 @@ describe("engines", () => {
 });
 
 describe("what is spoken", () => {
-  it("furigana is spoken as its reading, once", () => {
-    assert.equal(speakFurigana("{漢字|かん|じ}を読む"), "かんじを読む");
-    assert.equal(speakFurigana("{東京|とうきょう}"), "とうきょう");
+  it("furigana is spoken as its base, once — never base and reading", () => {
+    assert.equal(speakFurigana("{漢字|かん|じ}を読む"), "漢字を読む");
+    assert.equal(speakFurigana("{東京|とうきょう}"), "東京");
     assert.equal(speakFurigana("no ruby"), "no ruby");
   });
   it("a note is read as prose: no frontmatter, code, markup or footnote marks", () => {
@@ -176,7 +176,7 @@ describe("what is spoken", () => {
     assert.ok(!said.includes("**"));
     assert.ok(!said.includes("[^1]"));
     assert.ok(!said.includes("[!note]"));
-    assert.match(said, /Some bold and alias with かんじ and/);
+    assert.match(said, /Some bold and alias with 漢字 and/);
     assert.match(said, /Title/);
     assert.match(said, /Callout/);
   });
