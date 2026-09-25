@@ -1225,7 +1225,8 @@ own**, at a width the author picks, settling on the trailing edge of their edits
    `s-dsg-top--sticky` and the switch that turns it on finally has a preview.
 
 **`about:blank`, not `srcdoc` and not a route.** The shell's CSP is `frame-src 'none'` and stays
-that way. That directive is checked on frame NAVIGATIONS: `srcdoc` and any URL are refused, while
+that way (the one exception is the owner's "Embed external video" switch — see "Another site's
+video" — and the designer does not depend on it). That directive is checked on frame NAVIGATIONS: `srcdoc` and any URL are refused, while
 a frame with no `src` is the initial `about:blank` — not a navigation, and it inherits the
 parent's origin (so the portal can reach in) and the parent's policy (so nothing inside is more
 privileged than the app). Verified in Chromium: the frame renders with the shipped header intact.
@@ -1992,6 +1993,42 @@ under `reducedMotion: "reduce"`, in RTL, at 1280×800, and on light and dark the
 - **ActivityPub.** Actor at `/actor` (`Person`, handle, site name, tagline, logo/favicon icon, home banner image, `publicKey`; RSA-2048 generated once into `ASTROLABE_DATA/activitypub-key.pem`, 0600). Object id = page URL; `Note` when the stripped text is ≤ 500 characters, else `Article` with `name`; `contentMap` keyed by `postLanguage()` (the filter's 40 % Arabic rule); tags as `Hashtag`; banner as an attachment. Outbox paged by 20. Followers collection = a count only. HTTP Signatures rsa-sha256 over `(request-target) host date digest` both ways (`hs2019` accepted in), Date within 12 h, Digest required on POST; the key is fetched from `keyId` (signed GET), cached a day, refetched once on a failed verify. Inbox: Follow (auto-Accept), Undo Follow/Like/Announce, Like/Announce → `kind: "activitypub"`, `type: like|repost`, visible; Create/Note `inReplyTo` a federable page → `reply`, hidden; Delete removes by `ref` AND source actor. Deliveries (`deliveries` table): Create on publish, Update on change, Delete (Tombstone) on unpublish, shared inbox preferred; 410 drops that inbox's followers.
 - **Queues.** `server/jobQueue.ts`: rows in the feature's own db, one job at a time, `RetryLater` retried after 1 min, 5 min, 30 min, anything else finished. The db files and the key never travel with the vault (`configMirror.ts`).
 - **Surfaces.** Publishing tab rows: Accept webmentions, Send webmentions (the Sent panel in its `after` line), Fediverse (address + follower count in its `after` line), Fediverse name — the tab at 14 rows. The moderation panel (both shells) shows `InteractionMeta` (channel, gesture, source) and `VerifyAgain`. `Mentions` sits under `Marginalia` in `BlogArticle` and `ReadingView`: likes/reposts as 32 px faces (44 px coarse), replies/mentions as comment cards; it renders nothing when the list is empty. `GET /api/webmentions?path=` answers `[]` (not 404) for a published note with nothing to show, so the section's one request is never a console error.
+
+## Another site's video (shared/externalVideo.ts, server/index.ts `shellCsp`)
+
+- **A consent switch, default OFF.** `settings.externalVideo` (Settings → Publishing & comments →
+  Embed external video; `PATCH /api/settings { externalVideo: true | null }`), sent on `/api/me`
+  ONLY when on and whatever the layout, since the editor draws it too. The pocket refuses it
+  (`keepExternalVideo`): the Publishing tab is an instance's.
+- **What it draws.** A YouTube, Vimeo or PeerTube address alone on a line, or as `![](url)`:
+  `parseExternalVideo` accepts youtube.com / m. / music. / youtu.be (`watch?v=`, `shorts/`,
+  `embed/`, `live/`; an 11-character id), vimeo.com and player.vimeo.com (a numeric id, an unlisted
+  hash kept), and any https server with a PeerTube path (`/w/<22-char id>`, `/videos/watch|embed/<id>`).
+  The frame is always the privacy-enhanced one: `https://www.youtube-nocookie.com/embed/<id>`,
+  `player.vimeo.com/video/<id>?dnt=1`, `https://<host>/videos/embed/<id>`; a `t=` / `start=` is
+  carried. The `<iframe>` is `loading="lazy"`, `referrerpolicy="strict-origin-when-cross-origin"`,
+  `sandbox="allow-scripts allow-same-origin allow-presentation allow-popups"`, with a link to the
+  host's page under it.
+- **The policy follows the switch.** `SHELL_CSP` keeps `frame-src 'none'`; `shellCsp()` returns it
+  with `frame-src https:` while the switch is on (PeerTube is any server, so no narrower list is
+  honest), and unchanged while it is off.
+
+## A film on the public page
+
+- **A published film is a visitor's**, by the embed allowlist that already covers `![[…]]` and
+  `![](path)`; its `|poster=` still is too (`posterPaths` in server/indexer/publish.ts, read off
+  the lines the note's links were found on, in both walks — the allowlist and the reference map).
+- **Served in ranges, never loaded.** `/api/file` answers `Range` from a `createReadStream` slice
+  (206, `Content-Range`, `Accept-Ranges: bytes`) and a whole file as a stream; the type is the
+  extension's (`video/mp4` for mp4 and m4v, `video/webm`, `video/quicktime`, `video/x-matroska`,
+  `video/ogg`). `tests/videoServe.test.ts` holds a 600 MB sparse film to it: a range from the far
+  end and the first chunk of a whole answer each grow the process by less than 100 MB. The pocket
+  cannot read part of an IndexedDB value, so it reads a film whole ONCE and keeps the most recent
+  large file (≥ 1 MB, by path, size and mtime) for the ranges that follow.
+- **Uploads stream to disk.** `POST /api/upload` sniffs the first 4 KB, caps by the sniffed kind
+  (a film 256 MB, anything else 10 MB; the wire cap is the film's plus envelope), keeps an
+  uploader's `.mkv` / `.ogv` / `.m4v` spelling, and pipes the body to the file — an SVG alone is
+  read whole, to be scrubbed.
 
 ## Smaller rules
 

@@ -135,7 +135,7 @@ this is what the reading view adds.
 
 - **Every file embed carries its source.** The renderer stamps `data-embed-src` — the embed EXACTLY
   as written, `![[x.png|300]]` or `![alt](path)` — on what draws it: the block figure, the inline
-  `<img>`, the file card, the audio player, the drawn page. Async replacements carry it over (a
+  `<img>`, the file card, the audio player, the film's player, the drawn page. Async replacements carry it over (a
   drawing's live `<svg>`, the pdfPage card that replaces its stand-in: `Object.assign(dataset)`).
   Note transclusions carry none, and embeds INSIDE a transclusion card belong to that note and are
   skipped.
@@ -153,6 +153,39 @@ this is what the reading view adds.
   `contextmenu` opens the menu — standing down when text is selected, since the browser's menu copies
   a selection better. Pictures get a tab stop (`focusableEmbeds`) so Shift+F10 has something to open
   the menu on; a link-shaped embed already has one.
+
+## The film's player (client/reading/video.ts, video.css)
+
+- **Lazy twice.** render.ts puts a stand-in of the player's shape (`.s-rv-video` holding a 16:9
+  `.s-rv-video__player` slot, reading.css) and imports reading/video.ts on the first film, which
+  builds the player INTO the stand-in (so `data-embed-src` stays put). The player sets its `src`
+  only when an IntersectionObserver (600 px margin; clipped by a scrolling ancestor, so in the
+  editor and the app's reading pane it is "when shown") says it is near, and then asks for
+  `preload="metadata"`. A note, or a published essay, with no film never downloads the player,
+  its parsers or its stylesheet.
+- **The element.** `<video controls preload="metadata" playsinline tabindex="0">`, `muted` never
+  set, `aria-label` "Video: <name>", the file's name under it (`.s-rv-video__name`, the drag
+  handle). Width: the note's column, or `|480` px at most; the aspect ratio becomes the file's own
+  on `loadedmetadata`. `#t=12` / `#t=12,30` is applied as the media fragment on the source URL, and
+  `timeupdate` pauses once at the end where an engine ignores it. With no time and no poster the
+  source carries `#t=0.001` so every engine draws the first frame as the still; a named poster
+  (`|poster=frame.jpg`, resolved like any attachment) drops that fragment, because the seek it
+  causes takes the poster down.
+- **The fallback decision** is `videoPlayable(name, canPlayType)` (shared/videoEmbeds.ts; `.mov`
+  is also asked as `video/mp4`, `.mkv` as `video/webm`): no answer → the file card
+  (`.s-rv-file`) plus "This browser can't play this video here. Download" in the same box. An
+  `error` event on a resolved file makes the same swap — a "maybe" that could not decode. A name
+  that resolves to nothing is the ⌀ broken embed, as for a sound.
+- **A film with no picture** (`videoWidth === 0` at `loadedmetadata`: a voice note's WebM) takes
+  `.s-rv-video--sound`, the sound's strip.
+- **Seeking links.** `seekAudio` looks for `.s-rv-audio` and `.s-rv-video` players alike; a film
+  with no source yet is scrolled to and seeks on its `loadedmetadata`.
+- **Another site's film** (public-site.md, "Another site's video"). Only while
+  `store.externalVideo` is on: a paragraph that is nothing but an address is marked
+  `data-extvideo`, and so is an `![](https://…)` (drawn as an `<img>` with its source held back);
+  hydration imports the player module, whose `hydrateExternalVideo` draws the host's frame when
+  `parseExternalVideo` accepts the URL, and otherwise leaves the link — or gives the picture its
+  source. render.ts itself carries no URL parser.
 
 ## Print & PDF (`client/reading/print.css`, `client/print.ts`, gated by `npm run check-print`)
 

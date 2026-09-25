@@ -235,9 +235,10 @@ turns it off.
 ## Embeds
 
 An embed puts a file into a note: the picture itself, a card for a PDF or a zip, one page of a
-book, a player for a recording, a drawing, or another note. Paste or drop a file into the editor
-and the embed is written for you (it uploads to your
-[attachment folder](configuration.md#attachments)); to write one by hand, type `/embed` for the
+book, a player for a recording or a video, a drawing, or another note. Paste or drop a file into
+the editor and the embed is written for you (it uploads to your
+[attachment folder](configuration.md#attachments); a video may be up to 256 MB, everything else
+10 MB — behind nginx, raise `client_max_body_size` to match); to write one by hand, type `/embed` for the
 three forms, or `![[` and pick the file — the list opens on your vault's files, with the forms
 above it. The palette's **Embed a file…** does the same from the keyboard.
 
@@ -248,8 +249,14 @@ above it. The palette's **Embed a file…** does the same from the keyboard.
 | `![alt](attachments/name.png)` | The picture, by path — standard Markdown, relative to the note. `alt` is what a screen reader says. |
 | `![[file.pdf]]` | A card for the file; click it to open the PDF in the [reader](books.md). |
 | `![[Book.pdf#page=42]]` | Page 42 of the book, drawn as a picture, with "Book, p. 42" under it. `\|300` sets its width. |
-| `![[lecture.mp3]]` | A small player (also ogg, m4a, wav and webm). |
-| `![[clip.mp4]]`, `![[bundle.zip]]` | A card for the file (video, zip, csv, txt and the rest). |
+| `![[lecture.mp3]]` | A small player (also ogg, m4a and wav). |
+| `![[clip.mp4]]` | A video player, as wide as the note at most (also webm, mov, m4v, mkv and ogv, where the browser can play them; one it cannot is a card with a Download link). A webm with no picture — a voice note's recording — is the small sound player. |
+| `![[clip.mp4\|480]]` | The video, 480 pixels wide and centred. |
+| `![[clip.mp4#t=12]]`, `![[clip.mp4#t=12,30]]` | The video, starting at 0:12 — and with `,30`, stopping at 0:30. `t=1:05` works too. |
+| `![[clip.mp4\|poster=frame.jpg]]` | The video with `frame.jpg` (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: `\|480\|poster=frame.jpg`. |
+| `![alt](media/clip.mp4)` | The video player, by path. |
+| `![[bundle.zip]]` | A card for the file (zip, csv, txt and the rest). |
+| `https://youtu.be/…` on a line of its own | A link — or, with **Settings → Publishing & comments → Embed external video** on, that site's player (YouTube, Vimeo, PeerTube). |
 | `![[sketch.excalidraw]]` | The [drawing](drawing.md), as the picture it saves beside itself. |
 | `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` | The note, one section of it, or one paragraph, as a card. |
 
@@ -273,6 +280,9 @@ Every embed but a note's can be **picked up**:
   clipboard, no copy rows; a visitor sees only Copy link, Open and Save as….
 - **On a phone, hold it.** The same rows come up as a sheet, with **Move…** in place of the drag: the
   top of the note, under any heading, or the end.
+
+A video is picked up by its name under the player — a press on the picture is the player's own
+scrubber — and its menu has every row but Copy image; **Open** plays it in the viewer.
 
 A picture's own tools are on it when you **hover**: drag the handle on its corner to resize it (the
 `|300` is written for you; double-click the handle to return to the picture's own size), and three
@@ -298,6 +308,18 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   the player on the same page to 1:23 and plays, or opens the file at that moment when no player
   is on the page. `t=83`, `t=1:23` and `t=1:02:03` all work; give it an alias (`|the argument`)
   or it shows the time.
+- **Video.** `![[clip.mp4]]` is a player in the editor, the reading view, on the phone and on your
+  site when the note is published (its poster too). It asks for nothing until it scrolls near, and
+  then only the file's first bytes; the server hands the rest over in pieces as you seek, so a long
+  film starts at once. `[[clip.mp4#t=1:23]]` seeks it like a sound. Tab reaches the player, and the
+  browser's own keys play, pause and seek it.
+- **Video from another site.** Off by default. With **Settings → Publishing & comments → Embed
+  external video** on, a YouTube, Vimeo or PeerTube address on a line of its own — or written
+  `![](https://youtube.com/watch?v=…)` — becomes that site's player in the reading view and on your
+  site, and a card with the video's still in the editor (press play to load the player). The frame
+  is the privacy-enhanced one (youtube-nocookie.com; Vimeo is asked not to track) and loads only as
+  it scrolls near — but it is still another site's page inside yours, and it learns who is reading,
+  which is why the switch is yours to turn. Off, the address stays a link.
 - **Diagrams.** A ` ```mermaid ` fence renders as a diagram in the editor, the reading view and on
   your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
   colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives
