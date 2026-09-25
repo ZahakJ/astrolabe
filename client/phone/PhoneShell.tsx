@@ -82,6 +82,7 @@ import { contentOf, isDetail, isFull, isList } from "./kinds.ts";
 import { hardwareKeyboardSeen, installHardwareKeyboardWatch, subscribeHardwareKeyboard } from "./hardwareKeyboard.ts";
 import { createNav, sameScreen, screenKey, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
 import { chainTo, upChain } from "./up.ts";
+import ColumnGrip from "./ColumnGrip.tsx";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
 import "./phone.css";
@@ -407,6 +408,10 @@ export default function PhoneShell() {
   const shownOverlays = useRef(new Map<string, Overlay>());
   const prevSheets = useRef<string[]>([]);
   const appRef = useRef<HTMLDivElement | null>(null);
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const colsRef = useRef<HTMLDivElement | null>(null);
+  const listColRef = useRef<HTMLDivElement | null>(null);
+  const detailColRef = useRef<HTMLDivElement | null>(null);
 
   // ── the navigation, once ─────────────────────────────────────────────────
   if (navRef.current === null) {
@@ -711,6 +716,21 @@ export default function PhoneShell() {
   // Everything under a sheet is INERT: no stray tap reaches the note, no
   // screen reader wanders behind the sheet. Set on the element rather than as
   // a prop, which this React's typings do not carry yet.
+  // THE NOTE'S SHEET ANCHORS TO ITS COLUMN. On two columns a side sheet (the
+  // note's ⋯, a book's contents) slides over the NOTE, not over the list: the
+  // column's width is one custom property the sheet's panel and scrim read.
+  useEffect(() => {
+    const col = detailColRef.current;
+    const shell = shellRef.current;
+    if (!tablet || !col || !shell) {
+      shell?.style.removeProperty("--ph-detail-w");
+      return;
+    }
+    const ro = new ResizeObserver(() => shell.style.setProperty("--ph-detail-w", `${Math.round(col.getBoundingClientRect().width)}px`));
+    ro.observe(col);
+    return () => ro.disconnect();
+  });
+
   const sheetsUp = (navState?.sheets.length ?? 0) > 0;
   useEffect(() => {
     if (appRef.current) appRef.current.inert = sheetsUp;
@@ -816,19 +836,23 @@ export default function PhoneShell() {
     // note). Its Back pops to the list's parent, whatever is open beside it.
     const listBack = listAt > 0 ? () => nav.popTo(stack[listAt - 1]) || nav.back() : undefined;
     // (A folder in the list column draws its own ‹, which goes up by path.)
+    // The list column KEEPS ITS PLACE while the note beside it changes: it is
+    // the same element whatever is open (its scroll, its open folders and its
+    // lit row stay), and a grip between the two trades their widths.
     body = (
-      <div className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}`}>
+      <div ref={colsRef} className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}`}>
         {full ? (
-          <div className="s-ph-cols__detail">
+          <div className="s-ph-cols__detail" ref={detailColRef}>
             <Suspense fallback={<Loading />}>{render(detail, true)}</Suspense>
           </div>
         ) : (
-        <div className="s-ph-cols__list">
-          <Suspense fallback={<Loading />}>{render(list, false, listBack, listAt)}</Suspense>
-        </div>
+          <div className="s-ph-cols__list" ref={listColRef}>
+            <Suspense fallback={<Loading />}>{render(list, false, listBack, listAt)}</Suspense>
+          </div>
         )}
+        {!wide && <ColumnGrip cols={colsRef} list={listColRef} />}
         {!wide && (
-          <div className="s-ph-cols__detail">
+          <div className="s-ph-cols__detail" ref={detailColRef}>
             {detail ? (
               <Suspense fallback={<Loading />}>{render(detail, true)}</Suspense>
             ) : (
@@ -857,6 +881,7 @@ export default function PhoneShell() {
   return (
     <PhoneContext.Provider value={api}>
       <div
+        ref={shellRef}
         className={["s-ph", tablet ? "s-ph--tablet" : "s-ph--phone", zen ? "s-ph--zen" : "", barShown ? "s-ph--tabs" : "", previewVisitor || offline ? "s-ph--notice" : ""].filter(Boolean).join(" ")}
         dir={lang === "ar" ? "rtl" : "ltr"}
         data-tab={st?.tab}

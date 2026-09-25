@@ -1204,6 +1204,14 @@
   display: none;
 }
 
+/* A Galaxy Z Fold's cover screen is 344px wide: at the page's own 16px edges
+   and 4px between cells a day was 40px, under a thumb's 44. The phone's
+   month keeps 8px of edge (calendarpage.css tightens the cells' spacing
+   under 380px of month), which gives each day 44.5px there. */
+.s-ph-calendar .s-calpage {
+  padding-inline: 8px;
+}
+
 .s-ph-seg__count {
   margin-inline-start: 4px;
   color: var(--accent);
@@ -1597,4 +1605,280 @@
   font-size: 17px;
   line-height: 1.05;
   letter-spacing: 0;
+}
+
+/* ── Round 3 (3.34): back means up, crumbs, the tree, two columns by shape ── */
+
+/* A folder's path in its top bar (Crumbs.tsx): every crumb a 44px way up,
+   the current folder last and never folded, "…" where the middle folds. */
+.s-ph-top__lead {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.s-ph-crumbs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.s-ph-crumbs__crumb,
+.s-ph-crumbs__more {
+  flex: none;
+  min-height: 44px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text-muted);
+  font: 500 15px/1.2 var(--font-ui);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.s-ph-crumbs__more {
+  min-width: 44px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.s-ph-crumbs__crumb--here {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--heading, var(--text));
+  font: 600 17px/1.2 var(--font-ui);
+}
+
+.s-ph-crumbs__crumb:active,
+.s-ph-crumbs__more:active {
+  background: var(--bg-hover);
+}
+
+.s-ph-crumbs__sep {
+  flex: none;
+  width: 16px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-faint);
+}
+
+.s-ph-crumbs__sep svg {
+  width: 14px;
+  height: 14px;
+}
+
+.s-ph[dir="rtl"] .s-ph-crumbs__sep svg {
+  transform: scaleX(-1);
+}
+
+/* The Notes tab's Tree | Folders switch, in its top bar. */
+/* Sized to its two words, at 14px with 10px of air each side, so it fits
+   beside the actions in the open Fold's list column (about 250px) in either
+   language without cutting a word. */
+.s-ph-seg--bar {
+  flex: none;
+  padding: 2px;
+  margin-inline: 8px 4px;
+}
+
+.s-ph-seg--bar .s-ph-seg__btn {
+  flex: none;
+  padding: 0 10px;
+  font-size: 14px;
+  overflow: visible;
+}
+
+/* The tree's rows: the one row height of every list (so the long tree can be
+   windowed by a sum), a disclosure chevron that turns down when open. */
+.s-ph-trow {
+  height: 52px;
+  gap: 8px;
+}
+
+.s-ph-trow__disc {
+  flex: none;
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-faint);
+}
+
+.s-ph-trow__disc svg {
+  transition: transform 150ms ease;
+}
+
+.s-ph[dir="rtl"] .s-ph-trow__disc svg {
+  transform: scaleX(-1);
+}
+
+.s-ph-trow[aria-expanded="true"] .s-ph-trow__disc svg,
+.s-ph[dir="rtl"] .s-ph-trow[aria-expanded="true"] .s-ph-trow__disc svg {
+  transform: rotate(90deg);
+}
+
+.s-ph-row--files .s-ph-row__name {
+  color: var(--text-muted);
+}
+
+.s-ph-row--file {
+  font-size: 15px;
+}
+
+/* The row whose note is open beside the list (two columns). */
+.s-ph-row--current {
+  background: var(--accent-soft, var(--bg-hover));
+}
+
+.s-ph-row--current .s-ph-row__glyph {
+  color: var(--accent);
+}
+
+.s-ph-files {
+  margin-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.s-ph-emptyfolder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 24px 16px;
+}
+
+/* One row's height exactly, like every row of the tree (it is windowed by
+   a sum): the words give way before the button does. */
+.s-ph-tree__empty .s-ph-emptyfolder {
+  height: 52px;
+  padding-block: 0;
+  flex-wrap: nowrap;
+  box-sizing: border-box;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.s-ph-tree__empty .s-ph-emptyfolder__text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.s-ph-tree__empty .s-ph-btn {
+  flex: none;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 15px;
+}
+
+.s-ph-emptyfolder__text {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.s-ph-tree__empty .s-ph-emptyfolder__text {
+  font-size: 14px;
+}
+
+/* Pull to refresh (usePullRefresh.ts): a pill that slides down from under the
+   top bar. The list never moves; only the pill's transform is written. */
+.s-ph-pull {
+  position: sticky;
+  top: 0;
+  height: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.s-ph-pull__pill {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font: 500 14px/1 var(--font-ui);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+  transform: translate3d(0, -48px, 0);
+  transition: transform 180ms ease;
+}
+
+.s-ph-pull[data-phase="pull"] .s-ph-pull__pill,
+.s-ph-pull[data-phase="ready"] .s-ph-pull__pill {
+  transition: none;
+}
+
+.s-ph-pull[data-phase="ready"] .s-ph-pull__pill,
+.s-ph-pull[data-phase="busy"] .s-ph-pull__pill {
+  color: var(--accent);
+}
+
+/* TWO COLUMNS BY SHAPE (shellQuery.ts TABLET_QUERY): the list column is a
+   share of the room, remembered by the grip (ColumnGrip.tsx) and clamped so
+   the note keeps a phone's measure on the open Fold (690 wide). */
+.s-ph--tablet .s-ph-cols__list {
+  width: clamp(240px, var(--ph-list-w, min(40%, 340px)), max(240px, calc(100% - 320px)));
+}
+
+.s-ph--tablet .s-ph-cols--wide .s-ph-cols__list {
+  width: auto;
+}
+
+.s-ph-cols__grip {
+  flex: none;
+  width: 16px;
+  margin-inline: -8px;
+  position: relative;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.s-ph-cols__grip::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 6px;
+  width: 4px;
+  height: 36px;
+  margin-top: -18px;
+  border-radius: 2px;
+  background: var(--text-faint);
+  opacity: 0.45;
+}
+
+.s-ph-cols__grip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.s-ph-cols__grip:focus-visible::before,
+.s-ph-cols__grip--drag::before {
+  background: var(--accent);
+  opacity: 1;
+}
+
+/* A side sheet (the note's ⋯) anchors to the NOTE's column: no wider than
+   it, and the dimming over it alone — the list beside stays readable. */
+.s-ph--tablet .s-ph-sheet--side .s-ph-sheet__panel {
+  width: min(360px, var(--ph-detail-w, 360px));
+}
+
+.s-ph--tablet .s-ph-sheet--side .s-ph-sheet__scrim {
+  background: linear-gradient(to left, rgb(0 0 0 / 0.45) var(--ph-detail-w, 100%), transparent var(--ph-detail-w, 100%));
+}
+
+.s-ph--tablet[dir="rtl"] .s-ph-sheet--side .s-ph-sheet__scrim {
+  background: linear-gradient(to right, rgb(0 0 0 / 0.45) var(--ph-detail-w, 100%), transparent var(--ph-detail-w, 100%));
 }

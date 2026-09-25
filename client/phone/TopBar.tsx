@@ -20,9 +20,13 @@ export interface TopBarProps {
   hidden?: boolean;
   /** A title that is a note's own name takes its own direction. */
   userTitle?: boolean;
+  /** Drawn where the title stands (a folder's crumbs, the Notes tab's
+   *  Tree | Folders switch); the title is still the screen's heading, for a
+   *  screen reader, and the document's title. */
+  lead?: ReactNode;
 }
 
-export default function TopBar({ title, onBack, onTitle, actions, hidden = false, userTitle = false }: TopBarProps) {
+export default function TopBar({ title, onBack, onTitle, actions, hidden = false, userTitle = false, lead }: TopBarProps) {
   // The note's own name isolates its direction; the bar keeps the chrome's,
   // so an English title in an Arabic shell still starts at the leading edge.
   const name = userTitle ? <bdi dir="auto">{title}</bdi> : title;
@@ -35,7 +39,12 @@ export default function TopBar({ title, onBack, onTitle, actions, hidden = false
       ) : (
         <span className="s-ph-top__gap" aria-hidden="true" />
       )}
-      {onTitle ? (
+      {lead ? (
+        <>
+          <h1 className="s-sr-only">{name}</h1>
+          <div className="s-ph-top__lead">{lead}</div>
+        </>
+      ) : onTitle ? (
         <button type="button" className="s-ph-top__title s-ph-top__title--button" onClick={onTitle}>
           {name}
         </button>
