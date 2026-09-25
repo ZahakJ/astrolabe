@@ -47,7 +47,6 @@ import { FRONTMATTER_RE } from "../shared/noteParse.ts";
 import { isNotePath } from "../shared/noteFormat.ts";
 import { clientIp, isPublishLimited } from "./auth.ts";
 import { isNotePublished } from "./indexer.ts";
-import { jsonBody } from "./requestBody.ts";
 import { getSettings, effectiveSettings } from "./settings.ts";
 import { createSpeakCache, speakCacheKey, type SpeakCache } from "./speakCache.ts";
 import {
@@ -124,6 +123,20 @@ async function noteSource(rel: string): Promise<string | null> {
 }
 
 // ── The routes ──────────────────────────────────────────────────────────────
+
+/** The body, as an object. Its own small reader rather than
+ *  server/requestBody.ts, which is a part of api.ts's family
+ *  (tests/splits.test.ts) and not a door for the route files that stand
+ *  apart, as server/voice.ts does. */
+async function jsonBody(c: Context): Promise<Record<string, unknown>> {
+  try {
+    const body: unknown = await c.req.json();
+    if (typeof body === "object" && body !== null && !Array.isArray(body)) return body as Record<string, unknown>;
+  } catch {
+    // fall through
+  }
+  throw new VaultError(400, "Invalid JSON body");
+}
 
 export const speakRoutes = new Hono();
 

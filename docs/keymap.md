@@ -41,6 +41,7 @@ is what refuses two rows claiming one keystroke; see [Development](development.m
 | `Ctrl/Cmd Shift B` | Bookmark the open note, or take the bookmark off (`Bookmarks.md`) |
 | `Ctrl/Cmd Alt B` | Collapse / reopen the **Notes sidebar** |
 | `Ctrl/Cmd Alt Shift B` | Collapse / reopen **Outline & backlinks** |
+| `Ctrl/Cmd Shift .` | [Read the selection aloud](read-aloud.md) — in the editor, the reading view, a book or a feed item; the period because a sentence ends there |
 | `Ctrl/Cmd Shift Z` | Zen mode — all chrome steps aside (`Esc` returns) |
 | `Ctrl/Cmd \` | Split the pane — the new one opens on the same note |
 | `Ctrl/Cmd Shift \` | Split downwards instead of beside |

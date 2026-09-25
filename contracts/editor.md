@@ -457,7 +457,10 @@ seam between them was the defect; this is the rule that closes it.
   the selection becomes somewhere else — and each rule between them cost 11px; and desktop rows are
   **28px** (`padding: 4px 10px`), with the coarse block's 44px floor untouched, since that is the
   one place a menu row is a touch target. Measured after, on a markdown note at 1440×900:
-  **233×540, fifteen rows in four groups, no internal scroll** (`scrollHeight === clientHeight`).
+  **233×540, fifteen rows in four groups, no internal scroll** (`scrollHeight === clientHeight`);
+  Read aloud joined the untitled carry-off group as the sixteenth row (it is a verb about the
+  selected words; a rule of its own would have cost 11px for one row): **233×568** at 1280×800,
+  still no internal scroll (features.md, "Read aloud").
   It is still tall enough to be clamped against a selection low in the viewport; that is a
   consequence of the vocabulary being complete, and the next cut has to come from the vocabulary.
 - **The colour group is one row.** The two tiers stay (see *Coloured text*) but the reader does not

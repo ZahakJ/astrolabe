@@ -182,3 +182,5 @@ self — is also mirrored into the vault's own `.astrolabe/` folder, so a second
 same vault finds it ([settings travel with the vault](backup-and-sync.md#settings-travel-with-the-vault)). The Linux build
 is packaged with `asar: false` deliberately, because the server the app starts reads real files
 from the package.
+
+The [Read aloud](read-aloud.md) voices install into that same data directory (`tts/venv/` and `models/tts/`), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with `uv` or the machine's Python 3.10–3.13 and runs the engine on the processor as a child process. Nothing about the app's permissions changes for it — the page only plays sound.

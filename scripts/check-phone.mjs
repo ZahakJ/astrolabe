@@ -487,6 +487,43 @@ try {
         }
       }
 
+      // ── Read aloud from the note's ⋯ sheet (docs/read-aloud.md) ─────────
+      // The Actions segment carries "Read this note aloud"; a tap closes the
+      // sheet and the floating player shows over the note, above the tab
+      // bar's footing. An answer from `POST /api/speak` must arrive (audio
+      // with an engine or ASTROLABE_SPEAK_FAKE=1; the 409 that names what to
+      // install without — the player then says whose voices read).
+      {
+        let answered = null;
+        const onAnswer = (r) => {
+          if (r.url().endsWith("/api/speak") && r.request().method() === "POST" && answered === null) answered = r.status();
+        };
+        page.on("response", onAnswer);
+        await press(page.locator(".s-ph-note .s-ph-top__actions button").last());
+        await settle();
+        await press(page.locator('.s-ph-seg__btn[data-segment="actions"]'));
+        await settle(450);
+        const row = page.locator('.s-ph-actions__row[data-action="read-aloud"]');
+        check((await row.count()) === 1, tag("the note sheet has a Read aloud row"));
+        if ((await row.count()) === 1) {
+          await press(row);
+          await page.waitForSelector(".s-speak", { timeout: 10000 }).catch(() => {});
+          for (let waited = 0; answered === null && waited < 10000; waited += 100) await page.waitForTimeout(100);
+          check((await page.locator(".s-speak").count()) === 1, tag("the floating player shows over the note"));
+          check(answered === 200 || answered === 409, tag("…and the speaker answered"), String(answered));
+          const box = await page.locator(".s-speak").boundingBox();
+          const vh = page.viewportSize()?.height ?? 0;
+          check(box !== null && box.y + box.height <= vh, tag("…inside the screen"), JSON.stringify(box));
+          await measure("read-aloud-player", ".s-speak");
+          await press(page.locator(".s-speak .s-speak__btn").last());
+          await settle(300);
+        } else {
+          await page.goBack();
+          await settle();
+        }
+        page.off("response", onAnswer);
+      }
+
       // ── the keyboard's bar (a finger's editor) ────────────────────────────
       if (shape.name === "phone") {
         await page.locator(".s-ph-note .cm-content").first().tap();
