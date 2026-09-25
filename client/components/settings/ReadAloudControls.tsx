@@ -21,7 +21,7 @@ import { SPEAK_VOICES, type SpeakEngineId, type SpeakStatus } from "../../../sha
 import { SegmentedControl } from "../controls/Fields.tsx";
 import { Select } from "../controls/Select.tsx";
 import { useSettings } from "./context.ts";
-import { modelSize } from "./VoiceEngineNote.tsx";
+import { modelSize } from "./voiceStatus.ts";
 
 function engineName(e: SpeakEngineId): string {
   return e === "natural" ? t("speakEngineNatural") : t("speakEngineLight");
