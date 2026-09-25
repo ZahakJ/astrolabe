@@ -13,7 +13,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
-import { createNav, readMark, remapScreen, screenKey, topOf, type HistoryLike, type NavState, type Screen } from "../client/phone/nav.ts";
+import { createNav, readMark, readSnapshot, remapScreen, screenKey, topOf, type HistoryLike, type NavSnapshot, type NavState, type Screen } from "../client/phone/nav.ts";
+import { chainTo, foldersDownTo, parentPath, upChain } from "../client/phone/up.ts";
 import { contentOf, isDetail, isFull, isList } from "../client/phone/kinds.ts";
 import { isHardwareKeystroke } from "../client/phone/hardwareKeyboard.ts";
 import { PHONE_SHELL_QUERY, shellFor } from "../client/shellQuery.ts";
@@ -314,6 +315,174 @@ describe("Round 2 of the stack (3.27.0): scroll memory, the leave guard, popTo, 
     assert.ok(isFull({ kind: "surface", tab: "~orbits/a.md" }) && isFull({ kind: "surface", tab: "Library/Book.pdf" }));
     assert.ok(!isFull({ kind: "surface", tab: "~graph" }));
     assert.equal(contentOf({ kind: "deck", path: "a.md" }), "~orbits");
+  });
+});
+
+describe("BACK MEANS UP (3.34): a folder's chevron goes to its parent, and the stack survives a reload", () => {
+  const root = { kind: "root", tab: "notes" } as const;
+  /** A nav that persists, like the shell's; `reload()` builds a SECOND nav on
+   *  the same history — what a page reload does: the browser keeps its
+   *  entries and their states, the page keeps only what it wrote down. */
+  function persisted() {
+    const history = new FakeHistory();
+    let saved: string | null = null;
+    const make = () => {
+      const nav = createNav({
+        history,
+        urlFor: (s) => (s.kind === "note" ? `/${s.path.replace(/\.md$/, "")}` : "/"),
+        onChange: () => {},
+        persist: (snap: NavSnapshot) => (saved = JSON.stringify(snap)),
+      });
+      history.onPop = (state) => nav.onPop(state);
+      return nav;
+    };
+    return { history, make, saved: () => saved, forget: () => (saved = null) };
+  }
+  const up = (nav: ReturnType<typeof createNav>): void => {
+    const chain = upChain(nav.state().stacks[nav.state().tab], nav.state().tab);
+    assert.ok(chain, "a folder has somewhere to go up to");
+    nav.upTo(chain!);
+  };
+
+  it("THE REPORT: Notes → a folder two down → Today → Notes, and the chevron is the parent, not Today", async () => {
+    const { history, make } = persisted();
+    const nav = make();
+    nav.start("today");
+    nav.switchTab("notes");
+    nav.push(folder("Maths"));
+    nav.push(folder("Maths/History"));
+    nav.switchTab("today");
+    nav.switchTab("notes");
+    assert.deepEqual(topOf(nav.state()), folder("Maths/History"), "the tab comes back on its folder");
+    up(nav);
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), folder("Maths"));
+    assert.equal(nav.state().tab, "notes");
+    // The OS back from there walks up the tab before it leaves it.
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), root);
+    await history.back();
+    assert.equal(nav.state().tab, "today");
+  });
+
+  it("a tab switch pushes an entry per level, so the browser's back walks up the tab first", async () => {
+    const { history, make } = persisted();
+    const nav = make();
+    nav.start("today");
+    nav.switchTab("notes");
+    nav.push(folder("A"));
+    nav.push(note("A/x.md"));
+    nav.switchTab("today");
+    const before = history.entries.length;
+    nav.switchTab("notes");
+    assert.equal(history.entries.length, before + 3, "root, the folder, the note");
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), folder("A"));
+    // Tapping the active tab still goes home in one move.
+    nav.switchTab("notes");
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), root);
+  });
+
+  it("A RELOAD two folders down resumes there, and the chevron pops to the parent's own entry", async () => {
+    const { history, make, saved } = persisted();
+    const first = make();
+    first.start("today");
+    first.switchTab("notes");
+    first.push(folder("Maths"));
+    first.push(folder("Maths/History"));
+    first.switchTab("search");
+    first.switchTab("notes");
+    // The reload.
+    const nav = make();
+    assert.equal(nav.resume(history.state, saved(), "/"), true);
+    assert.deepEqual(topOf(nav.state()), folder("Maths/History"));
+    assert.equal(nav.state().stacks.search.length, 1, "the other tabs' stacks come back too");
+    const at = history.index;
+    up(nav);
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), folder("Maths"));
+    assert.equal(history.index, at - 1, "a pop, not a new entry: the record said the parent is right under it");
+  });
+
+  it("a reload with nothing written down still goes up — and rewrites history so the back gesture does too", async () => {
+    const { history, make, forget } = persisted();
+    const first = make();
+    first.start("today");
+    first.switchTab("notes");
+    first.push(folder("Maths"));
+    first.push(folder("Maths/History"));
+    forget();
+    const nav = make();
+    assert.equal(nav.resume(history.state, null, "/"), true);
+    up(nav);
+    await history.settle();
+    assert.deepEqual(topOf(nav.state()), folder("Maths"));
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), root, "back from the parent is the root, not home");
+  });
+
+  it("a folder opened from a pinned row goes up by its path, level by level", async () => {
+    const { history, make } = persisted();
+    const nav = make();
+    nav.start("notes");
+    nav.push(folder("a/b/c"));
+    up(nav);
+    await history.settle();
+    assert.deepEqual(nav.state().stacks.notes, [root, folder("a"), folder("a/b")]);
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), folder("a"));
+    await history.back();
+    assert.deepEqual(topOf(nav.state()), root);
+  });
+
+  it("the address wins: a mark whose screen is not the loaded address is not resumed", () => {
+    const { history, make, saved } = persisted();
+    const first = make();
+    first.start("notes");
+    first.push(note("A.md"));
+    const nav = make();
+    assert.equal(nav.resume(history.state, saved(), "/B"), false);
+    assert.equal(nav.resume(null, saved(), "/A"), false, "no mark: a fresh load, nothing to resume");
+    assert.equal(nav.resume(history.state, saved(), "/A"), true);
+  });
+
+  it("a sheet does not survive a reload: the page comes back on the screen under it", async () => {
+    const { history, make, saved } = persisted();
+    const first = make();
+    first.start("notes");
+    first.push(note("A.md"));
+    first.openSheet("note");
+    const nav = make();
+    assert.equal(nav.resume(history.state, saved(), "/A"), true);
+    await history.settle();
+    assert.deepEqual(nav.state().sheets, []);
+    assert.deepEqual(topOf(nav.state()), note("A.md"));
+    assert.deepEqual(readMark(history.state)?.entry.sheets, [], "history is on the bare note's entry");
+  });
+
+  it("readSnapshot is total", () => {
+    assert.equal(readSnapshot(null), null);
+    assert.equal(readSnapshot("{not json"), null);
+    assert.equal(readSnapshot({ v: 2, tab: "notes", depth: 0, stacks: {}, entries: [] }), null);
+    const snap = readSnapshot({ v: 1, tab: "notes", depth: 1, stacks: { notes: [root, folder("A")], search: [folder("x")] }, entries: [null, { tab: "notes", stack: [root], sheets: [] }, { bad: true }] });
+    assert.ok(snap);
+    assert.deepEqual(snap!.stacks.notes, [root, folder("A")]);
+    assert.deepEqual(snap!.stacks.search, [{ kind: "root", tab: "search" }], "a stack that does not start at its root is dropped");
+    assert.deepEqual(snap!.entries, [null, { tab: "notes", stack: [root], sheets: [] }, null]);
+  });
+
+  it("up, by path (client/phone/up.ts)", () => {
+    assert.equal(parentPath("a/b/c"), "a/b");
+    assert.equal(parentPath("a"), "");
+    assert.deepEqual(foldersDownTo("a/b/c"), ["a", "a/b", "a/b/c"]);
+    assert.deepEqual(foldersDownTo(""), []);
+    assert.deepEqual(upChain([root, folder("a"), folder("a/b")], "notes"), [root, folder("a")]);
+    assert.deepEqual(upChain([root, folder("a")], "notes"), [root]);
+    assert.deepEqual(upChain([root, { kind: "tag", tag: "x" }, folder("a/b")], "notes"), [root, folder("a")], "a tag the reader came by is not on the way up");
+    assert.equal(upChain([root, note("a.md")], "notes"), null, "only a folder goes up by path");
+    assert.deepEqual(chainTo([root, folder("a"), folder("a/b"), folder("a/b/c")], "notes", ""), [root]);
+    assert.deepEqual(chainTo([folder("a/b/c")], "notes", "a"), [root, folder("a")], "a stack with no root gets one");
   });
 });
 

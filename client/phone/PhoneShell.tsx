@@ -81,6 +81,7 @@ import { PhoneContext, type LeaveGuard, type OpenHow, type PhoneApi, type SheetD
 import { contentOf, isDetail, isFull, isList } from "./kinds.ts";
 import { hardwareKeyboardSeen, installHardwareKeyboardWatch, subscribeHardwareKeyboard } from "./hardwareKeyboard.ts";
 import { createNav, sameScreen, screenKey, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
+import { chainTo, upChain } from "./up.ts";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
 import "./phone.css";
@@ -296,6 +297,22 @@ function applyScreen(screen: Screen): void {
   }
 }
 
+/** Where the stack is kept across a reload: sessionStorage (this tab of the
+ *  browser, this origin), under the vault's own name — two vaults opened in
+ *  one tab (the pocket, then another repository) never inherit each other's
+ *  folders. */
+function navKey(): string {
+  return `astrolabe.phone-nav:${useStore.getState().siteName}`;
+}
+
+function readSavedNav(): string | null {
+  try {
+    return sessionStorage.getItem(navKey());
+  } catch {
+    return null;
+  }
+}
+
 function useMatch(query: string): boolean {
   const subscribe = useCallback(
     (cb: () => void) => {
@@ -397,6 +414,16 @@ export default function PhoneShell() {
       history: window.history,
       urlFor: urlForScreen,
       onChange: (st, why) => onNavChangeRef.current(st, why),
+      // THE STACK SURVIVES A RELOAD (nav.ts `resume`): written on every
+      // change, read once at start. A private window that refuses storage
+      // loses only this.
+      persist: (snap) => {
+        try {
+          sessionStorage.setItem(navKey(), JSON.stringify(snap));
+        } catch {
+          /* storage refused or full: a reload starts at Today, as before */
+        }
+      },
       // The list a push leaves: the stage's scroller on a phone, the list
       // column's on a tablet (where the list stays mounted anyway).
       scrollOf: () => document.querySelector<HTMLElement>(".s-ph-stage .s-ph-scroll")?.scrollTop ?? null,
@@ -532,6 +559,9 @@ export default function PhoneShell() {
     if (tree === null && !locked) return;
     started.current = true;
     const pathname = location.pathname;
+    // A RELOAD (the browser kept this entry's mark), or the app brought back
+    // by the OS: the run resumes where it was, when the address agrees.
+    if (!locked && nav.resume(window.history.state, readSavedNav(), pathname)) return;
     if (pathname === "/calendar") {
       nav.start("calendar");
       return;
@@ -693,7 +723,12 @@ export default function PhoneShell() {
   const top = stack[stack.length - 1];
   const back = (): void => nav.back();
 
-  const render = (screen: Screen, withBack: boolean, backOverride?: () => void): ReactNode => {
+  /** Up from the folder at `at` in the stack to folder `path` ("" = the root). */
+  const upFrom = (at: number, path: string): void => {
+    if (!st) return;
+    nav.upTo(chainTo(stack.slice(0, at + 1), st.tab, path));
+  };
+  const render = (screen: Screen, withBack: boolean, backOverride?: () => void, at = stack.length - 1): ReactNode => {
     const onBack = backOverride ?? (withBack ? back : undefined);
     switch (screen.kind) {
       case "root":
@@ -711,7 +746,20 @@ export default function PhoneShell() {
         }
         return null;
       case "folder":
-        return <NotesScreen key={screen.path} path={screen.path} onBack={onBack} />;
+        // BACK MEANS UP: a folder's ‹ is its parent by path (./up.ts), never
+        // merely the browser's back, which may be another tab's entry.
+        return (
+          <NotesScreen
+            key={screen.path}
+            path={screen.path}
+            onBack={() => {
+              const chain = st ? upChain(stack.slice(0, at + 1), st.tab) : null;
+              if (chain) nav.upTo(chain);
+              else back();
+            }}
+            onUp={(p) => upFrom(at, p)}
+          />
+        );
       case "tag":
         return <TagScreen key={screen.tag} tag={screen.tag} onBack={back} />;
       case "note":
@@ -767,6 +815,7 @@ export default function PhoneShell() {
     // the tree is the list's, not the note's (the note's own ‹ closes the
     // note). Its Back pops to the list's parent, whatever is open beside it.
     const listBack = listAt > 0 ? () => nav.popTo(stack[listAt - 1]) || nav.back() : undefined;
+    // (A folder in the list column draws its own ‹, which goes up by path.)
     body = (
       <div className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}`}>
         {full ? (
@@ -775,7 +824,7 @@ export default function PhoneShell() {
           </div>
         ) : (
         <div className="s-ph-cols__list">
-          <Suspense fallback={<Loading />}>{render(list, false, listBack)}</Suspense>
+          <Suspense fallback={<Loading />}>{render(list, false, listBack, listAt)}</Suspense>
         </div>
         )}
         {!wide && (
