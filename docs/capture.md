@@ -54,11 +54,23 @@ The recordings are ordinary attachments, filed by your attachments setting (Sett
 
 **Settings.** Three rows:
 
-- Settings → Vault → **Voice transcription** chooses the model. The default is whisper's large turbo model in its compact form (574 MB), which was the most accurate on Arabic of everything tried. The full-precision version (1.6 GB) is there too, and a small compact model (190 MB) for a server with no graphics card. **Off** keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and what it last ran on.
+- Settings → Vault → **Voice transcription** chooses the model and where it runs. The default is whisper's **small** model, which any processor runs faster than you speak. **Base** is quicker still and makes more mistakes in Arabic; the **large turbo** (compact, or in full precision) is the most accurate, and the heaviest. Open the list to see what each one downloads on this machine and, when the processor will run it, how long a minute of speech takes on two cores. Beside the list, **Auto** uses the graphics card when there is one that works and the processor otherwise; **Processor only** never touches the graphics card. **Off** keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and which model ran where — "Small last ran on the processor". An instance that never chose a model has Small; one that chose the large turbo keeps it.
 - Settings → Vault → **Keep voice recordings**. On by default. Off deletes a recording once its words are safely in the vault. A recording whose transcription failed — or heard nothing — is always kept, whatever this says.
 - Settings → Language & dates → **Voice note language**. **Detect** lets each recording be heard for what it is, which suits a vault that speaks both languages. Pin **Arabic** or **English** if the detector keeps mishearing you.
 
-**What runs where.** Transcription is whisper.cpp, run by the server on the machine's graphics card when it has one (through Vulkan or CUDA; on a Mac, Metal) and on its processor otherwise, which is much slower. The model lives in the data directory, never in the vault, so it is not synced, published or committed. The desktop app is its own server, so on a desktop the words are made on that desktop.
+**What runs where.** Transcription runs on the machine the server runs on, and it does not need a graphics card. On the processor, whisper runs as an ONNX model through onnxruntime on the machine's physical cores (up to eight); on a graphics card it runs as whisper.cpp through Vulkan or CUDA, or Metal on a Mac. With **Auto**, a card whose driver will not load or finds no device is passed over without a word, and the same recording is heard on the processor.
+
+How long a minute of speech takes on **two cores** of a desktop processor (measured with the other cores busy, so a machine of your own should do at least this well):
+
+| Model | Download on the processor | A minute of speech | Memory while it works |
+| --- | --- | --- | --- |
+| Base | 161 MB | about 5 s | about 0.9 GB |
+| **Small** (the default) | 375 MB | about 15 s | about 1.5 GB |
+| Large turbo | 1.0 GB | about 23 s | about 2.7 GB |
+
+Arabic takes longer than English with Small (its words cost the decoder more steps): about 14 s for a minute of English, 20 s for Arabic. A recording is heard half a minute at a time, and each half-minute's language is detected on its own, so a note that starts in English and goes on in Arabic comes back in both.
+
+The model lives in the data directory, never in the vault, so it is not synced, published or committed. The desktop app is its own server, so on a desktop the words are made on that desktop.
 
 **From the phone app.** The share sheet ("Share to Astrolabe") has the same round button under the text: say it instead of typing it, and the words land in the same inbox note on your server. A vault opened from GitHub on the phone has no server to transcribe with, so a voice note there is **kept**: the recording is saved into the vault and linked from the day's inbox, committed and pushed like any other change, and the sheet says the words need an Astrolabe server. It is not transcribed later on its own — play it wherever you open the vault.
 
