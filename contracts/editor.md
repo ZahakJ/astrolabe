@@ -728,11 +728,41 @@ positions. `ignoreEvent` yields the tools to the widget, and the PRESS (`mousedo
 the browser so a drag can start (see below); the click that follows a press that did not drag is
 answered by the grip, which puts the caret after the embed as CodeMirror's press used to.
 
+## Video in a note (client/editor/widgets.ts VideoWidget, ExternalVideoWidget; client/reading/video.ts)
+
+`![[clip.mp4]]` is kind `"video"` in `parseEmbed` (client/editor/embeds.ts) for mp4, m4v, webm, mov,
+mkv and ogv — `isVideoName` (shared/mediaEmbeds.ts) is asked BEFORE `isAudioName`, so a `.webm` is
+a film; `ATTACHMENT_EXT` no longer lists any film. A film's `|…` is pipe-separated tokens in any
+order: a 2–4 digit width and `poster=<attachment name>`; parseEmbed takes the width, the player
+parses the rest (`parseVideoAlias`, `parseMediaFragment` — shared/videoEmbeds.ts, kept out of the
+entry chunk). `![](media/clip.mp4)` (the `Image` node) is the same player with a resolved URL.
+
+- **One builder.** `VideoWidget` wraps `videoPlayer()` from client/reading/video.ts — the reading
+  view's, the blog's and the phone's player — in `.cm-s-embed-video`, a block across the column.
+  `eq` compares name, src, width, alias and anchor; `estimatedHeight` is the measured height
+  (`vid:` key) or the image estimate; the player calls `onResize` → `requestMeasure()` when its
+  metadata lands; `ignoreEvent()` is true (the controls are the browser's).
+- **On the caret's line it is source**, like every embed that is not a picture.
+- **`[[clip.mp4#t=1:23]]`** is a moment link (`isTimedMediaName`), seeking the film's player as it
+  seeks a sound's.
+- **Another site's film.** With `store.externalVideo` on (Settings → Publishing & comments; default
+  off; see public-site.md), a line that is nothing but a YouTube / Vimeo / PeerTube address
+  (`externalVideoLine`), off the caret, is replaced by `ExternalVideoWidget`, and so is an
+  `![](https://…)` whose URL `parseExternalVideo` accepts. The editor draws a CARD — the host's
+  still where it has one at a known address (YouTube), and a play button that swaps in the frame —
+  never the frame on a redraw. Off, neither check runs and the address is the link it was.
+- **Uploads.** A dropped or pasted film goes through the same `insertUploads` path and lands as
+  `![[name.ext]]`. Its cap is `VIDEO_UPLOAD_MAX_MB` (256; shared/limits.ts `uploadCapMb` by
+  extension on the client, by the SNIFFED kind on the server) against a picture's 10.
+
 ## Embeds you can pick up (shared/embedActions.ts, editor/embedGrip.ts, client/embedPickup.ts, client/embedMenu.ts)
 
-An image (`![[x.png]]` and `![alt](path)`), a file card, a drawn PDF page, a drawing and an audio
-player are one family: they DRAG and they answer ONE MENU, in the editor, the reading view and
-(as a sheet) on the phone. Note transclusions are not in it — their card is words.
+An image (`![[x.png]]` and `![alt](path)`), a file card, a drawn PDF page, a drawing, an audio
+player and a video player are one family: they DRAG and they answer ONE MENU, in the editor, the
+reading view and (as a sheet) on the phone. Note transclusions are not in it — their card is words.
+A player's own face (`<video>`, `<audio>`) is its scrubber, so a press there never makes the embed
+draggable (`ev.target instanceof HTMLMediaElement`); a film is picked up by its caption. Copy image
+is for pictures only (`embedMenuActions`: image, drawing, drawn page).
 
 - **The arithmetic is pure and tested** (`tests/embedActions.test.ts`): `embedSpansIn` /
   `embedSpanNear` / `findEmbedInLines` find the exact source; `moveEmbedEdit` moves a STANDALONE
