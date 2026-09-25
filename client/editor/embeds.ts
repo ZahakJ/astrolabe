@@ -4,13 +4,14 @@
 
 import { withPreview } from "../api.ts";
 import { drawingSvgPath, isDrawingPath } from "../../shared/noteFormat.ts";
-import { isAudioName, pdfPageOf } from "../../shared/mediaEmbeds.ts";
+import { isAudioName, isVideoName, pdfPageOf } from "../../shared/mediaEmbeds.ts";
 import { clearBannerCache } from "../banner.ts";
 import { t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
 import { isImagePath } from "../../shared/fileKinds.ts";
 
-const ATTACHMENT_EXT = /\.(pdf|mp4|webm|mp3|ogg|wav|flac|zip|canvas|json|csv|txt)$/i;
+// Films left this list in 3.32: they are players now (kind "video" below).
+const ATTACHMENT_EXT = /\.(pdf|mp3|ogg|wav|flac|zip|canvas|json|csv|txt)$/i;
 
 export interface EmbedParts {
   target: string; // file/note name, may include a path and #heading
@@ -19,7 +20,7 @@ export interface EmbedParts {
   /** "audio" is a sound the browser plays inline (shared/mediaEmbeds.ts);
    *  "pdfpage" is ONE page of a book drawn as a picture — `![[Book.pdf#page=42]]`
    *  — and `page` says which. A PDF with no page is still a "file" card. */
-  kind: "image" | "file" | "note" | "drawing" | "audio" | "pdfpage";
+  kind: "image" | "file" | "note" | "drawing" | "audio" | "video" | "pdfpage";
   page: number | null;
   /** The `#…` suffix, kept rather than only stripped. A transclusion that
    *  names an anchor pulls in JUST that block — `![[Paper#eq:fourier]]` is one
@@ -39,7 +40,12 @@ export function parseEmbed(inner: string): EmbedParts {
   const hash = target.indexOf("#");
   const anchor = hash > 0 ? target.slice(hash + 1).trim() || null : null;
   if (hash > 0) target = target.slice(0, hash).trim();
-  const width = alias && /^\d{2,4}$/.test(alias) ? parseInt(alias, 10) : null;
+  const video = isVideoName(target);
+  // A film's `|…` is a list — a width and a poster, in either order; the
+  // player reads the rest of it (the `anchor`'s `t=` and the alias's
+  // `poster=`, reading/video.ts), which keeps those parsers out of the entry.
+  const w = video ? alias?.split("|").map((s) => s.trim()).find((s) => /^\d{2,4}$/.test(s)) ?? null : alias;
+  const width = w && /^\d{2,4}$/.test(w) ? parseInt(w, 10) : null;
   // A drawing before an image: `.excalidraw.svg` is the PICTURE of one and
   // renders as an image, but `![[sketch.excalidraw]]` names the drawing
   // itself, whose picture is looked up beside it (drawingSvgName).
@@ -50,7 +56,9 @@ export function parseEmbed(inner: string): EmbedParts {
       ? "image"
       : page !== null
         ? "pdfpage"
-        : isAudioName(target)
+        : video
+          ? "video"
+          : isAudioName(target)
           ? "audio"
           : ATTACHMENT_EXT.test(target)
             ? "file"

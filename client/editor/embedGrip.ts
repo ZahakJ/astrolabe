@@ -34,7 +34,7 @@ import { pathForView } from "./buffers.ts";
 import { notePathFacet } from "./livePreview.ts";
 
 /** What an embed widget's outermost element carries. */
-export const EMBED_WIDGET_SEL = ".cm-s-embed-image, .cm-s-embed-file, .cm-s-embed-pdfpage, .cm-s-embed-audio";
+export const EMBED_WIDGET_SEL = ".cm-s-embed-image, .cm-s-embed-file, .cm-s-embed-pdfpage, .cm-s-embed-audio, .cm-s-embed-video";
 
 function notePathOf(view: EditorView): string {
   return pathForView(view) ?? view.state.facet(notePathFacet);
@@ -84,7 +84,8 @@ export function embedGrip() {
         // the phone's sheet — client/phone/embedSheet.ts).
         const onDown = (ev: PointerEvent): void => {
           const el = widgetOf(view, ev.target);
-          if (el && ev.button === 0) el.draggable = ev.pointerType !== "touch";
+          // A player's own face is its scrubber: picked up by the caption.
+          if (el && ev.button === 0) el.draggable = ev.pointerType !== "touch" && !(ev.target instanceof HTMLMediaElement);
         };
         const onDragStart = (ev: DragEvent): void => {
           const el = widgetOf(view, ev.target);
@@ -110,7 +111,7 @@ export function embedGrip() {
         // the browser's now, so the drag can start.)
         const onClick = (ev: MouseEvent): void => {
           const el = widgetOf(view, ev.target);
-          if (!el || el.matches(".cm-s-embed-file, .cm-s-embed-audio")) return;
+          if (!el || el.matches(".cm-s-embed-file, .cm-s-embed-audio, .cm-s-embed-video")) return;
           if (ev.target instanceof Element && ev.target.closest(".s-rv-pdfpage__caption")) return;
           const span = embedAtWidget(view, el);
           if (!span) return;

@@ -38,6 +38,8 @@ import {
   resolveRelative,
 } from "./embeds.ts";
 import { audioPlayer } from "../reading/audio.ts";
+import { externalVideoBlock, videoPlayer } from "../reading/video.ts";
+import { parseExternalVideo } from "../../shared/externalVideo.ts";
 import { pdfPageEmbed } from "../reading/pdfPage.ts";
 export type { EmbedParts } from "./embeds.ts";
 export { brokenEmbed, fileUrl, parseEmbed, resolveAttachment, resolveRelative };
@@ -339,6 +341,82 @@ export class AudioWidget extends WidgetType {
     return wrap;
   }
   // The controls are the browser's; a click on them is not a caret move.
+  override ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+// ── Film: `![[clip.mp4]]` as a player ───────────────────────────────────────
+
+export class VideoWidget extends WidgetType {
+  constructor(
+    readonly name: string,
+    /** A URL already known (`![](media/clip.mp4)`); null resolves `name`. */
+    readonly src: string | null,
+    readonly width: number | null,
+    /** The embed's `|…` and `#…`: the player reads its poster and its time. */
+    readonly alias: string | null,
+    readonly anchor: string | null,
+  ) {
+    super();
+  }
+  override eq(other: VideoWidget): boolean {
+    return (
+      other.name === this.name &&
+      other.src === this.src &&
+      other.width === this.width &&
+      other.alias === this.alias &&
+      other.anchor === this.anchor
+    );
+  }
+  /** What it measured last time, else a 16:9 film across the column. */
+  override get estimatedHeight(): number {
+    return knownHeight(`vid:${this.name}:${this.width ?? ""}`) ?? estimateImage(this.width);
+  }
+  toDOM(view: EditorView): HTMLElement {
+    // The same player the reading view, the phone and the site draw
+    // (reading/video.ts). It changes height when its metadata lands, and the
+    // editor is told, as it is for an image.
+    const wrap = document.createElement("span");
+    wrap.className = "cm-s-embed-video";
+    trackHeight(`vid:${this.name}:${this.width ?? ""}`, wrap);
+    wrap.appendChild(
+      videoPlayer({
+        name: this.name,
+        src: this.src,
+        width: this.width,
+        alias: this.alias,
+        anchor: this.anchor,
+        onResize: () => view.requestMeasure(),
+      }),
+    );
+    return wrap;
+  }
+  // The controls are the browser's; a click on them is not a caret move.
+  override ignoreEvent(): boolean {
+    return true;
+  }
+}
+
+// ── Another site's film, once "Embed external video" is on ──────────────────
+
+export class ExternalVideoWidget extends WidgetType {
+  constructor(readonly url: string) {
+    super();
+  }
+  override eq(other: ExternalVideoWidget): boolean {
+    return other.url === this.url;
+  }
+  toDOM(): HTMLElement {
+    const wrap = document.createElement("span");
+    wrap.className = "cm-s-embed-extvideo";
+    const v = parseExternalVideo(this.url);
+    // A card, not the frame: a note being written redraws, and the host's
+    // player loads when the reader presses play (reading/video.ts).
+    if (v) wrap.appendChild(externalVideoBlock(v, true));
+    else wrap.textContent = this.url;
+    return wrap;
+  }
   override ignoreEvent(): boolean {
     return true;
   }

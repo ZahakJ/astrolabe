@@ -397,7 +397,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 3.31.0 = the embed round merged over 3.30.2: both measured against the same
 // parent, so the two overages add: entry 752.7, blog 1054.9, admin 1013.9,
 // phone 861.2. Budgets = the summed actual, rounded up.
-const PHONE_BUDGET = 863 * 1024;
+// VIDEO IN A NOTE: 862.8 → 864.2 kB, +1.4 kB against 6dfd491 — the Arabic
+// dictionary's eleven film keys (0.9 kB) and the entry's share named there.
+const PHONE_BUDGET = 865 * 1024;
 // THE WAY BACK (the always-visible chrome-language switch), measured against
 // a build of 3.30.2: entry 750.8 → 751.5 (+0.7: the store's toggleChromeLang,
 // langPref's chromeLangPref, the chord in globalKeys, the palette's alias
@@ -1030,7 +1032,12 @@ const AUDIENCES = [
   // `![[` popup's cheat sheet — every audience is measured with the larger
   // language); the rest is the seam, `api.renameAttachment` and the move's
   // rename toast. The menu, the grip and the phone sheet are lazy. 750 → 752.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 754 * 1024 },
+  // VIDEO IN A NOTE: 753.8 → 755.0 kB, +1.2 kB against 6dfd491. The Arabic
+  // dictionary is 0.9 kB of it (eleven keys: the player's label and
+  // fallback line, the external card, the Publishing row); the rest is the
+  // film kind in parseEmbed and the store's `externalVideo`. The player, its
+  // parsers and its stylesheet are a lazy chunk (reading/video.ts). 754 → 755.5.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 755.5 * 1024 },
   // THE AUDIT'S LEFTOVERS: 768,771 → 769,042 bytes, +271, measured against a
   // build of 3.30.2 (d3b5398) with only client/ reverted. All of it is the
   // entry stylesheet's RTL glyph rules: the tree's chevron (every panel
@@ -1395,7 +1402,11 @@ const AUDIENCES = [
   // lines (render.ts), which the reading view's drag and its block-precise
   // line landing read. 1051 → 1054.
   // 3.31.1: the leftovers' +271 bytes of RTL glyph rules on top of 3.31.0: 1056.0 exactly. Budget 1057.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1057 * 1024 },
+  // VIDEO IN A NOTE: 1056.0 → 1059.4 kB, +3.4 kB against 6dfd491: the entry's
+  // 1.2 kB above, and render.ts's film stand-in, its chips and the
+  // external-video hand-off (the player and the URL parser load on the first
+  // film). 1057 → 1060.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1060 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1687,7 +1698,9 @@ const AUDIENCES = [
   // 3.31.0 = embeds + the way back merged over 3.30.2: the overages add
   // (entry 753.5, blog 1055.7, admin see below, phone 862.6). Budgets =
   // the summed actual, rounded up.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1017 * 1024 },
+  // VIDEO IN A NOTE: 1016.2 → 1017.7 kB, +1.5 kB against 6dfd491 — the
+  // entry's 1.2 kB and the settings form's `externalVideo`. 1017 → 1018.5.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1018.5 * 1024 },
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
   // other screens, the note screen and the editor behind it are each a lazy

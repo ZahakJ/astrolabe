@@ -46,13 +46,19 @@
 // back); a drag in the reading view shows its drop line and moves the line in
 // the file.
 //
+// Then a film (client/reading/video.ts): the fixture webm uploaded, embedded
+// twice — as dropped, and from twelve seconds — draws as a player in the
+// editor and in the reading view, the second one seeks to 0:12 by its own
+// `#t=`, and a visitor's page carries the player too (the note is published,
+// so the film is theirs to fetch).
+//
 // Last, the dictionary split (3.29): an Arabic chrome whose dictionary chunk
 // is held back 1.5s is watched from its first byte, and no English chrome
 // string and no key name may ever reach its DOM — the switch waits for its
 // strings, so there is no flash of the wrong language.
 
 import { chromium, devices } from "playwright";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync } from "node:fs";
 import enDict from "../client/i18n/en.ts";
 import arDict from "../client/i18n/ar.ts";
 
@@ -70,6 +76,10 @@ const ARABIC_CHROME = new Set(Object.values(arDict).map((v) => v.trim()));
 const [url = "http://localhost:6801", out = "shots"] = process.argv.slice(2);
 const NOTE_PATH = "fidelity-gate.md";
 const EMBED_NOTE = "fidelity-embeds.md";
+const VIDEO_NOTE = "fidelity-video.md";
+// A 40-second, 64×36 WebM (11 kB) — made with ffmpeg once and kept, so the
+// gate needs no encoder: tests/fixtures/video/film.webm.
+const FILM = readFileSync(new URL("../tests/fixtures/video/film.webm", import.meta.url));
 const PNG_NAME = "fidelity-gate.png";
 // A 16×16 opaque PNG, so a bare embed has a box and a `|120` embed a width.
 const PNG = Buffer.from(
@@ -291,11 +301,14 @@ const api = (path, init) =>
   );
 
 let pngPath = null;
+let filmPath = null;
 let cookies = [];
 const cleanup = async () => {
   await api(`/api/note?path=${encodeURIComponent(NOTE_PATH)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (pngPath) await api(`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
+  await api(`/api/note?path=${encodeURIComponent(VIDEO_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
+  if (filmPath) await api(`/api/attachment?path=${encodeURIComponent(filmPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
 };
 
 try {
@@ -529,6 +542,79 @@ try {
     check(lineShown, "embeds: the reading view shows where the drop will land");
     check(saved === `# Pick me up\n\n![[${pngName}|120]]\n\nAlpha paragraph.\n\nBeta paragraph.\n\nGamma paragraph.\n`, "embeds: a drag in the reading view moves the embed's line in the file", JSON.stringify(saved.slice(0, 120)));
     await page.close();
+  }
+
+  // ── A film in a note (client/reading/video.ts) ──────────────────────────
+  // The fixture webm, uploaded the way a drop uploads it and embedded as a
+  // drop embeds it; then the same film from 0:12. Both are players in the
+  // editor and in the reading view, the second has sought to 12 s on its
+  // own, and a visitor's page of the (published) note carries the player.
+  {
+    const up = await apiPage.evaluate(
+      async (b64) => {
+        const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+        const form = new FormData();
+        form.append("file", new File([bytes], "fidelity-film.webm", { type: "video/webm" }), "fidelity-film.webm");
+        const r = await fetch("/api/upload", { method: "POST", body: form });
+        return { status: r.status, body: await r.json().catch(() => null) };
+      },
+      FILM.toString("base64"),
+    );
+    check(up.status === 200 && up.body?.path, "film: the fixture webm uploads", up.status === 200 ? up.body.path : `HTTP ${up.status}`);
+    filmPath = up.body?.path ?? null;
+    const film = filmPath ? filmPath.slice(filmPath.lastIndexOf("/") + 1) : "fidelity-film.webm";
+    const content = `---\npublish: true\n---\n# A film\n\nAs dropped:\n\n![[${film}]]\n\nFrom twelve seconds:\n\n![[${film}#t=12|320]]\n\nparking line\n`;
+    const wv = await api(`/api/note?path=${encodeURIComponent(VIDEO_NOTE)}`, json("PUT", { content }));
+    check(wv.status === 200, "film: fixture note written", wv.status === 200 ? "" : `HTTP ${wv.status}`);
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    await page.evaluate(() => {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      localStorage.setItem("astrolabe.editorLang", "en");
+    });
+    await page.goto(`${url}/${encodeURIComponent(VIDEO_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "load" });
+    await page.waitForSelector(".cm-content", { timeout: 20000 });
+    await page.evaluate(([v]) => {
+      const view = eval(v);
+      if (view) view.dispatch({ selection: { anchor: view.state.doc.toString().indexOf("parking line") } });
+    }, [VIEW]);
+    // Players ask for their source when they scroll near; the fixture is short.
+    const players = async (sel) => {
+      // A player inside a scroller asks for its source when it is SHOWN in
+      // it (the scroller clips the observer's margin): bring each one on.
+      for (let i = 0; i < 2; i++) {
+        await page.waitForFunction((s) => document.querySelectorAll(s).length === 2, sel, { timeout: 20000 }).catch(() => {});
+        await page.evaluate(([s, n]) => document.querySelectorAll(s)[n]?.scrollIntoView({ block: "center" }), [sel, i]);
+        await page.waitForTimeout(500);
+      }
+      await page.waitForFunction((s) => [...document.querySelectorAll(s)].length === 2 && [...document.querySelectorAll(s)].every((v) => v.readyState >= 1), sel, { timeout: 20000 }).catch(() => {});
+      await page.waitForTimeout(400);
+      return page.evaluate((s) => [...document.querySelectorAll(s)].map((v) => ({ w: v.videoWidth, t: v.currentTime, dur: v.duration, src: v.getAttribute("src") ?? "", controls: v.controls, tab: v.tabIndex })), sel);
+    };
+    const ed = await players(".cm-s-embed-video video");
+    check(ed.length === 2 && ed.every((v) => v.w > 0 && v.controls && v.tab === 0), "film: the editor draws both embeds as players", JSON.stringify(ed));
+    check(ed[1] !== undefined && Math.abs(ed[1].t - 12) < 0.5, "film: `#t=12` seeks the editor's player to 0:12", ed[1] ? `${ed[1].t.toFixed(2)} s` : "missing");
+    await page.screenshot({ path: `${out}/fidelity-film-editor.png` });
+    await page.keyboard.press("Control+e");
+    await page.waitForSelector(".s-reading__content", { timeout: 10000 });
+    const rv = await players(".s-reading__content .s-rv-video video");
+    check(rv.length === 2 && rv.every((v) => v.w > 0), "film: the reading view draws both embeds as players", JSON.stringify(rv));
+    check(rv[1] !== undefined && Math.abs(rv[1].t - 12) < 0.5, "film: `#t=12` seeks the reading view's player to 0:12", rv[1] ? `${rv[1].t.toFixed(2)} s` : "missing");
+    const src = await page.evaluate(() => document.querySelector(".s-reading__content .s-rv-video")?.dataset.embedSrc ?? "");
+    check(src === `![[${film}]]`, "film: the player carries its embed's source for the menu and the drag", src);
+    await page.screenshot({ path: `${out}/fidelity-film-reading.png` });
+    await page.close();
+    // A visitor: no cookies. The note is published, so the film is theirs.
+    const vctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    const vpage = await vctx.newPage();
+    await vpage.goto(`${url}/${encodeURIComponent(VIDEO_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "load" });
+    const vis = await vpage.waitForFunction(() => { const v = document.querySelector(".s-rv-video video"); return v !== null && v.readyState >= 1 && v.videoWidth > 0; }, null, { timeout: 20000 }).then(() => true, () => false);
+    check(vis, "film: a visitor's page of the published note carries a playing-ready player");
+    await vpage.screenshot({ path: `${out}/fidelity-film-visitor.png` });
+    await vpage.close();
   }
 
   // ── An Arabic page never shows English before its dictionary lands ──────

@@ -1,0 +1,144 @@
+/* FILM — the player's rules (client/reading/video.ts), loaded with it: a
+   note with no film in it never downloads them. The stand-in's shape is in
+   reading.css. */
+
+/* ── Film (client/reading/video.ts) ────────────────────────────────────────
+   The player at the note's width at most (a `|480` is a width it will not
+   pass), a 16:9 box of the right shape until the file says its own, the
+   file's name under it — which is also where a pointer picks the embed up,
+   since a press on the picture is the scrubber's. */
+.s-rv-video {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  margin-block: 0.6em;
+  margin-inline: auto;
+}
+
+.s-rv-video__player {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  aspect-ratio: 16 / 9;
+  block-size: auto;
+  background: #000;
+  border-radius: var(--radius);
+  color-scheme: light dark;
+}
+
+.s-rv-video__player:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.s-rv-video__name {
+  display: block;
+  margin-block-start: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.75em;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+  cursor: grab;
+}
+
+/* A film with no picture — a voice note's WebM — is a sound's strip. */
+.s-rv-video.s-rv-video--sound {
+  inline-size: min(100%, 420px);
+  margin-inline: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+}
+
+.s-rv-video--sound .s-rv-video__player {
+  aspect-ratio: auto;
+  block-size: 36px;
+  background: transparent;
+  border-radius: 999px;
+}
+
+/* A film this browser cannot play: the file card, and why, and Download. */
+.s-rv-video.s-rv-video--fallback {
+  inline-size: auto;
+  margin-inline: 0;
+}
+
+.s-rv-video__why {
+  display: block;
+  margin-block-start: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.8em;
+  color: var(--text-muted);
+}
+
+.s-rv-video__download {
+  color: var(--link);
+}
+
+/* ── Another site's film (client/reading/video.ts externalVideoBlock) ─────
+   Only drawn when "Embed external video" is on. The frame loads lazily; the
+   editor's card is the host's still and a play button over it. */
+.s-rv-extvideo {
+  display: block;
+  margin-block: 0.6em;
+}
+
+.s-rv-extvideo__stage {
+  display: block;
+  position: relative;
+  aspect-ratio: 16 / 9;
+  inline-size: 100%;
+  background: #000;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.s-rv-extvideo__frame,
+.s-rv-extvideo__play {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  border: 0;
+}
+
+.s-rv-extvideo__play {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #111;
+  cursor: pointer;
+}
+
+.s-rv-extvideo__thumb {
+  position: absolute;
+  inset: 0;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+.s-rv-extvideo__glyph {
+  position: relative;
+  display: grid;
+  place-items: center;
+  inline-size: 64px;
+  block-size: 44px;
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.72);
+  color: #fff;
+}
+
+.s-rv-extvideo__play:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: -3px;
+}
+
+.s-rv-extvideo__link {
+  display: inline-block;
+  margin-block-start: 4px;
+  font-family: var(--font-ui);
+  font-size: 0.75em;
+  color: var(--text-muted);
+}

@@ -25,7 +25,8 @@
 //   · PUBLISH ASKS. The note sheet's Publish raises a question, and saying
 //     no leaves the note unpublished (the audit's harness published a note
 //     by accident through the old shell's one-tap pill).
-//   · A LONG PRESS IS A MENU (an action sheet), not a tap.
+//   · A LONG PRESS IS A MENU (an action sheet), not a tap — on a picture
+//     and on a film, whose player the note screen draws (3.32).
 //   · THE SHELL IS THE PHONE'S: no tab strip, no status bar, no pane grip, no
 //     sidebar drawer anywhere in the document.
 //   · A DEEP LINK OPENS ITS NOTE, and back from it comes home to Today
@@ -1089,6 +1090,69 @@ try {
       await adminApi([
         [`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=1`, { method: "DELETE" }],
         ...(pngPath ? [[`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }]] : []),
+      ]).catch(() => {});
+      await ctx.close();
+    }
+  }
+
+  // ── a film in a note, on the phone (client/reading/video.ts) ─────────────
+  // The fixture webm, embedded as a drop embeds it: the note screen draws a
+  // player that has loaded its metadata, and holding it raises the embed
+  // sheet — Copy as Markdown and Move… among its rows, and no Copy image.
+  {
+    const film = readFileSync(new URL("../tests/fixtures/video/film.webm", import.meta.url)).toString("base64");
+    const ctx = await browser.newContext(SHAPES[0].context);
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    const filmPath = await page.evaluate(async (b64) => {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const form = new FormData();
+      form.append("file", new File([bytes], "check-phone-film.webm", { type: "video/webm" }), "check-phone-film.webm");
+      const r = await fetch("/api/upload", { method: "POST", body: form });
+      return r.ok ? (await r.json()).path : null;
+    }, film);
+    check(filmPath !== null, "phone: the fixture film uploads");
+    const FILM_NOTE = "check-phone-film.md";
+    const name = filmPath ? filmPath.slice(filmPath.lastIndexOf("/") + 1) : "check-phone-film.webm";
+    await adminApi([[`/api/note?path=${encodeURIComponent(FILM_NOTE)}`, J("PUT", { content: `# A film\n\nBefore.\n\n![[${name}]]\n\n## Later\n\nAfter.\n` })]]);
+    try {
+      for (const lang of ["en", "ar"]) {
+        await page.evaluate((l) => {
+          localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+          localStorage.setItem("astrolabe.prefs-sync-off", "1");
+          localStorage.setItem("astrolabe.editorLang", l);
+        }, lang);
+        await page.goto(`${url}/${encodeURIComponent(FILM_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "load" });
+        const ready = await page
+          .waitForFunction(() => {
+            const v = document.querySelector(".s-ph-note .s-rv-video video");
+            return v !== null && v.readyState >= 1 && v.videoWidth > 0;
+          }, null, { timeout: 20000 })
+          .then(() => true, () => false);
+        check(ready, `phone ${lang}: the note screen draws the film as a player`);
+        if (!ready) continue;
+        const box = await page.evaluate(() => {
+          const b = document.querySelector(".s-ph-note .s-rv-video")?.getBoundingClientRect();
+          return b ? { w: b.width, right: b.right } : null;
+        });
+        check(box !== null && box.right <= 412 + 1, `phone ${lang}: the player fits the phone's column`, JSON.stringify(box));
+        await page.screenshot({ path: `${out}/phone-${lang}-film.png` });
+        await page.locator(".s-ph-note .s-rv-video__name").first().dispatchEvent("contextmenu");
+        await page.waitForTimeout(900);
+        const rows = await page.locator(".s-ph-actions__label").allTextContents();
+        const md = lang === "en" ? "Copy as Markdown" : "نسخ بصيغة ماركداون";
+        const move = lang === "en" ? "Move…" : "نقل…";
+        const image = lang === "en" ? "Copy image" : "نسخ الصورة";
+        check(rows.includes(md) && rows.includes(move) && !rows.includes(image), `phone ${lang}: holding a film raises the embed sheet, without Copy image`, rows.join(" | "));
+        await page.screenshot({ path: `${out}/phone-${lang}-film-sheet.png` });
+        await page.goBack();
+        await page.waitForTimeout(500);
+      }
+    } finally {
+      await adminApi([
+        [`/api/note?path=${encodeURIComponent(FILM_NOTE)}&permanent=1`, { method: "DELETE" }],
+        ...(filmPath ? [[`/api/attachment?path=${encodeURIComponent(filmPath)}&permanent=true`, { method: "DELETE" }]] : []),
       ]).catch(() => {});
       await ctx.close();
     }

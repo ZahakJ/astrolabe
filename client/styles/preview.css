@@ -64,6 +64,14 @@
 
 /* A sound (`![[lecture.mp3]]`, widgets.ts AudioWidget): the player from
    client/editor/embeds.ts on its own line, at the reading view's size. */
+/* A film is a block across the column (reading.css .s-rv-video sizes it). */
+.s-editor .cm-s-embed-video,
+.s-editor .cm-s-embed-extvideo {
+  display: block;
+  width: 100%;
+  line-height: 1.4;
+}
+
 .s-editor .cm-s-embed-audio {
   display: inline-block;
   /* A widget's line box shrinks to fit; the player inside sizes itself

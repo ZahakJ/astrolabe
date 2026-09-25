@@ -862,6 +862,24 @@ span.s-rv-math-live {
   overflow-wrap: anywhere;
 }
 
+/* ── Film: the stand-in (client/reading/render.ts lazyVideo) ─────────────
+   The shape a film's player will have, drawn before its module lands so the
+   page does not jump. The player's own rules are client/reading/video.css,
+   which arrives with it. */
+.s-rv-video {
+  display: block;
+  max-inline-size: 100%;
+  margin-block: 0.6em;
+  margin-inline: auto;
+}
+
+.s-rv-video > .s-rv-video__player {
+  aspect-ratio: 16 / 9;
+  inline-size: 100%;
+  border-radius: var(--radius);
+  background: #000;
+}
+
 /* A moment in a sound — `[[lecture.mp3#t=1:23]]` — wears the citation's
    colour, not a note link's: it opens nothing, it seeks. */
 .s-rv-audiolink {
