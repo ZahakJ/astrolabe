@@ -16,6 +16,7 @@ import { countPhrase, localeNum, t, tf, type I18nKey } from "../../i18n.ts";
 import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
 import { isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
+import { isSpeakEngine, SPEAK_RATES } from "../../../shared/speech.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
 import { isFediverseHandle } from "../../../shared/fediverse.ts";
 import { isImagePath } from "../../../shared/fileKinds.ts";
@@ -88,6 +89,12 @@ export interface Form {
   // ── Feeds (shared/feeds.ts) ──────────────────────────────────────────────
   feedsFetch: string;     // "on" | "off" — off unless the owner says so
   feedsNote: string;      // the list's note; "" is the default Feeds.md
+  // ── Read aloud (shared/speech.ts) ────────────────────────────────────────
+  speakEngine: string;    // "light" | "natural"
+  speakRate: string;      // "0.8" | "1" | "1.2"
+  speakVoiceEn: string;   // a Natural English voice id; "" is the first
+  speakVoiceJa: string;   // a Japanese voice id; "" is the first
+  speakPublic: string;    // "on" | "off" — Readers may listen; off unless set
   // ── Webmentions and the fediverse (docs/webmentions.md) ──────────────────
   wmAccept: string;       // "on" | "off" — off unless the owner says so
   wmSend: string;         // "on" | "off"
@@ -242,6 +249,11 @@ export function formFrom(s: SettingsResponse): Form {
     voiceKeepAudio: s.effective.voice.keepAudio ? "on" : "off",
     feedsFetch: s.effective.feeds.fetch ? "on" : "off",
     feedsNote: s.feeds?.note ?? "",
+    speakEngine: s.effective.speak.engine,
+    speakRate: String(s.effective.speak.rate),
+    speakVoiceEn: s.effective.speak.voices.en ?? "",
+    speakVoiceJa: s.effective.speak.voices.ja ?? "",
+    speakPublic: s.effective.speak.public ? "on" : "off",
     wmAccept: s.effective.webmentions.accept ? "on" : "off",
     wmSend: s.effective.webmentions.send ? "on" : "off",
     fediEnabled: s.effective.fediverse.enabled ? "on" : "off",
@@ -747,6 +759,24 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
     if (f.fediEnabled !== initial.fediEnabled) fedi.enabled = f.fediEnabled === "on";
     if (f.fediHandle.trim() !== initial.fediHandle.trim()) fedi.handle = f.fediHandle.trim() === "" ? null : f.fediHandle.trim().toLowerCase();
     patch.fediverse = fedi;
+  }
+  if (
+    f.speakEngine !== initial.speakEngine ||
+    f.speakRate !== initial.speakRate ||
+    f.speakVoiceEn !== initial.speakVoiceEn ||
+    f.speakVoiceJa !== initial.speakVoiceJa ||
+    f.speakPublic !== initial.speakPublic
+  ) {
+    // Only what moved, like `voice`: a default is stored as its absence.
+    const speak: NonNullable<SettingsPatch["speak"]> = {};
+    if (f.speakEngine !== initial.speakEngine && isSpeakEngine(f.speakEngine)) speak.engine = f.speakEngine;
+    if (f.speakRate !== initial.speakRate && SPEAK_RATES.includes(Number(f.speakRate))) speak.rate = Number(f.speakRate);
+    const voices: Partial<Record<"en" | "ja", string | null>> = {};
+    if (f.speakVoiceEn !== initial.speakVoiceEn) voices.en = f.speakVoiceEn === "" ? null : f.speakVoiceEn;
+    if (f.speakVoiceJa !== initial.speakVoiceJa) voices.ja = f.speakVoiceJa === "" ? null : f.speakVoiceJa;
+    if (Object.keys(voices).length > 0) speak.voices = voices;
+    if (f.speakPublic !== initial.speakPublic) speak.public = f.speakPublic === "on";
+    if (Object.keys(speak).length > 0) patch.speak = speak;
   }
   if (f.feedsFetch !== initial.feedsFetch || f.feedsNote.trim() !== initial.feedsNote.trim()) {
     const feeds: NonNullable<SettingsPatch["feeds"]> = {};

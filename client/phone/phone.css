@@ -1163,6 +1163,27 @@
   bottom: calc(68px + env(safe-area-inset-bottom));
 }
 
+/* Read aloud's player (client/speech/SpeechPlayer.tsx) stands on the same
+   footing as the toasts: above the tab bar when there is one, above the
+   keyboard's bar while a note is being written. Its buttons are thumbs'
+   targets here. */
+.s-ph-doc .s-speak {
+  inset-block-end: calc(12px + env(safe-area-inset-bottom));
+}
+
+.s-ph-doc:has(.s-ph--tabs) .s-speak {
+  inset-block-end: calc(68px + env(safe-area-inset-bottom));
+}
+
+.s-ph-doc:has(.s-ph-kbbar) .s-speak {
+  inset-block-end: 60px;
+}
+
+.s-ph-doc .s-speak__btn {
+  min-inline-size: 44px;
+  block-size: 44px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .s-ph-stage--push,
   .s-ph-stage--pop,

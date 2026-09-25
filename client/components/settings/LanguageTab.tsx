@@ -11,6 +11,7 @@ import { desktop } from "../../desktop/bridge.ts";
 import { DECLARABLE, setBrowserDictionaries, type Declarable } from "../../spellDicts.ts";
 import { Row } from "./Row.tsx";
 import { TagLabelEditor } from "./TagLabelEditor.tsx";
+import { ReadAloudControls } from "./ReadAloudControls.tsx";
 import { Consequence, LanguageConsequence, VisibilityBanner } from "./Visibility.tsx";
 
 /** Named one by one so the dictionary gate sees every key used. */
@@ -302,6 +303,12 @@ export default function LanguageTab() {
           ]}
           {...field("voiceLanguage")}
         />
+      </Row>
+      {/* The other direction (docs/read-aloud.md): a selection read aloud
+          by voices on this machine's CPU, in the language it is written in.
+          One row — the engine, its install, the voices, the speed. */}
+      <Row locked={pocket} label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
+        <ReadAloudControls />
       </Row>
 
       {/* ── Tag labels ──────────────────────────────────────────

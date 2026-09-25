@@ -175,6 +175,21 @@ export default function PublishingTab() {
           onChange={(on) => setForm((f) => (f ? { ...f, share: on ? "on" : "off" } : f))}
         />
       </Row>
+      {/* READERS MAY LISTEN (docs/read-aloud.md): the blog's
+          selections get Read aloud, spoken by this machine's
+          engine. Off unless the owner says so, because every new
+          sentence a visitor asks for is this machine's CPU; the
+          server speaks only words that are on a published page,
+          and caps each address. */}
+      <Row label={t("rowReadersListen")} hint={t("hintReadersListen")}>
+        <Toggle
+          label={t("rowReadersListen")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.speakPublic === "on"}
+          onChange={(on) => setForm((f) => (f ? { ...f, speakPublic: on ? "on" : "off" } : f))}
+        />
+      </Row>
       {/* Decoration, and the only row in this panel that is
           one — so it sits with the other visitor-facing switches
           rather than anywhere near the theme, which it does not

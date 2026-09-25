@@ -407,6 +407,17 @@ function pagesFor(
           ]),
       act("annotateSelection", annotateSelection),
       act("addFlashcard", makeCard),
+      // Read aloud (docs/read-aloud.md): the words heard rather than moved,
+      // so it closes the same untitled group — a rule of its own would cost
+      // 11px for one row. The player is loaded on first use; the menu's own
+      // chunk does not carry it.
+      act(
+        "speakSelection",
+        (v) => {
+          void import("../speech/editorSpeak.ts").then((m) => m.speakEditor(v, "selection"));
+        },
+        "Ctrl/Cmd ⇧ .",
+      ),
     ],
   };
   // NO "Hide the floating toolbar" ROW. It was a preference living in a menu

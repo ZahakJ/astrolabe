@@ -2,6 +2,7 @@
 // in CONTRACTS.md and returns the shared wire types.
 
 import type { VoiceEngineState, VoiceJob, VoiceLanguage } from "../shared/voice.ts";
+import type { SpeakEngineId, SpeakStatus } from "../shared/speech.ts";
 import type { FeedItemFull, FeedsState } from "../shared/feeds.ts";
 import type {
   AliasEntry,
@@ -774,6 +775,43 @@ export function voiceJob(id: string): Promise<VoiceJob> {
 
 export function voiceEngine(): Promise<VoiceEngineState> {
   return request<VoiceEngineState>("/api/voice/engine", undefined, true);
+}
+
+/** Read aloud (docs/read-aloud.md): what the speaker has installed. A
+ *  visitor is told one thing only — whether the blog offers it. */
+export function speakStatus(): Promise<SpeakStatus | { public: boolean }> {
+  return request<SpeakStatus | { public: boolean }>("/api/speak/status");
+}
+
+export function speakInstall(engine: SpeakEngineId): Promise<SpeakStatus> {
+  return request<SpeakStatus>("/api/speak/install", json("POST", { engine }), true);
+}
+
+export interface SpokenAudio {
+  blob: Blob;
+  lang: string | null;
+  engine: string | null;
+}
+
+/** One sentence, spoken. Resolves to the audio, or throws an ApiError whose
+ *  `code` says why not — `speakNotInstalled` (with the language on
+ *  `needs`), `pocket` (a pocket vault has no speaker), a rate limit. The
+ *  caller falls back to the device's voices on any of them. */
+export async function speakAudio(
+  body: { text: string; lang?: string; path?: string; context?: string; format?: "opus" | "wav" },
+  signal?: AbortSignal,
+): Promise<SpokenAudio> {
+  const res = await fetch("/api/speak", withPreview({ ...json("POST", body), signal: requestSignal(signal ?? null, 60_000) }));
+  if (!res.ok) {
+    let parsed: { error?: string; code?: string } = {};
+    try {
+      parsed = (await res.json()) as { error?: string; code?: string };
+    } catch {
+      // not JSON
+    }
+    throw new ApiError(parsed.error ?? `HTTP ${res.status}`, res.status, parsed.code);
+  }
+  return { blob: await res.blob(), lang: res.headers.get("x-speak-lang"), engine: res.headers.get("x-speak-engine") };
 }
 
 /** The clipper's token — made on first ask, kept in ASTROLABE_DATA (never
