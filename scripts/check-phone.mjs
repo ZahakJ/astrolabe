@@ -155,9 +155,22 @@ const SHAPES = [
     args: ["--blink-settings=availablePointerTypes=6,primaryPointerType=2,availableHoverTypes=3,primaryHoverType=1"],
     context: { viewport: { width: 720, height: 820 }, deviceScaleFactor: 1.5, isMobile: false, hasTouch: false },
   },
+  // THE GALAXY Z FOLD (3.34, a reader's report). Its two screens, as Chrome
+  // on the device reports them at its DPR of 2.625: the cover screen (904 ×
+  // 2316 device px, 6.2") is 344×882 CSS px, a narrow phone; the inner screen
+  // opened (1812 × 2176, 7.6") is 690×829 — under 768 wide, which is why it
+  // used to get the phone's one column stretched across a book-sized glass.
+  // Its shape, not its width, is what makes it a tablet (client/shellQuery.ts
+  // TABLET_QUERY): nearly square, so two columns.
+  { name: "fold-cover", touch: true, args: [], context: { viewport: { width: 344, height: 882 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
+  { name: "fold-open", touch: true, tablet: true, args: [], context: { viewport: { width: 690, height: 829 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
   { name: "tablet", touch: true, tablet: true, args: [], context: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
   { name: "tablet-land", touch: true, tablet: true, args: [], context: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
 ];
+
+// `CHECK_PHONE_SHAPES=phone,fold-open` runs those shapes only (a quick pass
+// while working); the gate is the whole matrix.
+const ONLY = (process.env.CHECK_PHONE_SHAPES ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 
 const fail = [];
 const pass = [];
@@ -216,16 +229,26 @@ async function signIn() {
       break;
     }
   }
+  // A folder two levels down, for BACK MEANS UP: the first one found.
+  let deep = null;
+  const walkDeep = (node, depth) => {
+    for (const c of node.children ?? []) {
+      if (deep || c.type !== "folder" || c.name.startsWith(".")) continue;
+      if (depth === 1) deep = [node.path, c.path];
+      else walkDeep(c, depth + 1);
+    }
+  };
+  walkDeep(tree, 0);
   const cookies = await ctx.cookies();
   await ctx.close();
   if (!folder || !note) {
     console.error("check-phone: the vault has no folder with a note in it to walk to.");
     process.exit(1);
   }
-  return { cookies, folder, note };
+  return { cookies, folder, note, deepPair: deep };
 }
 
-const { cookies, folder, note } = await signIn();
+const { cookies, folder, note, deepPair } = await signIn();
 const notePermalink = "/" + note.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/");
 
 // ── FEEDS AND IMPORT (3.28): a feed of our own, and an export to import ────
@@ -292,6 +315,7 @@ check(round.status === 200 && (round.body.items ?? []).length > 0, "a round of f
 
 try {
   for (const shape of SHAPES) {
+    if (ONLY.length > 0 && !ONLY.includes(shape.name)) continue;
     const pb = shape.args.length === 0 ? browser : await chromium.launch({ executablePath: process.env.CHROMIUM, args: shape.args });
     if (pb !== browser) browsers.push(pb);
     for (const lang of ["en", "ar"]) {
@@ -562,6 +586,72 @@ try {
       await page.goBack();
       await settle(600);
       check((await page.locator(".s-ph-actions").count()) === 0, tag("back closes the action sheet"));
+
+      // ── BACK MEANS UP (3.34, a reader on a Galaxy Z Fold) ─────────────────
+      // "When I press the top arrow next to the folder's name, it doesn't
+      // take me back to the folder — it opens the Today tab." Two ways the
+      // stack under a folder used to be empty or foreign: a RELOAD (the stack
+      // was not kept, and a folder has no address of its own, so the page
+      // came back on Today), and a trip to ANOTHER TAB (the Notes tab
+      // remembered its folder, but its history entry sat straight on Today's,
+      // so the chevron — which was only the browser's back — went there).
+      // The chevron is UP: to the parent folder, whatever history holds.
+      if (deepPair) {
+        const [d1, d2] = deepPair;
+        const listSel = shape.tablet ? ".s-ph-cols__list" : ".s-ph-stage";
+        const onFolder = async (p) => (await page.locator(`${listSel} [data-screen="notes"][data-folder="${p}"]`).count()) > 0;
+        const chevron = () => press(page.locator(`${listSel} [data-screen="notes"] .s-ph-top__back`));
+        await tab("notes");
+        await settle(600);
+        await tab("notes");
+        await settle(600);
+        const foldersView = page.locator('[data-notes-view="folders"]');
+        if ((await foldersView.count()) > 0) {
+          await press(foldersView);
+          await settle(400);
+        }
+        await press(page.locator(`.s-ph-row[data-path="${d1}"]`));
+        await settle(600);
+        await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+        await settle(600);
+        check(await onFolder(d2), tag("two folders down"), d2);
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await settle(2000);
+        check(await onFolder(d2), tag("a reload keeps the folder on screen"), JSON.stringify(await state()));
+        if (await onFolder(d2)) {
+          await chevron();
+          await settle(700);
+          check(await onFolder(d1), tag("after a reload, the chevron goes up to the parent"), JSON.stringify(await state()));
+        }
+        // …and after a trip to Today and back.
+        if (!(await onFolder(d2))) {
+          if (!(await onFolder(d1))) {
+            await tab("notes");
+            await settle(600);
+            if ((await page.locator(`.s-ph-row[data-path="${d1}"]`).count()) === 0) {
+              await tab("notes");
+              await settle(600);
+            }
+            await press(page.locator(`.s-ph-row[data-path="${d1}"]`));
+            await settle(600);
+          }
+          await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+          await settle(600);
+        }
+        await tab("today");
+        await settle(600);
+        await tab("notes");
+        await settle(700);
+        check(await onFolder(d2), tag("the Notes tab comes back on its folder"));
+        await chevron();
+        await settle(700);
+        const afterTrip = await state();
+        check(await onFolder(d1) && !afterTrip.screens.includes("today"), tag("after a trip to Today, the chevron goes up to the parent, not to Today"), JSON.stringify(afterTrip));
+        await page.goBack();
+        await settle(700);
+        const upAgain = await state();
+        check(!upAgain.screens.includes("today") && (await page.locator(`${listSel} [data-screen="notes"][data-folder=""]`).count()) > 0, tag("…and the OS back gesture goes up from there too"), JSON.stringify(upAgain));
+      }
 
       // ── search, calendar, more ────────────────────────────────────────────
       await tab("search");
