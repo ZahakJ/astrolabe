@@ -152,12 +152,28 @@ const SHAPES = [
   {
     name: "stylus",
     touch: false,
+    // Since 3.34 two columns: 720×820 is the open Fold's shape, and the
+    // shape decides (client/shellQuery.ts TABLET_QUERY).
+    tablet: true,
     args: ["--blink-settings=availablePointerTypes=6,primaryPointerType=2,availableHoverTypes=3,primaryHoverType=1"],
     context: { viewport: { width: 720, height: 820 }, deviceScaleFactor: 1.5, isMobile: false, hasTouch: false },
   },
+  // THE GALAXY Z FOLD (3.34, a reader's report). Its two screens, as Chrome
+  // on the device reports them at its DPR of 2.625: the cover screen (904 ×
+  // 2316 device px, 6.2") is 344×882 CSS px, a narrow phone; the inner screen
+  // opened (1812 × 2176, 7.6") is 690×829 — under 768 wide, which is why it
+  // used to get the phone's one column stretched across a book-sized glass.
+  // Its shape, not its width, is what makes it a tablet (client/shellQuery.ts
+  // TABLET_QUERY): nearly square, so two columns.
+  { name: "fold-cover", touch: true, args: [], context: { viewport: { width: 344, height: 882 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
+  { name: "fold-open", touch: true, tablet: true, args: [], context: { viewport: { width: 690, height: 829 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
   { name: "tablet", touch: true, tablet: true, args: [], context: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
   { name: "tablet-land", touch: true, tablet: true, args: [], context: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
 ];
+
+// `CHECK_PHONE_SHAPES=phone,fold-open` runs those shapes only (a quick pass
+// while working); the gate is the whole matrix.
+const ONLY = (process.env.CHECK_PHONE_SHAPES ?? "").split(",").map((x) => x.trim()).filter(Boolean);
 
 const fail = [];
 const pass = [];
@@ -216,16 +232,39 @@ async function signIn() {
       break;
     }
   }
+  // A folder two levels down, for BACK MEANS UP: the first one found.
+  let deep = null;
+  const walkDeep = (node, depth) => {
+    for (const c of node.children ?? []) {
+      if (deep || c.type !== "folder" || c.name.startsWith(".")) continue;
+      if (depth === 1) deep = [node.path, c.path];
+      else walkDeep(c, depth + 1);
+    }
+  };
+  walkDeep(tree, 0);
+  // A folder with nothing in it, and a folder with pictures or films in it:
+  // the empty-folder row and the folded "Files" row, when the vault has them.
+  let emptyFolder = null;
+  let filesFolder = null;
+  const walkAll = (node) => {
+    for (const c of node.children ?? []) {
+      if (c.type !== "folder" || c.name.startsWith(".")) continue;
+      if (!emptyFolder && (c.children ?? []).length === 0) emptyFolder = c.path;
+      if (!filesFolder && (c.children ?? []).some((f) => f.type === "file" && ["image", "video", "audio"].includes(f.attachment?.kind))) filesFolder = c.path;
+      walkAll(c);
+    }
+  };
+  walkAll(tree);
   const cookies = await ctx.cookies();
   await ctx.close();
   if (!folder || !note) {
     console.error("check-phone: the vault has no folder with a note in it to walk to.");
     process.exit(1);
   }
-  return { cookies, folder, note };
+  return { cookies, folder, note, deepPair: deep, emptyFolder, filesFolder };
 }
 
-const { cookies, folder, note } = await signIn();
+const { cookies, folder, note, deepPair, emptyFolder, filesFolder } = await signIn();
 const notePermalink = "/" + note.replace(/\.md$/, "").split("/").map(encodeURIComponent).join("/");
 
 // ── FEEDS AND IMPORT (3.28): a feed of our own, and an export to import ────
@@ -292,6 +331,7 @@ check(round.status === 200 && (round.body.items ?? []).length > 0, "a round of f
 
 try {
   for (const shape of SHAPES) {
+    if (ONLY.length > 0 && !ONLY.includes(shape.name)) continue;
     const pb = shape.args.length === 0 ? browser : await chromium.launch({ executablePath: process.env.CHROMIUM, args: shape.args });
     if (pb !== browser) browsers.push(pb);
     for (const lang of ["en", "ar"]) {
@@ -380,7 +420,12 @@ try {
       // ── Notes: a folder, then a note — the P0 as an assertion ─────────────
       await tab("notes");
       await settle();
+      // Tree where there are two columns, Folders where there is one — until
+      // the reader chooses (client/phone/notesView.ts).
+      check((await page.locator('[data-screen="notes"][data-view="tree"]').count() > 0) === !!shape.tablet, tag(shape.tablet ? "the Notes tab starts on the Tree on two columns" : "the Notes tab starts on Folders on one column"));
       await measure("notes");
+      await press(page.locator('[data-notes-view="folders"]'));
+      await settle(400);
       await press(page.locator(`.s-ph-row[data-path="${folder}"]`));
       await settle();
       const inFolder = await state();
@@ -562,6 +607,257 @@ try {
       await page.goBack();
       await settle(600);
       check((await page.locator(".s-ph-actions").count()) === 0, tag("back closes the action sheet"));
+
+      // ── BACK MEANS UP (3.34, a reader on a Galaxy Z Fold) ─────────────────
+      // "When I press the top arrow next to the folder's name, it doesn't
+      // take me back to the folder — it opens the Today tab." Two ways the
+      // stack under a folder used to be empty or foreign: a RELOAD (the stack
+      // was not kept, and a folder has no address of its own, so the page
+      // came back on Today), and a trip to ANOTHER TAB (the Notes tab
+      // remembered its folder, but its history entry sat straight on Today's,
+      // so the chevron — which was only the browser's back — went there).
+      // The chevron is UP: to the parent folder, whatever history holds.
+      if (deepPair) {
+        const [d1, d2] = deepPair;
+        const listSel = shape.tablet ? ".s-ph-cols__list" : ".s-ph-stage";
+        const onFolder = async (p) => (await page.locator(`${listSel} [data-screen="notes"][data-folder="${p}"]`).count()) > 0;
+        const chevron = () => press(page.locator(`${listSel} [data-screen="notes"] .s-ph-top__back`));
+        await tab("notes");
+        await settle(600);
+        await tab("notes");
+        await settle(600);
+        const foldersView = page.locator('[data-notes-view="folders"]');
+        if ((await foldersView.count()) > 0) {
+          await press(foldersView);
+          await settle(400);
+        }
+        await press(page.locator(`.s-ph-row[data-path="${d1}"]`));
+        await settle(600);
+        await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+        await settle(600);
+        check(await onFolder(d2), tag("two folders down"), d2);
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await settle(2000);
+        check(await onFolder(d2), tag("a reload keeps the folder on screen"), JSON.stringify(await state()));
+        if (await onFolder(d2)) {
+          await chevron();
+          await settle(700);
+          check(await onFolder(d1), tag("after a reload, the chevron goes up to the parent"), JSON.stringify(await state()));
+        }
+        // …and after a trip to Today and back.
+        if (!(await onFolder(d2))) {
+          if (!(await onFolder(d1))) {
+            await tab("notes");
+            await settle(600);
+            if ((await page.locator(`.s-ph-row[data-path="${d1}"]`).count()) === 0) {
+              await tab("notes");
+              await settle(600);
+            }
+            await press(page.locator(`.s-ph-row[data-path="${d1}"]`));
+            await settle(600);
+          }
+          await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+          await settle(600);
+        }
+        await tab("today");
+        await settle(600);
+        await tab("notes");
+        await settle(700);
+        check(await onFolder(d2), tag("the Notes tab comes back on its folder"));
+        await chevron();
+        await settle(700);
+        const afterTrip = await state();
+        check(await onFolder(d1) && !afterTrip.screens.includes("today"), tag("after a trip to Today, the chevron goes up to the parent, not to Today"), JSON.stringify(afterTrip));
+        await page.goBack();
+        await settle(700);
+        const upAgain = await state();
+        check(!upAgain.screens.includes("today") && (await page.locator(`${listSel} [data-screen="notes"][data-folder=""]`).count()) > 0, tag("…and the OS back gesture goes up from there too"), JSON.stringify(upAgain));
+
+        // ── BREADCRUMBS: the folder's path in its top bar, each crumb a way
+        // up; the middle folds into "…", which is a sheet of the folders it
+        // hides. The current folder's name is never folded.
+        const nameOf = (p) => p.slice(p.lastIndexOf("/") + 1);
+        const crumbsOf = () => page.locator(`${listSel} [data-screen="notes"][data-folder="${d2}"] .s-ph-crumbs`);
+        const upBy = async (target) => {
+          const crumb = crumbsOf().locator(`[data-crumb="${target}"]`);
+          if ((await crumb.count()) > 0) {
+            await press(crumb);
+            return "crumb";
+          }
+          await press(crumbsOf().locator('[data-crumb="more"]'));
+          await settle(600);
+          const label = target === "" ? (lang === "ar" ? "الملاحظات" : "Notes") : nameOf(target);
+          const row = page.locator(".s-ph-actions__row", { hasText: label });
+          check((await row.count()) > 0, tag("“…” is a sheet of the folders it hides"), label);
+          await measure("crumbs-sheet", ".s-ph-sheet");
+          await press(row);
+          return "sheet";
+        };
+        await press(page.locator(`.s-ph-row[data-path="${d1}"]`));
+        await settle(600);
+        await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+        await settle(600);
+        check((await crumbsOf().count()) === 1, tag("a folder's top bar is its path as crumbs"));
+        const here = ((await crumbsOf().locator('[aria-current="page"]').textContent()) ?? "").trim();
+        check(here === nameOf(d2), tag("…ending in the folder's own name, whole"), here);
+        await measure("crumbs");
+        await upBy(d1);
+        await settle(700);
+        check(await onFolder(d1), tag("a crumb goes up to its folder"), JSON.stringify(await state()));
+        await press(page.locator(`.s-ph-row[data-path="${d2}"]`));
+        await settle(600);
+        await upBy("");
+        await settle(700);
+        check((await page.locator(`${listSel} [data-screen="notes"][data-folder=""]`).count()) > 0, tag("the first crumb is the Notes tab's root"), JSON.stringify(await state()));
+      }
+
+      // ── THE TREE (3.34): folders open in place, remembered; a folder's
+      // files are one folded row; an empty folder says so; a long press is
+      // the row's menu.
+      {
+        const rootSel = shape.tablet ? ".s-ph-cols__list" : ".s-ph-stage";
+        const atRoot = async () => (await page.locator(`${rootSel} [data-screen="notes"][data-folder=""]`).count()) > 0;
+        if (!(await atRoot())) {
+          await tab("notes");
+          await settle(600);
+        }
+        if (!(await atRoot())) {
+          await tab("notes");
+          await settle(600);
+        }
+        await press(page.locator('[data-notes-view="tree"]'));
+        await settle(600);
+        check((await page.locator(".s-ph-tree").count()) === 1, tag("the Tree switch shows the vault as a tree"));
+        const top = deepPair?.[0] ?? folder;
+        const row = page.locator(`.s-ph-trow[data-path="${top}"]`);
+        const kids = page.locator(`.s-ph-tree [data-path^="${top}/"]`);
+        check((await row.getAttribute("aria-expanded")) === "false" && (await kids.count()) === 0, tag("a folder in the tree starts folded"));
+        await press(row);
+        await settle(500);
+        check((await row.getAttribute("aria-expanded")) === "true" && (await kids.count()) > 0, tag("a tap opens it in place"), `${await kids.count()} rows under it`);
+        await measure("tree");
+        await page.reload({ waitUntil: "domcontentloaded" });
+        await settle(2000);
+        check((await page.locator(`.s-ph-trow[data-path="${top}"]`).getAttribute("aria-expanded")) === "true", tag("the tree remembers an open folder across a reload"));
+        const treeNote = page.locator(`.s-ph-tree .s-ph-trow[data-path^="${top}/"][data-path$=".md"]`);
+        if ((await treeNote.count()) > 0) {
+          await treeNote.first().dispatchEvent("contextmenu");
+          await settle(600);
+          check((await page.locator(".s-ph-actions").count()) > 0, tag("a long press on a tree row is its action sheet"));
+          await measure("tree-row-actions", ".s-ph-sheet");
+          await page.goBack();
+          await settle(600);
+        }
+        if (filesFolder) {
+          const parts = filesFolder.split("/");
+          for (let i = 1; i <= parts.length; i += 1) {
+            const p = parts.slice(0, i).join("/");
+            const r = page.locator(`.s-ph-trow[data-path="${p}"]`);
+            if ((await r.count()) > 0 && (await r.getAttribute("aria-expanded")) === "false") {
+              await press(r);
+              await settle(400);
+            }
+          }
+          const files = page.locator(`.s-ph-tree [data-files="${filesFolder}"]`);
+          check((await files.count()) === 1 && (await files.getAttribute("aria-expanded")) === "false", tag("a folder's files are ONE row, folded"), filesFolder);
+          if ((await files.count()) === 1) {
+            const before = await page.locator(`.s-ph-tree .s-ph-row--file[data-path^="${filesFolder}/"]`).count();
+            await press(files);
+            await settle(500);
+            const after = await page.locator(`.s-ph-tree .s-ph-row--file[data-path^="${filesFolder}/"]`).count();
+            check(before === 0 && after > 0, tag("…that opens in place"), `${before} → ${after}`);
+            await measure("tree-files");
+            await press(files);
+            await settle(400);
+          }
+        }
+        if (emptyFolder) {
+          const r = page.locator(`.s-ph-trow[data-path="${emptyFolder}"]`);
+          if ((await r.count()) > 0) {
+            await press(r);
+            await settle(500);
+            check((await page.locator(`[data-empty-folder="${emptyFolder}"] [data-action="new-note-here"]`).count()) === 1, tag("an empty folder says so, with New note here"));
+            await press(r);
+            await settle(400);
+          }
+        }
+
+        // ── TWO COLUMNS: the list keeps its place while the note changes, a
+        // grip trades their widths, the note's sheet slides over its column.
+        if (shape.tablet) {
+          const notesIn = page.locator(`.s-ph-cols__list .s-ph-tree .s-ph-trow[data-path$=".md"]`);
+          if ((await notesIn.count()) >= 2) {
+            const first = await notesIn.nth(0).getAttribute("data-path");
+            await press(notesIn.nth(0));
+            await settle(1400);
+            const cols = await page.evaluate(() => ({
+              list: Math.round(document.querySelector(".s-ph-cols__list")?.getBoundingClientRect().width ?? 0),
+              detail: Math.round(document.querySelector(".s-ph-cols__detail")?.getBoundingClientRect().width ?? 0),
+              tree: document.querySelectorAll(".s-ph-cols__list .s-ph-tree").length,
+              note: document.querySelectorAll('.s-ph-cols__detail [data-screen="note"]').length,
+            }));
+            check(cols.tree === 1 && cols.note === 1 && cols.list >= 240 && cols.detail >= 320, tag("the tree beside the note: two columns"), JSON.stringify(cols));
+            check((await page.locator(`.s-ph-cols__list [data-path="${first}"][aria-current="page"]`).count()) === 1, tag("the open note is lit in the list"));
+            await measure("two-columns");
+            const scroller = ".s-ph-cols__list .s-ph-scroll";
+            const y = await page.evaluate((sel) => {
+              const el = document.querySelector(sel);
+              if (!el) return 0;
+              el.scrollTop = Math.min(120, el.scrollHeight - el.clientHeight);
+              return el.scrollTop;
+            }, scroller);
+            await settle(300);
+            const second = notesIn.nth(1);
+            const secondPath = await second.getAttribute("data-path");
+            await second.evaluate((el) => el.scrollIntoView({ block: "nearest" }));
+            const y2 = await page.evaluate((sel) => document.querySelector(sel)?.scrollTop ?? 0, scroller);
+            await press(second);
+            await settle(1400);
+            const kept = await page.evaluate((sel) => document.querySelector(sel)?.scrollTop ?? -1, scroller);
+            check(Math.abs(kept - y2) < 2 && (await page.locator(`.s-ph-cols__list [data-path="${secondPath}"][aria-current="page"]`).count()) === 1, tag("the list keeps its scroll and its lit row while the note changes"), `${y} / ${y2} → ${kept}`);
+            // The grip.
+            const grip = page.locator('[data-grip="list"]');
+            const box = await grip.boundingBox();
+            const w0 = await page.evaluate(() => document.querySelector(".s-ph-cols__list")?.getBoundingClientRect().width ?? 0);
+            if (box) {
+              const dx = lang === "ar" ? -40 : 40;
+              await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+              await page.mouse.down();
+              await page.mouse.move(box.x + box.width / 2 + dx / 2, box.y + box.height / 2);
+              await page.mouse.move(box.x + box.width / 2 + dx, box.y + box.height / 2);
+              await page.mouse.up();
+              await settle(300);
+              const w1 = await page.evaluate(() => document.querySelector(".s-ph-cols__list")?.getBoundingClientRect().width ?? 0);
+              check(Math.abs(w1 - w0 - 40) < 6, tag("the grip widens the list"), `${w0} → ${w1}`);
+              await page.reload({ waitUntil: "domcontentloaded" });
+              await settle(2000);
+              const w2 = await page.evaluate(() => document.querySelector(".s-ph-cols__list")?.getBoundingClientRect().width ?? 0);
+              check(Math.abs(w2 - w1) < 2, tag("…and the width is remembered"), `${w1} → ${w2}`);
+              await page.locator('[data-grip="list"]').dblclick();
+              await settle(300);
+            }
+            // The note's sheet anchors to its column.
+            await press(page.locator(".s-ph-cols__detail .s-ph-note .s-ph-top__actions button").last());
+            await settle(900);
+            const anchor = await page.evaluate(() => {
+              const col = document.querySelector(".s-ph-cols__detail")?.getBoundingClientRect();
+              const panel = document.querySelector(".s-ph-sheet--side .s-ph-sheet__panel")?.getBoundingClientRect();
+              return col && panel ? { colL: Math.round(col.left), colR: Math.round(col.right), l: Math.round(panel.left), r: Math.round(panel.right) } : null;
+            });
+            check(anchor !== null && anchor.l >= anchor.colL - 1 && anchor.r <= anchor.colR + 1, tag("the note's sheet slides over the note's column, not the list"), JSON.stringify(anchor));
+            await measure("two-columns-sheet", ".s-ph-sheet");
+            await page.goBack();
+            await settle(700);
+          }
+        }
+        // Back to Folders for the rest of the run.
+        for (let i = 0; i < 2 && (await page.locator('[data-notes-view="folders"]').count()) === 0; i += 1) {
+          await tab("notes");
+          await settle(600);
+        }
+        await press(page.locator('[data-notes-view="folders"]'));
+        await settle(500);
+      }
 
       // ── search, calendar, more ────────────────────────────────────────────
       await tab("search");

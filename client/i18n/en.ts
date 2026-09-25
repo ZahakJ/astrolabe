@@ -4421,7 +4421,6 @@ const en = {
   phSigilRead: "Read: {book}",
   phPinned: "Pinned",
   phAllNotes: "All notes",
-  phFolderEmpty: "Nothing in this folder yet.",
   phFolderGone: "This folder is no longer in the vault.",
   phSort: "Sort",
   phSortAZ: "By name, A to Z",
@@ -4483,7 +4482,19 @@ const en = {
   phTagAdd: "Add #{tag}",
   phTagFailed: "The tags could not be saved.",
   phFiles: "Files",
-  phMoreFiles: "Files not shown here: {n}",
+  // The phone shell, round 3 (3.34): a Galaxy Z Fold reader's report — the
+  // Notes tab as a tree or as folders, a folder's path as crumbs, pull to
+  // refresh, and the width of the list beside the note on a two-column screen.
+  phViewTree: "Tree",
+  phViewFolders: "Folders",
+  phNotesView: "Show notes as",
+  phCrumbs: "Where this folder is",
+  phCrumbsMore: "Folders above this one",
+  phFolderNoNotes: "No notes in this folder yet.",
+  phPull: "Pull to refresh",
+  phPullRelease: "Release to refresh",
+  phRefreshing: "Refreshing…",
+  phListWidth: "Width of the list",
   bookScrub: "Move through the book",
   bookZoomGroup: "Zoom",
   bookFitWidth: "Fit the width",

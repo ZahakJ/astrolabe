@@ -22,16 +22,25 @@
  *  switches shells cleanly. */
 export const PHONE_SHELL_QUERY = "(max-width: 700px), ((pointer: coarse) and (hover: none))";
 
-/** Inside the phone shell: wide enough for the navigation rail, a list column
- *  and the note side by side. Being in the phone shell is the other half of
- *  the condition, so this needs no pointer clause of its own.
+/** Inside the phone shell: two columns — the navigation rail, a list column
+ *  and the note beside it.
  *
- *  768, not 701: the rail (72) and the list (320) leave the note 376px at
- *  768 — a phone's measure — and 328px at 720, which is a Galaxy with an S
- *  Pen held upright (check-phone's stylus posture). That device is a phone
- *  and gets the phone's one column; every tablet in portrait (768–834) and
- *  in landscape gets two. */
-export const TABLET_QUERY = "(min-width: 768px)";
+ *  THE SHAPE, NOT ONE WIDTH (3.34). It was `(min-width: 768px)` alone, and a
+ *  reader opened a Galaxy Z Fold: its inner screen is 690×829 CSS px at DPR
+ *  2.625 (1812×2176 device px), under 768, so it got the phone's one column
+ *  stretched across a page the size of a paperback — a folder of files as one
+ *  row per line from edge to edge. What makes a screen a tablet is that it is
+ *  WIDE FOR ITS HEIGHT: a phone held upright is about 0.45 as wide as it is
+ *  tall, a Fold opened 0.83, a tablet in portrait 0.7–0.75. So two columns
+ *  wherever the screen is 768 wide (every tablet, either way up), or at least
+ *  640 wide and no taller than 4:3 — the open Fold (690×829; the Fold 6's
+ *  707×823), a small tablet, a phone held sideways (915×412 is past 768
+ *  anyway). The rail (72) and a list column that shrinks to 240 leave the
+ *  note 378px at 690: a phone's measure, beside its list. A phone upright
+ *  never qualifies (412×915 is 0.45), nor a Fold's cover screen (344×882).
+ *  A 720×820 window with a pen (check-phone's stylus posture) does now: it is
+ *  the same shape as the open Fold, and gets the same two columns. */
+export const TABLET_QUERY = "(min-width: 768px), ((min-width: 640px) and (min-aspect-ratio: 3/4))";
 
 export type Shell = "phone" | "desktop";
 

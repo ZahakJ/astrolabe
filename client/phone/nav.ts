@@ -31,6 +31,29 @@
 // is undone by pushing the entry straight back, so the edits are never
 // unmounted under the question.
 //
+// BACK MEANS UP (3.34, a reader on a Galaxy Z Fold: "the top arrow beside
+// the folder's name opens the Today tab"). Two holes let a folder's chevron
+// fall through to Today, and both are closed here:
+//
+//   · A TAB REMEMBERED ITS STACK BUT NOT ITS HISTORY. Switching back to Notes
+//     restored [root, folder, folder] in ONE entry pushed straight on top of
+//     Today's, so the only thing under the folder was Today. A tab switch now
+//     pushes an entry per level of the stack it shows (`pushRun`), so the
+//     browser's back walks up the tab before it leaves it — the way Android's
+//     own apps keep a stack per tab.
+//   · A RELOAD FORGOT EVERYTHING. The current entry's own mark survives a
+//     reload (the browser keeps `history.state`), and the run's record and
+//     every tab's stack are written to the shell's storage on every change
+//     (`persist`, keyed by the vault), so `resume` takes the run back exactly
+//     where it was — reconciled with the address, and never a sheet whose
+//     data went with the page.
+//
+// And the on-screen chevron of a folder is not the browser's back at all: it
+// is `upTo`, which goes to the parent by PATH — popping to the entry that
+// already shows it when history has one, and otherwise rewriting this entry
+// into the missing levels so that the OS back gesture, from there, goes up
+// too rather than home.
+//
 // PURE BY INJECTION. The history object, the URL of a screen and the popstate
 // subscription are passed in, so tests/phoneNav.test.ts drives this module
 // with a fake history and asserts the stack and the entries together.
@@ -100,6 +123,9 @@ export interface NavDeps {
   urlFor: (screen: Screen, tab: TabId) => string | null;
   /** Called after every change, with the new state. */
   onChange: (state: NavState, cause: NavCause) => void;
+  /** Called after every change with what `resume` needs after a reload: the
+   *  run's record and every tab's stack. The shell writes it to its storage. */
+  persist?: (snapshot: NavSnapshot) => void;
   /** The scroll offset of the screen on top now, read as a push leaves it. */
   scrollOf?: () => number | null;
   /** May the reader go from `from` to `to`? Asked before every move and on
@@ -108,6 +134,18 @@ export interface NavDeps {
   /** A move `canLeave` refused. `proceed` makes it anyway — call it once the
    *  reason for refusing is gone (the edits were saved or discarded). */
   onBlocked?: (proceed: () => void) => void;
+}
+
+/** What survives a reload besides the current entry's own mark: every
+ *  tab's stack, and our record of the run by depth (holes where an entry is
+ *  not known). Written as JSON; read back through `readSnapshot`, which is
+ *  total like `readMark`. */
+export interface NavSnapshot {
+  v: 1;
+  tab: TabId;
+  depth: number;
+  stacks: Record<TabId, Screen[]>;
+  entries: (NavEntry | null)[];
 }
 
 /** Why the state changed — a pop is the one the shell answers differently
@@ -206,6 +244,57 @@ export function readMark(raw: unknown): { depth: number; entry: NavEntry } | nul
   return { depth: m.depth, entry };
 }
 
+function readEntry(e: unknown): NavEntry | null {
+  const found = readMark({ phone: { depth: 0, entry: e } });
+  return found === null ? null : found.entry;
+}
+
+/** A snapshot written by `persist`, or null. Total: whatever storage hands
+ *  back — another version's shape, a truncated write, nothing — is null or a
+ *  snapshot whose every screen is valid, never a throw. */
+export function readSnapshot(raw: unknown): NavSnapshot | null {
+  let v = raw;
+  if (typeof v === "string") {
+    try {
+      v = JSON.parse(v);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof v !== "object" || v === null) return null;
+  const o = v as { v?: unknown; tab?: unknown; depth?: unknown; stacks?: unknown; entries?: unknown };
+  if (o.v !== 1 || !isTab(o.tab) || typeof o.depth !== "number" || !Number.isInteger(o.depth) || o.depth < 0) return null;
+  const stacks = emptyStacks();
+  if (typeof o.stacks === "object" && o.stacks !== null) {
+    for (const tab of TABS) {
+      const st = (o.stacks as Record<string, unknown>)[tab];
+      if (Array.isArray(st) && st.length > 0 && st.every(isScreen) && (st[0] as Screen).kind === "root" && (st[0] as { tab?: unknown }).tab === tab) stacks[tab] = st as Screen[];
+    }
+  }
+  const entries = Array.isArray(o.entries) ? o.entries.map((e) => (e === null ? null : readEntry(e))) : [];
+  return { v: 1, tab: o.tab, depth: o.depth, stacks, entries };
+}
+
+/** Is `a` the start of `b` (or all of it)? */
+export function isPrefix(a: Screen[], b: Screen[]): boolean {
+  if (a.length > b.length) return false;
+  for (let i = 0; i < a.length; i += 1) if (!sameScreen(a[i], b[i])) return false;
+  return true;
+}
+
+/** Two addresses name the same place: the path only, decoded. */
+function samePlace(a: string, b: string): boolean {
+  const norm = (u: string): string => {
+    const path = u.split(/[?#]/)[0] || "/";
+    try {
+      return decodeURI(path);
+    } catch {
+      return path;
+    }
+  };
+  return norm(a) === norm(b);
+}
+
 function entryOf(state: NavState): NavEntry {
   return { tab: state.tab, stack: state.stacks[state.tab], sheets: state.sheets };
 }
@@ -214,6 +303,18 @@ export interface Nav {
   state(): NavState;
   /** Take over the current history entry as the base of the run. */
   start(tab: TabId, stack?: Screen[]): void;
+  /** After a reload: take the run back from the current entry's own mark
+   *  (`raw`, the browser's `history.state`) and the snapshot `persist` last
+   *  wrote. False — and nothing touched — when the entry carries no mark, or
+   *  names a screen whose address is not the one the page loaded at (`url`):
+   *  the address wins, and the caller starts afresh. */
+  resume(raw: unknown, saved: unknown, url: string): boolean;
+  /** UP: show `target` (a stack for the active tab, root first — a folder's
+   *  parent and the levels above it). Pops back to the entry that already
+   *  shows it when only its descendants stand between; otherwise rewrites
+   *  this entry into the first level history is missing and pushes the rest,
+   *  so Back from there goes up as well. */
+  upTo(target: Screen[]): void;
   /** Push a screen on the active tab. */
   push(screen: Screen): void;
   /** Replace the top screen (the tablet's list-to-detail pick, a rename). */
@@ -316,8 +417,23 @@ export function createNav(deps: NavDeps): Nav {
     return true;
   }
 
-  function commit(next: NavState, how: "push" | "replace", cause: NavCause): void {
-    if (how === "push" && deps.scrollOf && st.depth < next.depth) {
+  function snapshot(): NavSnapshot {
+    const list: (NavEntry | null)[] = [];
+    for (let i = 0; i < entries.length; i += 1) list.push(entries[i] ?? null);
+    return { v: 1, tab: st.tab, depth: st.depth, stacks: st.stacks, entries: list };
+  }
+
+  function changed(cause: NavCause): void {
+    deps.onChange(st, cause);
+    deps.persist?.(snapshot());
+  }
+
+  /** One step of a run of several (`pushRun`, `upTo`) writes history without
+   *  telling anyone (`notify: false`) — the last step tells the truth — and
+   *  only the first asks the screen on glass for its scroll (`stamp`), since
+   *  that is the one screen being left. */
+  function commit(next: NavState, how: "push" | "replace", cause: NavCause, { stamp = true, notify = true }: { stamp?: boolean; notify?: boolean } = {}): void {
+    if (how === "push" && stamp && deps.scrollOf && st.depth < next.depth) {
       // The screen being left keeps its place: the entry it is leaving
       // records the scroll, so the pop that comes back can restore it.
       const y = deps.scrollOf();
@@ -337,7 +453,20 @@ export function createNav(deps: NavDeps): Nav {
       entries[st.depth] = entry;
       deps.history.replaceState(mark(st.depth, entry), "", url(st));
     }
-    deps.onChange(st, cause);
+    if (notify) changed(cause);
+  }
+
+  /** Show `stack` on `tab` as one entry PER LEVEL pushed on top of this one,
+   *  so the browser's back walks up the tab before it leaves it. */
+  function pushRun(tab: TabId, stack: Screen[], cause: NavCause, again: () => void): void {
+    const final: NavState = { tab, stacks: { ...st.stacks, [tab]: stack }, sheets: [], depth: st.depth + stack.length };
+    if (refused(final, again)) return;
+    const n = stack.length;
+    for (let i = 1; i <= n; i += 1) {
+      const next: NavState = { tab, stacks: { ...st.stacks, [tab]: stack.slice(0, i) }, sheets: [], depth: st.depth + 1 };
+      if (i === n) next.stacks = final.stacks;
+      commit(next, "push", cause, { stamp: i === 1, notify: i === n });
+    }
   }
 
   function goBack(n: number): void {
@@ -364,7 +493,80 @@ export function createNav(deps: NavDeps): Nav {
       st = { tab, stacks: { ...emptyStacks(), [tab]: s }, sheets: [], depth: 0 };
       entries = [entryOf(st)];
       deps.history.replaceState(mark(0, entryOf(st)), "", url(st));
-      deps.onChange(st, "start");
+      changed("start");
+    },
+
+    resume(raw, saved, at) {
+      const found = readMark(raw);
+      if (found === null) return false;
+      const { depth, entry } = found;
+      const top = entry.stack[entry.stack.length - 1];
+      const want = deps.urlFor(top, entry.tab);
+      if (want !== null && !samePlace(want, at)) return false;
+      const snap = readSnapshot(saved);
+      const stacks = snap ? { ...snap.stacks } : emptyStacks();
+      stacks[entry.tab] = entry.stack;
+      entries = [];
+      // The run's record, when the snapshot is of THIS run: its entry at our
+      // depth is the one the browser kept.
+      const same = (a: NavEntry | null | undefined, b: NavEntry): boolean =>
+        !!a && a.tab === b.tab && a.stack.length === b.stack.length && isPrefix(a.stack, b.stack) && a.sheets.join("|") === b.sheets.join("|");
+      if (snap && same(snap.entries[depth], entry)) {
+        snap.entries.forEach((e, i) => {
+          if (e !== null) entries[i] = e;
+        });
+      }
+      entries[depth] = entry;
+      st = { tab: entry.tab, stacks, sheets: [], depth, scroll: entry.scroll };
+      if (entry.sheets.length === 0) {
+        changed("start");
+        return true;
+      }
+      // A sheet does not survive a reload — its rows, its callbacks and the
+      // layer under it went with the page. Come back to the screen under it:
+      // by popping to the entry that shows it bare, when the record has one
+      // with only this screen's sheets between, or by rewriting this entry.
+      const sameScreenAs = (e: NavEntry | undefined): boolean => !!e && e.tab === entry.tab && e.stack.length === entry.stack.length && isPrefix(e.stack, entry.stack);
+      let j = depth - 1;
+      while (j >= 0 && sameScreenAs(entries[j]) && entries[j].sheets.length > 0) j -= 1;
+      changed("start");
+      if (j >= 0 && sameScreenAs(entries[j]) && entries[j].sheets.length === 0) goBack(depth - j);
+      else commit({ ...st }, "replace", "start");
+      return true;
+    },
+
+    upTo(target) {
+      run(() => {
+        if (target.length === 0 || target[0].kind !== "root" || target[0].tab !== st.tab || st.sheets.length > 0) return;
+        const n = target.length;
+        // An earlier entry that shows the target, with nothing but its
+        // descendants (the way down, a sheet over one) between: pop to it.
+        let j = st.depth - 1;
+        while (j >= 0 && entries[j] && entries[j].tab === st.tab && isPrefix(target, entries[j].stack)) {
+          if (entries[j].stack.length === n && entries[j].sheets.length === 0) {
+            if (refused(stateAt(j), () => nav.upTo(target))) return;
+            goBack(st.depth - j);
+            return;
+          }
+          j -= 1;
+        }
+        // History has no such entry (a reload with no record, a folder opened
+        // from a pinned row): the entry under this one keeps what it shows if
+        // it is on the way; this entry becomes the first level missing, and
+        // the rest are pushed — so Back from the target walks up as well.
+        const below = entries[st.depth - 1];
+        const k = st.depth > 0 && below && below.tab === st.tab && below.sheets.length === 0 && below.stack.length < n && isPrefix(below.stack, target) ? below.stack.length : 0;
+        const level = (i: number): NavState => ({ tab: st.tab, stacks: { ...st.stacks, [st.tab]: target.slice(0, i) }, sheets: [], depth: st.depth });
+        const final = level(n);
+        final.depth = st.depth + (n - (k + 1));
+        if (refused(final, () => nav.upTo(target))) return;
+        commit(level(k + 1), "replace", "pop", { notify: k + 1 === n });
+        for (let i = k + 2; i <= n; i += 1) {
+          const next = level(i);
+          next.depth = st.depth + 1;
+          commit(next, "push", "pop", { stamp: false, notify: i === n });
+        }
+      });
     },
 
     push(screen) {
@@ -411,9 +613,7 @@ export function createNav(deps: NavDeps): Nav {
           commit(next, "push", "tab");
           return;
         }
-        const next: NavState = { tab, stacks: st.stacks, sheets: [], depth: st.depth + 1 };
-        if (refused(next, () => nav.switchTab(tab))) return;
-        commit(next, "push", "tab");
+        pushRun(tab, st.stacks[tab], "tab", () => nav.switchTab(tab));
       });
     },
 
@@ -421,9 +621,7 @@ export function createNav(deps: NavDeps): Nav {
       run(() => {
         const base = st.stacks[tab];
         const stack = sameScreen(base[base.length - 1], screen) ? base : [...base, screen];
-        const next: NavState = { tab, stacks: { ...st.stacks, [tab]: stack }, sheets: [], depth: st.depth + 1 };
-        if (refused(next, () => nav.pushOn(tab, screen))) return;
-        commit(next, "push", "tab");
+        pushRun(tab, stack, "tab", () => nav.pushOn(tab, screen));
       });
     },
 
@@ -545,7 +743,7 @@ export function createNav(deps: NavDeps): Nav {
         } else {
           st = next;
           entries[depth] = entry;
-          deps.onChange(st, "pop");
+          changed("pop");
         }
       }
       // Whatever was asked for while the pop was in flight runs now, in order.

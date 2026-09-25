@@ -189,12 +189,25 @@ left it. Tapping the door you are already in takes it back to its start.
   deck with cards due as a row that starts the session, and the last notes you were in. On a phone
   that opens a vault directly (the pocket), the capture field is there too, and the line is committed
   like any other edit.
-- **Notes** is the vault, one folder per screen: rows a thumb can hit, each folder with its count and
-  a chevron, and after the notes the folder's pictures, recordings and films, which open in the
-  viewer. The busiest tags sit in one row of chips at the top of the vault; the last chip, **All
-  tags**, opens every tag as a sheet. Your pinned rows sit above the rest. The **+** in the corner is
-  a new note in the folder you are in (hold it for a new folder), and the arrows beside it change the
-  order.
+- **Notes** is the vault, two ways, and a switch at the top of the tab — **Tree** | **Folders** —
+  chooses between them; the choice is remembered on the device.
+  - **Folders** shows one folder per screen: rows a thumb can hit, each folder with its count and a
+    chevron. The bar at the top is the folder's path — *Notes › Mathematics › History* — and every
+    part of it but the last is a way up: tap *Mathematics* and you are there. When the path is too
+    long for the bar its middle folds into **…**, which opens the folders it hides as a sheet; the
+    folder you are in always keeps its name. The **‹** beside the path goes **up** — to the folder
+    this one is in, and from a top-level folder to the vault — never to another tab, whatever you
+    did before you got here.
+  - **Tree** shows the whole vault as one list: tap a folder to open it in place, under its
+    chevron, and tap it again to fold it. The folders you open stay open on this device, until you
+    fold them. Hold a row for its menu, as in Folders.
+  In both, a folder's pictures, recordings and films are **one row** after its notes — *Files · 13*
+  — that opens in place, and a file opens in the viewer. A folder with no notes in it says so, with a
+  **New note here** button. The busiest tags sit in one row of chips at the top of the vault; the
+  last chip, **All tags**, opens every tag as a sheet. Your pinned rows sit above the rest. The **+**
+  in the corner is a new note in the folder you are in (hold it for a new folder), and the arrows
+  beside it change the order. Pull the list down from its top to refresh it: the vault is read again,
+  and in [the Android app's GitHub vault](mobile.md) that is also *sync now*.
 - **Search** opens with the keyboard already up. Its three segments are **Notes** (the vault search,
   and your recent notes while the field is empty), **Commands** (every command the palette has) and
   **Tags**.
@@ -258,11 +271,24 @@ from the first screen of a link you followed comes home to Today rather than lea
 theme picker, the designer, What's new, the tour, a picture in the viewer and a book's search or
 contents answer the back gesture the same way.
 
-**On a tablet** the same doors stand in a rail down the side, the list you are browsing stays in a
-column beside it — with its own **‹** for going back up while a note is open — and the note fills the
-rest; picking another note in the list replaces the one beside it. A study session and a book take
-the whole screen. The note's sheet slides in from the side instead of rising, and never narrows the
-note. A tablet with a keyboard and a trackpad gets the desktop layout instead.
+**Back means up, and your place is kept.** Each door keeps its own way back: come to Notes from
+Today and the back gesture walks up the folders you had open before it ever goes to Today. The **‹**
+on a folder always goes to the folder above it. And your place survives the page being reloaded, the
+app being brought back from the background, or a sync: the same screen, the same folders behind it,
+the list scrolled where it was. (A sheet that was open is not brought back — you land on the screen
+under it.)
+
+**On a tablet, and on a foldable opened.** A screen that is wide for its height gets two columns:
+every tablet either way up, and anything at least 640 pixels wide and nearly square or wider — a
+Galaxy Z Fold opened, a small tablet, a phone on its side. The same doors stand in a rail down the
+side, the list you are browsing stays in a column beside it and the note fills the rest; here
+**Notes starts on the Tree**, which reads like a book's contents beside its page. Picking another
+note replaces the one beside the list, and the list keeps its place — its scroll, its open folders,
+the note you are reading lit. Drag the grip between the two columns to give the list or the note
+more room (double-tap it to put it back); the width is remembered. The list's own **‹** goes up a
+folder while a note is open. The note's sheet slides in from the side over the note's column, never
+over the list. A study session and a book take the whole screen. A tablet with a keyboard and a
+trackpad gets the desktop layout instead.
 
 **With a keyboard.** A bluetooth keyboard is noticed the first time you type on it, and from then on
 the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette — and More gains a
@@ -272,14 +298,16 @@ the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette —
 field you type into is set at 16px, below which iOS Safari zooms into the field and leaves it there.
 The notch and the home indicator are kept clear. `npm run check-phone` drives all of this — taps,
 back gestures, sheets, a study session, a tick, a book's slider, a setting saved and a tag written, in
-both languages, on a phone held in the hand, a phone with a pen and a tablet both ways up
+both languages, on a phone held in the hand, a Galaxy Z Fold's cover screen and its inner screen
+opened, a window with a pen and a tablet both ways up
 ([Development](development.md#npm-run-check-phone--the-phone-shell-driven)).
 
 **What counts as a phone.** A window narrower than 700px, or any device whose own pointer is a
 finger that cannot hover — which includes a tablet held in the hands, at any width. A laptop with a
 touchscreen *and* a mouse keeps the desktop's panes, and so does a desktop window wider than 700px.
 Turn a tablet, open a foldable or narrow a window past the line and the layout follows at once,
-with the same note open. The phone never changes the tabs and panes your desktop keeps: it does not
+with the same note open. A Galaxy Z Fold is both: its cover screen (about 344 by 882) is a phone
+with one column, and its inner screen opened (about 690 by 829) is two. The phone never changes the tabs and panes your desktop keeps: it does not
 save its one open note over them.
 
 ## Pages that are tabs

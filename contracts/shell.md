@@ -61,7 +61,25 @@ cure by construction — the old shell had two modules each owning half of histo
 pushes, backGesture's guard entry and synthesised Escape) and their order was not theirs to
 choose. Navigating from inside a sheet REPLACES the sheet's entry. Tapping the active tab walks
 back to its root. Back at the base of the run steps down in place rather than leaving the app;
-a deep link starts at Today's base with the linked screen pushed above it. Foreign entries (a
+a deep link starts at Today's base with the linked screen pushed above it.
+**BACK MEANS UP (3.34, a reader on a Galaxy Z Fold whose folder ‹ opened Today).** A switch to a
+tab whose stack is deep pushes ONE ENTRY PER LEVEL (`pushRun`; also `pushOn`), so the back gesture
+walks up the tab before it leaves it — before, the whole stack sat in one entry straight on the
+other tab's. A FOLDER's ‹ (and its crumbs, and the tablet list column's ‹ over a folder) is not the
+browser's back: it is `nav.upTo(target)` with the target stack computed by path
+(`client/phone/up.ts` `upChain`/`chainTo`: what the reader came by, cut at the deepest root or
+folder on the way, plus the folders between). `upTo` pops to the entry that already shows the
+target when only its descendants stand between; otherwise it REPLACES this entry with the first
+level history is missing and pushes the rest, so the OS back from the target goes up too. **THE
+STACK SURVIVES A RELOAD**: every change calls `persist(snapshot)` — `{ v: 1, tab, depth, stacks,
+entries }` — which the shell writes to `sessionStorage["astrolabe.phone-nav:<siteName>"]` (the
+pocket's siteName is the repository's name); at start `nav.resume(history.state, saved, pathname)`
+takes the run back from the current entry's own mark (the browser keeps it across a reload) and
+the snapshot when its entry at that depth is the same one, and refuses (the start proceeds as
+before) when there is no mark or the mark's screen's address is not the loaded one. A sheet does
+not survive: the run comes back on the screen under it, by a pop to its bare entry when the record
+has one. `readSnapshot` is total like `readMark`. A pocket sync never reloads the page (a pull ends
+in one `bulk` vault event; the tree and the buffers are re-read, the stack is not touched). Foreign entries (a
 hash jump, the Orbits chip's `pushState(null)` + popstate) are read through the router's own
 `applyUrl()` and stamped. The router itself is not installed on the phone shell.
 **Store ↔ stack**: a tap pushes a screen and opens its content (`applyScreen`); anything that
@@ -78,10 +96,26 @@ its session), the tasks due and overdue ticked through `POST /api/task`, on this
 and the last eight notes. Since 3.28 the screen owns none of that: it draws `client/today/`'s
 model and hooks, the same data layer the desktop's `~today` page draws (see the 3.28 addendum).
 `~today` in the store is the Today TAB here (`screenOfWorkspace` answers `"today"`), as `~calendar`
-is the Calendar tab; `~timeline` is a pushed screen (More, and the Calendar's `⋯`). **Notes**: one folder per screen, 52px rows with count and
-chevron, pinned rows first, tags as ONE chip row; `+` is a new note in this folder and a long
-press on it offers a folder; sort is an action sheet; a long press on a row is its action sheet
-(rename, move, pin, publish-with-confirmation, delete) through the desktop's own flows.
+is the Calendar tab; `~timeline` is a pushed screen (More, and the Calendar's `⋯`). **Notes** has two views, switched by a
+Tree | Folders control in the root's top bar (`client/phone/notesView.ts`, localStorage
+`astrolabe.phone-notes-view`; unchosen, Tree on two columns and Folders on one). FOLDERS: one folder
+per screen, 52px rows with count and chevron; the folder's top bar is its path as CRUMBS
+(`Crumbs.tsx` draws, `crumbs.ts` `collapseCrumbs` plans from canvas-measured widths: everything, else
+the root + "…" + the nearest folders, else "…" + the current folder — the current folder never
+folds, "…" is an action sheet of the hidden folders, each crumb `upTo` its folder). TREE: one flat
+list (`treeRows.ts` `visibleRows`: only what SHOWS is walked, notes and folders first in the
+reader's order, then the folder's files), folders open in place under a disclosure chevron, the open
+set remembered per device (`phoneTree.ts`, localStorage `astrolabe.phone-tree`, followed through a
+move), every row exactly 52px so a tree past 160 rows is WINDOWED by a sum (the window's geometry
+read only while layout is clean: after a scroll's frame and inside the tap before the toggle). In
+both, a folder's viewable attachments are ONE folded "Files · N" row after its notes that opens in
+place (its state keyed `<folder>\0files` in the same memory), a folder with nothing that opens says
+so with New note here, and pulling the list down from its top dispatches `astrolabe:refresh` and
+reloads the tree (`usePullRefresh.ts`; the pocket answers the event with a pull). Pinned rows first,
+tags as ONE chip row; `+` is a new note in this folder and a long press on it offers a folder; sort
+is an action sheet; a long press on a row is its action sheet (rename, move, pin,
+publish-with-confirmation, delete) through the desktop's own flows. The tree shares the desktop's
+LOGIC (`treeOrder.ts`) and none of its chrome.
 **Search**: focused on arrival; Notes | Commands | Tags; Commands is the palette's `COMMANDS`
 table, ranked by `paletteRank.ts` and run through `runPaletteCommand` (lifted out of
 CommandPalette.tsx for this), minus the desktop-only rows and, without a keyboard, the
@@ -121,10 +155,16 @@ one pushes an entry, its own close retracts it, and Back dispatches Escape to it
 itself (Settings keeps its unsaved-changes guard; a layer that stays takes its entry back).
 Ladder: sheets at `--z-panel`, questions at `--z-confirm`.
 
-**TABLET** (the phone shell at `TABLET_QUERY`, min-width 768px): a 72px rail, a 320px list column
-(the deepest list of the tab's stack), the note beside it; a note picked in the list REPLACES the
-one beside it; the note sheet is a 360px slide-over from the trailing edge (logical); the Calendar
-root takes both columns.
+**TWO COLUMNS** (the phone shell at `TABLET_QUERY` — by SHAPE since 3.34:
+`(min-width: 768px), ((min-width: 640px) and (min-aspect-ratio: 3/4))`, so the open Galaxy Z Fold,
+690×829 at DPR 2.625, gets two columns and its 344×882 cover screen one): a 72px rail, a list column
+(the deepest list of the tab's stack) of `clamp(240px, var(--ph-list-w, min(40%, 340px)), 100% −
+320px)`, a GRIP between them (`ColumnGrip.tsx`, role separator, drag or arrows, double tap resets,
+the width in localStorage `astrolabe.phone-list-width`), the note beside it; a note picked in the list
+REPLACES the one beside it and the list is the same element throughout (its scroll, open folders and
+the lit `aria-current` row stay); the note sheet is a slide-over from the trailing edge no wider than
+the note's column (`--ph-detail-w`, set from the column's ResizeObserver) with its scrim over that
+column only; the Calendar root takes both columns.
 
 **HARDWARE KEYBOARD** (`client/phone/hardwareKeyboard.ts`): proven by a chord, a navigation key,
 or a printable key with the visual viewport at its resting height; remembered per device. It
@@ -180,21 +220,32 @@ pane's switch under a top bar — is left for the graph and a drawing only.
 - **Sheets**: the tag picker (`TagPickerSheet`: a note's tags written through
   `POST /api/frontmatter` a tap at a time, or every tag to browse from Notes' "All tags" chip);
   a heading held in the READING view raises the editor's action sheet minus its editor-only rows
-  (`readingHeading.ts`); a folder lists its viewable files, opened in the attachment viewer; the
-  tablet's list column keeps its ‹ while a detail is open (`popTo` the list's parent).
+  (`readingHeading.ts`); a folder's viewable files are its folded Files row, opened in the
+  attachment viewer; the tablet's list column keeps its ‹ while a detail is open (`upTo` by path over
+  a folder, `popTo` the list's parent otherwise).
 - **The pocket answers `POST /api/capture`** (`mobile/src/pocket/server.ts`): `appendCaptured` in
   the note named, else the day's inbox `Inbox/YYYY-MM-DD.md` (where the share sheet and a kept
   voice note already go), refused 409 when the file moved under the index, committed like a save.
   Today's capture field shows in a pocket vault.
 
 **WHAT PROVES IT.** `tests/phoneShell.test.ts` (the stack against an asynchronous history double,
-including the P0 reordered, the leave guard on a push and on a pop, scroll memory, `popTo`; the
-reducer; the persistence refusals; the keyboard inference; the query; the seam),
+including the P0 reordered, the leave guard on a push and on a pop, scroll memory, `popTo`; BACK
+MEANS UP — the Fold report as a test, a tab switch's entry per level, a reload resumed with and
+without its record, a pinned deep folder going up level by level, the address winning, a sheet not
+surviving, `readSnapshot`, `up.ts`; the reducer; the persistence refusals; the keyboard inference;
+the query; the seam), `tests/phoneTree.test.ts` (the crumbs' plan; the tree's rows, the folded
+Files row, the empty folder, only-what-shows walked; the expansion memory, a move, refusing storage),
 `tests/settingsForm.test.ts` (the split form's round trip), `tests/pocketServer.test.ts` (capture),
 `tests/drawerQuery.test.ts` (one phone question, no drawer left). `npm run check-phone` drives the
-shell in both languages on a phone, a phone with a pen and a tablet both ways up — tree tap
-changes the URL and the title, back pops a screen, back closes a sheet, publish asks, a long press
-is a menu; Study starts the session full screen, a sigil tick persists, a book wears one bar and
+shell in both languages on a phone, a Galaxy Z Fold's cover (344×882) and inner screen opened
+(690×829), a 720×820 window with a pen and a tablet both ways up — tree tap changes the URL and the
+title, back pops a screen, back closes a sheet, publish asks, a long press is a menu; two folders
+down a reload keeps the folder and the ‹ lands on the parent, and so it does after a trip to Today,
+with the OS back going up from there; the crumbs end in the folder's own name and go up (through
+"…" where they fold); the Tree opens a folder in place, remembers it across a reload, folds a
+folder's files into one row that opens in place, says an empty folder is empty, and a long press is
+the row's menu; on two columns the list keeps its scroll and lit row while the note changes, the
+grip widens the list and is remembered, the note's sheet stays over the note's column; Study starts the session full screen, a sigil tick persists, a book wears one bar and
 its scrubber moves the page, the theme picker takes an entry Back closes, a Settings section asks
 before Back discards and saves, the tag picker writes the tag, a list comes back scrolled; every
 target 44px and every field 16px. `check-windows-layout` runs its ladder on the desktop's own
