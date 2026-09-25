@@ -10,7 +10,7 @@
 // package.json to a new x.Y.0 without adding it here and to releaseNotes.ts,
 // and the gate fails the build — the owner: "remind future sessions to make
 // sure to create a new preview with every major change".
-export const RELEASE_VERSIONS: readonly string[] = ["3.10.0", "3.11.0", "3.12.0", "3.13.0", "3.14.0", "3.15.0", "3.16.0", "3.17.0", "3.18.0", "3.19.0", "3.20.0", "3.21.0", "3.22.0", "3.23.0", "3.24.0", "3.25.0", "3.26.0", "3.27.0", "3.28.0", "3.29.0", "3.30.0", "3.31.0"];
+export const RELEASE_VERSIONS: readonly string[] = ["3.10.0", "3.11.0", "3.12.0", "3.13.0", "3.14.0", "3.15.0", "3.16.0", "3.17.0", "3.18.0", "3.19.0", "3.20.0", "3.21.0", "3.22.0", "3.23.0", "3.24.0", "3.25.0", "3.26.0", "3.27.0", "3.28.0", "3.29.0", "3.30.0", "3.31.0", "3.32.0"];
 
 /** Semver-ish compare on the numeric triple; anything else is 0. */
 export function compareVersions(a: string, b: string): number {
