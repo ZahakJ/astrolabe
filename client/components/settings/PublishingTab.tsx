@@ -190,6 +190,20 @@ export default function PublishingTab() {
           onChange={(on) => setForm((f) => (f ? { ...f, ambient: on ? "on" : "off" } : f))}
         />
       </Row>
+      {/* ANOTHER SITE'S PLAYER (shared/externalVideo.ts). A frame from
+          YouTube, Vimeo or a PeerTube server tells that server who is
+          reading, so this is a consent switch like the three above it:
+          off on every instance until the owner turns it on, and off
+          means the address stays a link. */}
+      <Row label={t("rowExternalVideo")} hint={t("hintExternalVideo")} more={t("moreExternalVideo")}>
+        <Toggle
+          label={t("rowExternalVideo")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.externalVideo === "on" || (form.externalVideo === "" && inh.externalVideo)}
+          onChange={(on) => setForm((f) => (f ? { ...f, externalVideo: on ? "on" : "off" } : f))}
+        />
+      </Row>
       {/* The author's other homes. One per line, because a URL
           list belongs in a textarea: pasting six links into six
           separate fields is busywork this panel refuses to

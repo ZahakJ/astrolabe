@@ -845,6 +845,10 @@ authRoutes.get("/me", (c) => {
   // Blog and designed modes share the whole public-shell payload below —
   // masthead copy, footer, locale, home config — because a designed site is
   // still a site with a name and a footer. What separates them is one field.
+  // Another site's player (shared/externalVideo.ts) is drawn in every shell —
+  // the owner's editor, the reading view, the blog — so it is sent whatever
+  // the layout, and only when ON: absent is the default, off.
+  if (getSettings().externalVideo === true) me.externalVideo = true;
   const layout = servedLayout();
   if (layout !== "app") {
     me.publicLayout = layout;

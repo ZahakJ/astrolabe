@@ -189,6 +189,7 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
     tagline: null,
     shareButtons: false,
     ambient: false,
+    externalVideo: false,
     footerLine: null,
     blogLocale: "en",
     bannerFallback: "generated",

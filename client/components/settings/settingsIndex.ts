@@ -89,6 +89,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "publishing", label: "rowFediverseHandle", hint: "hintFediverseHandle", mode: "instance" },
   { tab: "publishing", label: "rowShareButtons", hint: "hintShareButtons", mode: "instance" },
   { tab: "publishing", label: "rowAmbient", hint: "hintAmbient", mode: "instance" },
+  { tab: "publishing", label: "rowExternalVideo", hint: "hintExternalVideo", mode: "instance" },
   { tab: "publishing", label: "rowAuthorSites", hint: "hintAuthorSites", mode: "instance" },
   { tab: "publishing", label: "rowMode", hint: "hintMode", mode: "instance" },
   { tab: "publishing", label: "rowHomeNote", hint: "hintHomeNote", env: "HOME_NOTE", mode: "instance" },

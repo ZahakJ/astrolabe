@@ -4687,7 +4687,24 @@ const en = {
   embedSectionFiles: "Files",
   embedSectionNotes: "Notes",
   cmdInsertEmbed: "Embed a file…",
-  cmdInsertEmbedHint: "![[name.png]], ![[name.png|300]] or ![alt](path): pictures, PDFs, sounds, drawings",
+  cmdInsertEmbedHint: "![[name.png]], ![[name.png|300]] or ![alt](path): pictures, PDFs, sounds, video, drawings",
+  // ── Video in a note (client/reading/video.ts) ─────────────────────────────
+  // A film the browser cannot decode (an .mkv with an unusual codec) falls
+  // back to the file card with this line under it.
+  videoCannotPlay: "This browser can't play this video here.",
+  videoDownload: "Download",
+  // The accessible name of a player whose file has no words of its own.
+  videoPlayerLabel: "Video: {name}",
+  // An external film's frame and the editor's card for it. {provider} is
+  // YouTube, Vimeo or PeerTube — brand names, never translated.
+  externalVideoTitle: "{provider} video",
+  externalVideoPlay: "Play the {provider} video here",
+  externalVideoOpen: "Open on {provider}",
+  // Settings → Publishing. Default OFF: a third-party frame tells that site
+  // who is reading, so turning it on is the owner's decision.
+  rowExternalVideo: "Embed external video",
+  hintExternalVideo: "YouTube, Vimeo and PeerTube links on their own line become players.",
+  moreExternalVideo: "Off by default, because another site's player tells that site who is reading. When on, YouTube plays from youtube-nocookie.com, Vimeo is asked not to track, and every frame loads only when it scrolls near. Off, the address stays a link.",
 } satisfies Record<string, string>;
 
 /** Every dictionary key — the one list both languages must cover. */

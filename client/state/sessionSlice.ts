@@ -275,6 +275,7 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
           tagline: me.tagline?.trim() || null,
           shareButtons: me.shareButtons === true,
           ambient: me.ambient === true,
+          externalVideo: me.externalVideo === true,
           footerLine: me.footer?.trim() || null,
           blogLocale: locale,
           bannerFallback: me.bannerFallback === "none" ? "none" : "generated",

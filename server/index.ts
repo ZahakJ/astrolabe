@@ -166,6 +166,16 @@ const SHELL_CSP = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+/** The shell's policy for THIS request. One door in it opens on a switch:
+ *  Settings → Publishing → "Embed external video" (shared/externalVideo.ts)
+ *  draws YouTube, Vimeo and PeerTube players, which are frames, so while it
+ *  is on `frame-src` allows https frames — PeerTube is any server, so the
+ *  list cannot be narrower than the scheme. Off (the default), nothing about
+ *  the policy above changes. The frames themselves carry a `sandbox`. */
+function shellCsp(): string {
+  return getSettings().externalVideo === true ? SHELL_CSP.replace("frame-src 'none'", "frame-src https:") : SHELL_CSP;
+}
+
 // ── The site's old names ────────────────────────────────────────────────────
 // A request that arrives under a hostname the site used to have (LEGACY_HOSTS)
 // is sent to SITE_URL, same path and query, permanently: the site was renamed
@@ -188,7 +198,7 @@ app.use("*", async (c, next) => {
   if (!headers.has("Referrer-Policy")) headers.set("Referrer-Policy", "same-origin");
   if (!(headers.get("Content-Type") ?? "").startsWith("text/html")) return;
   // Documents only: the anti-framing and anti-injection half.
-  if (!headers.has("Content-Security-Policy")) headers.set("Content-Security-Policy", SHELL_CSP);
+  if (!headers.has("Content-Security-Policy")) headers.set("Content-Security-Policy", shellCsp());
   if (!headers.has("X-Frame-Options")) headers.set("X-Frame-Options", "DENY");
   // The shell's <head> is injected per request and differs by session (a
   // PUBLIC=false vault without a cookie gets generic meta; an admin gets the

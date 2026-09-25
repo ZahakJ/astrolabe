@@ -1,7 +1,8 @@
 // FILMS OFF THE DISK: /api/file serves a film in ranges without reading it
 // into memory, with its own type for every container; the upload takes a
 // film past a picture's cap and streams it to disk; a published film's poster
-// is a visitor's to fetch; the pocket answers ranges from one read.
+// is a visitor's to fetch; the pocket answers ranges from one read; the
+// shell's frame policy opens only on the switch.
 //
 // The large file is SPARSE — `truncate` to 600 MB costs no disk — and the
 // memory check reads a range from its far end: a server that loaded the file
@@ -17,6 +18,7 @@ import { initSite } from "../server/site.ts";
 import { initVault } from "../server/vault.ts";
 import { api } from "../server/api.ts";
 import { Hono } from "hono";
+import { patchSettings } from "../server/settings.ts";
 import { makeDir, makeVault, removeVault } from "./helpers/vault.ts";
 import { makeMemoryFs } from "./helpers/memoryFs.ts";
 import { PocketIndex } from "../mobile/src/pocket/index.ts";
@@ -158,5 +160,30 @@ describe("a film on the pocket", () => {
       assert.equal(new TextDecoder().decode(res.body as Uint8Array), body, range);
     }
     assert.equal(reads, 1, "one read of the film, three answers");
+  });
+});
+
+describe("the shell's frame policy", () => {
+  it("is 'none' until Embed external video is on, and https frames while it is", async () => {
+    const data = makeDir();
+    const root = makeVault({ "Welcome.md": "# Hi\n" });
+    try {
+      initSite({ ASTROLABE_DATA: data });
+      initVault(root);
+      patchSettings({ externalVideo: null });
+      const src = readFileSync(new URL("../server/index.ts", import.meta.url), "utf8");
+      // The switch's door is the only change to the policy: read it as written.
+      assert.match(src, /"frame-src 'none'"/);
+      assert.match(src, /getSettings\(\)\.externalVideo === true \? SHELL_CSP\.replace\("frame-src 'none'", "frame-src https:"\) : SHELL_CSP/);
+      patchSettings({ externalVideo: true });
+      const { getSettings } = await import("../server/settings.ts");
+      assert.equal(getSettings().externalVideo, true);
+      patchSettings({ externalVideo: null });
+      assert.equal(getSettings().externalVideo, undefined);
+      assert.throws(() => patchSettings({ externalVideo: "yes" as unknown as boolean }), /must be a boolean/);
+    } finally {
+      removeVault(root);
+      removeVault(data);
+    }
   });
 });

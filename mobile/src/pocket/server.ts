@@ -319,6 +319,7 @@ const POCKET_CANNOT_KEEP: Record<string, Sentence> = {
   commentsEnabled: "refuseMarginalia",
   shareButtons: "keepShareButtons",
   ambient: "keepAmbient",
+  externalVideo: "keepExternalVideo",
   publicFolders: "refusePublicFolders",
   library: "refuseLibrary",
   defaultTheme: "keepDefaultTheme",
@@ -543,6 +544,7 @@ export function createPocketServer(deps: PocketDeps): {
         noteVersions: true,
         shareButtons: false,
         ambient: false,
+        externalVideo: false,
         pdfSearch: false,
         favicon: null,
         logo: held.logo ?? null,
@@ -644,6 +646,7 @@ export function createPocketServer(deps: PocketDeps): {
           noteVersions: true,
           shareButtons: false,
           ambient: false,
+          externalVideo: false,
           pdfSearch: false,
         },
       };
