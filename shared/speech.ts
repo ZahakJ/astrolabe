@@ -19,7 +19,7 @@
 // ten lines, at 8, 2 and 1 cores) is written up in docs/read-aloud.md.
 
 import { looksFrench } from "./frenchLine.ts";
-import { findFurigana } from "./furigana.ts";
+import { stripFurigana } from "./furigana.ts";
 import { noteProse } from "./wordCount.ts";
 
 // ── Engines, languages, voices ─────────────────────────────────────────────
@@ -344,25 +344,19 @@ function cutLong(s: string): string[] {
 
 // ── What a note says ───────────────────────────────────────────────────────
 
-/** Furigana, spoken: `{漢字|かん|じ}` is its READING — the sound the owner
- *  wrote down for those characters — so the engine is never left to guess a
- *  name's reading the owner already settled. Read once, never twice: the
- *  base and its reading are one word. */
+/** Furigana, spoken: `{漢字|かん|じ}` reads its BASE, once — never the base and
+ *  then its reading, which is what a screen reader makes of the rendered
+ *  <ruby> and what a naive text extraction of the page gives. The engine's
+ *  own Japanese G2P (UniDic) reads the kanji; the base is also what is on
+ *  the page, so the sentence the player lights is the sentence the reader
+ *  sees. */
 export function speakFurigana(text: string): string {
-  const spans = findFurigana(text);
-  if (spans.length === 0) return text;
-  let out = "";
-  let at = 0;
-  for (const s of spans) {
-    out += text.slice(at, s.start) + (s.readings.join("") || s.base);
-    at = s.end;
-  }
-  return out + text.slice(at);
+  return stripFurigana(text);
 }
 
 /** A note's source, reduced to what is read aloud: shared/wordCount.ts's
  *  prose (no frontmatter, no code, no math, links as their labels), with
- *  furigana spoken as its reading and footnote markers dropped. */
+ *  furigana read as its base and footnote markers dropped. */
 export function speechTextOfNote(source: string): string {
   return noteProse(speakFurigana(source))
     .replace(/\[\^[^\]]+\]:?/g, " ")
@@ -370,7 +364,7 @@ export function speechTextOfNote(source: string): string {
     .replace(/[ \t]+/g, " ");
 }
 
-/** Selected text, made speakable: furigana read as its reading, markup the
+/** Selected text, made speakable: furigana read as its base, markup the
  *  selection may have caught (an editor selection is source) stripped the
  *  same way a whole note is. */
 export function speechTextOfSelection(text: string): string {
