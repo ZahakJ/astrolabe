@@ -233,6 +233,11 @@ const POCKET_NO_FEDERATION: Sentence = "refuseFederation";
 
 const POCKET_NO_TRANSCRIBER: Sentence = "refuseTranscriber";
 
+/** Read aloud (docs/read-aloud.md) runs a speech engine in a Python venv on
+ *  the instance's CPU; a phone has its own voices, and the client falls back
+ *  to them on this 501 and says so once. */
+const POCKET_NO_SPEAKER: Sentence = "refuseSpeaker";
+
 const SERVER_ONLY: Record<string, Sentence> = {
   "/api/publish": "refusePublish",
   "/api/published": "refusePublish",
@@ -435,6 +440,7 @@ export function createPocketServer(deps: PocketDeps): {
       ?? (route.startsWith("/api/books/") ? SERVER_ONLY["/api/books"] : undefined)
       ?? (route.startsWith("/api/comments/") ? SERVER_ONLY["/api/comments"] : undefined)
       ?? (route.startsWith("/api/voice/") ? POCKET_NO_TRANSCRIBER : undefined)
+      ?? (route === "/api/speak" || route.startsWith("/api/speak/") ? POCKET_NO_SPEAKER : undefined)
       ?? (route === "/api/feeds" || route.startsWith("/api/feeds/") ? POCKET_NO_FEEDS : undefined)
       ?? (route === "/api/webmentions" || route.startsWith("/api/webmentions/") ? POCKET_NO_FEDERATION : undefined)
       ?? (route.startsWith("/api/import/") ? POCKET_NO_IMPORT : undefined);
@@ -556,6 +562,10 @@ export function createPocketServer(deps: PocketDeps): {
         // Nobody can mention or follow a site with no public address.
         webmentions: { accept: false, send: false },
         fediverse: { enabled: false, handle: held.fediverse?.handle ?? "blog" },
+        // A pocket runs no speaker: Read aloud there is the phone's own
+        // voices (client/speech/player.ts says so once). The laptop's engine
+        // choice describes the laptop, like the voice model above.
+        speak: { engine: "light", rate: 1, voices: {}, public: false },
         home: { mode: "note", ...(held.home ?? {}) },
         publicFolders: { enabled: false, home: false, nav: false, folders: [] },
         library: { enabled: false, nav: false, home: false, title: "", roots: [], paths: [] },

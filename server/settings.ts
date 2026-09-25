@@ -10,7 +10,7 @@
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
 // uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, feeds { fetch, note }, launch,
-// webmentions { accept, send }, fediverse { enabled, handle },
+// webmentions { accept, send }, fediverse { enabled, handle }, speak { engine, rate, voices, public },
 // dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -31,6 +31,7 @@ import {
   type FolderProblem,
 } from "../shared/attachments.ts";
 import { isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
+import { isSpeakEngine, isSpeakLang, isVoiceOf, SPEAK_ENGINE_DEFAULT, SPEAK_RATES, speakEffective, type SpeakSettings } from "../shared/speech.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
 import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
 import { defaultFediverseHandle, isFediverseHandle } from "../shared/fediverse.ts";
@@ -560,6 +561,23 @@ export function getSettings(): SettingsData {
     if (typeof f.note === "string" && f.note.trim() !== "" && isNotePath(f.note.trim())) fs.note = f.note.trim();
     if (Object.keys(fs).length > 0) out.feeds = fs;
   }
+  // ── Read aloud ───────────────────────────────────────────────────────────
+  const speak = raw.speak;
+  if (typeof speak === "object" && speak !== null && !Array.isArray(speak)) {
+    const v = speak as Record<string, unknown>;
+    const ss: SpeakSettings = {};
+    if (isSpeakEngine(v.engine)) ss.engine = v.engine;
+    if (typeof v.rate === "number" && SPEAK_RATES.includes(v.rate)) ss.rate = v.rate;
+    if (typeof v.voices === "object" && v.voices !== null && !Array.isArray(v.voices)) {
+      const voices: SpeakSettings["voices"] = {};
+      for (const [lang, voice] of Object.entries(v.voices as Record<string, unknown>)) {
+        if (isSpeakLang(lang) && isVoiceOf(lang, voice)) voices[lang] = voice as string;
+      }
+      if (Object.keys(voices).length > 0) ss.voices = voices;
+    }
+    if (v.public === true) ss.public = true;
+    if (Object.keys(ss).length > 0) out.speak = ss;
+  }
   // ── Webmentions and the fediverse ────────────────────────────────────────
   const wm = raw.webmentions;
   if (typeof wm === "object" && wm !== null && !Array.isArray(wm)) {
@@ -796,6 +814,7 @@ export function effectiveSettings(): EffectiveSettings {
     voice: voiceEffective(s.voice),
     // Feeds are fetched only when the owner says so: off unless set.
     feeds: feedsEffective(),
+    speak: speakEffective(s.speak),
     // Webmentions and the fediverse: network access both ways, so off
     // unless the owner says so (docs/webmentions.md).
     webmentions: webmentionsEffective(),
@@ -1637,6 +1656,61 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
   },
   // Webmentions (docs/webmentions.md): the `feeds` shape. Each switch's
   // default is off and is stored as its absence.
+  // Read aloud (shared/speech.ts): the `feeds` shape. Every default (Light,
+  // rate 1, the engine's first voice, not public) is stored as its absence.
+  speak: (raw, value) => {
+    if (value === null) {
+      delete raw.speak;
+      return;
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new VaultError(400, 'Settings key "speak" must be an object or null');
+    }
+    const v = value as Record<string, unknown>;
+    const current =
+      typeof raw.speak === "object" && raw.speak !== null && !Array.isArray(raw.speak)
+        ? { ...(raw.speak as Record<string, unknown>) }
+        : {};
+    for (const key of Object.keys(v)) {
+      if (key !== "engine" && key !== "rate" && key !== "voices" && key !== "public") {
+        throw new VaultError(400, `Unknown settings key: speak.${key}`);
+      }
+    }
+    if ("engine" in v) {
+      if (v.engine === null || v.engine === SPEAK_ENGINE_DEFAULT) delete current.engine;
+      else if (isSpeakEngine(v.engine)) current.engine = v.engine;
+      else throw new VaultError(400, 'Settings key "speak.engine" must be one of: light, natural');
+    }
+    if ("rate" in v) {
+      if (v.rate === null || v.rate === 1) delete current.rate;
+      else if (typeof v.rate === "number" && SPEAK_RATES.includes(v.rate)) current.rate = v.rate;
+      else throw new VaultError(400, `Settings key "speak.rate" must be one of: ${SPEAK_RATES.join(", ")}`);
+    }
+    if ("voices" in v) {
+      if (v.voices === null) delete current.voices;
+      else if (typeof v.voices !== "object" || Array.isArray(v.voices)) {
+        throw new VaultError(400, 'Settings key "speak.voices" must be an object or null');
+      } else {
+        const voices: Record<string, unknown> =
+          typeof current.voices === "object" && current.voices !== null ? { ...(current.voices as Record<string, unknown>) } : {};
+        for (const [lang, voice] of Object.entries(v.voices as Record<string, unknown>)) {
+          if (!isSpeakLang(lang)) throw new VaultError(400, `Unknown language in speak.voices: ${lang}`);
+          if (voice === null || voice === "") delete voices[lang];
+          else if (isVoiceOf(lang, voice)) voices[lang] = voice;
+          else throw new VaultError(400, `speak.voices.${lang} is not a voice of that language`);
+        }
+        if (Object.keys(voices).length === 0) delete current.voices;
+        else current.voices = voices;
+      }
+    }
+    if ("public" in v) {
+      if (v.public === null || v.public === false) delete current.public;
+      else if (v.public === true) current.public = true;
+      else throw new VaultError(400, 'Settings key "speak.public" must be a boolean or null');
+    }
+    if (Object.keys(current).length === 0) delete raw.speak;
+    else raw.speak = current;
+  },
   webmentions: (raw, value) => {
     if (value === null) {
       delete raw.webmentions;

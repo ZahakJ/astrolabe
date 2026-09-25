@@ -37,6 +37,7 @@ import { bookRoutes } from "./bookRoutes.ts";
 import { epubRoutes } from "./epubRoutes.ts";
 import { captureLine, clipAdminRoutes, clipRoutes } from "./clip.ts";
 import { voiceRoutes } from "./voice.ts";
+import { speakRoutes } from "./speak.ts";
 import { deckImportRoutes } from "./deckImportRoutes.ts";
 import { searchPages } from "./pdfText.ts";
 import { prefsRoutes } from "./prefs.ts";
@@ -1285,6 +1286,7 @@ api.route("/", clipAdminRoutes);
 // Voice notes: a recording in, transcribed on this machine, words into the
 // inbox (server/voice.ts, docs/capture.md "Voice").
 api.route("/", voiceRoutes);
+api.route("/", speakRoutes);
 
 api.get("/tasks", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
