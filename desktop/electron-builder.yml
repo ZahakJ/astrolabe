@@ -77,10 +77,16 @@ files:
   - package.json
   - "!**/*.map"
   - "!**/node_modules/**/{test,__tests__,tests,example,examples,doc,docs}/**"
-  # whisper.cpp's CUDA build (189 MB) loads only beside a CUDA 12 runtime,
-  # which a package cannot ship; the Vulkan build is the GPU path a desktop
-  # install takes, and the CPU build is the floor (server/voiceWorker.ts).
+  # The desktop app transcribes on the processor and ships NO graphics-card
+  # build (the owner, 3.33.2: nothing may depend on a GPU, and "other people
+  # with no good gpu will use app"). whisper.cpp's CUDA build (189 MB) loads
+  # only beside a CUDA 12 runtime a package cannot ship, and its Vulkan build
+  # (54 MB) was a quarter of the package for an accelerator the CPU path no
+  # longer needs (sherpa-onnx, server/voiceWorker.ts). A server installed
+  # from npm still has both, as optional dependencies of whisper.node, and
+  # its Auto backend still uses a card when one works.
   - "!**/node_modules/@fugood/node-whisper-*-cuda/**"
+  - "!**/node_modules/@fugood/node-whisper-*-vulkan/**"
   - "!**/node_modules/@fugood/whisper.node/whisper.cpp/**"
   - "!**/node_modules/@fugood/whisper.node/src/**"
 
