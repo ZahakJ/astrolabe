@@ -9,6 +9,7 @@
 
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { readFileSync } from "node:fs";
 import { answerTheWorker, installFetchShim, syncText } from "../mobile/src/pocket/boot.ts";
 import type { PocketRequest, PocketResponse } from "../mobile/src/pocket/server.ts";
 import { pocketWords } from "../mobile/src/i18n.ts";
@@ -162,5 +163,23 @@ describe("the sync line's words", () => {
       [{ key: "syncedJustNow" }, words.syncedJustNow],
     ];
     for (const [line, want] of lines) assert.equal(syncText(line), want, line.key);
+  });
+});
+
+describe("the sync line's place on the phone (3.34)", () => {
+  // Read from the source: the strip's stylesheet is written by boot() into a
+  // page this test does not have. The line hides itself for "synced" — and
+  // its own `display: flex` used to outrank the browser's [hidden] rule, so
+  // "Synced just now." sat over the phone's tab bar for good.
+  const src = readFileSync(new URL("../mobile/src/pocket/boot.ts", import.meta.url), "utf8");
+  it("a hidden line is not drawn", () => {
+    assert.match(src, /#pocket-sync\[hidden\] \{ display: none; \}/);
+  });
+  it("it stands clear of the phone shell's tab bar and rail", () => {
+    assert.match(src, /\.s-ph-doc:has\(\.s-ph--tabs\) #pocket-sync \{ inset-block-end: calc\(env\(safe-area-inset-bottom, 0px\) \+ 68px\); \}/);
+    assert.match(src, /\.s-ph-doc:has\(\.s-ph--tablet\) #pocket-sync \{ inset-inline-start: calc\(72px \+ 0\.5rem\); \}/);
+  });
+  it("pulling a list down asks the pocket for a pull", () => {
+    assert.match(src, /addEventListener\("astrolabe:refresh", \(\) => void session\.pull\(\)\)/);
   });
 });

@@ -135,6 +135,9 @@ async function boot(): Promise<void> {
   // after the first paint is a dissolve rather than a cut.
   await SplashScreen.hide().catch(() => {});
   void session.pull();
+  // PULL DOWN TO REFRESH (client/phone/usePullRefresh.ts): the client asks
+  // for fresh notes without knowing who keeps them; here, that is a pull.
+  window.addEventListener("astrolabe:refresh", () => void session.pull());
 }
 
 /**
@@ -284,6 +287,16 @@ function makeSyncNode(): HTMLElement {
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
 }
 #pocket-sync[data-key="conflicts"], #pocket-sync[data-key="failed"] { color: var(--danger, #f85149); }
+/* "Synced" is not news: the line is hidden then — and \`display: flex\` above
+   outranks the user agent's own [hidden] rule, which is how "synced just now"
+   came to sit over the phone's tab bar for good (3.34, a Galaxy Z Fold). */
+#pocket-sync[hidden] { display: none; }
+/* The phone shell has no status bar: the line stands clear of its tab bar
+   (56px) where there is one, of the screen's edge where there is not, and
+   past the rail on two columns. */
+.s-ph-doc #pocket-sync { inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 12px); }
+.s-ph-doc:has(.s-ph--tabs) #pocket-sync { inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 68px); }
+.s-ph-doc:has(.s-ph--tablet) #pocket-sync { inset-inline-start: calc(72px + 0.5rem); }
 `;
   document.head.append(style);
   return node;

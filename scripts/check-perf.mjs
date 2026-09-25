@@ -34,6 +34,12 @@
 //   · READING RENDER of that same note: Ctrl/Cmd E to the rendered column.
 //     The one operation in the product whose cost is the whole document, all
 //     at once, with no viewport to hide behind.
+//   · THE PHONE'S TREE (3.34): the Notes tab's Tree view on a phone-shaped
+//     page, folders of fifty notes opened and closed under a finger, over the
+//     whole 2,000-note vault — the brief was "no long tasks on expand". The
+//     tree computes the rows that SHOW (never the vault) and windows a list
+//     past 160 rows, so opening a folder is fifty buttons, not two thousand;
+//     this is what holds it there.
 //   · THE SIGILS PAGE and THE CALENDAR PAGE: the status bar's door to the
 //     drawn page. The two surfaces whose cost is the whole YEAR at once —
 //     twelve sigils with most of a year of log each (a streak, a heatmap and
@@ -80,6 +86,17 @@ const SIGILS_MEASURED = 1241;
 const SIGILS_BUDGET = 1650;
 const CALENDAR_MEASURED = 157;
 const CALENDAR_BUDGET = 250;
+/** The phone tree's budgets, set the same way from their first measurement
+ *  (3.34, best of three rounds at 4×; spread 70–80 ms for the tap, and no
+ *  long task in any round). The tap's budget is the rule above: the loaded
+ *  measurement plus a third, up to the next 50 ms. The long task's is NONE —
+ *  the brief's own words — and a round that has one fails: the first draft
+ *  had a 78 ms one, a style pass over every new row forced by measuring the
+ *  window after the rows were in the document (NotesScreen.tsx TreeList). */
+const PHONE_TREE_EXPAND_MEASURED = 70;
+const PHONE_TREE_EXPAND_BUDGET = 100;
+const PHONE_TREE_LONGEST_MEASURED = 0;
+const PHONE_TREE_LONGEST_BUDGET = 0;
 
 /** The budgets. Each is in milliseconds, measured at `PERF_CPU`× throttling on
  *  the fixture vault, and each carries the run that set it. */
@@ -168,6 +185,19 @@ const BUDGETS = [
     budget: CALENDAR_BUDGET,
     // CALENDAR_MEASURED (157 ms), the same way and with the same headroom:
     // the month with its lines and its daily-note dots, not the empty grid.
+  },
+  {
+    id: "phoneTreeExpand",
+    label: "phone Tree, tap → a folder of 50 open (median)",
+    budget: PHONE_TREE_EXPAND_BUDGET,
+    // PHONE_TREE_EXPAND_MEASURED: the tap to the opened folder's rows painted.
+  },
+  {
+    id: "phoneTreeLongest",
+    label: "phone Tree, longest main-thread task over 16 taps",
+    budget: PHONE_TREE_LONGEST_BUDGET,
+    // PHONE_TREE_LONGEST_MEASURED: 0 is "no long task at all" (a long task is
+    // one past 50 ms).
   },
 ];
 
@@ -480,7 +510,68 @@ async function measureSurfaces() {
   return { sigils: out[0], calendar: out[1] };
 }
 
-const runs = { firstPaint: [], tti: [], shell: [], typingMedian: [], typingP95: [], typingLongTasks: [], readingRender: [], sigilsOpen: [], calendarOpen: [], chunksBefore: [], chunksAll: [], bytesBefore: [] };
+/** The phone's Tree: a phone-shaped page, the Notes tab on its Tree, eight
+ *  folders opened and closed again by a tap, each timed to its rows painted,
+ *  with every long task on the main thread counted over the whole run. */
+async function measurePhoneTree() {
+  const ctx = await browser.newContext({ viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true, serviceWorkers: "block" });
+  await ctx.addInitScript(() => {
+    try {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      localStorage.setItem("astrolabe.tourSeen", "1");
+      localStorage.setItem("astrolabe.phone-notes-view", "tree");
+    } catch {
+      // private window: the tree starts folded anyway
+    }
+  });
+  const page = await ctx.newPage();
+  const cdp = await ctx.newCDPSession(page);
+  if (CPU > 1) await cdp.send("Emulation.setCPUThrottlingRate", { rate: CPU });
+  await page.goto(base, { waitUntil: "load" });
+  await page.waitForSelector('.s-ph-tab[data-tab="notes"]', { timeout: 60000 });
+  await page.locator('.s-ph-tab[data-tab="notes"]').tap();
+  await page.waitForSelector(".s-ph-tree", { timeout: 60000 });
+  await page.waitForTimeout(3000);
+  await page.evaluate(() => {
+    window.__lt = [];
+    window.__ltObs = new PerformanceObserver((l) => {
+      for (const e of l.getEntries()) window.__lt.push(e.duration);
+    });
+    window.__ltObs.observe({ type: "longtask" });
+  });
+  const times = [];
+  const rows = () => page.evaluate(() => Number(document.querySelector(".s-ph-tree")?.getAttribute("data-rows") ?? 0));
+  // The finger is the touchscreen's own tap at the row's centre, NOT a
+  // locator's tap: Playwright's actionability checks run in the page and
+  // were most of the one long task the first draft of this counted.
+  const tapAt = async (locator) => {
+    await locator.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(250);
+    const box = await locator.boundingBox();
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+  };
+  for (let i = 0; i < 8; i++) {
+    const folder = page.locator('.s-ph-trow[aria-expanded="false"][data-depth="0"]').nth(i);
+    const before = await rows();
+    await folder.evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await page.waitForTimeout(250);
+    const box = await folder.boundingBox();
+    const t0 = Date.now();
+    await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await page.waitForFunction((n) => Number(document.querySelector(".s-ph-tree")?.getAttribute("data-rows") ?? 0) > n, before, { timeout: 30000 });
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    times.push(Date.now() - t0);
+    await page.waitForTimeout(300);
+    await tapAt(page.locator('.s-ph-trow[aria-expanded="true"][data-depth="0"]').first());
+    await page.waitForTimeout(300);
+  }
+  const long = await page.evaluate(() => window.__lt.slice());
+  await ctx.close();
+  return { expand: median(times.slice(1)), longest: long.length ? Math.max(...long) : 0 };
+}
+
+const runs = { phoneTreeExpand: [], phoneTreeLongest: [], firstPaint: [], tti: [], shell: [], typingMedian: [], typingP95: [], typingLongTasks: [], readingRender: [], sigilsOpen: [], calendarOpen: [], chunksBefore: [], chunksAll: [], bytesBefore: [] };
 for (let round = 0; round < ROUNDS; round++) {
   const paint = await measureFirstPaint();
   runs.firstPaint.push(paint.fcp);
@@ -501,6 +592,9 @@ for (let round = 0; round < ROUNDS; round++) {
   const surfaces = await measureSurfaces();
   runs.sigilsOpen.push(...surfaces.sigils);
   runs.calendarOpen.push(...surfaces.calendar);
+  const tree = await measurePhoneTree();
+  runs.phoneTreeExpand.push(tree.expand);
+  runs.phoneTreeLongest.push(tree.longest);
 }
 await browser.close();
 
@@ -513,6 +607,8 @@ const measured = {
   readingRender: best(runs.readingRender),
   sigilsOpen: best(runs.sigilsOpen),
   calendarOpen: best(runs.calendarOpen),
+  phoneTreeExpand: best(runs.phoneTreeExpand),
+  phoneTreeLongest: best(runs.phoneTreeLongest),
 };
 
 console.log("\ncheck-perf: budgets");
@@ -535,6 +631,8 @@ console.log(`  spread across rounds (first paint)           ${runs.firstPaint.ma
 console.log(`  spread across rounds (reading render)        ${runs.readingRender.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  spread across rounds (Sigils page)           ${runs.sigilsOpen.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  spread across rounds (Calendar page)         ${runs.calendarOpen.map((x) => x.toFixed(0)).join(" / ")} ms`);
+console.log(`  spread across rounds (phone Tree expand)     ${runs.phoneTreeExpand.map((x) => x.toFixed(0)).join(" / ")} ms`);
+console.log(`  spread across rounds (phone Tree longest)    ${runs.phoneTreeLongest.map((x) => x.toFixed(0)).join(" / ")} ms`);
 console.log(`  JS before first paint                        ${median(runs.chunksBefore).toFixed(0)} files, ${(median(runs.bytesBefore) / 1024).toFixed(0)} kB`);
 console.log(`  JS in the first four seconds                 ${median(runs.chunksAll).toFixed(0)} files`);
 if (indexed) console.log(`  indexer cold start (${indexed[1]} notes)             ${indexed[2]} ms`);

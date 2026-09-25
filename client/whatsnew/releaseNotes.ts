@@ -370,6 +370,37 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.34.0",
+    title: { en: "Back means up", ar: "الرجوع يعني الصعود" },
+    slides: [
+      {
+        // ── The phone shell, round 3: browsing notes and folders ──────────
+        title: { en: "Back means up", ar: "الرجوع يعني الصعود" },
+        body: {
+          en: "A folder's back arrow now always goes to the folder above it, never to Today, and your place survives a reload, a sync or the app coming back from the background. The Notes tab lets you choose Tree or Folders: open folders in place, or step through them one screen at a time with the path at the top as crumbs you can tap. A folder's pictures and films fold into one row after its notes. Open a Galaxy Z Fold or a tablet and your notes sit in a tree beside the note you are reading, with a grip to share the width.",
+          ar: "صار سهم الرجوع في المجلد يذهب دائمًا إلى المجلد الذي فوقه، لا إلى «اليوم» أبدًا، ويبقى مكانك بعد إعادة التحميل أو المزامنة أو عودة التطبيق من الخلفية. وفي باب الملاحظات تختار بين الشجرة والمجلدات: افتح المجلدات في مكانها، أو تنقّل فيها شاشةً شاشة ومسارها في الأعلى فُتاتًا تنقره. وتنطوي صور المجلد ومقاطعه في صف واحد بعد ملاحظاته. وافتح Galaxy Z Fold أو لوحًا تجد ملاحظاتك شجرةً بجانب الملاحظة التي تقرؤها، ومقبضًا يقسم العرض بينهما.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <path d="M60 40 L280 30 L280 190 L60 200 Z" fill="var(--bg)" stroke="var(--border)"/>
+  <path d="M280 30 L500 40 L500 200 L280 190 Z" fill="var(--bg)" stroke="var(--border)"/>
+  <rect class="wa-pulse" x="276" y="28" width="8" height="164" rx="4" fill="var(--accent)"/>
+  <g fill="var(--text-muted)"><rect x="84" y="60" width="90" height="6" rx="3"/><rect x="100" y="80" width="80" height="5" rx="2" fill="var(--text-faint)"/><rect x="100" y="96" width="70" height="5" rx="2" fill="var(--text-faint)"/><rect x="116" y="112" width="60" height="5" rx="2" fill="var(--accent)"/><rect x="100" y="132" width="76" height="5" rx="2" fill="var(--text-faint)"/></g>
+  <g fill="none" stroke="var(--text-muted)" stroke-width="1.5"><path d="M86 82 l4 4 l4 -4"/><path d="M86 98 l4 4 l4 -4"/><path d="M102 114 l4 4 l4 -4"/></g>
+  <path class="wa-draw" style="--i:1" d="M120 118 C 110 118, 96 110, 96 98" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <path class="wa-late" style="--i:2" d="M96 98 l-4 6 M96 98 l5 5" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <g fill="var(--text-faint)"><rect x="304" y="56" width="120" height="7" rx="3" fill="var(--text-muted)"/><rect x="304" y="76" width="170" height="4" rx="2"/><rect x="304" y="88" width="160" height="4" rx="2"/><rect x="304" y="100" width="168" height="4" rx="2"/><rect x="304" y="112" width="120" height="4" rx="2"/><rect x="304" y="132" width="166" height="4" rx="2"/><rect x="304" y="144" width="150" height="4" rx="2"/></g>
+  <text x="170" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the tree, and up", "الشجرة، وإلى الأعلى")}</text>
+  <text x="390" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the note beside it", "والملاحظة بجانبها")}</text>
+</svg>`,
+        },
+        docs: "workspace",
+      },
+    ],
+  },
+  {
     version: "3.33.0",
     title: { en: "Hear any word", ar: "اسمع أي كلمة" },
     slides: [

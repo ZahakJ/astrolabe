@@ -334,7 +334,7 @@ spells a phone query out instead of importing the constant.</p>
 <p>A browser gate:
 <code>CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=&lt;pw&gt; npm run check-phone -- &lt;url&gt; [outdir]</code>,
 against a scratch server. It drives the phone shell (<code>client/phone/</code>) the way a reader&#39;s thumb
-does, in English <strong>and</strong> Arabic, on four shapes, and photographs every screen and sheet it passes.</p>
+does, in English <strong>and</strong> Arabic, on six shapes, and photographs every screen and sheet it passes.</p>
 <p><strong>What it does, as assertions.</strong> A tap on a folder pushes the folder; a tap on a note changes the
 URL and the title (the old gate was green the day a tree tap on a phone opened nothing); the
 note screen has no tab bar; the note sheet takes a history entry and the browser&#39;s back closes it
@@ -351,7 +351,16 @@ sheet and <strong>back closes it</strong> and keeps the book; the theme picker (
 history entry and back closes it; Settings is a list, a section is a screen, an edit raises the
 save bar, <strong>back with an edit asks</strong> and Cancel keeps the edit, and <strong>Save writes it</strong>; the tag
 picker opens over the note sheet and <strong>writes the tag into the note</strong>; and <strong>a folder comes back
-scrolled where it was left</strong>.</p>
+scrolled where it was left</strong>. Since 3.34, the report of a reader on a Galaxy Z Fold, asked first:
+<strong>two folders down, a reload keeps the folder and its ‹ lands on the parent</strong>, and so it does after
+a trip to Today and back, with the OS back going up from there rather than home; the folder&#39;s top
+bar is its path as crumbs that end in its own name and go up (through &quot;…&quot; where they fold); the
+Notes tab starts on the Tree on two columns and on Folders on one; the Tree opens a folder in place,
+<strong>remembers it across a reload</strong>, folds a folder&#39;s files into one row that opens in place, says an
+empty folder is empty, and a long press on its row is the menu; and on two columns the list <strong>keeps
+its scroll and its lit row while the note changes</strong>, the grip widens the list and the width is
+remembered, and the note&#39;s sheet slides over the note&#39;s column, not the list.
+<code>CHECK_PHONE_SHAPES=phone,fold-open</code> runs a few shapes while working; the gate is all six.</p>
 <p><strong>What it measures, on every screen and sheet.</strong> Nothing overflows sideways (a strip that
 scrolls on purpose is exempt); every shell target is ≥44px (height always, width too when the
 control carries no text; prose, a checkbox inside a ≥44px label and a data picture&#39;s cells are
@@ -361,10 +370,13 @@ sheet only the sheet is asked, because the page under it is inert on purpose. Th
 Outline and Backlinks panes are measured WITH ROWS IN THEM: when the note has headings and
 backlinks (asked of the server), the gate first asserts that the pane lists them, so a 44px check
 never passes over an empty pane.</p>
-<p><strong>The four shapes.</strong> <code>phone</code> is a Pixel 7 at 412×915 with a finger. <code>stylus</code> is 720×820 at DPR
-1.5 with a pen — <code>availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1</code>, a blink setting on its own browser, because <code>hasTouch</code> makes Chromium report
-a coarse-only device whatever the pointer flags say; it is the posture that was once served the
-desktop shell. <code>tablet</code> and <code>tablet-land</code> are a touch tablet at 820×1180 and 1180×820, where the
+<p><strong>The six shapes.</strong> <code>phone</code> is a Pixel 7 at 412×915 with a finger. <code>fold-cover</code> and <code>fold-open</code>
+are a Galaxy Z Fold&#39;s two screens as Chrome reports them at its DPR of 2.625 — the cover screen at
+344×882 (one column) and the inner screen opened at 690×829 (two: its shape, not its width, makes
+it a tablet). <code>stylus</code> is 720×820 at DPR 1.5 with a pen — <code>availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1</code>, a blink setting on its own
+browser, because <code>hasTouch</code> makes Chromium report a coarse-only device whatever the pointer flags
+say; it is the posture that was once served the desktop shell, and since 3.34 it draws two columns,
+being the open Fold&#39;s shape. <code>tablet</code> and <code>tablet-land</code> are a touch tablet at 820×1180 and 1180×820, where the
 shell draws its rail, its list column and the note, and the note sheet slides over from the side.</p>
 <h3 id="npm-run-check-shell-seam--two-shells-no-shared-chrome"><a class="anchor" href="#npm-run-check-shell-seam--two-shells-no-shared-chrome"><code>npm run check-shell-seam</code> — two shells, no shared chrome</a></h3>
 <p>Static. The phone shell and the desktop shell share the store, the API layer, the dictionary and
@@ -393,12 +405,12 @@ its own port, in open local mode. <strong>It never takes a vault path</strong>, 
 disk, so neither can be pointed at yours. Set <code>ASTROLABE_SEED_VAULT=&lt;vault&gt;</code> to fold a real book
 and real Sigils and Orbits notes in as well; leave it unset and the gate measures the generated
 vault, which is the same vault on every machine.</p>
-<p>Seven budgets over six surfaces, each the <strong>best of several rounds</strong> with the CPU throttled to a quarter speed
+<p>Nine budgets over seven surfaces, each the <strong>best of several rounds</strong> with the CPU throttled to a quarter speed
 (Lighthouse&#39;s mid-tier multiplier — an unthrottled loopback has no headroom left in which a
 regression could show). Best-of, not average: other work on the machine can only ever make a
 round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
 built on the average is a gate that fails because somebody started a build.</p>
-<div class="table"><table><thead><tr><th>Budget</th><th>What it catches</th></tr></thead><tbody><tr><td><strong>first paint</strong> of the admin app</td><td>a static import that drags a lazy surface back into the shell&#39;s first request</td></tr><tr><td><strong>keypress → paint</strong> in the 3,000-line note, median and p95</td><td>a per-keystroke pass that has quietly become O(document)</td></tr><tr><td><strong>long-task time</strong> over a 40-keystroke burst</td><td>the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them, and the one the purge moved most</td></tr><tr><td><strong>reading render</strong> of that note</td><td>the same, for the one operation whose cost is the whole document at once</td></tr><tr><td><strong>the Sigils page</strong>, door → twelve cards drawn (budget 1,650 ms; 1,241 when set)</td><td>a card whose streak, heatmap or week went back to walking the whole log per render</td></tr><tr><td><strong>the Calendar page</strong>, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set)</td><td>a day cell that reads the vault instead of the agenda the page computed once</td></tr></tbody></table></div><p>Typing latency is the browser&#39;s own Event Timing — hardware keydown to the paint that shows the
+<div class="table"><table><thead><tr><th>Budget</th><th>What it catches</th></tr></thead><tbody><tr><td><strong>first paint</strong> of the admin app</td><td>a static import that drags a lazy surface back into the shell&#39;s first request</td></tr><tr><td><strong>keypress → paint</strong> in the 3,000-line note, median and p95</td><td>a per-keystroke pass that has quietly become O(document)</td></tr><tr><td><strong>long-task time</strong> over a 40-keystroke burst</td><td>the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them, and the one the purge moved most</td></tr><tr><td><strong>reading render</strong> of that note</td><td>the same, for the one operation whose cost is the whole document at once</td></tr><tr><td><strong>the Sigils page</strong>, door → twelve cards drawn (budget 1,650 ms; 1,241 when set)</td><td>a card whose streak, heatmap or week went back to walking the whole log per render</td></tr><tr><td><strong>the Calendar page</strong>, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set)</td><td>a day cell that reads the vault instead of the agenda the page computed once</td></tr><tr><td><strong>the phone&#39;s Tree</strong>, a tap → a folder of fifty open (100 ms; 70 when set), and the longest main-thread task over sixteen taps (none)</td><td>a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document</td></tr></tbody></table></div><p>Typing latency is the browser&#39;s own Event Timing — hardware keydown to the paint that shows the
 letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
 1 of a long note measures a short note. Budgets move like <code>check-bundle</code>&#39;s: by the actual
 overage, with the cause written beside them, or <strong>down</strong> when a round earns it. <code>PERF_ROUNDS=1</code>
