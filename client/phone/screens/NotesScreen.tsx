@@ -170,7 +170,7 @@ const SORTS: { sort: TreeSort; key: "phSortAZ" | "phSortZA" | "phSortManual" }[]
   { sort: "manual", key: "phSortManual" },
 ];
 
-export default function NotesScreen({ path, onBack }: { path: string; onBack?: () => void }) {
+export default function NotesScreen({ path, onBack }: { path: string; onBack?: () => void; onUp?: (path: string) => void }) {
   const phone = usePhone();
   const tree = useStore((s) => s.tree);
   const admin = useStore((s) => s.admin);
