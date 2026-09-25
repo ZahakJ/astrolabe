@@ -144,6 +144,10 @@ Two ways back out of pointing, both on the selection menu's **Arabic** page. **S
 
 The three share one table (`shared/tashkeel.ts`): the strip removes exactly the characters the palette can write, U+064B–U+0652, U+0670 and U+0640, and no more. The Qur'anic pause marks and small high letters are not in it, on purpose: a strip that reached past what the palette writes would take marks a careful typist never asked it to touch.
 
+## Hearing Arabic
+
+**Read aloud** speaks a selected Arabic word or passage with Piper's Jordanian voice, on your own machine's processor. Unvowelled text is pointed first by a small diacritiser, and any harakat you wrote are kept as written — so pointing a word is also how to tell the voice how to say it. Honestly: it is clear and intelligible, and flatter than Google's. See [Read aloud](read-aloud.md).
+
 ## Ayah and hadith callouts
 
 `> [!ayah] 2:255` renders the verse in Uthmani script with full tashkeel, set right-to-left in the Arabic font, with its reference as the caption: `﴿Al-Baqarah 2:255﴾` on an English instance, `﴿البقرة ٢٥٥﴾` on an Arabic one. A range is written `2:255-257`. The surah may be given by number or by name in either language, with the article and the pointing optional (`البقرة`, `Baqara`, `Al-Baqarah`). Any lines you write under the callout are your own commentary and render beneath the verse. In the editor, `/ayah` inserts the skeleton, and inside `> [!ayah] `, typing offers the surah names as you go. The text is the Tanzil Project's, credited under every callout. It is a 1.3 MB file that is downloaded only by a page that carries a verse, so a note without one downloads none of it, and a published note shows its verses to visitors from the same file.

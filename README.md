@@ -135,6 +135,7 @@ The site's own name and logo are settings too, and they travel with the vault. S
 - **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
 - **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates, ayah and hadith callouts
 - **[Japanese & furigana](docs/japanese.md), and French** — `{漢字|かんじ}` readings over kanji, a right-click that suggests them, a face only Japanese lines get; and [French corrected as you type](docs/editor.md#french-corrected-as-you-type), one undo each
+- **[Read aloud](docs/read-aloud.md)** — select a word in French or Japanese (or Arabic, or English) and hear it, from offline voices that run on your own machine's processor, a sentence at a time with the sentence lit
 - **[Export](docs/export.md) and [printing](docs/printing.md)** — a note, a folder, a tag or the whole vault as a ZIP with wikilinks kept or converted, any note as a standalone HTML page, and a printed page whose PDF carries real bookmarks and working links
 - **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and updates that only tell you — nothing downloads until you click
 - **[An Android app](docs/mobile.md)** — a door onto your own server: a connection screen, a share sheet that captures into the vault, and nothing of the web client shipped twice
@@ -153,7 +154,7 @@ The site's own name and logo are settings too, and they travel with the vault. S
 | [The editor & reading view](docs/editor.md) | Live preview, rendering, navigation |
 | [Templates, banners & notes](docs/templates-and-notes.md) · [LaTeX notes](docs/latex.md) | Authoring |
 | [Theming](docs/theming.md) · [Typography](docs/typography.md) | The look |
-| [Arabic & RTL](docs/arabic-and-rtl.md) · [Japanese & furigana](docs/japanese.md) | Language, direction, the filter, Hijri dates, tag labels, readings over kanji |
+| [Arabic & RTL](docs/arabic-and-rtl.md) · [Japanese & furigana](docs/japanese.md) · [Read aloud](docs/read-aloud.md) | Language, direction, the filter, Hijri dates, tag labels, readings over kanji, hearing a selection |
 | [Capture](docs/capture.md) · [Export](docs/export.md) · [Printing & PDF](docs/printing.md) | Getting things in, and out |
 | [Trackers](docs/trackers.md) · [Sigils](docs/sigils.md) · [Orbits](docs/orbits.md) · [The book reader](docs/books.md) | Reading, the days, study |
 | [Panes, tabs & windows](docs/workspace.md) · [Drawings](docs/drawing.md) · [Offline reading](docs/offline.md) | The workspace |

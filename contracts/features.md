@@ -1,6 +1,6 @@
-# Features — twins, trackers, Sigils, the Calendar, Orbits, capture, Ask, voice
+# Features — twins, trackers, Sigils, the Calendar, Orbits, capture, Ask, voice, read aloud
 
-The vault's own features: twins, trackers, Sigils, the Calendar page, Orbits, capture, Ask the vault, voice notes, and the 3.12–3.17 groups (block references, queries, tasks, periodic notes, bookmarks, layouts, the margin, the week). Part of the module contracts (see [CONTRACTS.md](../CONTRACTS.md) for the map). **Edit the area, append nothing:** a change to how something works is written HERE, in the section it changes, and the old sentence goes; a release gets one line in [releases.md](releases.md), never an addendum.
+The vault's own features: twins, trackers, Sigils, the Calendar page, Orbits, capture, Ask the vault, voice notes, read aloud, and the 3.12–3.17 groups (block references, queries, tasks, periodic notes, bookmarks, layouts, the margin, the week). Part of the module contracts (see [CONTRACTS.md](../CONTRACTS.md) for the map). **Edit the area, append nothing:** a change to how something works is written HERE, in the section it changes, and the old sentence goes; a release gets one line in [releases.md](releases.md), never an addendum.
 
 ## Linguistic twins — one note, two faces (`shared/twins.ts`, `server/indexer.ts` `twinOf`, `client/twins.ts`)
 
@@ -1215,6 +1215,56 @@ its phone block asked for width alone; it now asks `(max-width: 700px), (pointer
 fake engine, the landing over a throwaway vault, the resampler, the copy), `tests/pocketServer.test.ts`
 (the kept note, the 501s, the settings), `tests/links.test.ts` (the path-form embed).
 
+
+## Read aloud: a selection spoken on the owner's machine, on its CPU
+
+*Self-contained: `shared/speech.ts` (every rule, pure), `server/speak.ts` (the door), `server/speakEngine.ts` + `server/speakWorker.py` (the venv, the models, the persistent child), `server/speakQueue.ts` (one at a time), `server/speakCache.ts` (the LRU), `client/speech/*` (the player, the chip, the doors), `client/components/settings/ReadAloudControls.tsx` (the row's controls). Docs: `docs/read-aloud.md` and its Arabic twin. Tests: `tests/speech.test.ts`, `tests/speakCache.test.ts`, `tests/speakQueue.test.ts`, `tests/speakRoutes.test.ts`.*
+
+### THE ENGINES WERE CHOSEN BY EAR, ON THE CPU
+
+The owner's ask was a friend's: "highlight a word in French or Japanese and it would read it to me at a level that matches or surpasses Google Translate", offline. The owner then ruled the GPU out ("remember other people with no good gpu will use app"), so the design target is an ordinary laptop or a small home server with none. Kokoro-82M (PyTorch, and kokoro-onnx fp32 and int8), Piper 1.8 and MeloTTS each spoke the same ten lines on the CPU (a 7800X3D at 8 threads, and pinned with `taskset` to 2 cores and to 1), judged by whisper large-v3-turbo round trips (character error rate) and UTMOS22 (predicted naturalness), with the WAVs kept for the owner to hear (`scratchpad/tts-samples/`, a README beside them). The numbers that decided it:
+
+| | word 8c / 2c / 1c | 3.9 s French sentence 8c / 2c / 1c | download | UTMOS | whisper CER |
+| --- | --- | --- | --- | --- | --- |
+| Kokoro onnx fp32 | 267 / 460 / 701 ms | 928 / 1567 / 2297 ms | 325 + 28 MB | 3.59 | one miss (図書館 alone) |
+| Kokoro onnx int8 | 1654 / 2106 ms | 4612 / 5860 ms | 92 + 28 MB | 3.47 | the same miss |
+| Kokoro PyTorch CPU | 227 / 860 ms | 603 / 3937 ms | ~1.3 GB with torch | 3.71 | the same miss |
+| Piper medium | 60 / 60 / 88 ms | 281 / 217 / 375 ms | 63 MB a voice | 3.45 | 0.2 % |
+| MeloTTS | 226 / 309 ms | 588 / 1367 ms | ~2 GB for FR+JA+EN | 3.51 | 4.1 % |
+
+**Two engines, one venv, onnxruntime's CPU build, no torch.** *Light* is Piper (en_US-lessac-medium, fr_FR-siwis-medium, ar_JO-kareem-medium; 190 MB) and is the DEFAULT, because on one slow core Kokoro can reach real time and Piper never comes near it. *Natural* is Kokoro fp32 through kokoro-onnx (354 MB once; en, fr, ja, es, it, pt). The int8 model is not offered: it was four to six times SLOWER on this CPU. MeloTTS is not offered: comparable Japanese at ten times the download. Arabic is Piper's whatever is chosen (the only offline Arabic voice of the three; intelligible, flatter than Google's; Piper 1.8 carries libtashkeel and points unvowelled text first), and Japanese is Kokoro's whatever is chosen; `engineFor` in shared/speech.ts is that rule.
+
+**A bare word is closed with its language's full stop before it reaches the engine** (`closeSentence`): Kokoro spoke three kanji words in ten with a lilt whisper misheard (図書館 → どうしようかん), and all ten were understood once closed with 「。」.
+
+### THE WORKER IS A PERSISTENT CHILD; THE INSTALL NEEDS NOTHING BUT A VENV
+
+- `POST /api/speak/install { engine }` makes `ASTROLABE_DATA/tts/venv` with `uv venv --python 3.12` when `uv` is on PATH, else `python3 -m venv` from a system Python 3.10–3.13, else `speakNoPython`, said in the row. Packages are PINNED to what the trial ran and installed `--only-binary :all:` (`piper-tts==1.8.0`, `kokoro-onnx==0.6.1`, `soundfile==0.14.0`, `fugashi`, `jaconv`, `mojimoji`, `addict`, `regex`); `misaki==0.9.4` and `unidic-lite` go in `--no-deps` (misaki's `[ja]` extra pulls pyopenjtalk, which has no wheels; the worker stands an empty module in for an import it never calls). A `.astrolabe-<engine>` marker is written only once an engine's packages are in, so a half-finished pip is not an engine. Models download into `ASTROLABE_DATA/models/tts/` (Piper from the `v1.0.0` tag of rhasspy/piper-voices, Kokoro from kokoro-onnx's `model-files-v1.0` release) to `.part`, size-checked (JSON sidecars parsed), renamed. The row polls `GET /api/speak/status` and prints the phase and the percentage — the whisper model's pattern.
+- `server/speakWorker.py` is spawned with the venv's Python and kept up: JSON lines in, JSON lines out (audio base64), stdout reserved for the protocol and every library's chatter sent to stderr (kept, forty lines, printed only if the child dies). Both engines' sessions share one thread count (`ASTROLABE_TTS_THREADS`, default half the cores, ≤ 8). The child ends after 10 idle minutes (~600 MB with both engines loaded) and after an install (it has not imported the new packages). `GET /api/speak/status` from the owner warms the chosen engine.
+- Answers are Ogg Opus at 24 kHz (Piper's 22 050 Hz resampled linearly) when the bundled libsndfile has Opus, else WAV; the client asks for WAV when its `<audio>` cannot play Opus. About 4 kB a word.
+- Measured through the route on the owner's machine, warm: a word 65–77 ms (Piper), 330–350 ms (Kokoro); a French sentence 150 ms (Piper); a 25-character Japanese sentence 1.3 s (Kokoro, first of its kind); a cache hit 2–3 ms.
+
+### THE LINE, THE CACHE
+
+- One synthesis at a time (`createSpeakQueue`): two at once only make both slower. The SAME key asked twice (the player's prefetch, a replay, two visitors) is one job; a queued job whose every asker aborted (stop, a new selection) is dropped before it runs; a running one finishes and is cached.
+- `speakCacheKey` is sha256 over `r<ENGINE_REVISION>`, the NFC text, the language, the voice, the rate to two decimals and the container, NUL-separated. Files are `ASTROLABE_DATA/tts/cache/<2 hex>/<key>.{ogg,wav}`, written aside and renamed; at most 500 MB, least recently HEARD first (a hit touches the mtime, and the disk is the index, read back oldest-first on the first request after a restart).
+
+### THE DOORS, THE PLAYER, THE HONEST FALLBACK
+
+- The selection menu's untitled carry-off group gains **Read aloud** (`Ctrl/Cmd ⇧ .`), its sixteenth row: re-measured on a markdown note at 1280×800, **233×568, no internal scroll** (233×540 with fifteen). The chord lives in `client/globalKeys.ts` for the app shell (the editor's selection through `EditorView.findFromDOM`, else the DOM selection); the keymap ledger row is `speakSelection`.
+- A DOM selection inside `.s-reading`, `.s-epub__body`, `.s-book__doc` or `.s-blog-article` grows a chip BELOW its last line (the annotation button sits above it, Android's callout too); on the phone the chip also answers an editor selection, since the phone has no selection menu. The palette's **Read this note aloud** and the phone note sheet's Actions row read the rendered body in the reading view (lit), else the editor from the caret's line (the whole note from the top or the frontmatter), else the source.
+- Text is spoken as the reader sees it: `<rt>`/`<rp>` dropped (furigana read once, as the base — the engine's G2P reads the kanji; never base then reading), buttons and footnote marks dropped, a block's end a sentence's end; an editor selection goes through `speechTextOfNote` (the word count's prose reduction). `splitSentences` knows spaced French `?`/`!` and guillemets, Japanese 「。」 with no space after it, the Arabic `؟`, abbreviations, initials and decimals, and cuts past 280 characters at a breath.
+- The player (`client/speech/player.ts`, drawn by `SpeechPlayer.tsx`, one lazy mount per shell) asks a sentence at a time and prefetches the next; the current sentence is lit in the page with the Custom Highlight API (`astrolabe-speaking`) when the passage came from the page. Audio reaches `<audio>` as a `data:` URL: the shell CSP has no `blob:` and must not (check-books), and the first run fell straight through to the device's voices on exactly that. The rate button is `playbackRate` over the synthesis rate, pitch kept.
+- When the server cannot speak — `speakNotInstalled`, the pocket's 501, a visitor's 404, a network failure, an undecodable answer — the rest of the passage is read by `speechSynthesis` and the player SAYS so (`speakDeviceNote`, `speakPocketNote`, `speakNotInstalledNote`; `speakNoVoice` when the device has none).
+- Visitors: see `/api/speak` in [vault-server.md](vault-server.md). The blog's article carries `data-note-path` so a visitor's request names its page.
+
+### THE SETTINGS, THE ROW, THE POCKET, THE DESKTOP
+
+- `speak { engine, rate, voices, public }`, every default stored as its absence: Light, rate 1 (0.8 / 1 / 1.2 offered), each engine's first voice, not public. Settings → Language & dates → **Read aloud** is one row (the tab goes to 14): the engine segment, the install line and button, the two facts the choice does not change (Japanese is Natural's, Arabic is Light's), an English and a Japanese voice once Natural is in, the speed. Settings → Publishing & comments → **Readers may listen** (the tab goes to 15).
+- The pocket refuses `/api/speak*` with `refuseSpeaker`, and its effective `speak` is the fixed facts; the client reads with the phone's voices and says so.
+- The desktop app ships `server/**/*.py` (electron-builder `files`), and its bundled server makes the venv under its own data folder; Electron's permissions are unchanged (the page only plays audio).
+- `ASTROLABE_SPEAK_FAKE=1` stands a tone in for both engines on a scratch server so check-fidelity and check-phone hear an answer in seconds; the row says *Test engine* while it is on.
+
+**Verified** against a scratch server running the REAL engines (`scratchpad/tts-trial/shoot.mjs` and `shoot2.mjs` in the worktree; Chromium at 1280×800 and 412×915, English and Arabic chrome): a word selected in the reading view → the chip → `200 audio/ogg` fr/light, the player playing 60–130 ms after the click; a paragraph lit sentence by sentence in the page; a Japanese paragraph with furigana → ja/natural, the player showing 図書館, not its reading; the selection menu's row and the chord in the editor; the palette row from the caret; the phone sheet's row. The first run caught the CSP refusing a `blob:` source and the honest fallback taking over; the source became a `data:` URL.
 
 ## Feeds and read-later, and the import wizard (3.28)
 

@@ -314,6 +314,17 @@ const GROUPS: Group[] = [
         admin: true,
         run: () => useStore.getState().toggleReading(),
       },
+      // READ ALOUD (docs/read-aloud.md): the selection, wherever it is — the
+      // editor, the reading view, a book. The period, because a sentence ends
+      // there; Shift, because Ctrl/Cmd+. alone is macOS's "cancel". Not in the
+      // blog shell: a visitor's selection has the chip, and their keys are
+      // the browser's.
+      {
+        label: "speakSelection",
+        keys: ["Ctrl/Cmd", "Shift", "."],
+        shell: "app",
+        run: () => void import("../speech/doors.ts").then((m) => m.speakSelection()),
+      },
       {
         label: "cmdZen",
         keys: ["Ctrl/Cmd", "Shift", "Z"],

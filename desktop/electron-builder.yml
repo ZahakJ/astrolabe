@@ -54,6 +54,10 @@ extraMetadata:
 files:
   - electron/**/*.ts
   - server/**/*.ts
+  # Read aloud's speaker (docs/read-aloud.md): the one server file that is
+  # not TypeScript. The server spawns it with the venv's Python, which the
+  # Install button makes under the app's own data folder.
+  - server/**/*.py
   - shared/**/*.ts
   # The client's dictionary, and nothing else of the client's source, is here
   # on purpose: electron/menuStrings.ts re-exports it so the native menu and

@@ -370,6 +370,42 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.33.0",
+    title: { en: "Hear any word", ar: "اسمع أي كلمة" },
+    slides: [
+      {
+        // ── Read aloud: offline voices on the processor ───────────────────
+        title: { en: "Hear any word", ar: "اسمع أي كلمة" },
+        body: {
+          en: "Select a word or a paragraph in French, Japanese, Arabic or English and choose Read aloud, or press Ctrl/Cmd Shift period. It is spoken in its own language by voices that run offline on your own machine's processor, a sentence at a time, with the sentence lit on the page. Install Light for any computer or Natural for a more human voice in Settings → Language & dates. With nothing installed, your device's own voices read instead, and the player says so.",
+          ar: "حدّد كلمة أو فقرة بالفرنسية أو اليابانية أو العربية أو الإنجليزية واختر «اقرأ بصوت عالٍ»، أو اضغط Ctrl/Cmd Shift ونقطة. تُنطق بلغتها بأصوات تعمل دون اتصال على معالج جهازك نفسه، جملةً جملة، وتُضاء الجملة في الصفحة وهي تُقرأ. ثبّت «خفيف» لأي حاسوب أو «طبيعي» لصوت أقرب إلى الإنسان من الإعدادات ← اللغة والتواريخ. وإن لم يُثبَّت شيء قرأت أصوات جهازك، وقال المشغّل ذلك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="30" width="480" height="120" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="54" y="44" width="300" height="5" rx="2"/><rect x="54" y="56" width="420" height="5" rx="2"/></g>
+  <rect class="wa-pulse" x="54" y="70" width="380" height="14" rx="3" fill="var(--accent-soft)"/>
+  <text x="60" y="81" fill="var(--text)" font-size="11" font-style="italic">${L(lang, "La grenouille saute dans le jardin.", "الضفدع يقفز في الحديقة.")}</text>
+  <g fill="var(--text-faint)"><rect x="54" y="94" width="360" height="5" rx="2"/><rect x="54" y="106" width="200" height="5" rx="2"/></g>
+  <g class="wa-late" style="--i:1"><rect x="150" y="116" width="52" height="20" rx="10" fill="var(--bg-hover)" stroke="var(--accent)" stroke-width="1.5"/><path d="M160 122 h4 l5 -4 v12 l-5 -4 h-4 z" fill="var(--accent)"/><path d="M172 121 q4 5 0 10 M176 118 q7 8 0 16" fill="none" stroke="var(--accent)" stroke-width="1.5"/></g>
+  <g class="wa-late" style="--i:2"><rect x="150" y="164" width="260" height="30" rx="15" fill="var(--bg)" stroke="var(--border)"/>
+    <path d="M166 172 l10 7 l-10 7 z" fill="var(--accent)"/>
+    <text x="192" y="184" fill="var(--text-muted)" font-size="12">↺</text>
+    <text x="214" y="184" fill="var(--text-muted)" font-size="11">1×</text>
+    <rect x="238" y="174" width="10" height="10" fill="var(--text-muted)"/>
+    <text x="262" y="184" fill="var(--text-faint)" font-size="10">${L(lang, "1 of 2", "١ من ٢")}</text>
+    <g class="wa-blink" fill="var(--accent)"><rect x="330" y="176" width="3" height="6"/><rect x="336" y="172" width="3" height="14"/><rect x="342" y="170" width="3" height="18"/><rect x="348" y="174" width="3" height="10"/><rect x="354" y="177" width="3" height="4"/></g>
+  </g>
+  <text x="466" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "on the processor, offline", "على المعالج، دون اتصال")}</text>
+</svg>`,
+        },
+        docs: "read-aloud",
+      },
+    ],
+  },
+  {
     version: "3.32.0",
     title: { en: "Video in a note", ar: "الفيديو داخل الملاحظة" },
     slides: [
