@@ -1015,11 +1015,13 @@ so the toast's Open is not under the scrim.
 The recorder is a half of the quick-capture sheet; the words are made by the owner's own server;
 the recording and the words land in the vault. `shared/voice.ts` (every rule, pure),
 `server/voice.ts` (the door and the writes), `server/voiceQueue.ts` (one at a time),
-`server/voiceEngine.ts` + `server/voiceWorker.ts` + `server/voiceAudio.ts` (the model, the child,
-the decode), `client/voice/*` + `client/components/VoiceRecorder.tsx` (the recorder, lazy),
+`server/voiceEngine.ts` + `server/voiceWorker.ts` + `server/voiceAudio.ts` (the models, the child
+and its two engines, the decode and the windows), `client/voice/*` +
+`client/components/VoiceRecorder.tsx` (the recorder, lazy), `client/components/settings/VoiceEngineNote.tsx`
++ `voiceStatus.ts` (the row and its words),
 `mobile/src/voice.ts` (the share sheet's), `electron/permissions.ts` (the microphone fence).
 
-### THE ENGINE IS WHISPER.CPP, AND THE NUMBERS CHOSE IT
+### ON A GPU THE ENGINE IS WHISPER.CPP, AND THE NUMBERS CHOSE IT (3.24.0)
 
 The brief allowed two engines that install as npm dependencies of this repo with nothing global
 and no Python: whisper.cpp through a prebuilt N-API binding (`@fugood/whisper.node` — CPU, Vulkan
@@ -1050,26 +1052,109 @@ much as the table did:
   door was opened…"). A setting that defaults to "detect" cannot sit on an engine that cannot.
   whisper.cpp detected `ar` and `en` correctly on both clips.
 - **The quantised turbo beat its own full-precision file** on Arabic (11.4% against 17.1%, the
-  f16 file drifting into a repetition loop near the end) at a third of the download. It is the
-  default; the f16 file and `small-q5_1` (190 MB) are the two alternatives offered.
+  f16 file drifting into a repetition loop near the end) at a third of the download. It was the
+  default until the processor got an engine of its own (below); it is still the choice for a GPU.
 
 **The GPU path is Vulkan here, and that is the portable one.** The CUDA prebuilt links the CUDA 12
 runtime and this machine carries CUDA 13, so it refuses to load; the package's own loader answers
 a refused build by silently falling back to the CPU build and caching THAT as the module, so the
-worker (`server/voiceWorker.ts`) asks each build whether it loads BEFORE handing it to the loader,
-in the order CUDA, Vulkan, CPU (`ASTROLABE_WHISPER_GPU=off` pins the CPU). Vulkan runs on any
-vendor's current driver, integrated GPUs included. **The CPU build is a floor, not a plan:** the
-prebuilt runs one thread without the SIMD paths, and one encoder pass of `small` did not finish in
-90 s. A server with no GPU should use `small-q5_1` and expect minutes, or set the model to Off.
+worker (`server/voiceWorker.ts`) asks each GPU build whether it loads BEFORE handing it to the
+loader, CUDA then Vulkan (on a Mac the default build is the Metal one). Vulkan runs on any vendor's
+current driver, integrated GPUs included.
+
+### VOICE NOTES WITHOUT A GPU: THE PROCESSOR IS FIRST-CLASS
+
+The owner: "make sure that is not dependent on gpu", and "other people with no good gpu will use
+app". **whisper.cpp's prebuilt CPU build cannot be that path**, and that is a measurement, not a
+guess: `objdump` finds no AVX register in `@fugood/node-whisper-linux-x64` (nor in the Vulkan or
+CUDA builds' own CPU code — the build targets baseline x86-64), and its bench runs one thread
+whatever `maxThreads` says. Ten seconds of speech took the small model 187 s; the large models did
+not finish ten seconds in five minutes. So the processor runs whisper through **sherpa-onnx**
+(`sherpa-onnx-node`, onnxruntime inside: prebuilt for Linux, macOS and Windows, x64 and arm64, 33 MB,
+no compiler, AVX2/AVX-512 chosen at run time, every core it is given) reading the SAME models'
+int8 ONNX exports (`huggingface.co/csukuangfj/sherpa-onnx-whisper-<size>`). It detects the language
+per window (`language: ""`), which the transformers.js pipeline measured in 3.24.0 could not.
+
+**The measurements** (a harness in the session's scratchpad, `voicecpu/run.ts` and `matrix.sh`; three recordings synthesized locally by
+Meta's MMS-TTS — a 10 s English line, a 31 s Arabic passage, a 2 min 8 s note that goes English →
+Arabic → English — decoded exactly as the server decodes; this machine is a Ryzen 7 7800X3D, 8 cores
+/ 16 threads, 30 GB, with seven threads of other work pinned busy through every run; "two cores" is
+`taskset` to two cores with two threads — the sherpa cells on cores 1 and 2, the median of three
+runs; seconds per minute of speech; WER · CER in %, after the 3.24.0 folding):
+
+| engine | model | machine | 10 s English | 31 s Arabic | 2 min mixed | peak memory | WER · CER: English / Arabic / mixed |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| ONNX (sherpa-onnx), processor | base | whole machine | 5.1 s | 5.5 s | 7.1 s | 862 MB | 0 · 0 / 43 · 14 / 15 · 6 |
+| ONNX (sherpa-onnx), processor | base | two cores | 5 s | 6.6 s | 5.3 s | 852 MB | 0 · 0 / 43 · 14 / 15 · 6 |
+| ONNX (sherpa-onnx), processor | small | whole machine | 12.9 s | 17.5 s | 17 s | 1432 MB | 0 · 0 / 35 · 9 / 12 · 4 |
+| ONNX (sherpa-onnx), processor | small | two cores | 13.8 s | 19.9 s | 15.5 s | 1454 MB | 0 · 0 / 35 · 9 / 12 · 4 |
+| ONNX (sherpa-onnx), processor | medium | whole machine | 71.3 s | 96 s | 55 s | 3149 MB | 0 · 0 / 18 · 4 / 10 · 4 |
+| ONNX (sherpa-onnx), processor | medium | two cores | 143 s | 578.6 s | 69.7 s | 3146 MB | 0 · 0 / 18 · 4 / 10 · 4 |
+| ONNX (sherpa-onnx), processor | turbo | whole machine | 15 s | 16.3 s | 14.4 s | 2632 MB | 7 · 4 / 25 · 6 / 9 · 4 |
+| ONNX (sherpa-onnx), processor | turbo | two cores | 22.8 s | 23.2 s | 20.5 s | 2667 MB | 7 · 4 / 25 · 6 / 9 · 4 |
+| whisper.cpp prebuilt CPU build | base-q5_1 | whole machine | 376.5 s | 174 s | 104 s | 478 MB | 0 · 0 / 45 · 14 / 34 · 28 |
+| whisper.cpp prebuilt CPU build | base-q5_1 | two cores | 335.2 s | 186 s | 95.6 s | 484 MB | 0 · 0 / 45 · 14 / 34 · 28 |
+| whisper.cpp prebuilt CPU build | small-q5_1 | whole machine | 1121.8 s | 574.5 s | > 140 s (not done in 300 s) | 616 MB | 0 · 0 / 28 · 6 / — |
+| whisper.cpp prebuilt CPU build | small-q5_1 | two cores | 1131.6 s | > 583 s (not done in 300 s) | > 140 s (not done in 300 s) | 580 MB | 0 · 0 / — / — |
+| whisper.cpp prebuilt CPU build | medium-q5_0 | whole machine | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp prebuilt CPU build | medium-q5_0 | two cores | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp prebuilt CPU build | large-v3-turbo-q5_0 | whole machine | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp prebuilt CPU build | large-v3-turbo-q5_0 | two cores | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp prebuilt CPU build | large-v3-turbo | whole machine | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp prebuilt CPU build | large-v3-turbo | two cores | > 1800 s (not done in 300 s) | — | — | — | — / — / — |
+| whisper.cpp, Vulkan (RTX 4070 SUPER) | base-q5_1 | GPU | 59.9 s | 0.5 s | 1.2 s | 510 MB | 0 · 0 / 45 · 14 / 34 · 28 |
+| whisper.cpp, Vulkan (RTX 4070 SUPER) | small-q5_1 | GPU | 0.9 s | 0.8 s | 1 s | 335 MB | 0 · 0 / 28 · 6 / 67 · 43 |
+| whisper.cpp, Vulkan (RTX 4070 SUPER) | medium-q5_0 | GPU | 1.7 s | 1.3 s | 0.8 s | 281 MB | 21 · 17 / 13 · 3 / 36 · 30 |
+| whisper.cpp, Vulkan (RTX 4070 SUPER) | large-v3-turbo-q5_0 | GPU | 1.4 s | 0.9 s | 1.2 s | 306 MB | 0 · 0 / 15 · 3 / 87 · 81 |
+| whisper.cpp, Vulkan (RTX 4070 SUPER) | large-v3-turbo | GPU | 2.8 s | 1 s | 1.3 s | 332 MB | 0 · 0 / 23 · 5 / 159 · 139 |
+
+The Vulkan rows are whisper.cpp hearing each recording whole, as it did before this change (base's 60 s
+on the first clip is Vulkan compiling its pipelines on first use); heard in windows, the mixed note
+is 7% WER with the turbo and 12% with small. The whisper.cpp CPU rows are the ten-second clip for
+every model and the longer clips for the two small ones, five minutes each at most.
+
+What the table says:
+
+- **On two cores every model but medium transcribes faster than speech**: base in ~5 s a
+  minute, small in ~15 s (Arabic ~20 s — its words cost the decoder more steps
+  than English's), the large turbo in ~23 s (its decoder has four layers to small's twelve,
+  so on Arabic it keeps up with small). Medium is slower than speech on two cores and no more accurate
+  than the turbo, so it is measured and **not offered**.
+- **The default is `small-q5_1`**: under a minute a minute on two busy cores in both languages, ~1.5 GB
+  of memory while it works, 375 MB to fetch on the processor (190 MB on a GPU). Base is the
+  faster choice for a weak machine and makes more Arabic mistakes (43% WER on the passage against
+  small's 35%); the large turbo is the better Arabic (25%) at 1.0 GB to fetch and ~2.7 GB of
+  memory — the cost a low-end laptop cannot always pay, which is why it is not the default. The
+  settings row writes each model's two-core minute beside it (`cpuSecondsPerMinute` in
+  `VOICE_MODELS`, the Arabic median rounded to five seconds).
+- **One detection per recording was a bug on the GPU too.** whisper.cpp hears a long recording
+  whole but detects its language once, from the first thirty seconds: the mixed note came back as
+  English looping over the Arabic (87% WER with the large turbo on Vulkan). Both engines now hear a
+  recording in windows (`speechWindows` in `server/voiceAudio.ts`: ≤ 28 s each, cut at the quietest
+  tenth of a second in the last ten, windows of silence never sent), each detecting its own
+  language: the same note on Vulkan, windowed, is 7% WER; on the processor 9–15%. A six-minute note
+  on the processor peaked at 1.6 GB with small (1.45 GB for two minutes): memory does not
+  grow with length to speak of.
+
+**The thread count** (`voiceThreads`, `engineThreads`): the physical cores (`/proc/cpuinfo`'s
+distinct (physical id, core id) pairs; half the logical count where the platform does not say),
+never more than `os.availableParallelism()` (so `taskset` or a container quota is honoured), never
+more than eight. The GPU path passes the same count; flash attention is on only on a GPU.
 
 ### THE MODEL IS DATA, NOT CODE
 
-Fetched on first use from huggingface.co/ggerganov/whisper.cpp into
-`ASTROLABE_DATA/models/whisper/` — the data directory, never the vault (which is synced, published
-and committed) and never the repository — as a `.part` file renamed only when its size matches the
-catalogue's exact byte count (`VOICE_MODELS` in shared/voice.ts: 574,041,195 / 1,624,555,275 /
-190,085,487). One download per model however many recordings wait on it; `GET /api/voice/engine`
-reports its progress and the sheet prints it ("Fetching the speech model the first time — 40%").
+Fetched on first use into the data directory — never the vault (which is synced, published and
+committed) and never the repository — in the form the engine that will run it reads: the GGML file
+from huggingface.co/ggerganov/whisper.cpp into `ASTROLABE_DATA/models/whisper/` for a GPU, the three
+ONNX files (`<size>-encoder.int8.onnx`, `<size>-decoder.int8.onnx`, `<size>-tokens.txt`) from
+`huggingface.co/csukuangfj/sherpa-onnx-whisper-<size>` into `ASTROLABE_DATA/models/whisper-onnx/<size>/`
+for the processor. Each file is a `.part` renamed only when its size matches the catalogue's exact
+byte count (`VOICE_MODELS` in shared/voice.ts: GGML 59,707,625 / 190,085,487 / 574,041,195 /
+1,624,555,275; ONNX 160,609,290 / 375,485,327 / 1,036,613,791, both turbo files sharing the one int8
+export). A machine fetches only the form it runs — both only when a GPU fails after its file came.
+One download per model and form however many recordings wait on it; `GET /api/voice/engine`
+reports its progress in the form the next job needs and the sheet prints it ("Fetching the speech
+model the first time — 40%").
 
 ### THE TRANSCRIBER IS A CHILD PROCESS
 
@@ -1080,6 +1165,20 @@ the recording's bytes over advanced-serialization IPC, and ends it after five id
 gives the model's half-gigabyte of VRAM back to a card the owner may be sharing. whisper.cpp's forty
 lines of stderr per model load are kept (the last forty) and printed only if the child dies badly.
 A job that does not come back in twenty minutes kills the child and fails with `timeout`.
+
+**Which engine, and the fallback.** `voice.backend` `cpu` sends every job to sherpa-onnx and never
+asks about a GPU (no GPU build is even loaded). `auto` asks the child once per server run which GPU
+build LOADS (`{ kind: "probe" }` → `cuda` / `vulkan` / `metal` / `cpu`; `ASTROLABE_WHISPER_GPU=off`
+still answers `cpu`); none → the processor from the first job. A GPU build that loads and then
+fails answers `gpu-unavailable` and the parent marks the GPU failed until restart and sends the
+SAME recording to the processor: it would not initialise, or it initialised with no device — the
+Vulkan build over a Vulkan loader with no driver logs "no GPU found" and quietly runs the floor,
+so the worker waits for whisper.cpp's `whisper_backend_init_gpu` verdict line (it arrives on the
+event loop AFTER the init resolves) — or the child died mid-job. Verified on this machine with
+`VK_ICD_FILENAMES` pointed at nothing: 4.2 s on the processor instead of 165 s on the floor, the
+status line saying so. sherpa-onnx that will not load answers `cpu-unavailable` and the job falls
+to the floor (whisper.cpp's own CPU build), logged. A child's exit rejects only ITS jobs — a child
+ended on purpose used to reject the job its successor already held.
 `scripts/check-desktop.mjs` learned to follow `new URL("./x.ts", import.meta.url)` — a forked
 module is in the server graph, and its three packages must be desktop dependencies at the same
 specs, which the gate could not see before.
@@ -1135,17 +1234,29 @@ deletion. This was a standing `KNOWN BUG:` test in `tests/links.test.ts`; the ex
 (case-insensitively) is now asked first and the basename ladder after, and the test is rewritten as
 the fixed behaviour. The pocket's resolver already did this.
 
-### THE SETTINGS: `voice { model, language, keepAudio }`
+### THE SETTINGS: `voice { model, backend, language, keepAudio }`
 
 One settings.json key, the `attachments` shape (null clears it, sub-keys merge, a value equal to
-its default is deleted, an unknown sub-key or value is a 400 naming it). Defaults:
-`large-v3-turbo-q5_0`, `auto`, `true`; `effective.voice` always carries all three. Rows: Settings →
-Vault → **Voice transcription** (a Select with each model's download size, and Off) with a live line
-under it from `GET /api/voice/engine` (not downloaded / downloading N% / downloaded, last run on
-Vulkan), and **Keep voice recordings** (a Toggle); Settings → Language & dates → **Voice note
-language** (Detect / Arabic / English). **The ≤18-rows rule decided the split:** Vault held 16, so
-two voice rows bring it to exactly 18 and the language pin — a question about which language a thing
-is in — sits on the Language tab (12 → 13). A third Vault row would have been 19.
+its default is deleted, an unknown sub-key or value is a 400 naming it). Defaults: `small-q5_1`,
+`auto`, `auto`, `true`; `effective.voice` always carries all four. `backend` is `auto` or `cpu`.
+
+**The migration is the storage rule, not a script.** The old default (the large turbo) was stored
+as its absence, so an instance that never chose has no `voice.model` and now reads `small-q5_1`;
+one that wrote `large-v3-turbo-q5_0` down keeps it; and choosing the large turbo in the row from
+now on WRITES it (it is no longer the default), so the next default change cannot take it
+(`tests/settings.test.ts`, a hand-written settings.json each way).
+
+Rows: Settings → Vault → **Voice transcription** — ONE row with two controls, because Vault holds
+eighteen: a Select of the four models and Off (each option's note is its download in the form this
+machine will run and, on the processor, "a minute of speech in about N s on two cores"; the note is
+hidden in the closed trigger, where it pushed the name out) and a segmented **Auto / Processor
+only**. The line under it (`voiceStatusLine`) is the download line unchanged (not downloaded / N% /
+the size), then which model ran where: "Downloaded; Small, compact (the default) last ran on the
+processor." — or "runs on the processor" before the first job when that is already known.
+**Keep voice recordings** (a Toggle); Settings → Language & dates → **Voice note language** (Detect /
+Arabic / English). **The ≤18-rows rule decided the split:** Vault held 16, so two voice rows brought
+it to exactly 18 and the language pin sits on the Language tab; the backend is the model row's
+second control for the same reason.
 
 ### THE SHEET, THE DOORS, THE COPY
 
@@ -1195,7 +1306,7 @@ the DICT. Entry cost of the feature: +3.2 kB.
   the repository is opened on an instance: a server rewriting bullets in a note last touched on a
   phone, unasked, is prose edited behind its owner's back — the thing the conflict rule refuses.
   The `voice` settings key is in `POCKET_CANNOT_KEEP`; `effective.voice` answers the pocket's facts
-  (`off`, `auto`, kept).
+  (`off`, `auto`, `auto`, kept).
 
 **Verified** (`scratchpad/voice-3.24/verify.mjs` in the worktree, headless Chromium with
 `--use-fake-device-for-media-stream --use-file-for-fake-audio-capture=<wav>` against a scratch server

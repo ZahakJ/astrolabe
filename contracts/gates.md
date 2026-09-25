@@ -163,7 +163,17 @@ What the suite covers, and why each file exists:
   removed, the queue (FIFO, one at a time, a failed transcription still landing the link, "keep the
   audio" off deleting only AFTER words land, silence keeping the recording), the landing over a
   throwaway vault (after the phone's own lines, never overwriting a long note, a linked recording
-  never swept as unused), the resampler's low-pass, and the recorder's own copy.
+  never swept as unused), the resampler's low-pass, the thirty-second windows (cut at pauses,
+  contiguous, silence never sent), and the recorder's own copy.
+- `tests/voiceEngine.test.ts` — voice notes without a GPU: the processor's thread count (physical
+  cores, capped at eight, never past the process's affinity; `/proc/cpuinfo` read by core id), the
+  catalogue's two forms of every model, and the backend over a stand-in transcriber
+  (`tests/helpers/fakeVoiceWorker.ts`): "cpu" never probes a GPU, a GPU build that finds no device
+  or takes the child down mid-job hands the same recording to the processor, a processor engine
+  that will not load falls to whisper.cpp's CPU build, the REAL transcriber with every GPU build
+  forced to refuse (`ASTROLABE_WHISPER_FAIL_GPU=1`) answers the probe with the processor, and the
+  status line that leaves says "on the processor" in both languages. The default's migration is in
+  `tests/settings.test.ts`.
 - `tests/pocketSync.test.ts` — the two rules about other people's writing: where a `(phone)` file
   goes and that it never overwrites last time's, that agreement is not a conflict, that BOTH versions
   survive, that the standing pairs are recovered from the working tree (a conflict is a fact, not a
