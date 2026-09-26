@@ -370,6 +370,40 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.35.0",
+    title: { en: "Your voice, by name", ar: "صوتك، باسمه" },
+    slides: [
+      {
+        // ── Read aloud, round 2: the device's voices, and the zoom kept ────
+        title: { en: "Your voice, by name", ar: "صوتك، باسمه" },
+        body: {
+          en: "When the app's own voices aren't installed, Read aloud now reads with the device voice you choose. It is named in the player with a menu beside it, set per language in Settings → Language & dates → Read aloud, and remembered on each device. On Windows the desktop app starts with the voice you picked in Windows' speech settings, and the player always says which voices are reading: the app's, this device's, or none, with the fix beside it. Install now works on a computer with no Python at all, so the Linux and Windows apps read, and the desktop app keeps its zoom when you close it.",
+          ar: "حين لا تكون أصوات التطبيق نفسه مثبّتة، تقرأ الآن «القراءة بصوت عالٍ» بصوت الجهاز الذي تختاره: يسمّيه المشغّل وبجانبه قائمة، ويُختار لكل لغة في الإعدادات ← اللغة والتواريخ ← القراءة بصوت عالٍ، ويُحفظ لكل جهاز. وعلى ويندوز يبدأ تطبيق سطح المكتب بالصوت الذي اخترته في إعدادات الكلام في ويندوز، ويقول المشغّل دائمًا أيّ الأصوات يقرأ: أصوات التطبيق، أم صوت هذا الجهاز، أم لا صوت، ومعه العلاج. والتثبيت يعمل الآن على حاسوب ليس فيه Python أصلًا، فيقرأ التطبيق على لينكس وويندوز، ويحفظ تطبيق سطح المكتب التكبير بعد إغلاقه.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g fill="var(--text-faint)"><rect x="40" y="36" width="300" height="5" rx="2"/><rect x="40" y="48" width="420" height="5" rx="2"/><rect x="40" y="60" width="380" height="5" rx="2"/></g>
+  <g class="wa-late" style="--i:2"><rect x="150" y="70" width="180" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="164" y="90" fill="var(--text-muted)" font-size="11">Microsoft Hortense</text>
+    <text x="164" y="108" fill="var(--text-muted)" font-size="11">Microsoft Julie</text>
+    <rect x="156" y="116" width="168" height="18" rx="4" fill="var(--accent-soft)"/>
+    <text x="164" y="129" fill="var(--text)" font-size="11" font-weight="700">Microsoft Paul</text>
+    <path d="M300 122 l4 4 l8 -8" fill="none" stroke="var(--accent)" stroke-width="2"/></g>
+  <rect x="40" y="150" width="480" height="40" rx="20" fill="var(--bg)" stroke="var(--border)"/>
+  <path d="M60 162 l12 8 l-12 8 z" fill="var(--accent)"/>
+  <text x="86" y="174" fill="var(--text-muted)" font-size="10">${L(lang, "reading with this device's voice:", "تقرأ بصوت هذا الجهاز:")}</text>
+  <rect class="wa-pulse" x="${lang === "ar" ? 330 : 258}" y="160" width="120" height="20" rx="10" fill="var(--bg-hover)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="${lang === "ar" ? 390 : 318}" y="174" text-anchor="middle" fill="var(--text)" font-size="11">Microsoft Paul ▾</text>
+  <text x="480" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "named, and yours", "باسمه، ولك")}</text>
+</svg>`,
+        },
+        docs: "read-aloud",
+      },
+    ],
+  },
+  {
     version: "3.34.0",
     title: { en: "Back means up", ar: "الرجوع يعني الصعود" },
     slides: [

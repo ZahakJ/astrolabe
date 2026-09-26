@@ -64,9 +64,11 @@ sheets — with the same note open, and widening it brings the panes back. Above
 window snapped to half the screen, the panes stay docked and stay draggable.</p>
 <p><strong>Zoom belongs to the app.</strong> <code>Ctrl/Cmd =</code>, <code>-</code> and <code>0</code> scale the whole interface, and while it is
 anything but 100% the status bar shows the percentage in the corner; clicking it is <em>actual
-size</em>, the same as <code>Ctrl/Cmd 0</code>. The factor is remembered per vault, so a window opens at the size
-you left it — and because it is written where you can see it, a window that came back smaller
-than you remember is a window you can put right with one click. Over an open book the same three
+size</em>, the same as <code>Ctrl/Cmd 0</code>; <code>Ctrl</code> + the mouse wheel steps it too, and <strong>View → Zoom: 120%</strong>
+says where it is. The factor is remembered per vault and <strong>survives closing the app</strong>: set 120%
+once, and every launch opens at 120% from its first frame — and because it is written where you
+can see it, a window that came back smaller than you remember is a window you can put right with
+one click. Over an open book the same three
 keys zoom <strong>the page</strong>, not the app: reaching for the zoom keys over a book means the book.</p>
 <p>Windows remember where they were, per vault, and are fitted to the screen they reopen on. A
 window saved on a large monitor and reopened on a laptop is pulled back onto the desk rather than
@@ -161,7 +163,8 @@ self — is also mirrored into the vault&#39;s own <code>.astrolabe/</code> fold
 same vault finds it (<a href="../backup-and-sync/#settings-travel-with-the-vault">settings travel with the vault</a>). The Linux build
 is packaged with <code>asar: false</code> deliberately, because the server the app starts reads real files
 from the package.</p>
-<p>The <a href="../read-aloud/">Read aloud</a> voices install into that same data directory (<code>tts/venv/</code> and <code>models/tts/</code>), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with <code>uv</code> or the machine&#39;s Python 3.10–3.13 and runs the engine on the processor as a child process. Nothing about the app&#39;s permissions changes for it — the page only plays sound.</p>
+<p>The <a href="../read-aloud/">Read aloud</a> voices install into that same data directory (<code>tts/venv/</code> and <code>models/tts/</code>), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with <code>uv</code> or the machine&#39;s Python 3.10–3.13 — and on the usual laptop, which has neither, <strong>fetches a standalone Python</strong> into <code>tts/python/</code> first (21–34 MB, checked before use) — and runs the engine on the processor as a child process. Nothing about the app&#39;s permissions changes for it — the page only plays sound.</p>
+<p><strong>On Linux the app reads once the voices are installed.</strong> Electron has no speech engine of its own on Linux, so there are no &quot;device voices&quot; to fall back on: before the Install, the player says <em>No voice on this device speaks …</em> and offers the Install button; after it, the app reads in every language its voices speak. <strong>On Windows</strong>, until the app&#39;s voices are installed, it reads with Windows&#39; own voices — the one you chose in Windows&#39; own speech settings (Time &amp; language → Speech) — and names it, with a ▾ to choose another (<a href="../read-aloud/#this-devices-voices">This device&#39;s voices</a>).</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/desktop.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/export/"><span class="pager__kicker">Previous</span><span class="pager__title">Export</span></a><a class="pager__link pager__link--next" href="../../en/mobile/"><span class="pager__kicker">Next</span><span class="pager__title">The Android app</span></a></nav>
