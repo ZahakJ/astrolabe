@@ -9,9 +9,13 @@
 // WHERE THINGS LIVE, all under ASTROLABE_DATA — the data directory, never the
 // vault (which is synced, published and committed) and never the repository:
 //
-//   tts/venv/            a Python 3.12 venv the Install button makes: `uv` when
-//                        it is on PATH (it fetches its own Python), else a
-//                        system python3 of 3.10–3.13
+//   tts/venv/            a Python venv the Install button makes: `uv` when it
+//                        is on PATH (it fetches its own Python), else a system
+//                        python3 of 3.10–3.13, else the standalone below
+//   tts/python/          a standalone CPython 3.12, fetched only when the
+//                        machine has neither uv nor a usable Python — the
+//                        packaged desktop app's usual case on Windows and
+//                        Linux (server/standalonePython.ts)
 //   models/tts/piper/    one ~63 MB model per Piper voice (+ its .json)
 //   models/tts/kokoro/   kokoro-v1.0.onnx (325 MB) + voices-v1.0.bin (28 MB)
 //   tts/cache/           the spoken audio, by sha256 (server/speakCache.ts)
@@ -30,6 +34,7 @@ import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
 import { SPEAK_VOICES, type SpeakEngineId, type SpeakInstallPhase, type SpeakLang } from "../shared/speech.ts";
 import { dataDir } from "./site.ts";
+import { fetchStandalonePython, findOnPath, PythonFetchError, standalonePythonExe, venvPythonIn } from "./standalonePython.ts";
 
 // ── Paths ──────────────────────────────────────────────────────────────────
 
@@ -43,7 +48,22 @@ export function ttsModelsDir(): string {
   return path.join(dataDir(), "models", "tts");
 }
 export function venvPython(): string {
-  return process.platform === "win32" ? path.join(venvDir(), "Scripts", "python.exe") : path.join(venvDir(), "bin", "python");
+  return venvPythonIn(venvDir());
+}
+/** Where a fetched standalone Python lives (only when one was needed). */
+export function standaloneDir(): string {
+  return path.join(ttsDir(), "python");
+}
+
+/** The environment every Python this module starts runs in: the server's,
+ *  minus the two variables that would point a relocatable Python at some
+ *  OTHER Python's standard library (a machine with a stale PYTHONHOME set
+ *  for another program is exactly where the standalone would be needed). */
+function pyEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = { ...process.env, ...extra };
+  delete env.PYTHONHOME;
+  delete env.PYTHONPATH;
+  return env;
 }
 
 const WORKER = fileURLToPath(new URL("./speakWorker.py", import.meta.url));
@@ -168,6 +188,7 @@ interface InstallState {
   engine: SpeakEngineId | null;
   error?: string;
   code?: string;
+  progress?: number;
 }
 
 let install: InstallState = { phase: "idle", engine: null };
@@ -179,7 +200,7 @@ export function installState(): InstallState {
 
 /** Run a command to the end, keeping the last lines of its output for the
  *  error an owner will read. */
-function run(cmd: string, args: string[], env: NodeJS.ProcessEnv = process.env): Promise<void> {
+function run(cmd: string, args: string[], env: NodeJS.ProcessEnv = pyEnv()): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, { env, stdio: ["ignore", "pipe", "pipe"], windowsHide: true });
     const tail: string[] = [];
@@ -197,39 +218,68 @@ function run(cmd: string, args: string[], env: NodeJS.ProcessEnv = process.env):
   });
 }
 
-/** `uv` on PATH, when there is one. */
-function which(name: string): string | null {
-  const probe = spawnSync(process.platform === "win32" ? "where" : "which", [name], { encoding: "utf8" });
-  const first = probe.status === 0 ? probe.stdout.split(/\r?\n/)[0]?.trim() : "";
-  return first ? first : null;
+function isFile(p: string): boolean {
+  try {
+    return statSync(p).isFile();
+  } catch {
+    return false;
+  }
 }
 
-/** A system Python the venv can be made from: 3.10–3.13 (onnxruntime and
- *  the engines publish wheels for those). */
+/** A program on the PATH, found in-process — never by spawning `which` or
+ *  `where` (server/standalonePython.ts's findOnPath says why). */
+function which(name: string): string | null {
+  return findOnPath(name, process.env, process.platform, isFile);
+}
+
+/** Whether `exe` is a Python 3.10–3.13 (onnxruntime and the engines publish
+ *  wheels for those). Windows' `python.exe` in WindowsApps is the Store's
+ *  installer stub, which prints nothing and exits 9009: not a Python. */
+function usablePython(exe: string): boolean {
+  const v = spawnSync(exe, ["-c", "import sys; print(sys.version_info[0], sys.version_info[1])"], {
+    encoding: "utf8",
+    env: pyEnv(),
+    windowsHide: true,
+    timeout: 15_000,
+  });
+  const [major, minor] = (v.stdout ?? "").trim().split(" ").map(Number);
+  return major === 3 && minor >= 10 && minor <= 13;
+}
+
+/** A system Python the venv can be made from. */
 function systemPython(): string | null {
   for (const name of process.platform === "win32" ? ["python", "py"] : ["python3.12", "python3.13", "python3.11", "python3.10", "python3"]) {
     const exe = which(name);
-    if (!exe) continue;
-    const v = spawnSync(exe, ["-c", "import sys; print(sys.version_info[0], sys.version_info[1])"], { encoding: "utf8" });
-    const [major, minor] = (v.stdout ?? "").trim().split(" ").map(Number);
-    if (major === 3 && minor >= 10 && minor <= 13) return exe;
+    if (exe && usablePython(exe)) return exe;
   }
   return null;
 }
 
-async function ensureVenv(): Promise<"uv" | "pip"> {
+/** Make the venv, from the first of: uv (it fetches its own Python), a
+ *  standalone Python fetched on an earlier install, a system Python of
+ *  3.10–3.13, and — when none of those is here — a standalone Python fetched
+ *  now into tts/python/. Answers which tool installs the packages. */
+async function ensureVenv(engine: SpeakEngineId): Promise<"uv" | "pip"> {
   const uv = which("uv");
   if (runtimeReady()) return uv ? "uv" : "pip";
   await fsp.mkdir(ttsDir(), { recursive: true });
   if (uv) {
-    // uv fetches a managed Python 3.12 when the machine has none — the one
-    // path that needs nothing installed but uv itself.
     await run(uv, ["venv", "--python", "3.12", venvDir()]);
     return "uv";
   }
-  const py = systemPython();
+  const fetched = standalonePythonExe(standaloneDir());
+  let py = existsSync(fetched) ? fetched : systemPython();
   if (!py) {
-    throw new SpeakError("No Python 3.10–3.13 and no uv on this machine", "speakNoPython", 409);
+    install = { phase: "fetch-python", engine, progress: 0 };
+    try {
+      py = await fetchStandalonePython(standaloneDir(), (pct) => {
+        install = { phase: "fetch-python", engine, progress: pct };
+      });
+    } catch (err) {
+      const why = err instanceof PythonFetchError ? err.message : String((err as Error).message ?? err);
+      throw new SpeakError(`No uv or Python 3.10–3.13 here, and none could be fetched: ${why}`, "speakNoPython", 409);
+    }
+    install = { phase: "python", engine };
   }
   await run(py, ["-m", "venv", venvDir()]);
   return "pip";
@@ -277,7 +327,7 @@ export function installEngine(engine: SpeakEngineId): Promise<void> {
   install = { phase: "python", engine };
   installing = (async () => {
     try {
-      const tool = await ensureVenv();
+      const tool = await ensureVenv(engine);
       install = { phase: "packages", engine };
       if (!existsSync(packagesMarker(engine))) await installPackages(engine, tool);
       install = { phase: "models", engine };
@@ -353,13 +403,12 @@ export function stopChild(): void {
 function spawnChild(): Promise<void> {
   if (child && child.exitCode === null && ready) return ready;
   const c = spawn(venvPython(), ["-u", WORKER], {
-    env: {
-      ...process.env,
+    env: pyEnv({
       ASTROLABE_TTS_MODELS: ttsModelsDir(),
       // No stray network: every model is on disk before the child starts.
       HF_HUB_OFFLINE: "1",
       PYTHONIOENCODING: "utf-8",
-    },
+    }),
     stdio: ["pipe", "pipe", "pipe"],
     windowsHide: true,
   });
