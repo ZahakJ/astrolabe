@@ -21,6 +21,7 @@
 import { looksFrench } from "./frenchLine.ts";
 import { stripFurigana } from "./furigana.ts";
 import { noteProse } from "./wordCount.ts";
+import type { OwnVoicesStatus, SpeakExternal } from "./speechVoices.ts";
 
 // ── Engines, languages, voices ─────────────────────────────────────────────
 
@@ -121,7 +122,8 @@ export function voiceFor(engine: SpeakEngineId, lang: SpeakLang, picked?: string
   return list.find((v) => v.id === picked)?.id ?? list[0].id;
 }
 
-/** Is `voice` a voice of `lang` in some engine? (The settings validator.) */
+/** Is `voice` a BUILT-IN voice of `lang` in some engine? (The settings
+ *  validator; a found voice's `own:` id is shared/speechVoices.ts's.) */
 export function isVoiceOf(lang: SpeakLang, voice: unknown): boolean {
   return typeof voice === "string" && SPEAK_ENGINES.some((e) => SPEAK_VOICES[e][lang]?.some((v) => v.id === voice));
 }
@@ -142,19 +144,30 @@ export interface SpeakSettings {
   public?: boolean;
 }
 
-export interface SpeakEffective {
+/** The two settings that are THIS MACHINE'S and never the vault's: the
+ *  voices folder is a path on this disk, and the external speaker is a
+ *  program this server runs. They live in ASTROLABE_DATA/speak-local.json,
+ *  which the config mirror does not carry (server/speakLocal.ts). */
+export interface SpeakLocal {
+  voicesDir: string | null;
+  external: SpeakExternal | null;
+}
+
+export interface SpeakEffective extends SpeakLocal {
   engine: SpeakEngineId;
   rate: number;
   voices: Partial<Record<SpeakLang, string>>;
   public: boolean;
 }
 
-export function speakEffective(s: SpeakSettings | undefined): SpeakEffective {
+export function speakEffective(s: SpeakSettings | undefined, local?: Partial<SpeakLocal>): SpeakEffective {
   return {
     engine: isSpeakEngine(s?.engine) ? s.engine : SPEAK_ENGINE_DEFAULT,
     rate: typeof s?.rate === "number" && SPEAK_RATES.includes(s.rate) ? s.rate : 1,
     voices: { ...(s?.voices ?? {}) },
     public: s?.public === true,
+    voicesDir: local?.voicesDir ?? null,
+    external: local?.external ?? null,
   };
 }
 
@@ -193,6 +206,8 @@ export interface SpeakStatus {
   /** Where the venv lives, for the docs' "where is it" answer. */
   venv: string;
   settings: SpeakEffective;
+  /** The voices folder and what its last scan found. */
+  own: OwnVoicesStatus;
 }
 
 // ── Which language ─────────────────────────────────────────────────────────

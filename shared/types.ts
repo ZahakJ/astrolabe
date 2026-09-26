@@ -1629,6 +1629,11 @@ export interface SettingsPatch {
     rate?: number | null;
     voices?: Partial<Record<SpeakLang, string | null>> | null;
     public?: boolean | null;
+    /** THIS MACHINE'S (server/speakLocal.ts), never written to settings.json:
+     *  the folder the server scans for voices — absolute, outside the vault. */
+    voicesDir?: string | null;
+    /** THIS MACHINE'S: a program run per sentence for the named languages. */
+    external?: { command: string; langs: SpeakLang[] } | null;
   } | null;
   fediverse?: {
     enabled?: boolean | null;

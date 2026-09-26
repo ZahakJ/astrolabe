@@ -150,14 +150,18 @@ describe("engines", () => {
     assert.ok(!isVoiceOf("fr", "af_heart"));
   });
   it("settings fill their defaults: Light, rate 1, not public", () => {
-    assert.deepEqual(speakEffective(undefined), { engine: "light", rate: 1, voices: {}, public: false });
+    assert.deepEqual(speakEffective(undefined), { engine: "light", rate: 1, voices: {}, public: false, voicesDir: null, external: null });
     assert.deepEqual(speakEffective({ engine: "natural", rate: 0.8, public: true, voices: { ja: "jm_kumo" } }), {
       engine: "natural",
       rate: 0.8,
       voices: { ja: "jm_kumo" },
       public: true,
+      voicesDir: null,
+      external: null,
     });
     assert.equal(speakEffective({ rate: 3 }).rate, 1);
+    // This machine's two arrive from speak-local.json, not the settings.
+    assert.equal(speakEffective(undefined, { voicesDir: "/v", external: null }).voicesDir, "/v");
   });
 });
 

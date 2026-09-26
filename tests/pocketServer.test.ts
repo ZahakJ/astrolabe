@@ -421,6 +421,23 @@ describe("the pocket server — a voice note is kept, not transcribed (3.24.0)",
     const answer = await server.call("PATCH", "/api/settings", { voice: { model: "small-q5_1" } });
     assert.equal(answer.status, 501);
   });
+
+  it("refuses a voices folder and an external speaker with the reason, and scans nothing", async () => {
+    const server = await loaded();
+    const settings = (await server.json("GET", "/api/settings")) as SettingsResponse;
+    assert.equal(settings.effective.speak.voicesDir, null);
+    assert.equal(settings.effective.speak.external, null);
+    for (const speak of [{ voicesDir: "/home/me/piper-voices" }, { external: { command: "piper --output_file {out}", langs: ["fr"] } }]) {
+      const answer = await server.call("PATCH", "/api/settings", { speak });
+      assert.equal(answer.status, 501);
+      const body = JSON.parse(String(answer.body)) as { error: string; code: string; fields: string[] };
+      assert.equal(body.code, "pocket");
+      assert.match(body.error, /server/);
+      assert.deepEqual(body.fields, [`speak.${Object.keys(speak)[0]}`]);
+    }
+    const rescan = await server.call("POST", "/api/speak/voices/rescan");
+    assert.equal(rescan.status, 501);
+  });
 });
 
 describe("the pocket server — a captured line (3.27.0)", () => {

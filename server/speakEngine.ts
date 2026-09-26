@@ -367,6 +367,15 @@ export interface SpeakJob {
   speed: number;
   text: string;
   format: "opus" | "wav";
+  /** A found voice (server/speakVoices.ts), loaded BY PATH: the Piper model
+   *  or Kokoro's model. */
+  model?: string;
+  /** Piper's config (`<model>.json` by convention). */
+  config?: string | null;
+  /** One speaker of a multi-speaker Piper model. */
+  speaker?: number | null;
+  /** Kokoro's voices pack. */
+  pack?: string | null;
 }
 
 interface Reply {

@@ -10,7 +10,8 @@
 // templatesFolder, hadithFolder, drawingsFolder, defaultTemplate, dailyFolder, dailyFormat, dailyTemplate,
 // weeklyFormat, weeklyTemplate, monthlyFormat, monthlyTemplate, yearlyFormat, yearlyTemplate,
 // uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, feeds { fetch, note }, launch,
-// webmentions { accept, send }, fediverse { enabled, handle }, speak { engine, rate, voices, public },
+// webmentions { accept, send }, fediverse { enabled, handle }, speak { engine, rate, voices, public }
+// (speak.voicesDir and speak.external are accepted here and kept in speak-local.json — server/speakLocal.ts),
 // dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -32,6 +33,8 @@ import {
 } from "../shared/attachments.ts";
 import { isVoiceBackend, isVoiceLanguage, isVoiceModelSetting, VOICE_MODEL_DEFAULT, voiceEffective, VOICE_MODELS, type VoiceSettings } from "../shared/voice.ts";
 import { isSpeakEngine, isSpeakLang, isVoiceOf, SPEAK_ENGINE_DEFAULT, SPEAK_RATES, speakEffective, type SpeakSettings } from "../shared/speech.ts";
+import { isOwnVoiceId } from "../shared/speechVoices.ts";
+import { applyStagedSpeakLocal, discardStagedSpeakLocal, speakLocal, stageExternal, stageVoicesDir } from "./speakLocal.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
 import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
 import { defaultFediverseHandle, isFediverseHandle } from "../shared/fediverse.ts";
@@ -573,7 +576,10 @@ export function getSettings(): SettingsData {
     if (typeof v.voices === "object" && v.voices !== null && !Array.isArray(v.voices)) {
       const voices: SpeakSettings["voices"] = {};
       for (const [lang, voice] of Object.entries(v.voices as Record<string, unknown>)) {
-        if (isSpeakLang(lang) && isVoiceOf(lang, voice)) voices[lang] = voice as string;
+        // A found voice (`own:…`) is kept whether or not the folder is there
+        // now — an unplugged disk must not forget the reader's choice; the
+        // route falls back while it is missing.
+        if (isSpeakLang(lang) && (isVoiceOf(lang, voice) || isOwnVoiceId(voice))) voices[lang] = voice as string;
       }
       if (Object.keys(voices).length > 0) ss.voices = voices;
     }
@@ -818,7 +824,9 @@ export function effectiveSettings(): EffectiveSettings {
     voice: voiceEffective(s.voice),
     // Feeds are fetched only when the owner says so: off unless set.
     feeds: feedsEffective(),
-    speak: speakEffective(s.speak),
+    // With this machine's voices folder and external speaker, which are
+    // kept apart from settings.json (server/speakLocal.ts says why).
+    speak: speakEffective(s.speak, speakLocal()),
     // Webmentions and the fediverse: network access both ways, so off
     // unless the owner says so (docs/webmentions.md).
     webmentions: webmentionsEffective(),
@@ -1678,6 +1686,9 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
   speak: (raw, value) => {
     if (value === null) {
       delete raw.speak;
+      // All of it: this machine's two go with the rest.
+      stageVoicesDir(null);
+      stageExternal(null);
       return;
     }
     if (typeof value !== "object" || Array.isArray(value)) {
@@ -1689,10 +1700,15 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         ? { ...(raw.speak as Record<string, unknown>) }
         : {};
     for (const key of Object.keys(v)) {
-      if (key !== "engine" && key !== "rate" && key !== "voices" && key !== "public") {
+      if (key !== "engine" && key !== "rate" && key !== "voices" && key !== "public" && key !== "voicesDir" && key !== "external") {
         throw new VaultError(400, `Unknown settings key: speak.${key}`);
       }
     }
+    // This machine's two (server/speakLocal.ts): validated and staged here,
+    // written to speak-local.json only once the whole patch is accepted —
+    // never to settings.json, which travels with the vault.
+    if ("voicesDir" in v) stageVoicesDir(v.voicesDir);
+    if ("external" in v) stageExternal(v.external);
     if ("engine" in v) {
       if (v.engine === null || v.engine === SPEAK_ENGINE_DEFAULT) delete current.engine;
       else if (isSpeakEngine(v.engine)) current.engine = v.engine;
@@ -1713,7 +1729,7 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
         for (const [lang, voice] of Object.entries(v.voices as Record<string, unknown>)) {
           if (!isSpeakLang(lang)) throw new VaultError(400, `Unknown language in speak.voices: ${lang}`);
           if (voice === null || voice === "") delete voices[lang];
-          else if (isVoiceOf(lang, voice)) voices[lang] = voice;
+          else if (isVoiceOf(lang, voice) || isOwnVoiceId(voice)) voices[lang] = voice;
           else throw new VaultError(400, `speak.voices.${lang} is not a voice of that language`);
         }
         if (Object.keys(voices).length === 0) delete current.voices;
@@ -2427,6 +2443,7 @@ export function patchSettings(patch: Record<string, unknown>): SettingsResponse 
   // Anything a previous failed patch staged is dropped here.
   discardStagedGitCredentials();
   discardStagedAskKey();
+  discardStagedSpeakLocal();
   const own = (key: string): boolean => Object.prototype.hasOwnProperty.call(PATCH_HANDLERS, key);
   for (const key of Object.keys(patch)) {
     // Own-property check, NOT `in`: inherited Object.prototype names
@@ -2441,6 +2458,7 @@ export function patchSettings(patch: Record<string, unknown>): SettingsResponse 
   persist(raw);
   applyStagedGitCredentials();
   applyStagedAskKey();
+  applyStagedSpeakLocal();
   return settingsResponse();
 }
 

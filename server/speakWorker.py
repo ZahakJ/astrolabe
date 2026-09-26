@@ -18,6 +18,10 @@ ends it after a few idle minutes, which gives the memory back.
 
 Protocol: one JSON object per line on stdin, one per line on stdout.
   parent → {"id", "engine", "lang", "voice", "speed", "text", "format"}
+             + for one of the reader's own voices (the voices folder):
+               "model" (an absolute path), "config" (Piper's .onnx.json),
+               "speaker" (a multi-speaker model's number), "pack" (Kokoro's
+               voices-*.bin) — loaded by path, cached by path + mtime
            {"id", "warm": engine}
   child  → {"id", "ok": true, "audio": <base64>, "mime", "ms"}
            {"id", "ok": false, "error", "code"}
@@ -74,19 +78,31 @@ def session(path):
 
 # ── Kokoro ──────────────────────────────────────────────────────────────────
 
-_kokoro = None
+# Loaded Kokoro models, keyed like Piper's: (model, its mtime, pack, its mtime).
+_kokoro = {}
 _jag2p = None
 KOKORO_LANG = {"en": "en-us", "fr": "fr-fr", "es": "es", "it": "it", "pt": "pt-br"}
 
 
-def kokoro():
-    global _kokoro
-    if _kokoro is None:
+def kokoro(model=None, pack=None):
+    """The built-in Kokoro under MODELS/kokoro, or a pack of the reader's own
+    (a `voices-*.bin` beside a `kokoro-*.onnx`) by absolute path."""
+    if not model:
+        d = os.path.join(MODELS, "kokoro")
+        model, pack = os.path.join(d, "kokoro-v1.0.onnx"), os.path.join(d, "voices-v1.0.bin")
+    try:
+        key = (model, os.stat(model).st_mtime_ns, pack, os.stat(pack).st_mtime_ns)
+    except OSError:
+        raise Failure("The Kokoro model is not there", "speakNotInstalled")
+    k = _kokoro.get(key)
+    if k is None:
         from kokoro_onnx import Kokoro
 
-        d = os.path.join(MODELS, "kokoro")
-        _kokoro = Kokoro.from_session(session(os.path.join(d, "kokoro-v1.0.onnx")), os.path.join(d, "voices-v1.0.bin"))
-    return _kokoro
+        for old in [o for o in _kokoro if o[0] == model and o[2] == pack]:
+            del _kokoro[old]
+        k = Kokoro.from_session(session(model), pack)
+        _kokoro[key] = k
+    return k
 
 
 def jag2p():
@@ -98,8 +114,8 @@ def jag2p():
     return _jag2p
 
 
-def speak_kokoro(text, lang, voice, speed):
-    k = kokoro()
+def speak_kokoro(text, lang, voice, speed, model=None, pack=None):
+    k = kokoro(model, pack)
     lang_code = "en-gb" if voice.startswith("b") and lang == "en" else KOKORO_LANG.get(lang)
     if lang == "ja":
         phonemes, _ = jag2p()(text)
@@ -113,28 +129,62 @@ def speak_kokoro(text, lang, voice, speed):
 
 # ── Piper ───────────────────────────────────────────────────────────────────
 
+# Loaded voices, keyed by (model path, its mtime): a voice file replaced
+# under the same name is a different key, so it is loaded afresh rather than
+# answered from the voice that was there before.
 _piper = {}
 
 
-def speak_piper(text, voice, speed):
+def load_piper(path, config_path):
     from pathlib import Path
 
-    from piper import PiperVoice, SynthesisConfig
+    from piper import PiperVoice
     from piper.config import PiperConfig
 
-    v = _piper.get(voice)
+    with open(config_path, encoding="utf-8") as f:
+        config = PiperConfig.from_dict(json.load(f))
+    # Built here rather than by PiperVoice.load, which makes its session
+    # with onnxruntime's defaults (every core): the worker keeps one thread
+    # count for both engines.
+    return PiperVoice(config=config, session=session(path), download_dir=Path(os.path.dirname(path)))
+
+
+def piper_voice(job):
+    """The Piper voice a job names: a built-in one BY NAME under MODELS/piper,
+    or one of the reader's own (the voices folder, server/speakVoices.ts) BY
+    ABSOLUTE PATH — `model`, with its `config` beside it."""
+    model = job.get("model")
+    if model:
+        path = model
+        config_path = job.get("config") or path + ".json"
+    else:
+        path = os.path.join(MODELS, "piper", job["voice"] + ".onnx")
+        config_path = path + ".json"
+    try:
+        mtime = os.stat(path).st_mtime_ns
+    except OSError:
+        raise Failure(f"The voice {job.get('voice')} is not installed", "speakNotInstalled")
+    if not os.path.exists(config_path):
+        raise Failure(f"The voice {job.get('voice')} has no config beside it", "speakNotInstalled")
+    key = (path, mtime)
+    v = _piper.get(key)
     if v is None:
-        path = os.path.join(MODELS, "piper", voice + ".onnx")
-        if not os.path.exists(path):
-            raise Failure(f"The voice {voice} is not installed", "speakNotInstalled")
-        with open(path + ".json", encoding="utf-8") as f:
-            config = PiperConfig.from_dict(json.load(f))
-        # Built here rather than by PiperVoice.load, which makes its session
-        # with onnxruntime's defaults (every core): the worker keeps one thread
-        # count for both engines.
-        v = PiperVoice(config=config, session=session(path), download_dir=Path(MODELS, "piper"))
-        _piper[voice] = v
-    cfg = SynthesisConfig(length_scale=1.0 / max(0.5, min(2.0, speed)))
+        for old in [k for k in _piper if k[0] == path]:
+            del _piper[old]
+        v = load_piper(path, config_path)
+        _piper[key] = v
+    return v
+
+
+def speak_piper(text, job, speed):
+    from piper import SynthesisConfig
+
+    v = piper_voice(job)
+    speaker = job.get("speaker")
+    cfg = SynthesisConfig(
+        length_scale=1.0 / max(0.5, min(2.0, speed)),
+        speaker_id=speaker if isinstance(speaker, int) else None,
+    )
     chunks = [c.audio_float_array for c in v.synthesize(text, syn_config=cfg)]
     audio = np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
     return audio.astype(np.float32), v.config.sample_rate
@@ -182,9 +232,9 @@ def handle(job):
     speed = float(job.get("speed") or 1.0)
     text = job["text"]
     if engine == "natural":
-        audio, rate = speak_kokoro(text, lang, voice, speed)
+        audio, rate = speak_kokoro(text, lang, voice, speed, job.get("model"), job.get("pack"))
     elif engine == "light":
-        audio, rate = speak_piper(text, voice, speed)
+        audio, rate = speak_piper(text, job, speed)
     else:
         raise Failure(f"No engine {engine}", "speakNoVoice")
     data, mime = encode(audio, rate, job.get("format") or "opus")
