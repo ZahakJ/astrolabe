@@ -32,6 +32,7 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync 
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { TO_MAIN, TO_RENDERER, type Command, type Hello } from "./ipc.ts";
+import { windowsSystemVoice } from "./systemVoice.ts";
 import { keepSignedIn, mintCredential, signIn } from "./auth.ts";
 import { applyBrand, brandIcon, brandInfo, brandName, clearBrand, installLauncher, pickBrandIcon, setBrandName } from "./brand.ts";
 import type { Credential } from "./server.ts";
@@ -197,6 +198,9 @@ if (!app.requestSingleInstanceLock()) {
   void start();
 }
 
+/** Windows' own choice of voice (electron/systemVoice.ts), for `hello`. */
+let systemVoice: string | null = null;
+
 async function start(): Promise<void> {
   await app.whenReady();
   // The reader's name for the app, before anything the OS sees is drawn.
@@ -217,6 +221,12 @@ async function start(): Promise<void> {
     for (const win of BrowserWindow.getAllWindows()) {
       tell(win, TO_RENDERER.osTheme, nativeTheme.shouldUseDarkColors);
     }
+  });
+  // Read once, early: the registry answers in milliseconds, well before a
+  // window's first `hello`, and the reader changes it rarely enough that the
+  // next launch is soon enough to notice.
+  void windowsSystemVoice().then((name) => {
+    systemVoice = name;
   });
   registerBridge();
   installTray();
@@ -902,6 +912,7 @@ function registerBridge(): void {
       ownsSession: instance !== null && instance.restart.deployEnv === null,
       brandIconDataUrl: brandInfo().iconDataUrl,
       update: currentUpdateState(),
+      systemVoice,
     };
   });
 

@@ -36,6 +36,7 @@ import { setSpellcheckAvailable } from "../../shared/script.ts";
 import { desktop, IS_DESKTOP, type DesktopBridge, type DesktopUpdateState } from "./bridge.ts";
 import { closeFindBar, openFindBar, showFindResult } from "./findBar.ts";
 import { openSpellMenu } from "./spellMenu.ts";
+import { setSystemVoiceName } from "../speech/deviceVoices.ts";
 
 /** THE SHELL OWNS Ctrl/Cmd + = − 0 — EXCEPT OVER A BOOK.
  *
@@ -329,6 +330,9 @@ export async function mountDesktop(): Promise<void> {
   // per-line `lang` invites the checker only where checking can be right —
   // "*" is macOS, whose system checker reads the attribute itself.
   setSpellcheckAvailable(hello.spellLanguages ?? []);
+  // The voice the reader chose in Windows (a page cannot see it): the device
+  // voice that stands in for its language is that one (docs/read-aloud.md).
+  setSystemVoiceName(hello.systemVoice ?? null);
   // A deep link or a double-clicked `.md` that arrived before this document
   // existed. The main process holds exactly one, and hands it over here rather
   // than sending it into a window that has no listener yet.

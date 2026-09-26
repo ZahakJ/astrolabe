@@ -156,3 +156,69 @@
   border-color: var(--accent);
   color: var(--accent);
 }
+
+/* The device voice reading now, and its ▾ (client/speech/SpeechPlayer.tsx):
+   the shared select, shrunk to sit inside the player's meta line. The popover
+   is the select's own, portalled and flipped above the player. */
+/* The voice line takes the meta row's whole width and may wrap; without the
+   zero minimum its unbreakable trigger pushed the row past the player's edge
+   on a phone. */
+.s-speak__meta .s-speak__note[data-state] {
+  flex: 1 1 100%;
+  min-inline-size: 0;
+}
+
+.s-speak__meta .s-speak__voice {
+  display: inline-flex;
+  inline-size: auto;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  min-block-size: 28px;
+  padding: 2px 8px;
+  gap: 6px;
+  vertical-align: middle;
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.s-speak__meta .s-speak__voice .s-ctl-select__note {
+  font-size: 0.72rem;
+}
+
+.s-speak__voicename {
+  color: var(--text);
+}
+
+/* The remedy, as a quiet link-weight button: it opens Settings → Language &
+   dates → Read aloud, where the app's own voices are installed. */
+/* On its own line under the sentence that names the voice: beside it, the
+   link wrapped mid-phrase and left a separator dangling at a line's end. */
+.s-speak__install {
+  display: flex;
+  inline-size: fit-content;
+  align-items: center;
+  min-block-size: 28px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.s-speak__install:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 6px;
+}
+
+/* A finger's targets: the ▾ and the remedy grow to 44px where the pointer is
+   coarse or the screen is a phone's, like every other target there. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-speak__meta .s-speak__voice,
+  .s-speak__install {
+    min-block-size: 44px;
+  }
+}

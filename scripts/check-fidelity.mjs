@@ -827,6 +827,195 @@ try {
     await page.keyboard.press("Control+KeyE");
     await page.close();
   }
+
+  // ── Read aloud: the device's voices and the three states ───────────────
+  // (client/speech/player.ts, deviceVoices.ts). The server's answer is
+  // fixed with a route — a 409 "not installed" for French, or a tone — so
+  // this runs the same on a server with an engine, without one, or with
+  // the fake; and the device's voices are a fake `speechSynthesis` put in
+  // before the page's first script (addInitScript), shaped like the list
+  // Chromium hands a page on Windows. Asserted, in English and Arabic:
+  //   (a) the app's voices speak → the player says nothing about voices;
+  //   (b) not installed, a device voice exists → the line names the app's
+  //       voices (never "no voice is installed"), names the voice reading,
+  //       its ▾ lists every French voice, the choice is heard and REMEMBERED,
+  //       and the Install button opens Settings on the Read aloud row, where
+  //       this device's French picker shows the same choice;
+  //   (c) no device voice speaks French → the line says so and names both
+  //       remedies — and with an EMPTY list whose engine never answers (a
+  //       Linux Electron), the player still reaches (c) rather than hanging.
+  {
+    const FAKE_SPEECH = (kind) => `(() => {
+      const lists = {
+        windows: [
+          ["Microsoft David - English (United States)", "en-US", true],
+          ["Microsoft Zira - English (United States)", "en-US", false],
+          ["Microsoft Hortense - French (France)", "fr-FR", false],
+          ["Microsoft Julie - French (France)", "fr-FR", false],
+          ["Microsoft Paul - French (France)", "fr-FR", false],
+        ],
+        english: [["Microsoft David - English (United States)", "en-US", true]],
+        none: [],
+      };
+      const voices = lists[${JSON.stringify(kind)}].map(([name, lang, d]) => ({ name, lang, voiceURI: name, default: d, localService: true }));
+      window.__spoken = [];
+      class FakeUtterance {
+        constructor(text) { this.text = text; this.voice = null; this.lang = ""; this.rate = 1; }
+      }
+      let current = null;
+      const speech = {
+        getVoices: () => voices.slice(),
+        addEventListener() {},
+        removeEventListener() {},
+        speak(u) {
+          current = u;
+          window.__spoken.push({ text: u.text, voice: u.voice ? u.voice.name : null, lang: u.lang });
+          if (voices.length === 0) return; // a Linux Electron: accepted, never spoken
+          setTimeout(() => { if (current === u) u.onstart && u.onstart({}); }, 20);
+          setTimeout(() => { if (current === u) { current = null; u.onend && u.onend({}); } }, 400);
+        },
+        cancel() { current = null; },
+        pause() {},
+        resume() {},
+        speaking: false,
+        pending: false,
+        paused: false,
+      };
+      Object.defineProperty(window, "speechSynthesis", { value: speech, configurable: true });
+      window.SpeechSynthesisUtterance = FakeUtterance;
+    })()`;
+    // A short WAV the route answers with for state (a).
+    const tone = (() => {
+      const n = 1600;
+      const b = Buffer.alloc(44 + n * 2);
+      b.write("RIFF", 0, "latin1");
+      b.writeUInt32LE(36 + n * 2, 4);
+      b.write("WAVEfmt ", 8, "latin1");
+      b.writeUInt32LE(16, 16);
+      b.writeUInt16LE(1, 20);
+      b.writeUInt16LE(1, 22);
+      b.writeUInt32LE(16000, 24);
+      b.writeUInt32LE(32000, 28);
+      b.writeUInt16LE(2, 32);
+      b.writeUInt16LE(16, 34);
+      b.write("data", 36, "latin1");
+      b.writeUInt32LE(n * 2, 40);
+      return b;
+    })();
+    const readParking = async (page) => {
+      await page.keyboard.press("Control+KeyE");
+      await page.waitForSelector(".s-reading__body", { timeout: 10000 });
+      await page.evaluate(() => {
+        const body = document.querySelector(".s-reading__body");
+        const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          const at = n.data.indexOf("parking");
+          if (at < 0) continue;
+          const r = document.createRange();
+          r.setStart(n, at);
+          r.setEnd(n, at + "parking line".length);
+          getSelection().removeAllRanges();
+          getSelection().addRange(r);
+          return;
+        }
+      });
+      await page.waitForSelector(".s-speak-chip", { timeout: 5000 });
+      await page.locator(".s-speak-chip").click();
+      await page.waitForSelector(".s-speak", { timeout: 10000 });
+    };
+    const stopPlayer = async (page) => {
+      await page.locator(".s-speak .s-speak__controls .s-speak__btn").last().click().catch(() => {});
+      await page.waitForTimeout(200);
+      await page.keyboard.press("Control+KeyE");
+      await page.waitForTimeout(300);
+    };
+    const speakPage = async (kind, answer) => {
+      const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+      await ctx.addCookies(cookies);
+      await ctx.addInitScript(FAKE_SPEECH(kind));
+      const page = await ctx.newPage();
+      await page.route("**/api/speak", (route) =>
+        route.request().method() !== "POST"
+          ? route.continue()
+          : answer === "tone"
+            ? route.fulfill({ status: 200, contentType: "audio/wav", headers: { "x-speak-lang": "fr", "x-speak-engine": "light" }, body: tone })
+            : route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ error: "Nothing installed speaks fr", code: "speakNotInstalled", lang: "fr", needs: "light" }) }),
+      );
+      return { ctx, page };
+    };
+    console.log("");
+    for (const lang of ["en", "ar"]) {
+      const tag = (s) => `read aloud (${lang}): ${s}`;
+      // (a) the app's own voices answered.
+      {
+        const { ctx, page } = await speakPage("windows", "tone");
+        await openNote(page, lang);
+        await readParking(page);
+        await page.waitForTimeout(700);
+        check((await page.locator(".s-speak__note").count()) === 0, tag("(a) the app's voices speak — nothing is said about voices"));
+        await stopPlayer(page);
+        await ctx.close();
+      }
+      // (b) not installed; Windows-shaped device voices.
+      {
+        const { ctx, page } = await speakPage("windows", "409");
+        await openNote(page, lang);
+        await readParking(page);
+        await page.waitForSelector('.s-speak__note[data-state="device"]', { timeout: 8000 }).catch(() => {});
+        const line = (await page.locator('.s-speak__note[data-state="device"]').textContent().catch(() => "")) ?? "";
+        check(line.includes(lang === "ar" ? "أصوات التطبيق نفسه" : "The app's own voices"), tag("(b) the line is about the APP's voices"), line);
+        check(!/No voice installed|لا صوت مثبّتًا/.test(line), tag("(b) …never the old sentence"), line);
+        check(line.includes("Microsoft Hortense"), tag("(b) …and names the device voice reading"), line);
+        const spoke = await page.evaluate(() => window.__spoken.at(-1));
+        check(spoke?.voice === "Microsoft Hortense - French (France)" && spoke?.lang === "fr-FR", tag("(b) the device was asked for that voice, in French"), JSON.stringify(spoke));
+        await page.screenshot({ path: `${out}/read-aloud-device-${lang}.png` });
+        await page.locator(".s-speak__voice").click();
+        await page.waitForSelector(".s-ctl-pop [role=option]", { timeout: 3000 }).catch(() => {});
+        const opts = await page.locator(".s-ctl-pop [role=option]").allTextContents();
+        check(opts.length === 3 && opts.some((o) => o.includes("Microsoft Paul")), tag("(b) the ▾ lists every French voice on the device"), opts.join(" | "));
+        await page.waitForTimeout(250); // the popover's fade-in
+        await page.screenshot({ path: `${out}/read-aloud-picker-${lang}.png` });
+        await page.locator(".s-ctl-pop [role=option]", { hasText: "Microsoft Paul" }).click();
+        await page.waitForTimeout(300);
+        const heard = await page.evaluate(() => window.__spoken.at(-1));
+        check(heard?.voice === "Microsoft Paul - French (France)", tag("(b) choosing Paul reads the sentence again in Paul"), JSON.stringify(heard));
+        await stopPlayer(page);
+        await readParking(page);
+        await page.waitForSelector('.s-speak__note[data-state="device"]', { timeout: 8000 }).catch(() => {});
+        const again = (await page.locator('.s-speak__note[data-state="device"]').textContent().catch(() => "")) ?? "";
+        check(again.includes("Microsoft Paul"), tag("(b) …and the next passage remembers him"), again);
+        await page.locator(".s-speak__install").click();
+        await page.waitForTimeout(800);
+        const settingsFr = (await page.locator('.s-smodal__devvoices [data-lang="fr"]').textContent().catch(() => "")) ?? "";
+        check(settingsFr.includes("Microsoft Paul"), tag("(b) Install opens Settings on Read aloud, whose device picker shows the same choice"), settingsFr);
+        await page.locator(".s-smodal__devvoices").scrollIntoViewIfNeeded().catch(() => {});
+        await page.screenshot({ path: `${out}/read-aloud-settings-${lang}.png` });
+        await ctx.close();
+      }
+      // (c) the device lists voices, none French.
+      {
+        const { ctx, page } = await speakPage("english", "409");
+        await openNote(page, lang);
+        await readParking(page);
+        await page.waitForSelector('.s-speak__note[data-state="none"]', { timeout: 8000 }).catch(() => {});
+        // tf() isolates each filled-in value (U+2068…U+2069); read past that.
+        const line = ((await page.locator('.s-speak__note[data-state="none"]').textContent().catch(() => "")) ?? "").replace(/[\u2068\u2069]/g, "");
+        check(line.includes(lang === "ar" ? "لا يوجد على هذا الجهاز صوت يتكلم الفرنسية" : "No voice on this device speaks French"), tag("(c) no French voice on the device — said, with the language"), line);
+        check((await page.locator(".s-speak__install").count()) === 1, tag("(c) …with the Install remedy"));
+        await page.screenshot({ path: `${out}/read-aloud-none-${lang}.png` });
+        await ctx.close();
+      }
+      // (c) an empty list whose engine never answers: a Linux Electron.
+      {
+        const { ctx, page } = await speakPage("none", "409");
+        await openNote(page, lang);
+        await readParking(page);
+        await page.waitForSelector('.s-speak__note[data-state="none"]', { timeout: 9000 }).catch(() => {});
+        check((await page.locator('.s-speak__note[data-state="none"]').count()) === 1, tag("(c) an engine that never answers ends in (c), not silence"));
+        await ctx.close();
+      }
+    }
+  }
 } finally {
   await cleanup();
   for (const c of contexts) await c.close().catch(() => {});

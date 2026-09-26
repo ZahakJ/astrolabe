@@ -185,6 +185,41 @@ function check(ok, what, detail = "") {
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
 const browsers = [browser];
 
+/** THE DEVICE'S VOICES, as a phone might list them (client/speech/
+ *  deviceVoices.ts): a fake `speechSynthesis` put in before the page's first
+ *  script, so Read aloud's "reading with this device's voice: … ▾" line is
+ *  drawn — and measured at a finger's 44px — whenever the server has no
+ *  engine, instead of a headless browser's empty list deciding the state. */
+const FAKE_SPEECH = `(() => {
+  const voices = [
+    { name: "English United States", lang: "en-US", voiceURI: "en-us-x-sfg-local", default: true, localService: true },
+    { name: "English United Kingdom", lang: "en-GB", voiceURI: "en-gb-x-gba-local", default: false, localService: true },
+    { name: "Français France", lang: "fr-FR", voiceURI: "fr-fr-x-frb-local", default: false, localService: true },
+    { name: "العربية", lang: "ar", voiceURI: "ar-xa-x-arz-local", default: false, localService: true },
+  ];
+  class FakeUtterance {
+    constructor(text) { this.text = text; this.voice = null; this.lang = ""; this.rate = 1; }
+  }
+  let current = null;
+  Object.defineProperty(window, "speechSynthesis", {
+    configurable: true,
+    value: {
+      getVoices: () => voices.slice(),
+      addEventListener() {},
+      removeEventListener() {},
+      speak(u) {
+        current = u;
+        setTimeout(() => { if (current === u) u.onstart && u.onstart({}); }, 20);
+        setTimeout(() => { if (current === u) { current = null; u.onend && u.onend({}); } }, 1500);
+      },
+      cancel() { current = null; },
+      pause() {},
+      resume() {},
+    },
+  });
+  window.SpeechSynthesisUtterance = FakeUtterance;
+})()`;
+
 /** Admin cookies, or nothing worth measuring. */
 async function signIn() {
   const ctx = await browser.newContext();
@@ -347,6 +382,7 @@ try {
           /* private window */
         }
       }, lang);
+      await ctx.addInitScript(FAKE_SPEECH);
       const page = await ctx.newPage();
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
@@ -557,6 +593,18 @@ try {
           for (let waited = 0; answered === null && waited < 10000; waited += 100) await page.waitForTimeout(100);
           check((await page.locator(".s-speak").count()) === 1, tag("the floating player shows over the note"));
           check(answered === 200 || answered === 409, tag("…and the speaker answered"), String(answered));
+          // The three states (client/speech/player.ts): the app's voices
+          // answered and nothing is said; or they are not installed and the
+          // line names the APP's voices and the device voice reading, ▾.
+          if (answered === 409) {
+            await page.waitForSelector('.s-speak__note[data-state="device"]', { timeout: 5000 }).catch(() => {});
+            const line = (await page.locator('.s-speak__note[data-state="device"]').textContent().catch(() => "")) ?? "";
+            check(/The app's own voices|أصوات التطبيق نفسه/.test(line) && line.includes("English"), tag("…the line names the app's voices and the device voice reading"), line);
+            check((await page.locator(".s-speak__voice").count()) === 1, tag("…with its ▾"));
+          } else {
+            await settle(300);
+            check((await page.locator(".s-speak__note").count()) === 0, tag("…the app's voices spoke, and nothing is said about voices"));
+          }
           const box = await page.locator(".s-speak").boundingBox();
           const vh = page.viewportSize()?.height ?? 0;
           check(box !== null && box.y + box.height <= vh, tag("…inside the screen"), JSON.stringify(box));

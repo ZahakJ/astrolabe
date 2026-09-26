@@ -13,11 +13,30 @@
 // download does (Vault → Voice transcription): the server makes a venv under
 // its data folder, installs wheels, fetches the models, and this row polls
 // `GET /api/speak/status` and prints the phase and the percentage.
+//
+// THIS DEVICE'S VOICES, the row's second half: when the app's voices are not
+// installed for a language, the browser's own voices read, and the reader
+// chooses which — one picker per language the device speaks, every voice by
+// name with its locale, remembered on this device (client/speech/
+// deviceVoices.ts). A pocket vault has no engine, so there this half is the
+// whole row.
 
 import { useEffect, useState } from "react";
 import { speakInstall, speakStatus } from "../../api.ts";
-import { localeNum, t, tf } from "../../i18n.ts";
-import { SPEAK_VOICES, type SpeakEngineId, type SpeakStatus } from "../../../shared/speech.ts";
+import { getLang, localeNum, t, tf } from "../../i18n.ts";
+import { SPEAK_LANGS, SPEAK_VOICES, type SpeakEngineId, type SpeakStatus } from "../../../shared/speech.ts";
+import {
+  chooseVoice,
+  chosenVoice,
+  defaultMarkIsReal,
+  deviceVoiceList,
+  localeName,
+  pickVoice,
+  systemVoice,
+  useDeviceVoicesVersion,
+  voicesFor,
+  voiceShortName,
+} from "../../speech/deviceVoices.ts";
 import { SegmentedControl } from "../controls/Fields.tsx";
 import { Select } from "../controls/Select.tsx";
 import { useSettings } from "./context.ts";
@@ -43,7 +62,9 @@ function useSpeakStatus(): [SpeakStatus | null, () => void] {
     };
   }, [tick]);
   // While an install runs, the row follows it.
-  const running = status !== null && (status.install.phase === "python" || status.install.phase === "packages" || status.install.phase === "models");
+  const running =
+    status !== null &&
+    (status.install.phase === "fetch-python" || status.install.phase === "python" || status.install.phase === "packages" || status.install.phase === "models");
   useEffect(() => {
     if (!running) return;
     const id = window.setInterval(() => setTick((n) => n + 1), 1500);
@@ -56,11 +77,17 @@ function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engin
   const e = status.engines[engine];
   const job = status.install;
   if (status.test) return <p className="s-smodal__note">{t("speakStatusTest")}</p>;
-  if (job.engine === engine && (job.phase === "python" || job.phase === "packages" || job.phase === "models")) {
+  if (job.engine === engine && (job.phase === "fetch-python" || job.phase === "python" || job.phase === "packages" || job.phase === "models")) {
     const pct = e.bytes > 0 ? Math.floor((e.downloaded / e.bytes) * 100) : 0;
     return (
       <p className="s-smodal__note" role="status">
-        {job.phase === "python" ? t("speakPhasePython") : job.phase === "packages" ? t("speakPhasePackages") : tf("speakPhaseModels", { pct: localeNum(pct) })}
+        {job.phase === "fetch-python"
+          ? tf("speakPhaseFetchPython", { pct: localeNum(job.progress ?? 0) })
+          : job.phase === "python"
+            ? t("speakPhasePython")
+            : job.phase === "packages"
+              ? t("speakPhasePackages")
+              : tf("speakPhaseModels", { pct: localeNum(pct) })}
       </p>
     );
   }
@@ -82,6 +109,61 @@ function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engin
   );
 }
 
+/** One picker per language this device has voices for; the languages it
+ *  has none for, named in one line; and the plain truth when it has none at
+ *  all (a Linux desktop app: Electron there has no speech engine). */
+function DeviceVoices() {
+  useDeviceVoicesVersion();
+  const ui = getLang();
+  const all = deviceVoiceList();
+  const trust = typeof navigator !== "undefined" && defaultMarkIsReal(navigator.userAgent);
+  const locales = typeof navigator !== "undefined" ? (navigator.languages ?? [navigator.language]) : [];
+  const spoken = SPEAK_LANGS.filter((lang) => voicesFor(all, lang).length > 0);
+  const missing = SPEAK_LANGS.filter((lang) => !spoken.includes(lang));
+  return (
+    <div className="s-smodal__devvoices" data-device-voices={all.length}>
+      <span className="s-smodal__voicelabel">{t("speakDeviceVoicesHead")}</span>
+      {all.length === 0 ? (
+        <p className="s-smodal__note">{t("speakDeviceVoicesNone")}</p>
+      ) : (
+        <>
+          <p className="s-smodal__note">{t("speakDeviceVoicesNote")}</p>
+          <div className="s-smodal__pair">
+            {spoken.map((lang) => {
+              const language = localeName(lang, ui);
+              const auto = pickVoice(all, lang, { system: systemVoice(), locales, trustDefault: trust });
+              const chosen = chosenVoice(lang);
+              const own = voicesFor(all, lang);
+              const value = chosen && own.some((v) => v.voiceURI === chosen) ? chosen : "";
+              return (
+                <div className="s-smodal__voice" key={lang} data-lang={lang}>
+                  <span className="s-smodal__voicelabel" aria-hidden="true">{language}</span>
+                  <Select
+                    label={tf("speakDeviceVoicePick", { language })}
+                    value={value}
+                    onChange={(v) => chooseVoice(lang, v === "" ? null : v)}
+                    options={[
+                      { value: "", label: tf("speakDeviceVoiceAuto", { name: auto ? voiceShortName(auto) : "" }) },
+                      ...own.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), note: localeName(v.lang, ui) })),
+                    ]}
+                  />
+                </div>
+              );
+            })}
+          </div>
+          {missing.length > 0 && (
+            <p className="s-smodal__note">
+              {tf("speakDeviceVoicesMissing", {
+                languages: new Intl.ListFormat(ui, { type: "conjunction" }).format(missing.map((l) => localeName(l, ui))),
+              })}
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function ReadAloudControls() {
   const { pocket, form, field } = useSettings();
   const [status, refresh] = useSpeakStatus();
@@ -94,6 +176,16 @@ export function ReadAloudControls() {
     { value: "", label: SPEAK_VOICES.natural[lang]![0].name },
     ...SPEAK_VOICES.natural[lang]!.slice(1).map((v) => ({ value: v.id, label: v.name })),
   ];
+  // A pocket vault has no engine to install or tune: its row is the
+  // device's voices, which are the only ones it has.
+  if (pocket) {
+    return (
+      <>
+        <p className="s-smodal__note">{t("speakPocketNote")}</p>
+        <DeviceVoices />
+      </>
+    );
+  }
   return (
     <>
       <SegmentedControl
@@ -104,16 +196,12 @@ export function ReadAloudControls() {
         ]}
         {...field("speakEngine")}
       />
-      {pocket ? (
-        <p className="s-smodal__note">{t("speakPocketNote")}</p>
-      ) : (
-        status && <InstallLine status={status} engine={engine} onInstall={() => install(engine)} />
-      )}
+      {status && <InstallLine status={status} engine={engine} onInstall={() => install(engine)} />}
       {/* The two facts the choice does not change. */}
       <p className="s-smodal__note">
         {engine === "light" && !naturalIn ? t("speakJaNeedsNatural") : t("speakArIsLight")}
       </p>
-      {engine === "light" && !naturalIn && status && !status.test && !pocket && status.engines.light.installed && (
+      {engine === "light" && !naturalIn && status && !status.test && status.engines.light.installed && (
         <button type="button" className="s-btn" onClick={() => install("natural")}>
           {tf("speakInstall", { engine: t("speakEngineNatural"), size: modelSize(status.engines.natural.bytes) })}
         </button>
@@ -139,6 +227,7 @@ export function ReadAloudControls() {
         ]}
         {...field("speakRate")}
       />
+      <DeviceVoices />
     </>
   );
 }

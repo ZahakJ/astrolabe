@@ -13,21 +13,39 @@
 //     when the passage came from a DOM selection, with the CSS Custom
 //     Highlight API (the same mechanism the annotation marks use, so the
 //     prose is never rewritten to show it).
-//   · WHEN THE SERVER CANNOT SPEAK — nothing installed that speaks the
+//   · WHEN THE SERVER CANNOT SPEAK — the app's voices not installed for the
 //     language, a pocket vault (501, no server), a visitor on a blog whose
 //     owner has not turned listening on — the player reads with the device's
-//     own voices (`speechSynthesis`) and SAYS so, once, in the player: the
-//     quality then depends on the device (Android's Google voices are good;
-//     a Linux desktop's are not), and a reader deserves to know why this time
-//     sounds worse.
+//     own voices (`speechSynthesis`), choosing one honestly
+//     (./deviceVoices.ts), and SAYS which of three things is true:
+//       (a) the app's voices speak → nothing is said;
+//       (b) they cannot, a device voice can → "The app's own voices for
+//           French are not installed — reading with this device's voice:
+//           Microsoft Paul ▾ · Install the app's voices";
+//       (c) no device voice speaks the language either → "No voice on this
+//           device speaks French", and the two real remedies.
+//     The old single sentence ("no voice installed here speaks this
+//     language") read, to a Windows reader with three French voices
+//     installed, as "we cannot see your system's voices" — it meant the
+//     app's own, and now says so.
 //
 // The rate button is the browser's playbackRate on top of the synthesis rate
 // Settings chose — instant, no re-synthesis, the pitch kept.
 
 import { useSyncExternalStore } from "react";
-import { ApiError, speakAudio } from "../api.ts";
+import { ApiError, speakAudio, type SpeakRefusal } from "../api.ts";
 import { detectSpeechLang, splitSentences, type SpeakLang } from "../../shared/speech.ts";
-import type { I18nKey } from "../i18n.ts";
+import {
+  chooseVoice,
+  chosenVoice,
+  defaultMarkIsReal,
+  deviceVoiceList,
+  hasSpeechSynthesis,
+  loadDeviceVoices,
+  pickVoice,
+  primaryLang,
+  systemVoice,
+} from "./deviceVoices.ts";
 
 export type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "ended";
 
@@ -39,10 +57,25 @@ export interface PlayerState {
   rate: number;
   /** Who is speaking: the instance's engine, or the device's voices. */
   source: "engine" | "device" | null;
-  /** An honest line for the reader (i18n key), or null. */
-  note: I18nKey | null;
+  /** Set once the device's voices were asked to stand in: why, for which
+   *  language, and which voice — or that none speaks it (state (c)). */
+  device: DeviceReading | null;
   /** The language of the passage, for the player's `lang` attribute. */
   lang: string | null;
+}
+
+/** Why the app's own voices are not the ones reading. */
+export type DeviceWhy = "notInstalled" | "pocket" | "other";
+
+export interface DeviceReading {
+  why: DeviceWhy;
+  /** The passage's primary language ("fr"). */
+  lang: string;
+  /** The voice reading; null when the device speaks without naming one
+   *  (a browser whose list is empty but whose engine still answers). */
+  voice: { name: string; uri: string; lang: string } | null;
+  /** No voice on this device speaks the language: state (c). */
+  none: boolean;
 }
 
 export interface SpeakRequest {
@@ -59,7 +92,7 @@ export interface SpeakRequest {
 
 export const PLAYER_RATES = [0.75, 1, 1.25, 1.5];
 
-let state: PlayerState = { status: "idle", sentences: [], index: 0, rate: 1, source: null, note: null, lang: null };
+let state: PlayerState = { status: "idle", sentences: [], index: 0, rate: 1, source: null, device: null, lang: null };
 const listeners = new Set<() => void>();
 
 function set(patch: Partial<PlayerState>): void {
@@ -90,7 +123,10 @@ interface Passage {
   audio: Map<number, Promise<string>>;
   /** Device mode: the server said no, for the rest of the passage. */
   device: boolean;
-  /** Whether the device note has been shown for this passage. */
+  /** The voice device mode reads with (null: the browser's own pick). */
+  voice: SpeechSynthesisVoice | null;
+  /** The language the server decided, when it refused. */
+  serverLang: string | null;
   langGuess: SpeakLang;
 }
 
@@ -106,7 +142,7 @@ function audioEl(): HTMLAudioElement {
   element.addEventListener("error", () => {
     // A blob that will not decode (a WebView without Opus): the rest of the
     // passage goes to the device, which can always be asked.
-    if (passage && !passage.device) void toDevice("speakDeviceNote");
+    if (passage && !passage.device) void toDevice("other");
   });
   return element;
 }
@@ -178,7 +214,9 @@ async function playIndex(i: number): Promise<void> {
     url = await fetchSentence(p, i);
   } catch (err) {
     if (passage !== p || p.ctl.signal.aborted) return;
-    await toDevice(noteFor(err));
+    const said = err instanceof ApiError ? (err as SpeakRefusal).lang : undefined;
+    if (typeof said === "string") p.serverLang = said;
+    await toDevice(whyOf(err));
     return;
   }
   if (passage !== p) return;
@@ -204,48 +242,110 @@ async function advance(): Promise<void> {
   await playIndex(state.index + 1);
 }
 
-/** Why the server did not speak, as the line the player shows. */
-function noteFor(err: unknown): I18nKey {
+/** Why the server did not speak. */
+function whyOf(err: unknown): DeviceWhy {
   if (err instanceof ApiError) {
-    if (err.code === "pocket") return "speakPocketNote";
-    if (err.code === "speakNotInstalled") return "speakNotInstalledNote";
+    if (err.code === "pocket") return "pocket";
+    if (err.code === "speakNotInstalled") return "notInstalled";
   }
-  return "speakDeviceNote";
+  return "other";
 }
 
 // ── The device's voices ────────────────────────────────────────────────────
 
-function deviceVoices(): boolean {
-  return typeof window !== "undefined" && "speechSynthesis" in window && typeof SpeechSynthesisUtterance === "function";
+/** How long a device voice may take to START before the player concludes
+ *  nothing on this device will speak (a Linux Electron has `speechSynthesis`
+ *  and no engine behind it: speak() is accepted and nothing happens). */
+const DEVICE_START_MS = 4000;
+
+function passageLang(p: Passage): string {
+  return primaryLang(p.serverLang ?? p.req.lang ?? state.lang ?? p.langGuess);
 }
 
-async function toDevice(note: I18nKey): Promise<void> {
+function asVoiceInfo(v: SpeechSynthesisVoice | null): DeviceReading["voice"] {
+  return v ? { name: v.name, uri: v.voiceURI, lang: v.lang } : null;
+}
+
+async function toDevice(why: DeviceWhy): Promise<void> {
   const p = passage;
   if (!p) return;
   p.device = true;
-  if (!deviceVoices()) {
-    set({ status: "ended", note: "speakNoVoice", source: null });
+  const lang = passageLang(p);
+  if (!hasSpeechSynthesis()) {
+    set({ status: "ended", source: null, device: { why, lang, voice: null, none: true } });
     return;
   }
-  set({ source: "device", note });
+  const voices = await loadDeviceVoices();
+  if (passage !== p) return;
+  const voice = pickVoice(voices, lang, {
+    chosen: chosenVoice(lang),
+    system: systemVoice(),
+    locales: navigator.languages ?? [navigator.language],
+    trustDefault: defaultMarkIsReal(navigator.userAgent),
+  }) as SpeechSynthesisVoice | null;
+  if (!voice && voices.length > 0) {
+    // The device lists its voices and none speaks this language: (c).
+    set({ status: "ended", source: null, device: { why, lang, voice: null, none: true } });
+    return;
+  }
+  // With an empty list the device may still speak (some engines never list
+  // their voices); whether it does is the utterance's own events' to say.
+  p.voice = voice;
+  set({ source: "device", device: { why, lang, voice: asVoiceInfo(voice), none: false } });
   deviceSpeak(state.index);
+}
+
+/** The reader chose another device voice (the player's ▾): remembered for
+ *  the language on this device, and the sentence being read is read again
+ *  in it. */
+export function switchDeviceVoice(uri: string): void {
+  const p = passage;
+  const d = state.device;
+  if (!d) return;
+  chooseVoice(d.lang, uri);
+  const voice = (deviceVoiceList().find((v) => v.voiceURI === uri) ?? null) as SpeechSynthesisVoice | null;
+  if (!p || !voice) return;
+  p.voice = voice;
+  set({ device: { ...d, voice: asVoiceInfo(voice), none: false } });
+  if (p.device && state.status !== "paused" && state.status !== "ended") deviceSpeak(state.index);
 }
 
 function deviceSpeak(i: number): void {
   const p = passage;
-  if (!p || !deviceVoices()) return;
+  if (!p || !hasSpeechSynthesis()) return;
   const synth = window.speechSynthesis;
   synth.cancel();
   const u = new SpeechSynthesisUtterance(state.sentences[i]);
-  const lang = p.req.lang ?? p.langGuess;
-  u.lang = lang === "ja" ? "ja-JP" : lang === "ar" ? "ar" : lang === "fr" ? "fr-FR" : lang;
+  const lang = p.serverLang ?? p.req.lang ?? p.langGuess;
+  if (p.voice) {
+    u.voice = p.voice;
+    u.lang = p.voice.lang;
+  } else {
+    u.lang = lang === "ja" ? "ja-JP" : lang === "ar" ? "ar" : lang === "fr" ? "fr-FR" : lang;
+  }
   u.rate = state.rate;
+  let started = false;
+  const none = (): void => {
+    if (passage !== p) return;
+    synth.cancel();
+    set({ status: "ended", source: null, device: state.device ? { ...state.device, voice: null, none: true } : null });
+  };
+  // Nothing on this device answered: no start, no end, no error — which is
+  // what a Linux Electron does with a sentence. Said as (c), not left silent.
+  const watchdog = window.setTimeout(() => {
+    if (!started && passage === p && state.status === "playing" && state.index === i) none();
+  }, DEVICE_START_MS);
+  u.onstart = () => {
+    started = true;
+  };
   u.onend = () => {
+    window.clearTimeout(watchdog);
     if (passage === p && state.status !== "paused") void playIndex(i + 1);
   };
   u.onerror = (e) => {
+    window.clearTimeout(watchdog);
     if (passage !== p || e.error === "interrupted" || e.error === "canceled") return;
-    set({ status: "ended", note: "speakNoVoice" });
+    none();
   };
   set({ lang, status: "playing" });
   synth.speak(u);
@@ -316,9 +416,9 @@ export function speak(req: SpeakRequest): void {
   if (sentences.length === 0) return;
   stop();
   const langGuess = req.lang ?? detectSpeechLang(req.text, { context: req.context ?? null });
-  passage = { req, ctl: new AbortController(), audio: new Map(), device: false, langGuess };
+  passage = { req, ctl: new AbortController(), audio: new Map(), device: false, voice: null, serverLang: null, langGuess };
   highlight = req.range ? indexRange(req.range) : null;
-  set({ status: "loading", sentences, index: 0, source: null, note: null, lang: langGuess });
+  set({ status: "loading", sentences, index: 0, source: null, device: null, lang: langGuess });
   void playIndex(0);
 }
 
@@ -367,10 +467,10 @@ export function stop(): void {
     element.pause();
     element.removeAttribute("src");
   }
-  if (deviceVoices()) window.speechSynthesis.cancel();
+  if (hasSpeechSynthesis()) window.speechSynthesis.cancel();
   clearHighlight();
   highlight = null;
-  set({ status: "idle", sentences: [], index: 0, source: null, note: null, lang: null });
+  set({ status: "idle", sentences: [], index: 0, source: null, device: null, lang: null });
 }
 
 export function setRate(rate: number): void {
