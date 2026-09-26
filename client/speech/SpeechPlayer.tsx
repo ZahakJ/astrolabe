@@ -32,8 +32,12 @@ const PAUSE = "M7 5h3.5v14H7zM13.5 5H17v14h-3.5z";
 const REPLAY = "M12 5V2L7.5 6.5 12 11V7.5a5 5 0 1 1-5 5H4.5A7.5 7.5 0 1 0 12 5z";
 const STOP = "M6.5 6.5h11v11h-11z";
 
-/** The Read aloud row, where the app's own voices are installed. */
+/** The Read aloud row, where the app's own voices are installed. The
+ *  passage stops first: on a phone the player sits over the settings screen
+ *  it just opened, and a reader going to install better voices will hear
+ *  the passage again in them. */
 function openReadAloudSettings(): void {
+  stop();
   useStore.getState().openSettingsAt("rowReadAloud");
 }
 
@@ -51,9 +55,10 @@ function DeviceVoicePicker({ device }: { device: DeviceReading }) {
     <Select
       label={tf("speakDeviceVoicePick", { language })}
       triggerClass="s-speak__voice"
+      valueDir="ltr"
       value={device.voice.uri}
       onChange={switchDeviceVoice}
-      options={voices.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), note: localeName(v.lang, ui) }))}
+      options={voices.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), labelDir: "ltr" as const, note: localeName(v.lang, ui) }))}
     />
   );
 }

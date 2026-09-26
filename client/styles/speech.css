@@ -235,3 +235,11 @@
     min-block-size: 44px;
   }
 }
+
+/* A phone's player has room for the voice's name only; its locale is in the
+   open list, one tap away. */
+@media (max-width: 700px) {
+  .s-speak__meta .s-speak__voice .s-ctl-select__note {
+    display: none;
+  }
+}
