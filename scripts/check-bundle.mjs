@@ -426,7 +426,7 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // 883 → 890.
 // FRENCH AS FRENCH, AND A MAN TO READ IT: 889.4 → 891.1 kB, +1.7 against a
 // build of a437809 — the
-// entry's +1.6 below and a rounding. 890 → 892.
+// entry's +1.7 below. 890 → 892.
 const PHONE_BUDGET = 892 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
@@ -1082,7 +1082,7 @@ const AUDIENCES = [
   // entry sheet), the entry's JS +0.2 (the player's ▾ and the shared status
   // store). The row itself, the scan's arithmetic and the voice groups ride
   // the settings and speech chunks. 763 → 769.
-  // FRENCH AS FRENCH, AND A MAN TO READ IT: 768.8 → 770.4 kB, +1.6, measured
+  // FRENCH AS FRENCH, AND A MAN TO READ IT: 768.8 → 770.5 kB, +1.7, measured
   // against a build of main (a437809). The
   // Arabic dictionary is +1.3 of it (the (m)/(f) marks, "downloads when
   // chosen", the voice's download line, the self-test's verdict lines, and

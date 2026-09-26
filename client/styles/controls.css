@@ -176,10 +176,12 @@
 /* Fixed, on <body>, with top/left/width/max-height computed per open from the
    trigger's rect (Select.tsx): the panel is `overflow: hidden` and its body is
    a scroller, so an in-flow popover would be clipped by one and dragged by the
-   other. z-index sits above the settings panel (60) and the theme picker. */
+   other. Its layer is the anchored popover's (tokens.css, 440): the settings
+   panel rides the palette overlay (410), and at the old 200 every picker in
+   Settings opened BENEATH it — laid out, focusable, and invisible. */
 .s-ctl-pop {
   position: fixed;
-  z-index: 200;
+  z-index: var(--z-popover);
   display: flex;
   flex-direction: column;
   min-height: 0;
