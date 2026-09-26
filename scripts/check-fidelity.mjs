@@ -872,7 +872,7 @@ try {
           window.__spoken.push({ text: u.text, voice: u.voice ? u.voice.name : null, lang: u.lang });
           if (voices.length === 0) return; // a Linux Electron: accepted, never spoken
           setTimeout(() => { if (current === u) u.onstart && u.onstart({}); }, 20);
-          setTimeout(() => { if (current === u) { current = null; u.onend && u.onend({}); } }, 400);
+          setTimeout(() => { if (current === u) { current = null; u.onend && u.onend({}); } }, 3000); // long enough to still be reading when the ▾ is used
         },
         cancel() { current = null; },
         pause() {},

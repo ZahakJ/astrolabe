@@ -141,10 +141,13 @@ function DeviceVoices() {
                   <Select
                     label={tf("speakDeviceVoicePick", { language })}
                     value={value}
+                    valueDir={value === "" ? undefined : "ltr"}
                     onChange={(v) => chooseVoice(lang, v === "" ? null : v)}
                     options={[
                       { value: "", label: tf("speakDeviceVoiceAuto", { name: auto ? voiceShortName(auto) : "" }) },
-                      ...own.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), note: localeName(v.lang, ui) })),
+                      // A voice's name is machine text: it keeps its own
+                      // direction (and its ellipsis at its end) in Arabic.
+                      ...own.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), labelDir: "ltr" as const, note: localeName(v.lang, ui) })),
                     ]}
                   />
                 </div>

@@ -1744,6 +1744,21 @@
 /* Read aloud's second half, this device's voices: set off from the engine's
    controls above by a hairline, since it answers a different question (which
    of the DEVICE's voices stands in when the app's cannot speak). */
+/* The closed picker has room for the voice's name; its locale is in the
+   open list, as the transcription row does it. */
+.s-smodal__devvoices .s-ctl-select__note {
+  display: none;
+}
+
+/* One picker to a line on a phone: "Automatic — Microsoft David" does not fit
+   half of 412px, and a truncated voice name is the one thing this part must
+   not do. */
+@media (max-width: 700px) {
+  .s-smodal__devvoices .s-smodal__pair > * {
+    flex-basis: 100%;
+  }
+}
+
 .s-smodal__devvoices {
   display: flex;
   flex-direction: column;
