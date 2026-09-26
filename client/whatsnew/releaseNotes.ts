@@ -370,6 +370,40 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.36.0",
+    title: { en: "Your own voices", ar: "أصواتك الخاصة" },
+    slides: [
+      {
+        // ── A voices folder: local Piper voices join the pickers ──────────
+        title: { en: "Your own voices", ar: "أصواتك الخاصة" },
+        body: {
+          en: "Already have Piper voices on your computer, from LibreOffice's Read Text or downloaded yourself? Point Settings → Your own voices at the folder, and every voice in it joins the pickers under \"Your voices\", one per speaker, loaded from where it is. Nothing is downloaded again, and the folder stays on this machine. For anything else, an external speaker runs your own program once per sentence, once the machine's operator allows it.",
+          ar: "عندك أصوات Piper على حاسوبك أصلًا، من امتداد Read Text في ليبر أوفيس أو نزّلتها بنفسك؟ وجّه «أصواتك الخاصة» في الإعدادات إلى مجلّدها، فينضمّ كل صوت فيه إلى القوائم تحت «أصواتك»، صوتًا لكل متحدّث، ويُقرأ من مكانه. لا يُنزَّل شيء من جديد، ويبقى المجلّد على هذا الجهاز. ولكل ما سوى ذلك، يشغّل المتحدّث الخارجي برنامجك أنت مرّةً لكل جملة، متى سمح بذلك مشغّل الجهاز.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <path d="M40 60 h40 l10 -10 h50 v90 h-100 z" fill="var(--bg-hover)" stroke="var(--border)"/>
+  <path class="wa-grow" d="M40 70 h100 v70 h-100 z" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="90" y="110" text-anchor="middle" fill="var(--text-muted)" font-size="10">upmc.onnx</text>
+  ${[0,1].map((i) => `<g class="wa-late" style="--i:${i+1}"><circle cx="${190 + i*40}" cy="92" r="9" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><path d="M${181 + i*40} 128 a9 12 0 0 1 18 0 z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/></g>`).join("")}
+  <path class="wa-draw" style="--i:2" d="M240 110 C 290 110, 300 80, 350 80" fill="none" stroke="var(--text-muted)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:3"><rect x="350" y="40" width="170" height="140" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="362" y="62" fill="var(--text-faint)" font-size="10">${L(lang, "Light", "خفيف")}</text>
+    <rect x="362" y="70" width="120" height="6" rx="3" fill="var(--text-faint)"/>
+    <text x="362" y="104" fill="var(--accent)" font-size="10" font-weight="700">${L(lang, "Your voices", "أصواتك")}</text>
+    <rect x="362" y="112" width="100" height="14" rx="3" fill="var(--accent-soft)"/><text x="368" y="123" fill="var(--text)" font-size="10">Upmc · Pierre</text>
+    <rect x="362" y="132" width="100" height="6" rx="3" fill="var(--text-faint)"/>
+    <rect x="362" y="148" width="80" height="6" rx="3" fill="var(--text-faint)"/></g>
+  <text x="140" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a folder, and who lives in it", "مجلّد، ومن يسكنه")}</text>
+</svg>`,
+        },
+        docs: "read-aloud",
+      },
+    ],
+  },
+  {
     version: "3.35.0",
     title: { en: "Your voice, by name", ar: "صوتك، باسمه" },
     slides: [
