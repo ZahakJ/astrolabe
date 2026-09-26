@@ -6,17 +6,20 @@
 // a published note, and only for words that are on that page.
 
 import assert from "node:assert/strict";
+import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { after, before, describe, it } from "node:test";
 import { Hono } from "hono";
 import { initAuth } from "../server/auth.ts";
 import { initIndexer } from "../server/indexer.ts";
 import { initSite } from "../server/site.ts";
-import { initVault } from "../server/vault.ts";
+import { initVault, type VaultError } from "../server/vault.ts";
 import { api } from "../server/api.ts";
-import { patchSettings } from "../server/settings.ts";
+import { getSettings, patchSettings } from "../server/settings.ts";
 import { setFakeEngine, toneWav, type SpeakJob } from "../server/speakEngine.ts";
 import { foldForMatch } from "../server/speak.ts";
 import { makeDir, makeVault, note, removeVault } from "./helpers/vault.ts";
+import type { SpeakStatus } from "../shared/speech.ts";
 
 const VAULT: Record<string, string> = {
   "Carnet.md": note({ lang: "fr" }, "# Carnet\n\nLa grenouille saute dans le jardin.\n"),
@@ -149,6 +152,150 @@ describe("GET /api/speak/status", () => {
   });
 });
 
+// ── Your own voices and the external speaker ───────────────────────────────
+
+const voicesDir = makeDir();
+const piperJson = (code: string, extra: Record<string, unknown> = {}) =>
+  JSON.stringify({ audio: { sample_rate: 22050 }, phoneme_id_map: { _: [0] }, language: { code }, num_speakers: 1, speaker_id_map: {}, ...extra });
+const upmc = path.join(voicesDir, "fr", "fr_FR", "upmc", "medium", "fr_FR-upmc-medium.onnx");
+const davefx = path.join(voicesDir, "es_ES-davefx-medium.onnx");
+const fakeSpeaker = path.join(voicesDir, "..", `speaker-${path.basename(voicesDir)}.sh`);
+
+describe("your own voices (the voices folder)", () => {
+  before(() => {
+    mkdirSync(path.dirname(upmc), { recursive: true });
+    writeFileSync(upmc, "onnx");
+    writeFileSync(`${upmc}.json`, piperJson("fr_FR", { num_speakers: 2, speaker_id_map: { jessica: 0, pierre: 1 } }));
+    writeFileSync(davefx, "onnx");
+    writeFileSync(`${davefx}.json`, piperJson("es_ES"));
+    writeFileSync(path.join(voicesDir, "en_US-ryan-high.onnx"), "onnx"); // no config: skipped
+    setFakeEngine(async (job) => {
+      asked.push(job);
+      return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+    }, ["light", "natural"]);
+  });
+  after(() => {
+    patchSettings({ speak: null });
+    removeVault(voicesDir);
+    rmSync(fakeSpeaker, { force: true });
+  });
+
+  it("refuses a folder that is relative, inside the vault, or not there — with a code the panel can say", () => {
+    const refused = (dir: string): string => {
+      try {
+        patchSettings({ speak: { voicesDir: dir } });
+      } catch (err) {
+        return (err as VaultError).code ?? "";
+      }
+      return "accepted";
+    };
+    assert.equal(refused("piper-voices"), "speakDirRelative");
+    assert.equal(refused(root), "speakDirInVault");
+    assert.equal(refused(path.join(root, "voices")), "speakDirInVault");
+    assert.equal(refused(path.join(voicesDir, "nowhere")), "speakDirMissing");
+    assert.equal(refused(davefx), "speakDirNotDir");
+    assert.equal(getSettings().speak, undefined, "a refused patch wrote nothing");
+  });
+
+  it("keeps the folder on this machine: in speak-local.json, never in settings.json", () => {
+    const saved = patchSettings({ speak: { voicesDir } });
+    assert.equal(saved.effective.speak.voicesDir, voicesDir);
+    assert.doesNotMatch(readFileSync(path.join(data, "settings.json"), "utf8").toString(), /voicesDir/);
+    assert.equal(JSON.parse(readFileSync(path.join(data, "speak-local.json"), "utf8")).voicesDir, voicesDir);
+  });
+
+  it("lists what the scan found per language, and what it skipped", async () => {
+    const res = await app.request("/api/speak/voices/rescan", { method: "POST" });
+    assert.equal(res.status, 200);
+    const status = (await res.json()) as SpeakStatus;
+    assert.equal(status.own.dir, voicesDir);
+    assert.deepEqual(
+      status.own.voices.map((v) => [v.lang, v.name]),
+      [
+        ["es", "Davefx"],
+        ["fr", "Upmc · Jessica"],
+        ["fr", "Upmc · Pierre"],
+      ],
+    );
+    assert.deepEqual(status.own.skipped, [{ file: "en_US-ryan-high.onnx", reason: "noJson" }]);
+    assert.equal(JSON.stringify(status).includes(upmc), false, "the status names voices, not the paths the worker loads");
+  });
+
+  it("a found voice picked for a language speaks it, loaded by path, with its speaker", async () => {
+    patchSettings({ speak: { voices: { fr: "own:fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx#pierre" } } });
+    asked.length = 0;
+    const res = await speak({ text: "Le petit prince regarde les étoiles.", lang: "fr" });
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("x-speak-engine"), "light");
+    assert.equal(decodeURIComponent(res.headers.get("x-speak-voice") ?? ""), "own:fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx#pierre");
+    assert.equal(asked[0].model, upmc);
+    assert.equal(asked[0].config, `${upmc}.json`);
+    assert.equal(asked[0].speaker, 1);
+    // The same sentence again is a hit; the file replaced is spoken afresh.
+    assert.equal((await speak({ text: "Le petit prince regarde les étoiles.", lang: "fr" })).headers.get("x-speak-cache"), "hit");
+    const later = new Date(Date.now() + 60_000);
+    utimesSync(upmc, later, later);
+    assert.equal((await speak({ text: "Le petit prince regarde les étoiles.", lang: "fr" })).headers.get("x-speak-cache"), "miss");
+  });
+
+  it("a language only a found voice speaks is spoken on a Light-only machine", async () => {
+    setFakeEngine(async (job) => {
+      asked.push(job);
+      return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+    }, ["light"]);
+    try {
+      asked.length = 0;
+      const res = await speak({ text: "¿Dónde está la biblioteca?", lang: "es" });
+      assert.equal(res.status, 200);
+      assert.equal(asked[0].model, davefx);
+      assert.equal(asked[0].engine, "light");
+    } finally {
+      setFakeEngine(async (job) => {
+        asked.push(job);
+        return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+      }, ["light", "natural"]);
+    }
+  });
+
+  it("with no engine installed, the 409 names Light — the runtime the found voices need", async () => {
+    setFakeEngine(async (job) => ({ audio: toneWav(job.text), mime: "audio/wav", ms: 1 }), []);
+    try {
+      const res = await speak({ text: "¿Qué hora es?", lang: "es" });
+      assert.equal(res.status, 409);
+      assert.equal(((await res.json()) as { needs: string }).needs, "light");
+    } finally {
+      setFakeEngine(async (job) => {
+        asked.push(job);
+        return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+      }, ["light", "natural"]);
+    }
+  });
+
+  it("the external speaker speaks the languages it was given, and says when it failed", async () => {
+    writeFileSync(fakeSpeaker, `#!/bin/sh\ncat > /dev/null\n[ "$1" = "fr" ] || exit 7\nprintf 'OggS-fake' > "$2"\n`);
+    chmodSync(fakeSpeaker, 0o755);
+    patchSettings({ speak: { external: { command: `"${fakeSpeaker}" {lang} {out}`, langs: ["fr", "ar"] } } });
+    assert.doesNotMatch(readFileSync(path.join(data, "settings.json"), "utf8"), /external/);
+    asked.length = 0;
+    const fr = await speak({ text: "Une phrase pour le programme.", lang: "fr" });
+    assert.equal(fr.status, 200);
+    assert.equal(fr.headers.get("x-speak-engine"), "external");
+    assert.equal(fr.headers.get("content-type"), "audio/ogg");
+    assert.equal(asked.length, 0, "the app's engine was not asked");
+    // English was not given to it.
+    assert.equal((await speak({ text: "A sentence for the app.", lang: "en" })).headers.get("x-speak-engine"), "light");
+    // Arabic was, and the program refuses it: a 502 the player names.
+    const ar = await speak({ text: "جملة للبرنامج", lang: "ar" });
+    assert.equal(ar.status, 502);
+    assert.equal(((await ar.json()) as { code: string }).code, "speakExternal");
+  });
+
+  it("refuses a command with no {out}, or with quotes that do not close", () => {
+    assert.throws(() => patchSettings({ speak: { external: { command: "piper --model x.onnx", langs: ["fr"] } } }), /\{out\}/);
+    assert.throws(() => patchSettings({ speak: { external: { command: 'piper "{out}', langs: ["fr"] } } }), /quotes/);
+  });
+});
+
 describe("POST /api/speak (a visitor)", () => {
   before(() => {
     initAuth({
@@ -179,6 +326,28 @@ describe("POST /api/speak (a visitor)", () => {
       assert.equal((await speak({ text: "Say something the page never said.", path: "Public.md" })).status, 403);
       assert.equal((await speak({ text: "A secret sentence.", path: "Private.md" })).status, 404);
       assert.equal((await speak({ text: "quick brown fox" })).status, 404);
+    } finally {
+      initAuth({});
+      patchSettings({ speak: null });
+    }
+  });
+
+  it("never runs the owner's external speaker: a visitor hears the app's voices", async () => {
+    initAuth({});
+    const program = path.join(data, "never-run.sh");
+    const ran = path.join(data, "never-run.txt");
+    writeFileSync(program, `#!/bin/sh\ntouch "${ran}"\nprintf 'OggS' > "$1"\n`);
+    chmodSync(program, 0o755);
+    patchSettings({ speak: { public: true, external: { command: `"${program}" {out}`, langs: ["en"] } } });
+    initAuth({
+      ADMIN_PASSWORD_HASH: "$argon2id$v=19$m=65536,t=3,p=4$c2FsdHNhbHQ$aGFzaGhhc2hoYXNoaGFzaA",
+      SESSION_SECRET: "relsecret0123456789abcdef0123456789",
+    });
+    try {
+      const res = await speak({ text: "The quick brown fox reads the evening paper.", path: "Public.md" });
+      assert.equal(res.status, 200);
+      assert.equal(res.headers.get("x-speak-engine"), "light");
+      assert.equal(existsSync(ran), false, "the program never ran");
     } finally {
       initAuth({});
       patchSettings({ speak: null });

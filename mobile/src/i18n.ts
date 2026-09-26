@@ -170,6 +170,7 @@ const en = {
   keepNoteVersions: "Every save here is already a commit, so the history is the repository's and never off.",
   keepPdfSearch: "Reading the text of every PDF is work an instance does on its own disk.",
   keepVoice: "Transcription runs on an instance's own machine; a pocket vault keeps every recording and runs no model.",
+  keepSpeakLocal: "Your own voices and an external speaker belong to a server: a folder on its disk and a program it runs. A pocket vault reads with this phone's voices.",
   keepWebmentions: "Webmentions are sent and received by a site at its public address; a pocket vault has none.",
   keepFediverse: "The fediverse follows a site at its public address; a pocket vault has none.",
 
@@ -336,6 +337,7 @@ const ar: Copy = {
   keepNoteVersions: "كلّ حفظ هنا إيداعٌ أصلًا، فالسجلّ سجلّ المستودع ولا يُطفأ.",
   keepPdfSearch: "قراءة نصّ كلّ ملفّ PDF عملٌ يؤدّيه الخادم على قرصه.",
   keepVoice: "التفريغ يعمل على جهاز الخادم نفسه؛ والخزانة في الجيب تحفظ كلّ تسجيل ولا تشغّل نموذجًا.",
+  keepSpeakLocal: "أصواتك الخاصة والمتحدّث الخارجي من شأن الخادم: مجلّد على قرصه وبرنامج يشغّله. والخزانة في الجيب تقرأ بأصوات هذا الهاتف.",
   keepWebmentions: "الإشارات يرسلها ويستقبلها موقع على عنوانه العامّ؛ والخزانة في الجيب لا عنوان لها.",
   keepFediverse: "الفيديفيرس يتابع موقعًا على عنوانه العامّ؛ والخزانة في الجيب لا عنوان لها.",
 

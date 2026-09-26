@@ -34,6 +34,7 @@ import { initActivityPub } from "./activitypub.ts";
 import { webmentionHeadTags, webmentionLinkHeader, webmentionPublic } from "./webmentionRoutes.ts";
 import { activitypubPublic } from "./activitypubRoutes.ts";
 import { initPdfText, startPdfText } from "./pdfText.ts";
+import { startVoiceScan } from "./speakVoices.ts";
 import { seedIfNew } from "./seed.ts";
 import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vault.ts";
 
@@ -96,6 +97,10 @@ startPdfText();
 // from Ollama, kept current by the watcher. Nothing waits on it either, and a
 // machine without Ollama pays one refused connection a minute.
 initAsk();
+// Your own voices (docs/read-aloud.md): the voices folder, when Settings
+// names one, is scanned in the background. Nothing waits on it; a Read aloud
+// request that arrives first waits for this one scan.
+startVoiceScan();
 // Feeds (docs/feeds.md): the list is read now; nothing is fetched unless
 // Settings → Vault → Feeds says so, and then on git sync's cadence.
 initFeeds();

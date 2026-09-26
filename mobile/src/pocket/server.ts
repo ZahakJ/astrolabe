@@ -585,7 +585,7 @@ export function createPocketServer(deps: PocketDeps): {
         // A pocket runs no speaker: Read aloud there is the phone's own
         // voices (client/speech/player.ts says so once). The laptop's engine
         // choice describes the laptop, like the voice model above.
-        speak: { engine: "light", rate: 1, voices: {}, public: false },
+        speak: { engine: "light", rate: 1, voices: {}, public: false, voicesDir: null, external: null },
         home: { mode: "note", ...(held.home ?? {}) },
         publicFolders: { enabled: false, home: false, nav: false, folders: [] },
         library: { enabled: false, nav: false, home: false, title: "", roots: [], paths: [] },
@@ -1023,6 +1023,16 @@ export function createPocketServer(deps: PocketDeps): {
         // this whole round is about.
         const body = await bodyJson(request);
         const refused = Object.keys(body ?? {}).filter((key) => POCKET_CANNOT_KEEP[key] !== undefined);
+        // Read aloud's voices folder and external speaker are a server's (a
+        // path on its disk, a program it runs): the rest of `speak` is not
+        // the pocket's to refuse, but these two are.
+        const speakPatch = body?.speak;
+        if (typeof speakPatch === "object" && speakPatch !== null) {
+          const local = ["voicesDir", "external"].filter((k) => k in (speakPatch as Record<string, unknown>));
+          if (local.length > 0) {
+            return json({ error: speak("keepSpeakLocal"), code: "pocket", fields: local.map((k) => `speak.${k}`) }, 501);
+          }
+        }
         if (refused.length > 0) {
           const first = refused[0] as string;
           return json(

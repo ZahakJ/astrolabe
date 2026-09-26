@@ -3,6 +3,7 @@
 //   POST /api/speak            { text, lang?, path?, context?, format? } → audio
 //   GET  /api/speak/status     what is installed, the install's progress
 //   POST /api/speak/install    { engine } → 202; the Settings row polls status
+//   POST /api/speak/voices/rescan   read the voices folder again → status
 //
 // One sentence per request: the client splits a selection with
 // shared/speech.ts's splitSentences and asks for each in turn, prefetching the
@@ -12,10 +13,15 @@
 // THE ORDER OF OPERATIONS for a POST:
 //   1. The language: the caller's, else shared/speech.ts's detection (script,
 //      then the note's own `lang:`, then French, then the site).
-//   2. The engine: the owner's choice where both speak the language; Arabic is
-//      always Piper and Japanese always Kokoro. Nothing installed that speaks
-//      it → 409 `speakNotInstalled` naming the engine it needs, and the client
-//      reads with the device's own voices instead and SAYS so.
+//   2. The voice. The owner's external speaker first, for the languages it
+//      was given (server/speakExternal.ts; never for a visitor). Else
+//      shared/speechVoices.ts `resolveVoice`: a voice picked from the voices
+//      folder (server/speakVoices.ts) when its runtime is installed; else the
+//      owner's engine where both speak the language (Arabic is always Piper
+//      and Japanese always Kokoro); else a found voice of the language.
+//      Nothing that speaks it → 409 `speakNotInstalled` naming the engine it
+//      needs, and the client reads with the device's own voices instead and
+//      SAYS so.
 //   3. The cache (server/speakCache.ts): a hit costs a file read.
 //   4. The line (server/speakQueue.ts): one synthesis at a time; the same
 //      request twice is one job; a request the player abandoned is dropped.
@@ -31,18 +37,16 @@ import { Hono, type Context } from "hono";
 import {
   closeSentence,
   detectSpeechLang,
-  engineFor,
-  engineNeeded,
   frontmatterLang,
   isSpeakEngine,
   isSpeakLang,
   speakEffective,
   speechTextOfNote,
   SPEAK_MAX_CHARS,
-  voiceFor,
   type SpeakLang,
   type SpeakStatus,
 } from "../shared/speech.ts";
+import { engineNeededWith, resolveVoice, type ResolvedVoice } from "../shared/speechVoices.ts";
 import { FRONTMATTER_RE } from "../shared/noteParse.ts";
 import { isNotePath } from "../shared/noteFormat.ts";
 import { clientIp, isPublishLimited } from "./auth.ts";
@@ -64,9 +68,13 @@ import {
   ttsDir,
   venvDir,
   warmEngine,
+  type SpeakJob,
   type Synthesis,
 } from "./speakEngine.ts";
+import { runExternal } from "./speakExternal.ts";
+import { speakLocal } from "./speakLocal.ts";
 import { createSpeakQueue, type SpeakQueue } from "./speakQueue.ts";
+import { foundVoiceNow, foundVoicesSettled, ownVoicesStatus, rescanVoices, type FoundVoice } from "./speakVoices.ts";
 import { normalizeRel, readNote, VaultError } from "./vault.ts";
 import path from "node:path";
 
@@ -140,8 +148,14 @@ async function jsonBody(c: Context): Promise<Record<string, unknown>> {
 
 export const speakRoutes = new Hono();
 
+/** The settings in force: settings.json's, with this machine's own two
+ *  (server/speakLocal.ts). */
+function speakSettings() {
+  return speakEffective(getSettings().speak, speakLocal());
+}
+
 function statusBody(): SpeakStatus {
-  const settings = speakEffective(getSettings().speak);
+  const settings = speakSettings();
   return {
     runtime: runtimeReady(),
     engines: {
@@ -154,11 +168,12 @@ function statusBody(): SpeakStatus {
     venv: venvDir(),
     test: SPEAK_FAKE,
     settings,
+    own: ownVoicesStatus(),
   };
 }
 
 speakRoutes.get("/speak/status", (c) => {
-  const settings = speakEffective(getSettings().speak);
+  const settings = speakSettings();
   if (isPublishLimited(c)) {
     // A visitor learns one thing: whether the blog offers Read aloud.
     return c.json({ public: settings.public && installedEngines().size > 0 });
@@ -177,9 +192,17 @@ speakRoutes.post("/speak/install", async (c) => {
   return c.json(statusBody(), 202);
 });
 
+// Your own voices (docs/read-aloud.md): read the folder again — a voice just
+// dropped in, a file replaced. Answers the status once the scan is done.
+speakRoutes.post("/speak/voices/rescan", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  await rescanVoices();
+  return c.json(statusBody());
+});
+
 speakRoutes.post("/speak", async (c: Context) => {
   const visitor = isPublishLimited(c);
-  const settings = speakEffective(getSettings().speak);
+  const settings = speakSettings();
   if (visitor && !settings.public) throw new VaultError(404, "Not found");
   const body = await jsonBody(c);
   const text = typeof body.text === "string" ? body.text.trim() : "";
@@ -213,17 +236,68 @@ speakRoutes.post("/speak", async (c: Context) => {
         context: typeof body.context === "string" ? body.context.slice(0, 2000) : null,
         siteLang: effectiveSettings().language,
       });
-  const engine = engineFor(lang, settings.engine, installedEngines());
-  if (engine === null) {
-    return c.json(
-      { error: `Nothing installed speaks ${lang}`, code: "speakNotInstalled", lang, needs: engineNeeded(lang, settings.engine) },
-      409,
-    );
-  }
-  const voice = voiceFor(engine, lang, settings.voices[lang]) as string;
   const spoken = closeSentence(text, lang);
-  const key = speakCacheKey({ text: spoken, lang, voice, rate: settings.rate, format });
-  const headers = { "X-Speak-Lang": lang, "X-Speak-Engine": engine, "Cache-Control": "private, max-age=86400" };
+
+  // THE EXTERNAL SPEAKER, for the languages the owner gave it — the owner's
+  // only: a visitor is never the reason this server runs a program.
+  const external = !visitor && settings.external && settings.external.langs.includes(lang) ? settings.external : null;
+
+  let run: () => Promise<Synthesis>;
+  let key: string;
+  let engineName: string;
+  let voiceName: string;
+  if (external) {
+    engineName = "external";
+    voiceName = "external";
+    key = speakCacheKey({ text: spoken, lang, voice: `external\u0000${external.command}`, rate: 1, format: "external" });
+    run = () => runExternal({ command: external.command, text: spoken, lang });
+  } else {
+    const installed = installedEngines();
+    const found = await foundVoicesSettled();
+    let resolved: ResolvedVoice | null = resolveVoice(lang, settings.engine, settings.voices[lang], installed, found);
+    let file: (FoundVoice & { mtime: number }) | null = resolved?.own ? foundVoiceNow(resolved.voice) : null;
+    if (resolved?.own && !file) {
+      // The file went away since the scan: the next voice answers.
+      const gone = resolved.voice;
+      resolved = resolveVoice(lang, settings.engine, null, installed, found.filter((v) => v.id !== gone));
+      file = resolved?.own ? foundVoiceNow(resolved.voice) : null;
+    }
+    if (resolved === null || (resolved.own && !file)) {
+      return c.json(
+        { error: `Nothing installed speaks ${lang}`, code: "speakNotInstalled", lang, needs: engineNeededWith(lang, settings.engine, found) },
+        409,
+      );
+    }
+    const { engine, voice } = resolved;
+    engineName = engine;
+    voiceName = voice;
+    // A found voice's key carries its file's mtime: replaced under the same
+    // name, it is spoken afresh.
+    key = speakCacheKey({ text: spoken, lang, voice: file ? `${voice}@${file.mtime}` : voice, rate: settings.rate, format });
+    const job: SpeakJob = file
+      ? {
+          engine,
+          lang,
+          // Kokoro names its voice inside the pack; Piper's is the file.
+          voice: file.kind === "kokoro" ? (file.speaker ?? voice) : voice,
+          speed: settings.rate,
+          text: spoken,
+          format,
+          model: file.model,
+          config: file.config,
+          speaker: file.speakerId,
+          pack: file.pack,
+        }
+      : { engine, lang, voice, speed: settings.rate, text: spoken, format };
+    run = () => synthesize(job);
+  }
+  const headers = {
+    "X-Speak-Lang": lang,
+    "X-Speak-Engine": engineName,
+    // A found voice's id is a path, which may be anything but ASCII.
+    "X-Speak-Voice": encodeURIComponent(voiceName),
+    "Cache-Control": "private, max-age=86400",
+  };
 
   const hit = await speakCache().get(key);
   if (hit) return c.body(hit.bytes as Uint8Array<ArrayBuffer>, 200, { ...headers, "Content-Type": hit.mime, "X-Speak-Cache": "hit" });
@@ -235,7 +309,7 @@ speakRoutes.post("/speak", async (c: Context) => {
   }
   let out: Synthesis;
   try {
-    out = await queue.submit(key, () => synthesize({ engine, lang, voice, speed: settings.rate, text: spoken, format }), c.req.raw.signal);
+    out = await queue.submit(key, run, c.req.raw.signal);
   } catch (err) {
     // The player walked away (stop, a new selection): nobody reads this.
     if ((err as Error).name === "AbortError") return c.body(null, 204);
