@@ -481,8 +481,15 @@ re-hosts the web app is a bigger download of the same thing.
    125% left the reader permanently at a 689 CSS px viewport — the phone shell,
    mouse attached — looking at an app that appeared to be broken. The factor now
    lives in `desktop.json` beside the window bounds (`VaultPref.zoom`, per vault,
-   because that is what the old behaviour already implied), every window applies
-   it explicitly on `did-finish-load`, and `TO_RENDERER.zoom` tells the renderer
+   because that is what the old behaviour already implied) and SURVIVES the
+   relaunch: `rememberVault`, which rebuilds the row on every open, carries it
+   forward like `data` (it did not, and a Windows reader's 120% came back as 100%
+   at every launch; tests/desktop.test.ts holds the round trip). Every window is
+   created with it as `webPreferences.zoomFactor`, so the first frame shown at
+   `ready-to-show` is already at the factor, and applies it again explicitly on
+   `did-finish-load`; Ctrl + the wheel (`zoom-changed`) steps the same factor;
+   the View menu carries a disabled "Zoom: 120%" line (`menuZoomLevel`), rebuilt
+   on every change; and `TO_RENDERER.zoom` tells the renderer
    so `StatusBar`'s `ZoomChip` can show the percentage — nothing at 100%, since
    this is a state and not a control — with a click that is *actual size*.
    The menu rows carry `registerAccelerator: false`: the chord is DRAWN but not
@@ -491,6 +498,16 @@ re-hosts the web app is a bigger download of the same thing.
    book reader has claimed those three keys for the page it is showing since
    3.11, and a reader who reaches for the zoom keys over a book means the book.
    The numeric keypad keeps real accelerators: no page listens for it.
+2c. **Read aloud in the package.** The bundled server installs the voices exactly
+   as a web server does, into the app's own `ASTROLABE_DATA` — and a desktop
+   machine usually has neither `uv` nor a Python 3.10–3.13, so the installer
+   fetches a standalone CPython into `tts/python/` (contracts/features.md, "Read
+   aloud"); verified in the packaged Linux AppImage with an empty PATH. Electron
+   on Linux has no speech engine behind `speechSynthesis`, so until the voices
+   are installed the player says "No voice on this device speaks …" rather than
+   staying silent. On Windows `hello.systemVoice` carries the voice chosen in
+   Windows' Settings → Speech (`electron/systemVoice.ts`, `reg query`), which a
+   page cannot see.
 3. **Native find-in-page** (`Ctrl/Cmd+Shift+F`) — the *rendered document*:
    reading view, outline, backlinks, transclusions. `Ctrl/Cmd+F` remains
    CodeMirror's find over the open note's text. Two verbs, two keys.
