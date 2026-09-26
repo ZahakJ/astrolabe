@@ -17,6 +17,7 @@ import { createNav, readMark, readSnapshot, remapScreen, screenKey, topOf, type 
 import { chainTo, foldersDownTo, parentPath, upChain } from "../client/phone/up.ts";
 import { contentOf, isDetail, isFull, isList } from "../client/phone/kinds.ts";
 import { isHardwareKeystroke } from "../client/phone/hardwareKeyboard.ts";
+import { tagOfSearch } from "../client/phone/tagTap.ts";
 import { PHONE_SHELL_QUERY, shellFor } from "../client/shellQuery.ts";
 import { activeTabOf, openInPane, paneAt, panesInOrder, phoneWorkspace, setPinned, soloWorkspace, splitPane } from "../client/workspace.ts";
 import { NEVER_TRAVELS, TRAVELLING_KEYS, travels } from "../client/prefsSync.ts";
@@ -584,6 +585,24 @@ describe("which shell (client/shellQuery.ts)", () => {
     assert.equal(shellFor(false), "desktop");
     const main = readFileSync(fileURLToPath(new URL("../client/main.tsx", import.meta.url)), "utf8");
     assert.ok(!/import\("\.\/(swipe|backGesture)\.ts"\)|readPhoneLayout/.test(main),"main.tsx loads no drawer gesture and reads no layout choice");
+  });
+});
+
+describe("a #tag tapped in a note opens its screen (client/phone/tagTap.ts)", () => {
+  it("reads one bare tag from the pills' search, and nothing else", () => {
+    assert.equal(tagOfSearch("#hosting"), "hosting");
+    assert.equal(tagOfSearch("  #guide "), "guide");
+    assert.equal(tagOfSearch("#project/astrolabe"), "project/astrolabe");
+    assert.equal(tagOfSearch("#قراءة"), "قراءة");
+    assert.equal(tagOfSearch("#a_b-2"), "a_b-2");
+    for (const not of ["hosting", "#", "#a #b", "is:published", "tag:x", "#a b", "", null, undefined, 3, { tag: "x" }]) {
+      assert.equal(tagOfSearch(not), null, JSON.stringify(not));
+    }
+  });
+  it("is answered by the phone shell, which has no sidebar to search in", () => {
+    const shell = readFileSync(fileURLToPath(new URL("../client/phone/PhoneShell.tsx", import.meta.url)), "utf8");
+    assert.match(shell, /addEventListener\("astrolabe:search"/);
+    assert.match(shell, /kind: "tag", tag/);
   });
 });
 
