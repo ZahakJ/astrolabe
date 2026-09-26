@@ -166,4 +166,8 @@ export interface Hello {
    *  check can draw the "3.x available" pill without asking again and without
    *  a second toast. */
   update: { phase: string; version: string; installable?: boolean } | null;
+  /** The voice the reader chose in Windows' Settings → Speech, by the name
+   *  Chromium gives it (electron/systemVoice.ts); null elsewhere. The page
+   *  cannot see this choice on its own. */
+  systemVoice: string | null;
 }

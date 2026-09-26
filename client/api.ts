@@ -797,19 +797,26 @@ export interface SpokenAudio {
  *  `code` says why not — `speakNotInstalled` (with the language on
  *  `needs`), `pocket` (a pocket vault has no speaker), a rate limit. The
  *  caller falls back to the device's voices on any of them. */
+/** A refused `POST /api/speak`, with the language the server decided. */
+export type SpeakRefusal = ApiError & { lang?: string };
+
 export async function speakAudio(
   body: { text: string; lang?: string; path?: string; context?: string; format?: "opus" | "wav" },
   signal?: AbortSignal,
 ): Promise<SpokenAudio> {
   const res = await fetch("/api/speak", withPreview({ ...json("POST", body), signal: requestSignal(signal ?? null, 60_000) }));
   if (!res.ok) {
-    let parsed: { error?: string; code?: string } = {};
+    let parsed: { error?: string; code?: string; lang?: string } = {};
     try {
-      parsed = (await res.json()) as { error?: string; code?: string };
+      parsed = (await res.json()) as { error?: string; code?: string; lang?: string };
     } catch {
       // not JSON
     }
-    throw new ApiError(parsed.error ?? `HTTP ${res.status}`, res.status, parsed.code);
+    const err = new ApiError(parsed.error ?? `HTTP ${res.status}`, res.status, parsed.code) as SpeakRefusal;
+    // The language the SERVER decided (a note's `lang:` included): the device
+    // voice that stands in is chosen for it.
+    if (typeof parsed.lang === "string") err.lang = parsed.lang;
+    throw err;
   }
   return { blob: await res.blob(), lang: res.headers.get("x-speak-lang"), engine: res.headers.get("x-speak-engine") };
 }

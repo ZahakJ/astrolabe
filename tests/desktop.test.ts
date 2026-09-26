@@ -36,6 +36,7 @@ import {
 } from "../electron/deeplink.ts";
 import { TO_MAIN, TO_RENDERER, COMMANDS } from "../electron/ipc.ts";
 import { parseSessionCookie } from "../electron/cookie.ts";
+import { regValue, windowsSystemVoice } from "../electron/systemVoice.ts";
 import { childEnv, parseEnvFile } from "../electron/server.ts";
 import {
   EMPTY_PREFS,
@@ -475,6 +476,26 @@ describe("the data-dir override", () => {
     prefs = rememberVault(prefs, "/v/a", 6823, 99);
     assert.equal(prefs.vaults[0].data, "/srv/astrolabe-data");
     assert.equal(prefs.vaults[0].port, 6823);
+  });
+});
+
+describe("the voice Windows chose", () => {
+  it("reads a REG_SZ out of reg query, whatever the value column is called", () => {
+    const token = [
+      "",
+      "HKEY_CURRENT_USER\\Software\\Microsoft\\Speech_OneCore\\Voices",
+      "    DefaultTokenId    REG_SZ    HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\MSTTS_V110_frFR_PaulM",
+      "",
+    ].join("\r\n");
+    assert.equal(regValue(token), "HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\MSTTS_V110_frFR_PaulM");
+    const name = "\r\nHKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Speech_OneCore\\Voices\\Tokens\\MSTTS_V110_frFR_PaulM\r\n    (par défaut)    REG_SZ    Microsoft Paul - French (France)\r\n";
+    assert.equal(regValue(name), "Microsoft Paul - French (France)");
+    assert.equal(regValue("ERROR: The system was unable to find the specified registry key or value."), null);
+  });
+
+  it("is asked only on Windows", async () => {
+    assert.equal(await windowsSystemVoice("linux"), null);
+    assert.equal(await windowsSystemVoice("darwin"), null);
   });
 });
 

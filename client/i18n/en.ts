@@ -4336,12 +4336,26 @@ const en = {
   speakRate: "Speed",
   speakRateNow: "Speed {rate}×",
   speakPosition: "{at} of {of}",
-  // Why the device's voices are speaking instead of this machine's — said in
-  // the player, because the quality then depends on the device.
-  speakDeviceNote: "Read with this device's voices — how it sounds depends on them.",
-  speakPocketNote: "A pocket vault has no speaker: read with this phone's voices.",
-  speakNotInstalledNote: "No voice installed here speaks this language: read with this device's voices.",
-  speakNoVoice: "No voice on this device can read this.",
+  // Why the device's voices are speaking instead of the app's, and which one
+  // (client/speech/player.ts, the three states). "The app's own voices" is
+  // the whole point of the wording: the old line ("no voice installed here")
+  // read to a Windows reader as "we cannot see your system's voices".
+  speakAppVoicesMissing: "The app's own voices for {language} are not installed — reading with this device's voice:",
+  speakDeviceNote: "Reading with this device's voice:",
+  speakPocketReading: "A pocket vault has no speaker of its own — reading with this phone's voice:",
+  speakPocketNote: "A pocket vault has no speaker of its own: this phone's voices read, and you choose which below.",
+  speakInstallAppVoices: "Install the app's voices",
+  speakNoDeviceVoice: "No voice on this device speaks {language}. Install the app's voices (Settings → Language & dates → Read aloud), or add a system voice.",
+  speakNoDeviceVoicePocket: "No voice on this phone speaks {language}. Add one in the phone's text-to-speech settings.",
+  speakNoDeviceVoiceVisitor: "No voice on this device speaks {language}.",
+  speakDeviceVoiceUnnamed: "the device's default voice",
+  speakDeviceVoicePick: "This device's voice for {language}",
+  // Settings → Language & dates → Read aloud, the device's half.
+  speakDeviceVoicesHead: "This device's voices",
+  speakDeviceVoicesNote: "They read when the app's voices are not installed for a language. Chosen for this device only.",
+  speakDeviceVoiceAuto: "Automatic — {name}",
+  speakDeviceVoicesNone: "This device offers no voices of its own: only the app's voices can read here.",
+  speakDeviceVoicesMissing: "No voice on this device for {languages}.",
   // Settings → Language → Read aloud.
   rowReadAloud: "Read aloud",
   hintReadAloud: "Voices on this machine's processor read a selection; no graphics card needed.",
@@ -4355,10 +4369,11 @@ const en = {
   speakStatusTest: "Test engine: a tone stands in for the voices.",
   speakInstall: "Install the {engine} voices ({size})",
   speakPhasePython: "Making the Python environment…",
+  speakPhaseFetchPython: "Fetching Python for this machine — {pct}%.",
   speakPhasePackages: "Installing the engine…",
   speakPhaseModels: "Downloading the voices — {pct}%.",
   speakFailed: "The install stopped: {error}",
-  speakNoPython: "This machine needs uv or Python 3.10–3.13 before the voices can be installed.",
+  speakNoPython: "No Python could be found or fetched for this machine: check the connection and press Install again, or install uv or Python 3.10–3.13.",
   speakJaNeedsNatural: "Japanese is read by the Natural voices only.",
   speakArIsLight: "Arabic is always read by the Light voice, which points unvowelled text first.",
   speakVoiceEn: "English voice",

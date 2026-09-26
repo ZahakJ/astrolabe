@@ -35,6 +35,9 @@ export interface DesktopHello {
   /** What the updater last said, so a window opened after the check draws
    *  the "available" pill without a second toast. Absent before 3.15.0. */
   update?: DesktopUpdateState | null;
+  /** The voice chosen in Windows' Settings → Speech, by name; null elsewhere.
+   *  Absent before 3.35. */
+  systemVoice?: string | null;
 }
 
 /** One message from the updater (electron/update.ts `UpdateState`). */

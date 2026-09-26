@@ -1741,6 +1741,18 @@
   font-size: 0.78rem;
 }
 
+/* Read aloud's second half, this device's voices: set off from the engine's
+   controls above by a hairline, since it answers a different question (which
+   of the DEVICE's voices stands in when the app's cannot speak). */
+.s-smodal__devvoices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-block-start: 6px;
+  padding-block-start: 10px;
+  border-block-start: 1px solid var(--border);
+}
+
 /* Vault → Voice transcription: the model and where it runs. Each model's
    cost (its download, and on the processor a minute of speech on two cores)
    is a sentence — it belongs in the open list, where there is room for it;

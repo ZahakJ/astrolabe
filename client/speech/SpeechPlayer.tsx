@@ -5,13 +5,19 @@
 // selects a paragraph and scrolls on to follow it keeps the controls. It
 // shows the sentence being spoken (lit in the page too, when it came from
 // the page), where that sentence is in the passage, and — when the device's
-// own voices are speaking instead of the instance's — the one line that says
-// so. Mounted once per shell (App, the phone shell, the blog); nothing is
-// drawn while nothing is playing.
+// own voices are speaking instead of the app's — the one line that says which
+// of the three states is true (player.ts's header): the app's voices speak and
+// nothing is said; a device voice stands in, NAMED, with the ▾ that changes it
+// and the button to the real remedy; or no voice here speaks the language at
+// all, and the line says what would. Mounted once per shell (App, the phone
+// shell); nothing is drawn while nothing is playing.
 
 import "../styles/speech.css";
-import { t, tf, localeNum } from "../i18n.ts";
-import { cycleRate, pause, replay, resume, stop, usePlayer } from "./player.ts";
+import { getLang, t, tf, localeNum } from "../i18n.ts";
+import { useStore } from "../state.ts";
+import { Select } from "../components/controls/Select.tsx";
+import { deviceVoiceList, localeName, useDeviceVoicesVersion, voicesFor, voiceShortName } from "./deviceVoices.ts";
+import { cycleRate, pause, replay, resume, stop, switchDeviceVoice, usePlayer, type DeviceReading } from "./player.ts";
 
 function Icon({ d }: { d: string }) {
   return (
@@ -26,7 +32,68 @@ const PAUSE = "M7 5h3.5v14H7zM13.5 5H17v14h-3.5z";
 const REPLAY = "M12 5V2L7.5 6.5 12 11V7.5a5 5 0 1 1-5 5H4.5A7.5 7.5 0 1 0 12 5z";
 const STOP = "M6.5 6.5h11v11h-11z";
 
-export default function SpeechPlayer() {
+/** The Read aloud row, where the app's own voices are installed. */
+function openReadAloudSettings(): void {
+  useStore.getState().openSettingsAt("rowReadAloud");
+}
+
+/** The device voice reading now, named, with the ▾ of every other voice on
+ *  this device that speaks the language. */
+function DeviceVoicePicker({ device }: { device: DeviceReading }) {
+  useDeviceVoicesVersion();
+  const ui = getLang();
+  const language = localeName(device.lang, ui);
+  const voices = voicesFor(deviceVoiceList(), device.lang);
+  if (!device.voice || voices.length === 0) {
+    return <span className="s-speak__voicename">{device.voice ? voiceShortName(device.voice) : t("speakDeviceVoiceUnnamed")}</span>;
+  }
+  return (
+    <Select
+      label={tf("speakDeviceVoicePick", { language })}
+      triggerClass="s-speak__voice"
+      value={device.voice.uri}
+      onChange={switchDeviceVoice}
+      options={voices.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), note: localeName(v.lang, ui) }))}
+    />
+  );
+}
+
+/** The line under the sentence when the device's voices were asked. */
+function DeviceLine({ device, owner }: { device: DeviceReading; owner: boolean }) {
+  const language = localeName(device.lang, getLang());
+  const install = owner && device.why !== "pocket" && (
+    <button type="button" className="s-speak__install" onClick={openReadAloudSettings}>
+      {t("speakInstallAppVoices")}
+    </button>
+  );
+  if (device.none) {
+    const says =
+      device.why === "pocket"
+        ? tf("speakNoDeviceVoicePocket", { language })
+        : owner
+          ? tf("speakNoDeviceVoice", { language })
+          : tf("speakNoDeviceVoiceVisitor", { language });
+    return (
+      <span className="s-speak__note" data-state="none" role="status">
+        {says} {install}
+      </span>
+    );
+  }
+  const lead =
+    device.why === "notInstalled"
+      ? tf("speakAppVoicesMissing", { language })
+      : device.why === "pocket"
+        ? t("speakPocketReading")
+        : t("speakDeviceNote");
+  return (
+    <span className="s-speak__note" data-state="device">
+      {lead} <DeviceVoicePicker device={device} />
+      {install && device.why === "notInstalled" && install}
+    </span>
+  );
+}
+
+export default function SpeechPlayer({ owner = true }: { owner?: boolean }) {
   const s = usePlayer();
   if (s.status === "idle" || s.sentences.length === 0) return null;
   const playing = s.status === "playing" || s.status === "loading";
@@ -68,7 +135,7 @@ export default function SpeechPlayer() {
           {s.sentences.length > 1 && (
             <span>{tf("speakPosition", { at: localeNum(s.index + 1), of: localeNum(s.sentences.length) })}</span>
           )}
-          {s.note && <span className="s-speak__note">{t(s.note)}</span>}
+          {s.device && <DeviceLine device={s.device} owner={owner} />}
         </p>
       </div>
     </div>

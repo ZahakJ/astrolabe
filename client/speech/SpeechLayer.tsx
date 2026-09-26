@@ -30,7 +30,7 @@ export default function SpeechLayer({ owner, phone = false }: { owner: boolean; 
   return (
     <>
       <SpeakChip enabled={owner || visitorMay} editor={phone && owner} />
-      <SpeechPlayer />
+      <SpeechPlayer owner={owner} />
     </>
   );
 }

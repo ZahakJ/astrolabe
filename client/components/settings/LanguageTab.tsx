@@ -307,7 +307,9 @@ export default function LanguageTab() {
       {/* The other direction (docs/read-aloud.md): a selection read aloud
           by voices on this machine's CPU, in the language it is written in.
           One row — the engine, its install, the voices, the speed. */}
-      <Row locked={pocket} label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
+      {/* Not locked in a pocket vault: there the row is this phone's own
+          voices (ReadAloudControls), which are the only ones it has. */}
+      <Row label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
         <ReadAloudControls />
       </Row>
 
