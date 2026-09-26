@@ -16,7 +16,8 @@ import { countPhrase, localeNum, t, tf, type I18nKey } from "../../i18n.ts";
 import { SYSTEM_FONT } from "../../../shared/fonts.ts";
 import { DEFAULT_LAUNCH, isLaunchDoor } from "../../../shared/launch.ts";
 import { isVoiceBackend, isVoiceLanguage, isVoiceModelSetting } from "../../../shared/voice.ts";
-import { isSpeakEngine, SPEAK_RATES } from "../../../shared/speech.ts";
+import { isSpeakEngine, SPEAK_LANGS, SPEAK_RATES, type SpeakLang } from "../../../shared/speech.ts";
+import { externalCommandProblem } from "../../../shared/speechVoices.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
 import { isFediverseHandle } from "../../../shared/fediverse.ts";
 import { isImagePath } from "../../../shared/fileKinds.ts";
@@ -94,9 +95,15 @@ export interface Form {
   // ── Read aloud (shared/speech.ts) ────────────────────────────────────────
   speakEngine: string;    // "light" | "natural"
   speakRate: string;      // "0.8" | "1" | "1.2"
-  speakVoiceEn: string;   // a Natural English voice id; "" is the first
-  speakVoiceJa: string;   // a Japanese voice id; "" is the first
+  /** A voice per language: a built-in id or a found voice's `own:` id; a
+   *  language absent (or "") takes the engine's first. */
+  speakVoices: Partial<Record<SpeakLang, string>>;
   speakPublic: string;    // "on" | "off" — Readers may listen; off unless set
+  // This machine's (server/speakLocal.ts): the voices folder, and the
+  // external speaker's command and the languages it speaks for.
+  speakVoicesDir: string;
+  speakExternalCmd: string;
+  speakExternalLangs: SpeakLang[];
   // ── Webmentions and the fediverse (docs/webmentions.md) ──────────────────
   wmAccept: string;       // "on" | "off" — off unless the owner says so
   wmSend: string;         // "on" | "off"
@@ -255,9 +262,11 @@ export function formFrom(s: SettingsResponse): Form {
     feedsNote: s.feeds?.note ?? "",
     speakEngine: s.effective.speak.engine,
     speakRate: String(s.effective.speak.rate),
-    speakVoiceEn: s.effective.speak.voices.en ?? "",
-    speakVoiceJa: s.effective.speak.voices.ja ?? "",
+    speakVoices: { ...s.effective.speak.voices },
     speakPublic: s.effective.speak.public ? "on" : "off",
+    speakVoicesDir: s.effective.speak.voicesDir ?? "",
+    speakExternalCmd: s.effective.speak.external?.command ?? "",
+    speakExternalLangs: [...(s.effective.speak.external?.langs ?? [])],
     wmAccept: s.effective.webmentions.accept ? "on" : "off",
     wmSend: s.effective.webmentions.send ? "on" : "off",
     fediEnabled: s.effective.fediverse.enabled ? "on" : "off",
@@ -437,6 +446,30 @@ export function maxChars(n: number): string {
 }
 
 /** Client-side mirror of the server validators — inline row errors. */
+/** The sentence for a save the server refused over Read aloud's voices
+ *  folder or external speaker (server/speakLocal.ts names the codes): the
+ *  folder is checked against the disk and the vault only there. */
+export function speakSaveErrorKey(code: string | undefined): I18nKey | null {
+  switch (code) {
+    case "speakDirRelative":
+      return "errVoicesDirRelative";
+    case "speakDirInVault":
+      return "errVoicesDirInVault";
+    case "speakDirMissing":
+      return "errVoicesDirMissing";
+    case "speakDirNotDir":
+      return "errVoicesDirNotDir";
+    case "speakDirUnreadable":
+      return "errVoicesDirUnreadable";
+    case "speakExternalNoOut":
+      return "errExternalNoOut";
+    case "speakExternalQuotes":
+      return "errExternalQuotes";
+    default:
+      return null;
+  }
+}
+
 export function validate(f: Form): Partial<Record<keyof Form, string>> {
   const errors: Partial<Record<keyof Form, string>> = {};
   if (f.siteName.trim().length > 80) errors.siteName = maxChars(80);
@@ -505,6 +538,19 @@ export function validate(f: Form): Partial<Record<keyof Form, string>> {
   const topK = f.askTopK.trim();
   if (topK !== "" && (!/^\d{1,2}$/.test(topK) || Number(topK) < 2 || Number(topK) > 12)) {
     errors.askTopK = tf("errAskTopK", { min: localeNum(2), max: localeNum(12) });
+  }
+  // Your own voices (docs/read-aloud.md): an absolute path — a POSIX one, a
+  // drive letter, or a UNC share — which the server checks again against
+  // the disk and the vault; and a command that names the file it writes.
+  const voicesDir = f.speakVoicesDir.trim();
+  if (voicesDir !== "" && !/^(\/|[A-Za-z]:[\\/]|\\\\)/.test(voicesDir)) errors.speakVoicesDir = t("errVoicesDirRelative");
+  const command = f.speakExternalCmd.trim();
+  if (command !== "") {
+    const problem = externalCommandProblem(command);
+    if (problem === "noOut") errors.speakExternalCmd = t("errExternalNoOut");
+    else if (problem === "quotes") errors.speakExternalCmd = t("errExternalQuotes");
+    else if (problem === "tooLong") errors.speakExternalCmd = maxChars(2000);
+    else if (f.speakExternalLangs.length === 0) errors.speakExternalCmd = t("errExternalNoLangs");
   }
   const adjust = f.fontSizeAdjust.trim();
   if (adjust !== "") {
@@ -769,22 +815,22 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
     if (f.fediHandle.trim() !== initial.fediHandle.trim()) fedi.handle = f.fediHandle.trim() === "" ? null : f.fediHandle.trim().toLowerCase();
     patch.fediverse = fedi;
   }
-  if (
-    f.speakEngine !== initial.speakEngine ||
-    f.speakRate !== initial.speakRate ||
-    f.speakVoiceEn !== initial.speakVoiceEn ||
-    f.speakVoiceJa !== initial.speakVoiceJa ||
-    f.speakPublic !== initial.speakPublic
-  ) {
+  {
     // Only what moved, like `voice`: a default is stored as its absence.
     const speak: NonNullable<SettingsPatch["speak"]> = {};
     if (f.speakEngine !== initial.speakEngine && isSpeakEngine(f.speakEngine)) speak.engine = f.speakEngine;
     if (f.speakRate !== initial.speakRate && SPEAK_RATES.includes(Number(f.speakRate))) speak.rate = Number(f.speakRate);
-    const voices: Partial<Record<"en" | "ja", string | null>> = {};
-    if (f.speakVoiceEn !== initial.speakVoiceEn) voices.en = f.speakVoiceEn === "" ? null : f.speakVoiceEn;
-    if (f.speakVoiceJa !== initial.speakVoiceJa) voices.ja = f.speakVoiceJa === "" ? null : f.speakVoiceJa;
+    const voices: Partial<Record<SpeakLang, string | null>> = {};
+    for (const lang of SPEAK_LANGS) {
+      const now = f.speakVoices[lang] ?? "";
+      if (now !== (initial.speakVoices[lang] ?? "")) voices[lang] = now === "" ? null : now;
+    }
     if (Object.keys(voices).length > 0) speak.voices = voices;
     if (f.speakPublic !== initial.speakPublic) speak.public = f.speakPublic === "on";
+    if (f.speakVoicesDir.trim() !== initial.speakVoicesDir.trim()) speak.voicesDir = f.speakVoicesDir.trim() === "" ? null : f.speakVoicesDir.trim();
+    if (f.speakExternalCmd.trim() !== initial.speakExternalCmd.trim() || f.speakExternalLangs.join() !== initial.speakExternalLangs.join()) {
+      speak.external = f.speakExternalCmd.trim() === "" ? null : { command: f.speakExternalCmd.trim(), langs: f.speakExternalLangs };
+    }
     if (Object.keys(speak).length > 0) patch.speak = speak;
   }
   if (f.feedsFetch !== initial.feedsFetch || f.feedsNote.trim() !== initial.feedsNote.trim()) {

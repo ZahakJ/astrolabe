@@ -86,4 +86,6 @@ contextBridge.exposeInMainWorld("astrolabeDesktop", {
   chromeLang: (lang: string) => ipcRenderer.invoke("astrolabe:chrome-lang", lang),
   /** Zoom the app: +1 a step in, -1 a step out, 0 back to actual size. */
   zoomSet: (direction: number) => ipcRenderer.invoke("astrolabe:zoom-set", direction),
+  /** The system's folder picker: the folder the reader chose, or null. */
+  pickFolder: () => ipcRenderer.invoke("astrolabe:pick-folder"),
 });

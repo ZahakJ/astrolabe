@@ -79,6 +79,7 @@ export const SETTINGS_INDEX: SettingEntry[] = [
   { tab: "language", label: "rowEmptyPropsCard", hint: "hintEmptyPropsCard" },
   { tab: "language", label: "rowVoiceLanguage", hint: "hintVoiceLanguage" },
   { tab: "language", label: "rowReadAloud", hint: "hintReadAloud" },
+  { tab: "language", label: "rowOwnVoices", hint: "hintOwnVoices" },
   { tab: "language", label: "tagLabelsRowLabel", hint: "tagLabelsPageWins" },
   { tab: "publishing", label: "rowPublicLayout", hint: "hintPublicLayout", env: "PUBLIC_LAYOUT", mode: "instance" },
   { tab: "publishing", label: "rowOpenDesigner", hint: "hintOpenDesigner", mode: "instance" },

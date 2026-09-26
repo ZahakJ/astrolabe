@@ -802,6 +802,17 @@ export const COMMANDS: Command[] = [
     available: ({ openPath, admin, preview }) => admin && !preview && openPath !== null,
   },
   {
+    // YOUR OWN VOICES (docs/read-aloud.md): the voices folder and the
+    // external speaker are a Settings row; this is the way to it by name
+    // ("piper", "voice") for the reader who arrives with voices on disk.
+    id: "own-voices",
+    label: () => t("cmdOwnVoices"),
+    hint: () => t("cmdOwnVoicesHint"),
+    // Names, not chrome copy: what a reader with voices on disk types.
+    aliases: () => ["piper", "kokoro", "onnx", "tts", "voices folder"],
+    available: ({ admin, preview }) => admin && !preview,
+  },
+  {
     id: "delete-current",
     label: () => t("cmdDeleteCurrent"),
     hint: () => t("cmdTrashHint"),
@@ -1237,6 +1248,9 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "remove-banner":
       if (store.openPath) void store.setBanner(store.openPath, null);
+      break;
+    case "own-voices":
+      store.openSettingsAt("rowOwnVoices");
       break;
     case "open-trash":
       store.setTrashOpen(true);

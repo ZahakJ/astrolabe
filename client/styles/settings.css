@@ -1776,3 +1776,108 @@
 .s-smodal__voicepair .s-ctl-select__note {
   display: none;
 }
+
+/* Settings → Language & dates → Your own voices (docs/read-aloud.md): the
+   folder's path with Browse… and Rescan beside it, what the scan found, and
+   the external speaker folded under it. */
+.s-ownvoices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.s-ownvoices__path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.s-ownvoices__path > .s-ctl-input {
+  flex: 1 1 220px;
+  min-inline-size: 0;
+}
+
+.s-ownvoices .s-smodal__note {
+  margin: 0;
+}
+
+.s-ownvoices details > summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.821rem;
+  min-block-size: 28px;
+  display: list-item;
+}
+
+.s-ownvoices__skipped ul {
+  margin: 4px 0 0;
+  padding-inline-start: 18px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+.s-ownvoices__file {
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+
+.s-ownvoices__external {
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--border);
+}
+
+.s-ownvoices__external[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.s-ownvoices__external .s-ctl-input {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.s-ownvoices__langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.s-ownvoices__langs legend {
+  padding: 0;
+  margin-block-end: 4px;
+}
+
+.s-ownvoices__lang {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 28px;
+  font-size: 0.857rem;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .s-ownvoices details > summary,
+  .s-ownvoices__lang {
+    min-block-size: 44px;
+    align-content: center;
+  }
+}
+
+/* Read aloud's per-language voice pickers: the closed trigger has room for
+   the voice's name (a found voice's is long: "Upmc · Pierre"); its locale and
+   quality are in the open list. One to a line on a phone. */
+.s-smodal__voices .s-ctl-select__note {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .s-smodal__voices > * {
+    flex-basis: 100%;
+  }
+}

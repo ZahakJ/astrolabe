@@ -250,7 +250,9 @@ export type CountUnit =
   | "likes"
   | "reposts"
   | "followers"
-  | "mentions";
+  | "mentions"
+  // Read aloud's voices folder: "French: 3 voices" (docs/read-aloud.md).
+  | "voices";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -275,6 +277,7 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   // The sidebar footer counts the vault's ATTACHMENTS beside its notes — the
   // images, PDFs and recordings that are not notes but are certainly files.
   files: { en: ["file", "files"], ar: { one: "ملف واحد", two: "ملفان", few: "ملفات", many: "ملفًا" } },
+  voices: { en: ["voice", "voices"], ar: { one: "صوت واحد", two: "صوتان", few: "أصوات", many: "صوتًا" } },
   // The trash holds folders, notes and attachments side by side, so its header
   // cannot count "files": one of the three rows in the fixture is a folder of
   // four notes, and calling that a file is the same small dishonesty this

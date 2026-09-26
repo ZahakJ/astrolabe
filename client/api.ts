@@ -787,10 +787,18 @@ export function speakInstall(engine: SpeakEngineId): Promise<SpeakStatus> {
   return request<SpeakStatus>("/api/speak/install", json("POST", { engine }), true);
 }
 
+/** Read the voices folder again (Settings → Your own voices, Rescan). */
+export function speakRescan(): Promise<SpeakStatus> {
+  return request<SpeakStatus>("/api/speak/voices/rescan", { method: "POST" }, true);
+}
+
 export interface SpokenAudio {
   blob: Blob;
   lang: string | null;
   engine: string | null;
+  /** The voice that spoke: a built-in id, a found voice's `own:` id, or
+   *  "external". */
+  voice: string | null;
 }
 
 /** One sentence, spoken. Resolves to the audio, or throws an ApiError whose
@@ -818,7 +826,14 @@ export async function speakAudio(
     if (typeof parsed.lang === "string") err.lang = parsed.lang;
     throw err;
   }
-  return { blob: await res.blob(), lang: res.headers.get("x-speak-lang"), engine: res.headers.get("x-speak-engine") };
+  const voice = res.headers.get("x-speak-voice");
+  let voiceId: string | null = null;
+  try {
+    voiceId = voice ? decodeURIComponent(voice) : null;
+  } catch {
+    // a header that is not ours
+  }
+  return { blob: await res.blob(), lang: res.headers.get("x-speak-lang"), engine: res.headers.get("x-speak-engine"), voice: voiceId };
 }
 
 /** The clipper's token — made on first ask, kept in ASTROLABE_DATA (never

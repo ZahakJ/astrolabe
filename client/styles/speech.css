@@ -243,3 +243,12 @@
     display: none;
   }
 }
+
+/* The app's voice, named, with its ▾ (the built-in voices and the reader's
+   own): a line of its own under the sentence, like the device's. It says
+   nothing else — the app's own voices speaking is state (a). */
+.s-speak__meta .s-speak__engine {
+  display: inline-flex;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}

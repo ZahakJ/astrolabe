@@ -33,7 +33,7 @@
 // Settings chose — instant, no re-synthesis, the pitch kept.
 
 import { useSyncExternalStore } from "react";
-import { ApiError, speakAudio, type SpeakRefusal } from "../api.ts";
+import { ApiError, patchSettings, speakAudio, type SpeakRefusal } from "../api.ts";
 import { detectSpeechLang, splitSentences, type SpeakLang } from "../../shared/speech.ts";
 import {
   chooseVoice,
@@ -62,6 +62,12 @@ export interface PlayerState {
   device: DeviceReading | null;
   /** The language of the passage, for the player's `lang` attribute. */
   lang: string | null;
+  /** The app's voice that spoke the last sentence (a built-in id, a found
+   *  voice's `own:` id, or "external") — what the player's voice ▾ shows. */
+  voice: string | null;
+  /** The owner's external speaker failed: the passage stopped unspoken,
+   *  and the player says so rather than reading it in another voice. */
+  failed: "external" | null;
 }
 
 /** Why the app's own voices are not the ones reading. */
@@ -92,7 +98,7 @@ export interface SpeakRequest {
 
 export const PLAYER_RATES = [0.75, 1, 1.25, 1.5];
 
-let state: PlayerState = { status: "idle", sentences: [], index: 0, rate: 1, source: null, device: null, lang: null };
+let state: PlayerState = { status: "idle", sentences: [], index: 0, rate: 1, source: null, device: null, lang: null, voice: null, failed: null };
 const listeners = new Set<() => void>();
 
 function set(patch: Partial<PlayerState>): void {
@@ -185,7 +191,7 @@ function fetchSentence(p: Passage, i: number): Promise<string> {
     },
     p.ctl.signal,
   ).then((spoken) => {
-    if (spoken.lang && passage === p) set({ lang: spoken.lang });
+    if (passage === p && (spoken.lang || spoken.voice)) set({ ...(spoken.lang ? { lang: spoken.lang } : {}), ...(spoken.voice ? { voice: spoken.voice } : {}) });
     return dataUrl(spoken.blob);
   });
   // Rejections are read by whoever awaits; a prefetch nobody awaited yet must
@@ -214,6 +220,13 @@ async function playIndex(i: number): Promise<void> {
     url = await fetchSentence(p, i);
   } catch (err) {
     if (passage !== p || p.ctl.signal.aborted) return;
+    // The owner's own program failed: it was asked for by name, so the
+    // passage stops and the player says so — no other voice pretends to be it.
+    if (err instanceof ApiError && err.code === "speakExternal") {
+      clearHighlight();
+      set({ status: "ended", source: null, failed: "external" });
+      return;
+    }
     const said = err instanceof ApiError ? (err as SpeakRefusal).lang : undefined;
     if (typeof said === "string") p.serverLang = said;
     await toDevice(whyOf(err));
@@ -418,7 +431,7 @@ export function speak(req: SpeakRequest): void {
   const langGuess = req.lang ?? detectSpeechLang(req.text, { context: req.context ?? null });
   passage = { req, ctl: new AbortController(), audio: new Map(), device: false, voice: null, serverLang: null, langGuess };
   highlight = req.range ? indexRange(req.range) : null;
-  set({ status: "loading", sentences, index: 0, source: null, device: null, lang: langGuess });
+  set({ status: "loading", sentences, index: 0, source: null, device: null, lang: langGuess, voice: null, failed: null });
   void playIndex(0);
 }
 
@@ -470,8 +483,32 @@ export function stop(): void {
   if (hasSpeechSynthesis()) window.speechSynthesis.cancel();
   clearHighlight();
   highlight = null;
-  set({ status: "idle", sentences: [], index: 0, source: null, device: null, lang: null });
+  set({ status: "idle", sentences: [], index: 0, source: null, device: null, lang: null, voice: null, failed: null });
 }
+
+/** The owner chose another of the app's voices in the player's ▾ (a
+ *  built-in one or one of their own): saved as the language's voice — the
+ *  same setting as Settings' picker — and the sentence being read is read
+ *  again in it. Resolves false when the save was refused. */
+export async function switchEngineVoice(id: string, isDefault: boolean): Promise<boolean> {
+  const p = passage;
+  const lang = state.lang;
+  if (!p || !lang) return false;
+  try {
+    await patchSettings({ speak: { voices: { [lang]: isDefault ? null : id } } });
+  } catch {
+    return false;
+  }
+  if (passage !== p) return true;
+  // Everything fetched was in the old voice.
+  p.audio.clear();
+  if (element) element.pause();
+  set({ voice: id });
+  if (state.status !== "paused") set({ status: "loading" });
+  void playIndex(state.index);
+  return true;
+}
+
 
 export function setRate(rate: number): void {
   set({ rate });
