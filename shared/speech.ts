@@ -160,7 +160,10 @@ export function speakEffective(s: SpeakSettings | undefined): SpeakEffective {
 
 // ── What the server says about itself ─────────────────────────────────────
 
-export type SpeakInstallPhase = "idle" | "python" | "packages" | "models" | "done" | "failed";
+/** `fetch-python`: no uv and no usable Python on the machine, so a
+ *  standalone CPython is being downloaded into the data folder
+ *  (server/standalonePython.ts) — the packaged desktop app's usual case. */
+export type SpeakInstallPhase = "idle" | "fetch-python" | "python" | "packages" | "models" | "done" | "failed";
 
 export interface SpeakEngineStatus {
   installed: boolean;
@@ -173,7 +176,14 @@ export interface SpeakStatus {
   /** The venv exists and its packages are in. */
   runtime: boolean;
   engines: Record<SpeakEngineId, SpeakEngineStatus>;
-  install: { phase: SpeakInstallPhase; engine: SpeakEngineId | null; error?: string; code?: string };
+  install: {
+    phase: SpeakInstallPhase;
+    engine: SpeakEngineId | null;
+    error?: string;
+    code?: string;
+    /** 0–100 while a standalone Python is fetched. */
+    progress?: number;
+  };
   /** The worker is up (a warm engine answers a word in well under a second). */
   warm: boolean;
   /** Jobs waiting behind the one running. */
