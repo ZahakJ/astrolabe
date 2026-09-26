@@ -47,4 +47,6 @@ Where each release's contract now lives is named beside it. Before 3.10 the hist
 
 ## Unreleased
 
+- **French reads as French, and a man reads it** — a sentence with no French word of its own is judged with its paragraph and its passage (a lesson's heading was read with the English voice); Kokoro's espeak-ng gets a short copy of its data when the venv's path is too long or not ASCII (it called exit(1) and took the speaker down); a self-test after Install speaks one word per language, hands a language an engine fails to the other engine and says so in the row; Light gains Pierre (m) and Jessica (f), downloaded when first chosen, a picked voice is spoken by its own engine, every voice shows (m)/(f); the transcription row is "Voice notes: transcription language" ([features.md](features.md), "What each engine truly speaks").
+
 - **Your own voices** — Read aloud points at a folder of Piper voices (and Kokoro packs) already on this machine: scanned recursively, one voice per speaker, offered in every picker under "Your voices" and loaded by path; an external speaker program per sentence for the languages given, only where the operator set SPEAK_EXTERNAL=on (the desktop app does), never for visitors; both kept in speak-local.json, never in the vault ([features.md](features.md), "Your own voices").
