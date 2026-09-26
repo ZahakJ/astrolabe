@@ -9,7 +9,31 @@ small home server that has none. Both run on onnxruntime's CPU provider:
            reads it.
   natural  Kokoro-82M through kokoro-onnx, full precision (the int8 build was
            four to six times SLOWER on this CPU in the trial, not faster).
-           Japanese goes through misaki's G2P (fugashi + UniDic-lite).
+           Japanese goes through misaki's G2P (fugashi + UniDic-lite); every
+           other language through espeak-ng, which the espeakng-loader wheel
+           carries (its library and its data), as Piper's wheel carries its
+           own.
+
+KOKORO'S ESPEAK-NG DATA, BY A SHORT PATH. The espeak-ng in the
+espeakng-loader wheel keeps its data path in a 160-byte buffer: a path that
+does not fit — the venv deep under a data folder with a long vault name — is
+cut, espeak then looks in the directory it was COMPILED in (a CI runner's),
+and calls exit(1). Not an exception: the whole speaker goes, and with it
+every language that passes through espeak — all but Japanese, which misaki
+reads. On Windows the path also reaches espeak's ANSI file calls, where a
+user or vault name in Arabic is another path. So when the wheel's own path is
+long or not plain ASCII, its data (18 MB) is copied once to a short folder —
+the temp folder, or on Windows ProgramData — and Kokoro is handed that
+(`kokoro_espeak_data`). Piper's own espeak has no such limit (measured to
+258 characters) and keeps its wheel's data.
+
+THE SELF-TEST (`--selftest <json>`, server/speakSelfTest.ts): a separate,
+short-lived run that speaks one word per language through the same code and
+prints, per language, the phonemes the engine made and the phonemes the
+ENGLISH rules make of the same word. The server judges them: phonemes equal
+to the English ones are the English fallback, not the language — and a run
+that died partway (espeak's exit) fails every language it had not reached.
+Being its own process, the test can die without taking the speaker with it.
 
 WHY A CHILD, AND WHY A PERSISTENT ONE. Loading Kokoro and its G2P is most of a
 second; synthesising a word after that is a quarter of one. A process per
@@ -64,6 +88,93 @@ import soundfile as sf  # noqa: E402
 OPUS = "OPUS" in sf.available_subtypes("OGG")
 
 
+# ── espeak-ng's data, for Kokoro ────────────────────────────────────────────
+
+# The longest data path Kokoro's espeak-ng is handed. Its library keeps the
+# path in a 160-byte buffer (measured: a 159-character path is read, a
+# 160-character one is not) and resolves a relative path against the working
+# directory first, so only a short ABSOLUTE path will do. A margin under the
+# limit; ASCII only, for Windows' ANSI file calls.
+ESPEAK_PATH_MAX = 150
+
+# The path chosen, once: None until asked, "" when none could be had.
+_kokoro_espeak = None
+
+
+def _fits(p):
+    try:
+        return len(p.encode("ascii")) <= ESPEAK_PATH_MAX
+    except UnicodeEncodeError:
+        return False
+
+
+def _short_bases():
+    """Folders a copy of the data may live in, shortest first by habit: the
+    temp folder (/tmp on Linux), then on Windows the machine-wide ProgramData
+    and Public folders, which carry no user name."""
+    import tempfile
+
+    bases = [tempfile.gettempdir()]
+    if os.name == "nt":
+        bases += [os.environ.get("ProgramData") or "", os.environ.get("PUBLIC") or ""]
+    else:
+        bases += ["/tmp", "/var/tmp"]
+    seen = []
+    for b in bases:
+        if b and b not in seen:
+            seen.append(b)
+    return seen
+
+
+def _copy_data(src, dst):
+    """Copy espeak-ng's data to `dst` once: into a scratch name, renamed into
+    place, so a half-made copy is never taken for a whole one."""
+    import shutil
+
+    if os.path.isfile(os.path.join(dst, "phontab")):
+        return True
+    part = f"{dst}.part-{os.getpid()}"
+    try:
+        shutil.copytree(src, part)
+        os.replace(part, dst)
+    except OSError:
+        shutil.rmtree(part, ignore_errors=True)
+    return os.path.isfile(os.path.join(dst, "phontab"))
+
+
+def kokoro_espeak_data():
+    """The data path Kokoro's espeak-ng is given: the wheel's own when it is
+    short and plain, else a copy under a short folder (see the header). None
+    when neither could be had — Kokoro then tries the library's default, the
+    self-test finds out, and the server hands the language to Light."""
+    global _kokoro_espeak
+    if _kokoro_espeak is not None:
+        return _kokoro_espeak or None
+    _kokoro_espeak = ""
+    try:
+        import espeakng_loader
+
+        src = os.path.abspath(espeakng_loader.get_data_path())
+    except Exception:
+        return None
+    if _fits(src):
+        _kokoro_espeak = src
+        return src
+    try:
+        from importlib.metadata import version
+
+        tag = version("espeakng-loader")
+    except Exception:
+        tag = "x"
+    owner = f"-{os.getuid()}" if hasattr(os, "getuid") else ""
+    for base in _short_bases():
+        dst = os.path.join(os.path.abspath(base), f"astrolabe-espeak-{tag}{owner}")
+        if _fits(dst) and _copy_data(src, dst):
+            _kokoro_espeak = dst
+            return dst
+    return None
+
+
 def send(obj):
     _out.write(json.dumps(obj) + "\n")
     _out.flush()
@@ -97,10 +208,12 @@ def kokoro(model=None, pack=None):
     k = _kokoro.get(key)
     if k is None:
         from kokoro_onnx import Kokoro
+        from kokoro_onnx.config import EspeakConfig
 
         for old in [o for o in _kokoro if o[0] == model and o[2] == pack]:
             del _kokoro[old]
-        k = Kokoro.from_session(session(model), pack)
+        data = kokoro_espeak_data()
+        k = Kokoro.from_session(session(model), pack, espeak_config=EspeakConfig(data_path=data) if data else None)
         _kokoro[key] = k
     return k
 
@@ -248,7 +361,50 @@ def handle(job):
     }
 
 
+# ── The self-test ───────────────────────────────────────────────────────────
+
+
+def selftest(spec):
+    """One word per language through the engine's own path: its phonemes, the
+    English rules' phonemes of the same word, and the length of the spoken
+    word. One line per language, flushed as it goes, so a run that dies
+    partway has said which languages it reached."""
+    engine = spec["engine"]
+    for lang, word in spec["words"].items():
+        voice = spec["voices"].get(lang)
+        line = {"lang": lang}
+        try:
+            if engine == "natural":
+                k = kokoro()
+                if lang == "ja":
+                    phonemes, _ = jag2p()(word)
+                    english = ""
+                else:
+                    phonemes = k.tokenizer.phonemize(word, KOKORO_LANG[lang])
+                    english = k.tokenizer.phonemize(word, "en-us")
+                audio, rate = k.create(phonemes, voice=voice, speed=1.0, is_phonemes=True)
+            else:
+                from piper.phonemize_espeak import EspeakPhonemizer
+
+                v = piper_voice({"voice": voice})
+                phonemes = " ".join("".join(p) for p in v.phonemize(word))
+                english = " ".join("".join(p) for p in EspeakPhonemizer(v.espeak_data_dir).phonemize("en-us", word))
+                chunks = [c.audio_float_array for c in v.synthesize(word)]
+                audio = np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
+                rate = v.config.sample_rate
+            line.update(phonemes=phonemes, english=english, seconds=round(len(audio) / rate, 3))
+        except Failure as e:
+            line.update(error=str(e), code=e.code)
+        except Exception as e:  # this language fails; the next is tried
+            line.update(error=f"{type(e).__name__}: {e}", code="engine")
+        send(line)
+    send({"done": True})
+
+
 def main():
+    if len(sys.argv) > 2 and sys.argv[1] == "--selftest":
+        selftest(json.loads(sys.argv[2]))
+        return
     send({"ready": True, "opus": OPUS, "threads": THREADS})
     for line in sys.stdin:
         line = line.strip()
