@@ -34,7 +34,7 @@
 
 import { useSyncExternalStore } from "react";
 import { ApiError, patchSettings, speakAudio, type SpeakRefusal } from "../api.ts";
-import { detectSpeechLang, splitSentences, type SpeakLang } from "../../shared/speech.ts";
+import { detectSpeechLang, passageSpeechLang, splitSentencesIn, type SpeakLang } from "../../shared/speech.ts";
 import {
   chooseVoice,
   chosenVoice,
@@ -134,6 +134,12 @@ interface Passage {
   /** The language the server decided, when it refused. */
   serverLang: string | null;
   langGuess: SpeakLang;
+  /** Each sentence's paragraph: its context when it has no French word of
+   *  its own. */
+  blocks: string[];
+  /** The whole passage's language (shared/speech.ts `passageSpeechLang`),
+   *  sent with every sentence: a French lesson's heading is French too. */
+  around: SpeakLang | null;
 }
 
 let passage: Passage | null = null;
@@ -186,7 +192,11 @@ function fetchSentence(p: Passage, i: number): Promise<string> {
       text: state.sentences[i],
       lang: p.req.lang ?? undefined,
       path: p.req.path ?? undefined,
-      context: i === 0 ? p.req.context ?? undefined : undefined,
+      // A short selection's own paragraph (the editor's line) for the first;
+      // else the paragraph the sentence came from, when it is more than the
+      // sentence itself.
+      context: (i === 0 ? p.req.context : null) ?? (p.blocks[i] !== state.sentences[i] ? p.blocks[i] : undefined) ?? undefined,
+      passage: p.around ?? undefined,
       format: format(),
     },
     p.ctl.signal,
@@ -425,11 +435,23 @@ function clearHighlight(): void {
 /** Read `req.text` aloud from its first sentence, ending whatever was
  *  playing. An empty passage does nothing. */
 export function speak(req: SpeakRequest): void {
-  const sentences = splitSentences(req.text);
+  const split = splitSentencesIn(req.text);
+  const sentences = split.map((s) => s.text);
   if (sentences.length === 0) return;
   stop();
-  const langGuess = req.lang ?? detectSpeechLang(req.text, { context: req.context ?? null });
-  passage = { req, ctl: new AbortController(), audio: new Map(), device: false, voice: null, serverLang: null, langGuess };
+  const around = passageSpeechLang(req.text);
+  const langGuess = req.lang ?? detectSpeechLang(req.text, { context: req.context ?? null, passage: around });
+  passage = {
+    req,
+    ctl: new AbortController(),
+    audio: new Map(),
+    device: false,
+    voice: null,
+    serverLang: null,
+    langGuess,
+    blocks: split.map((s) => (s.block.length > 2000 ? "" : s.block)),
+    around,
+  };
   highlight = req.range ? indexRange(req.range) : null;
   set({ status: "loading", sentences, index: 0, source: null, device: null, lang: langGuess, voice: null, failed: null });
   void playIndex(0);

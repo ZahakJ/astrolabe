@@ -26,7 +26,10 @@ function set(next: SpeakStatus | null): void {
 function busy(s: SpeakStatus | null): boolean {
   if (!s) return false;
   const p = s.install.phase;
-  return p === "fetch-python" || p === "python" || p === "packages" || p === "models" || s.own.scanning;
+  return (
+    p === "fetch-python" || p === "python" || p === "packages" || p === "models" || p === "check" ||
+    s.own.scanning || s.fetch.phase === "downloading" || s.engines.light.checking || s.engines.natural.checking
+  );
 }
 
 /** Poll while something runs and somebody is looking. */

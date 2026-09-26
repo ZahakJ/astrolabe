@@ -23,12 +23,21 @@
 // deviceVoices.ts). A pocket vault has no engine, so there this half is the
 // whole row.
 
-import { speakInstall } from "../../api.ts";
+import { speakCheck, speakFetchVoice, speakInstall } from "../../api.ts";
 import { getLang, localeNum, t, tf } from "../../i18n.ts";
-import { SPEAK_ENGINES, SPEAK_LANGS, type SpeakEngineId, type SpeakLang, type SpeakStatus } from "../../../shared/speech.ts";
-import { pickerLangs, voiceChoices } from "../../../shared/speechVoices.ts";
+import {
+  builtinVoice,
+  refusalsOf,
+  SPEAK_ENGINES,
+  SPEAK_LANGS,
+  SPEAK_VOICES,
+  type SpeakEngineId,
+  type SpeakLang,
+  type SpeakStatus,
+} from "../../../shared/speech.ts";
+import { pickerLangs, voiceChoices, type SpeakAbility } from "../../../shared/speechVoices.ts";
 import { refreshSpeakStatus, setSpeakStatus, useSpeakStatus } from "../../speech/speakStatus.ts";
-import { manyVoices, voiceGroups } from "../../speech/voiceOptions.ts";
+import { manyVoices, voiceGroups, voiceLabel } from "../../speech/voiceOptions.ts";
 import {
   chooseVoice,
   chosenVoice,
@@ -57,16 +66,25 @@ function VoicePickers({ status, engine }: { status: SpeakStatus | null; engine: 
   const ui = getLang();
   const own = status?.own.voices ?? [];
   const installed = new Set(status ? SPEAK_ENGINES.filter((e) => status.engines[e].installed) : []);
-  const langs = pickerLangs(SPEAK_LANGS, engine, installed, own);
+  const ability = abilityOf(status);
+  const langs = pickerLangs(SPEAK_LANGS, engine, installed, own, ability);
   if (langs.length === 0) return null;
-  const pick = (lang: SpeakLang, id: string): void =>
+  const pick = (lang: SpeakLang, id: string): void => {
     setForm((f) => (f ? { ...f, speakVoices: { ...f.speakVoices, [lang]: id } } : f));
+    // A voice that comes on choice starts downloading the moment it is
+    // chosen; the progress line below the pickers follows it.
+    if (status?.voices[id] && !status.voices[id].ready) void speakFetchVoice(id).then(setSpeakStatus, () => void refreshSpeakStatus());
+  };
   return (
     <div className="s-smodal__pair s-smodal__voices" data-voice-pickers={langs.join(" ")}>
       {langs.map((lang) => {
         const language = localeName(lang, ui);
         const value = form.speakVoices[lang] ?? "";
-        const groups = voiceGroups(voiceChoices(lang, engine, installed, own), value, { withDefault: true });
+        const groups = voiceGroups(voiceChoices(lang, engine, installed, own, ability), value, {
+          withDefault: true,
+          files: status?.voices,
+          size: modelSize,
+        });
         return (
           <div className="s-smodal__voice" key={lang} data-lang={lang}>
             <span className="s-smodal__voicelabel" aria-hidden="true">{language}</span>
@@ -86,11 +104,92 @@ function VoicePickers({ status, engine }: { status: SpeakStatus | null; engine: 
   );
 }
 
+/** What the status knows beyond "installed": the self-tests' refusals, and
+ *  which on-choice voices are on disk. */
+function abilityOf(status: SpeakStatus | null): SpeakAbility {
+  if (!status) return {};
+  return { refused: refusalsOf(status.engines), ready: (id) => status.voices[id]?.ready ?? true };
+}
+
+/** A built-in voice's name with its gender, for the lines that name one. */
+function voiceName(id: string | null): string {
+  const b = builtinVoice(id);
+  return b ? voiceLabel(b.voice) : (id ?? "");
+}
+
+/** The download of a voice chosen for the first time: the same progress
+ *  line an Install prints. */
+function FetchLine({ status }: { status: SpeakStatus }) {
+  const f = status.fetch;
+  if (f.phase === "downloading" && f.voice) {
+    const file = status.voices[f.voice];
+    const pct = file && file.bytes > 0 ? Math.floor((file.downloaded / file.bytes) * 100) : 0;
+    return (
+      <p className="s-smodal__note" role="status" data-voice-fetch={f.voice}>
+        {tf("speakPhaseVoice", { name: voiceName(f.voice), pct: localeNum(pct) })}
+      </p>
+    );
+  }
+  if (f.phase === "failed" && f.voice) {
+    return (
+      <p className="s-smodal__offnote" role="alert">
+        {tf("speakVoiceFetchFailed", { name: voiceName(f.voice), error: f.error ?? "" })}
+      </p>
+    );
+  }
+  return null;
+}
+
+/** WHAT EACH INSTALLED ENGINE TRULY SPEAKS here, from its self-test
+ *  (server/speakSelfTest.ts): the languages it passed, and — when one
+ *  failed — who reads it instead, or what to install. */
+function CheckLines({ status, onCheck }: { status: SpeakStatus; onCheck: (e: SpeakEngineId) => void }) {
+  const ui = getLang();
+  const list = (langs: string[]): string => new Intl.ListFormat(ui, { type: "conjunction" }).format(langs.map((l) => localeName(l, ui)));
+  const lines = SPEAK_ENGINES.filter((e) => status.engines[e].installed).map((e) => {
+    const s = status.engines[e];
+    const other: SpeakEngineId = e === "light" ? "natural" : "light";
+    if (s.checking) {
+      return (
+        <p className="s-smodal__note" role="status" key={e} data-speak-check={e}>
+          {tf("speakCheckRunning", { engine: engineName(e) })}
+        </p>
+      );
+    }
+    if (!s.check) return null;
+    const langs = SPEAK_LANGS.filter((l) => s.check!.langs[l] !== undefined);
+    const ok = langs.filter((l) => s.check!.langs[l]!.ok);
+    const no = langs.filter((l) => !s.check!.langs[l]!.ok);
+    const otherTakes = no.filter((l) => status.engines[other].installed && status.engines[other].check?.langs[l]?.ok !== false && SPEAK_VOICES[other][l]);
+    return (
+      <div key={e} data-speak-check={e} data-refused={no.join(" ")}>
+        {ok.length > 0 && <p className="s-smodal__note">{tf("speakCheckSpeaks", { engine: engineName(e), languages: list(ok) })}</p>}
+        {no.length > 0 && (
+          <>
+            <p className="s-smodal__offnote" role="alert">
+              {otherTakes.length === no.length
+                ? tf("speakCheckRefusedOther", { engine: engineName(e), languages: list(no), other: engineName(other) })
+                : tf("speakCheckRefusedNone", { engine: engineName(e), languages: list(no), other: engineName(other) })}
+            </p>
+            <button type="button" className="s-btn" onClick={() => onCheck(e)}>
+              {t("speakCheckAgain")}
+            </button>
+          </>
+        )}
+      </div>
+    );
+  });
+  return <>{lines}</>;
+}
+
 function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engine: SpeakEngineId; onInstall: () => void }) {
   const e = status.engines[engine];
   const job = status.install;
   if (status.test) return <p className="s-smodal__note">{t("speakStatusTest")}</p>;
-  if (job.engine === engine && (job.phase === "fetch-python" || job.phase === "python" || job.phase === "packages" || job.phase === "models")) {
+  if (
+    job.engine === engine &&
+    (job.phase === "fetch-python" || job.phase === "python" || job.phase === "packages" || job.phase === "models" || job.phase === "check")
+  ) {
     const pct = e.bytes > 0 ? Math.floor((e.downloaded / e.bytes) * 100) : 0;
     return (
       <p className="s-smodal__note" role="status">
@@ -100,7 +199,9 @@ function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engin
             ? t("speakPhasePython")
             : job.phase === "packages"
               ? t("speakPhasePackages")
-              : tf("speakPhaseModels", { pct: localeNum(pct) })}
+              : job.phase === "check"
+                ? t("speakPhaseCheck")
+                : tf("speakPhaseModels", { pct: localeNum(pct) })}
       </p>
     );
   }
@@ -187,6 +288,9 @@ export function ReadAloudControls() {
   const install = (which: SpeakEngineId): void => {
     void speakInstall(which).then(setSpeakStatus, () => void refreshSpeakStatus());
   };
+  const check = (which: SpeakEngineId): void => {
+    void speakCheck(which).then(setSpeakStatus, () => void refreshSpeakStatus());
+  };
   const naturalIn = status?.engines.natural.installed ?? false;
   // A pocket vault has no engine to install or tune: its row is the
   // device's voices, which are the only ones it has.
@@ -218,7 +322,10 @@ export function ReadAloudControls() {
           {tf("speakInstall", { engine: t("speakEngineNatural"), size: modelSize(status.engines.natural.bytes) })}
         </button>
       )}
+      {status && !status.test && <CheckLines status={status} onCheck={check} />}
       <VoicePickers status={status} engine={engine} />
+      {engine === "natural" && naturalIn && <p className="s-smodal__note">{t("speakFrNoMaleNatural")}</p>}
+      {status && <FetchLine status={status} />}
 
       <SegmentedControl
         label={t("speakRate")}

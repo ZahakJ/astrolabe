@@ -169,7 +169,7 @@ describe("the picker: built-in and found, per language", () => {
   it("offers the built-in engine's voices, then the folder's", () => {
     const fr = voiceChoices("fr", "light", light, own);
     assert.equal(fr.engine, "light");
-    assert.deepEqual(fr.builtin.map((v) => v.id), ["fr_FR-siwis-medium"]);
+    assert.deepEqual(fr.builtin.map((v) => v.id), ["fr_FR-siwis-medium", "fr_FR-upmc-medium#pierre", "fr_FR-upmc-medium#jessica"]);
     assert.deepEqual(fr.own.map((v) => v.id), ["own:fr_FR-upmc-medium.onnx#jessica", "own:fr_FR-upmc-medium.onnx#pierre"]);
   });
 
@@ -219,6 +219,47 @@ describe("which voice speaks", () => {
       voice: "own:es_ES-davefx-medium.onnx",
       own: own[2],
     });
+  });
+
+  it("a Light voice picked under Natural is spoken by Light — the cross-engine choice", () => {
+    const pierre = "fr_FR-upmc-medium#pierre";
+    assert.deepEqual(resolveVoice("fr", "natural", pierre, both, []), { engine: "light", voice: pierre, own: null });
+    // …while Natural still speaks every language whose pick is its own.
+    assert.deepEqual(resolveVoice("fr", "natural", "ff_siwis", both, []), { engine: "natural", voice: "ff_siwis", own: null });
+    assert.deepEqual(resolveVoice("fr", "natural", undefined, both, []), { engine: "natural", voice: "ff_siwis", own: null });
+    // Light not installed: the pick cannot be honoured, Natural's voice speaks.
+    assert.deepEqual(resolveVoice("fr", "natural", pierre, new Set(["natural"] as const), []), { engine: "natural", voice: "ff_siwis", own: null });
+    // A Natural voice picked under Light, the other way round.
+    assert.deepEqual(resolveVoice("en", "light", "am_michael", both, []), { engine: "natural", voice: "am_michael", own: null });
+  });
+
+  it("an on-choice voice not downloaded yet: the language's engine and first voice speak meanwhile", () => {
+    const pierre = "fr_FR-upmc-medium#pierre";
+    const notYet = { ready: (id: string) => id !== pierre };
+    assert.deepEqual(resolveVoice("fr", "natural", pierre, both, [], notYet), { engine: "natural", voice: "ff_siwis", own: null });
+    assert.deepEqual(resolveVoice("fr", "light", pierre, both, [], notYet), { engine: "light", voice: "fr_FR-siwis-medium", own: null });
+  });
+
+  it("a language the chosen engine's self-test refused is Light's, never the English rules'", () => {
+    const refused = { natural: ["fr"] as const };
+    assert.deepEqual(resolveVoice("fr", "natural", undefined, both, [], { refused }), { engine: "light", voice: "fr_FR-siwis-medium", own: null });
+    assert.deepEqual(resolveVoice("fr", "natural", "ff_siwis", both, [], { refused }), { engine: "light", voice: "fr_FR-siwis-medium", own: null });
+    assert.equal(resolveVoice("fr", "natural", undefined, new Set(["natural"] as const), [], { refused }), null);
+    assert.equal(engineNeededWith("fr", "natural", [], refused), "light");
+  });
+
+  it("the picker offers the other installed engine's voices for the language, and not a refused engine's", () => {
+    const fr = voiceChoices("fr", "natural", both, []);
+    assert.equal(fr.engine, "natural");
+    assert.deepEqual(fr.builtin.map((v) => `${v.name} (${v.gender})`), ["Siwis (f)"]);
+    assert.equal(fr.also?.engine, "light");
+    assert.deepEqual(fr.also?.voices.map((v) => `${v.name} (${v.gender})`), ["Siwis (f)", "Pierre (m)", "Jessica (f)"]);
+    assert.equal(voiceChoices("fr", "natural", new Set(["natural"] as const), []).also, null);
+    const refused = voiceChoices("fr", "natural", both, [], { refused: { natural: ["fr"] } });
+    assert.equal(refused.engine, "light");
+    assert.equal(refused.also, null);
+    // French now has a choice to make under either engine.
+    assert.deepEqual(pickerLangs(["fr"], "natural", both, []), ["fr"]);
   });
 
   it("nothing installed: nothing speaks, and the runtime to install is named", () => {
