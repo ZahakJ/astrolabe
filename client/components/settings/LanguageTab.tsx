@@ -294,7 +294,7 @@ export default function LanguageTab() {
           "Voice"). Detect is right for a vault that speaks both;
           a pin is right for a speaker whose Arabic the detector
           keeps hearing as something else. */}
-      <Row locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")}>
+      <Row locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")} more={t("moreVoiceLanguage")}>
         <SegmentedControl
           label={t("rowVoiceLanguage")}
           segments={[

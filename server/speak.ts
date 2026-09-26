@@ -4,6 +4,10 @@
 //   GET  /api/speak/status     what is installed, the install's progress
 //   POST /api/speak/install    { engine } → 202; the Settings row polls status
 //   POST /api/speak/voices/rescan   read the voices folder again → status
+//   POST /api/speak/voice      { voice } → 202; download a voice that comes
+//                              on choice (Light's Pierre), the row polls
+//   POST /api/speak/check      { engine } → 202; its self-test, again
+//                              (server/speakSelfTest.ts)
 //
 // One sentence per request: the client splits a selection with
 // shared/speech.ts's splitSentences and asks for each in turn, prefetching the
@@ -12,13 +16,18 @@
 //
 // THE ORDER OF OPERATIONS for a POST:
 //   1. The language: the caller's, else shared/speech.ts's detection (script,
-//      then the note's own `lang:`, then French, then the site).
+//      then the note's own `lang:`, then French — the sentence's, its
+//      paragraph's, the whole passage's — then the site).
 //   2. The voice. The owner's external speaker first, for the languages it
 //      was given (server/speakExternal.ts; never for a visitor). Else
 //      shared/speechVoices.ts `resolveVoice`: a voice picked from the voices
-//      folder (server/speakVoices.ts) when its runtime is installed; else the
+//      folder (server/speakVoices.ts) when its runtime is installed; a
+//      built-in voice picked of either installed engine (a Light voice
+//      under Natural is Light's to speak), once it is on disk; else the
 //      owner's engine where both speak the language (Arabic is always Piper
 //      and Japanese always Kokoro); else a found voice of the language.
+//      An engine never speaks a language its self-test refused on this
+//      machine (server/speakSelfTest.ts): that language goes to the other.
 //      Nothing that speaks it → 409 `speakNotInstalled` naming the engine it
 //      needs, and the client reads with the device's own voices instead and
 //      SAYS so.
@@ -35,17 +44,22 @@
 
 import { Hono, type Context } from "hono";
 import {
+  builtinVoice,
   closeSentence,
   detectSpeechLang,
   frontmatterLang,
+  isOnChoiceVoice,
   isSpeakEngine,
   isSpeakLang,
+  piperFileOf,
   speakEffective,
   speechTextOfNote,
   SPEAK_MAX_CHARS,
   type SpeakLang,
+  type SpeakEngineId,
   type SpeakStatus,
 } from "../shared/speech.ts";
+import { checkEngine, engineCheck, engineChecking, ensureChecked, refusalsNow } from "./speakSelfTest.ts";
 import { engineNeededWith, resolveVoice, type ResolvedVoice } from "../shared/speechVoices.ts";
 import { FRONTMATTER_RE } from "../shared/noteParse.ts";
 import { isNotePath } from "../shared/noteFormat.ts";
@@ -58,7 +72,11 @@ import {
   engineBytes,
   engineDownloaded,
   engineInstalled,
+  fetchVoice,
   installEngine,
+  voiceFetchState,
+  voiceFiles,
+  voiceReady,
   installedEngines,
   installState,
   runtimeReady,
@@ -148,10 +166,32 @@ async function jsonBody(c: Context): Promise<Record<string, unknown>> {
 
 export const speakRoutes = new Hono();
 
+/** A built-in voice's job: a Light voice that is one speaker of a
+ *  multi-speaker model (Pierre) names the model file and the speaker's
+ *  number; every other voice is its own id. */
+function builtinJob(engine: SpeakEngineId, lang: SpeakLang, voice: string, speed: number, text: string, format: "opus" | "wav"): SpeakJob {
+  const b = builtinVoice(voice);
+  if (engine === "light" && b && (b.voice.file || typeof b.voice.speaker === "number")) {
+    return { engine, lang, voice: piperFileOf(b.voice), speaker: b.voice.speaker ?? null, speed, text, format };
+  }
+  return { engine, lang, voice, speed, text, format };
+}
+
 /** The settings in force: settings.json's, with this machine's own two
  *  (server/speakLocal.ts). */
 function speakSettings() {
   return speakEffective(getSettings().speak, speakLocal());
+}
+
+function engineStatus(engine: SpeakEngineId): SpeakStatus["engines"][SpeakEngineId] {
+  const installed = engineInstalled(engine);
+  return {
+    installed,
+    downloaded: engineDownloaded(engine),
+    bytes: engineBytes(engine),
+    check: installed ? engineCheck(engine) : null,
+    checking: engineChecking(engine),
+  };
 }
 
 function statusBody(): SpeakStatus {
@@ -159,10 +199,12 @@ function statusBody(): SpeakStatus {
   return {
     runtime: runtimeReady(),
     engines: {
-      light: { installed: engineInstalled("light"), downloaded: engineDownloaded("light"), bytes: engineBytes("light") },
-      natural: { installed: engineInstalled("natural"), downloaded: engineDownloaded("natural"), bytes: engineBytes("natural") },
+      light: engineStatus("light"),
+      natural: engineStatus("natural"),
     },
     install: installState(),
+    voices: voiceFiles(),
+    fetch: voiceFetchState(),
     warm: childWarm(),
     queued: queue.waiting(),
     venv: venvDir(),
@@ -180,8 +222,10 @@ speakRoutes.get("/speak/status", (c) => {
     return c.json({ public: settings.public && installedEngines().size > 0 });
   }
   // Asking is the first sign somebody is about to listen: load the chosen
-  // engine now, so the first word answers warm.
+  // engine now, so the first word answers warm — and test, once, an engine
+  // installed before the self-test existed.
   warmEngine(settings.engine);
+  ensureChecked();
   return c.json(statusBody());
 });
 
@@ -189,7 +233,36 @@ speakRoutes.post("/speak/install", async (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   const body = await jsonBody(c);
   if (!isSpeakEngine(body.engine)) throw new VaultError(400, 'Body field "engine" must be "light" or "natural"');
-  void installEngine(body.engine);
+  const engine = body.engine;
+  void installEngine(engine, () => checkEngine(engine));
+  return c.json(statusBody(), 202);
+});
+
+// The self-test again (the row's "Check again"): which languages the
+// engine truly speaks here.
+speakRoutes.post("/speak/check", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const body = await jsonBody(c);
+  if (!isSpeakEngine(body.engine)) throw new VaultError(400, 'Body field "engine" must be "light" or "natural"');
+  if (!engineInstalled(body.engine)) throw new VaultError(409, `${body.engine} is not installed`, "speakNotInstalled");
+  void checkEngine(body.engine).catch(() => {});
+  return c.json(statusBody(), 202);
+});
+
+// A built-in voice that comes on choice (Light's Pierre): its model is
+// downloaded the moment the owner chooses it, and the row polls the status
+// for the same progress line an Install prints.
+speakRoutes.post("/speak/voice", async (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  const body = await jsonBody(c);
+  const b = builtinVoice(body.voice);
+  if (!b || typeof body.voice !== "string" || !isOnChoiceVoice(body.voice)) {
+    throw new VaultError(400, 'Body field "voice" must be a built-in voice that downloads on choice', "speakNoVoice");
+  }
+  if (!engineInstalled(b.engine)) {
+    return c.json({ error: `${b.engine} is not installed`, code: "speakNotInstalled", needs: b.engine }, 409);
+  }
+  void fetchVoice(body.voice);
   return c.json(statusBody(), 202);
 });
 
@@ -235,6 +308,7 @@ speakRoutes.post("/speak", async (c: Context) => {
     : detectSpeechLang(text, {
         noteLang,
         context: typeof body.context === "string" ? body.context.slice(0, 2000) : null,
+        passage: isSpeakLang(body.passage) ? body.passage : null,
         siteLang: effectiveSettings().language,
       });
   const spoken = closeSentence(text, lang);
@@ -257,17 +331,28 @@ speakRoutes.post("/speak", async (c: Context) => {
   } else {
     const installed = installedEngines();
     const found = await foundVoicesSettled();
-    let resolved: ResolvedVoice | null = resolveVoice(lang, settings.engine, settings.voices[lang], installed, found);
+    const ability = { refused: refusalsNow(), ready: voiceReady };
+    const picked = settings.voices[lang];
+    // A saved choice whose model is not here yet (chosen on another device,
+    // or its download was interrupted) starts downloading; the language's
+    // first voice speaks meanwhile.
+    if (!visitor && typeof picked === "string" && isOnChoiceVoice(picked) && !voiceReady(picked) && installed.has("light")) void fetchVoice(picked);
+    let resolved: ResolvedVoice | null = resolveVoice(lang, settings.engine, picked, installed, found, ability);
     let file: (FoundVoice & { mtime: number }) | null = resolved?.own ? foundVoiceNow(resolved.voice) : null;
     if (resolved?.own && !file) {
       // The file went away since the scan: the next voice answers.
       const gone = resolved.voice;
-      resolved = resolveVoice(lang, settings.engine, null, installed, found.filter((v) => v.id !== gone));
+      resolved = resolveVoice(lang, settings.engine, null, installed, found.filter((v) => v.id !== gone), ability);
       file = resolved?.own ? foundVoiceNow(resolved.voice) : null;
     }
     if (resolved === null || (resolved.own && !file)) {
       return c.json(
-        { error: `Nothing installed speaks ${lang}`, code: "speakNotInstalled", lang, needs: engineNeededWith(lang, settings.engine, found) },
+        {
+          error: `Nothing installed speaks ${lang}`,
+          code: "speakNotInstalled",
+          lang,
+          needs: engineNeededWith(lang, settings.engine, found, ability.refused),
+        },
         409,
       );
     }
@@ -291,7 +376,7 @@ speakRoutes.post("/speak", async (c: Context) => {
           speaker: file.speakerId,
           pack: file.pack,
         }
-      : { engine, lang, voice, speed: settings.rate, text: spoken, format };
+      : builtinJob(engine, lang, voice, settings.rate, spoken, format);
     run = () => synthesize(job);
   }
   const headers = {

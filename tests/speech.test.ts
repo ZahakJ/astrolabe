@@ -19,6 +19,13 @@ import {
   speakLangOf,
   speechTextOfNote,
   splitSentences,
+  splitSentencesIn,
+  passageSpeechLang,
+  builtinVoice,
+  isOnChoiceVoice,
+  refusalsOf,
+  SPEAK_ENGINES,
+  SPEAK_VOICES,
   voiceFor,
   type SpeakEngineId,
 } from "../shared/speech.ts";
@@ -63,6 +70,64 @@ describe("detectSpeechLang: Latin text", () => {
     assert.equal(detectSpeechLang("ciao", { siteLang: "it" }), "it");
     assert.equal(detectSpeechLang("hello", { siteLang: "ar" }), "en");
     assert.equal(detectSpeechLang("hello"), "en");
+  });
+  // THE READER'S NOTE (3.36): a French lesson read aloud whole was read with
+  // the English voice, because each sentence is its own request and a
+  // heading like this one has no French word to count.
+  const lesson = [
+    "Décrire son quotidien",
+    "",
+    "C'est ma vie !",
+    "",
+    "Aujourd'hui, le témoignage de Julie. Je finis mon travail à 18 heures.",
+    "",
+    "Le matin",
+    "",
+    "Je me lève tôt et je prends le bus.",
+  ].join("\n");
+  it("a sentence with no French word of its own was English — the bug", () => {
+    assert.equal(detectSpeechLang("Décrire son quotidien."), "en");
+    assert.equal(detectSpeechLang("Le matin."), "en");
+  });
+  it("…and is French once the passage it is read in says so", () => {
+    assert.equal(passageSpeechLang(lesson), "fr");
+    assert.equal(detectSpeechLang("Décrire son quotidien.", { passage: "fr" }), "fr");
+    assert.equal(detectSpeechLang("Le matin.", { passage: passageSpeechLang(lesson) }), "fr");
+    // Every sentence of the lesson, as the player sends them.
+    for (const s of splitSentencesIn(lesson)) {
+      assert.equal(detectSpeechLang(s.text, { context: s.block, passage: passageSpeechLang(lesson) }), "fr", s.text);
+    }
+  });
+  it("the passage is counted by line: an English note quoting one French line stays English", () => {
+    const english = [
+      "Notes from the meeting about the new library.",
+      "We will open on Monday and close on Friday afternoons.",
+      "The mayor said: « Je suis très content de cette bibliothèque. »",
+      "Parking is free for the first hour of every visit.",
+    ].join("\n");
+    assert.equal(passageSpeechLang(english), null);
+    assert.equal(detectSpeechLang("Parking is free.", { passage: passageSpeechLang(english) }), "en");
+    // The French line itself is still French on its own evidence.
+    assert.equal(detectSpeechLang("Je suis très content de cette bibliothèque."), "fr");
+  });
+  it("script and the note's own lang still come first", () => {
+    assert.equal(detectSpeechLang("図書館", { passage: "fr" }), "ja");
+    assert.equal(detectSpeechLang("hello there", { noteLang: "en", passage: "fr" }), "en");
+    assert.equal(detectSpeechLang("hello", { passage: "de" }), "en", "a passage language we do not speak is no hint");
+  });
+  it("each sentence carries the paragraph it came from", () => {
+    const got = splitSentencesIn("One. Two!\n\nThree");
+    assert.deepEqual(got, [
+      { text: "One.", block: "One. Two!" },
+      { text: "Two!", block: "One. Two!" },
+      { text: "Three", block: "Three" },
+    ]);
+  });
+  it("the transcription language is not a hint: no setting of voice notes reaches the detector", () => {
+    // detectSpeechLang takes its hints and nothing else — the "Voice notes:
+    // transcription language" row cannot leak into what is read aloud.
+    assert.equal(detectSpeechLang.length <= 2, true);
+    assert.equal(detectSpeechLang("C'est ma vie !", { siteLang: "en" }), "fr");
   });
   it("reads lang tags and frontmatter", () => {
     assert.equal(speakLangOf("fr-CA"), "fr");
@@ -141,6 +206,41 @@ describe("engines", () => {
     assert.equal(engineNeeded("ja", "light"), "natural");
     assert.equal(engineNeeded("ar", "natural"), "light");
     assert.equal(engineFor("en", "light", none), null);
+  });
+  it("a language an engine's self-test refused goes to the other engine, or names it", () => {
+    const refused = { natural: ["fr"] as const };
+    assert.equal(engineFor("fr", "natural", both, refused), "light");
+    assert.equal(engineFor("fr", "natural", new Set<SpeakEngineId>(["natural"]), refused), null);
+    assert.equal(engineNeeded("fr", "natural", refused), "light");
+    assert.equal(engineFor("en", "natural", both, refused), "natural", "only the refused language moves");
+    assert.deepEqual(
+      refusalsOf({
+        light: { check: { at: 1, langs: { fr: { ok: true } } } },
+        natural: { check: { at: 1, langs: { ja: { ok: true }, fr: { ok: false, why: "english" }, es: { ok: false, why: "stopped" } } } },
+      }),
+      { natural: ["fr", "es"] },
+    );
+  });
+  it("every built-in voice wears its gender, and French has a man's voice (Light's Pierre)", () => {
+    for (const e of SPEAK_ENGINES) {
+      for (const list of Object.values(SPEAK_VOICES[e])) for (const v of list ?? []) assert.ok(v.gender === "m" || v.gender === "f", v.id);
+    }
+    assert.ok(SPEAK_VOICES.light.fr?.some((v) => v.gender === "m"));
+    assert.ok(!SPEAK_VOICES.natural.fr?.some((v) => v.gender === "m"), "Kokoro has no man's French voice — the picker says so");
+    // Kokoro's own naming agrees with the table: the second letter is the gender.
+    for (const list of Object.values(SPEAK_VOICES.natural)) for (const v of list ?? []) assert.equal(v.gender, v.id[1], v.id);
+  });
+  it("Pierre is one speaker of a model that downloads on choice; each language's first voice comes with Install", () => {
+    const pierre = builtinVoice("fr_FR-upmc-medium#pierre");
+    assert.deepEqual([pierre?.engine, pierre?.lang, pierre?.voice.file, pierre?.voice.speaker], ["light", "fr", "fr_FR-upmc-medium", 1]);
+    assert.equal(builtinVoice("fr_FR-upmc-medium#jessica")?.voice.speaker, 0);
+    assert.ok(isOnChoiceVoice("fr_FR-upmc-medium#pierre"));
+    assert.ok(!isOnChoiceVoice("fr_FR-siwis-medium"));
+    assert.ok(!isOnChoiceVoice("jm_kumo"), "a Kokoro voice is a row of the one voices file");
+    assert.ok(isVoiceOf("fr", "fr_FR-upmc-medium#pierre"));
+    // Not on disk yet: the language's first voice speaks meanwhile.
+    assert.equal(voiceFor("light", "fr", "fr_FR-upmc-medium#pierre", () => false), "fr_FR-siwis-medium");
+    assert.equal(voiceFor("light", "fr", "fr_FR-upmc-medium#pierre", () => true), "fr_FR-upmc-medium#pierre");
   });
   it("voices: the pick when the engine has it, else the first", () => {
     assert.equal(voiceFor("natural", "ja", "jm_kumo"), "jm_kumo");

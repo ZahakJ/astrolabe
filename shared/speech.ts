@@ -45,51 +45,105 @@ export function isSpeakEngine(v: unknown): v is SpeakEngineId {
   return v === "light" || v === "natural";
 }
 
+/** A voice's gender as its dataset records it — a man's or a woman's voice,
+ *  which a learner asks for by name ("men instead of women"). The pickers
+ *  show it beside the name, (m) / (f) and their Arabic. */
+export type SpeakVoiceGender = "m" | "f";
+
 export interface SpeakVoice {
   id: string;
   /** Shown in the picker: a name, not chrome copy — the same in every UI
    *  language, like a font's name. */
   name: string;
+  gender: SpeakVoiceGender;
+  /** Light only: the Piper model file the voice is (`fr_FR-upmc-medium`),
+   *  when the id is not the file's own name — one speaker of a
+   *  multi-speaker model. */
+  file?: string;
+  /** Light only: that speaker's number in the model. */
+  speaker?: number;
 }
 
 /** Every voice each engine offers, per language, default first. Piper's are
- *  model files (one download each); Kokoro's are rows of one voices file, so
- *  offering five costs nothing. */
+ *  model files (one download each — the Install fetches each language's
+ *  FIRST voice, and the others download when the owner first chooses one);
+ *  Kokoro's are rows of one voices file, so offering five costs nothing.
+ *  Kokoro has one French voice, a woman's; Light's Pierre is the man's. */
 export const SPEAK_VOICES: Readonly<Record<SpeakEngineId, Partial<Record<SpeakLang, readonly SpeakVoice[]>>>> = {
   light: {
-    en: [{ id: "en_US-lessac-medium", name: "Lessac" }],
-    fr: [{ id: "fr_FR-siwis-medium", name: "Siwis" }],
-    ar: [{ id: "ar_JO-kareem-medium", name: "Kareem" }],
+    en: [{ id: "en_US-lessac-medium", name: "Lessac", gender: "f" }],
+    fr: [
+      { id: "fr_FR-siwis-medium", name: "Siwis", gender: "f" },
+      { id: "fr_FR-upmc-medium#pierre", name: "Pierre", gender: "m", file: "fr_FR-upmc-medium", speaker: 1 },
+      { id: "fr_FR-upmc-medium#jessica", name: "Jessica", gender: "f", file: "fr_FR-upmc-medium", speaker: 0 },
+    ],
+    ar: [{ id: "ar_JO-kareem-medium", name: "Kareem", gender: "m" }],
   },
   natural: {
     en: [
-      { id: "af_heart", name: "Heart" },
-      { id: "af_bella", name: "Bella" },
-      { id: "am_michael", name: "Michael" },
-      { id: "bf_emma", name: "Emma (British)" },
-      { id: "bm_george", name: "George (British)" },
+      { id: "af_heart", name: "Heart", gender: "f" },
+      { id: "af_bella", name: "Bella", gender: "f" },
+      { id: "am_michael", name: "Michael", gender: "m" },
+      { id: "bf_emma", name: "Emma (British)", gender: "f" },
+      { id: "bm_george", name: "George (British)", gender: "m" },
     ],
-    fr: [{ id: "ff_siwis", name: "Siwis" }],
+    fr: [{ id: "ff_siwis", name: "Siwis", gender: "f" }],
     ja: [
-      { id: "jf_alpha", name: "Alpha" },
-      { id: "jf_nezumi", name: "Nezumi" },
-      { id: "jf_gongitsune", name: "Gongitsune" },
-      { id: "jm_kumo", name: "Kumo" },
+      { id: "jf_alpha", name: "Alpha", gender: "f" },
+      { id: "jf_nezumi", name: "Nezumi", gender: "f" },
+      { id: "jf_gongitsune", name: "Gongitsune", gender: "f" },
+      { id: "jm_kumo", name: "Kumo", gender: "m" },
     ],
     es: [
-      { id: "ef_dora", name: "Dora" },
-      { id: "em_alex", name: "Alex" },
+      { id: "ef_dora", name: "Dora", gender: "f" },
+      { id: "em_alex", name: "Alex", gender: "m" },
     ],
     it: [
-      { id: "if_sara", name: "Sara" },
-      { id: "im_nicola", name: "Nicola" },
+      { id: "if_sara", name: "Sara", gender: "f" },
+      { id: "im_nicola", name: "Nicola", gender: "m" },
     ],
     pt: [
-      { id: "pf_dora", name: "Dora" },
-      { id: "pm_alex", name: "Alex" },
+      { id: "pf_dora", name: "Dora", gender: "f" },
+      { id: "pm_alex", name: "Alex", gender: "m" },
     ],
   },
 };
+
+/** The Piper model file a Light voice is spoken from. */
+export function piperFileOf(v: Pick<SpeakVoice, "id" | "file">): string {
+  return v.file ?? v.id;
+}
+
+/** A built-in voice by id, with its engine and language — or null. */
+export function builtinVoice(id: unknown): { engine: SpeakEngineId; lang: SpeakLang; voice: SpeakVoice } | null {
+  if (typeof id !== "string") return null;
+  for (const engine of SPEAK_ENGINES) {
+    for (const lang of SPEAK_LANGS) {
+      const voice = SPEAK_VOICES[engine][lang]?.find((v) => v.id === id);
+      if (voice) return { engine, lang, voice };
+    }
+  }
+  return null;
+}
+
+/** A Light voice that is not its language's first: its model downloads when
+ *  the owner first chooses it, not at Install. */
+export function isOnChoiceVoice(id: string): boolean {
+  const b = builtinVoice(id);
+  return b !== null && b.engine === "light" && SPEAK_VOICES.light[b.lang]?.[0]?.id !== id;
+}
+
+// ── What each installed engine truly speaks ────────────────────────────────
+
+/** The languages an installed engine was found NOT to speak on this machine
+ *  by its self-test (server/speakSelfTest.ts) — Natural's French when its
+ *  phonemiser could not be loaded here, say. Such a language goes to the
+ *  other engine, never to the English rules. */
+export type SpeakRefusals = Partial<Record<SpeakEngineId, readonly SpeakLang[]>>;
+
+function refuses(refused: SpeakRefusals | undefined, engine: SpeakEngineId, lang: SpeakLang): boolean {
+  return refused?.[engine]?.includes(lang) ?? false;
+}
 
 export function engineSpeaks(engine: SpeakEngineId, lang: SpeakLang): boolean {
   return (SPEAK_VOICES[engine][lang]?.length ?? 0) > 0;
@@ -99,27 +153,39 @@ export function engineSpeaks(engine: SpeakEngineId, lang: SpeakLang): boolean {
  *  disk — or null when nothing installed can. The choice wins where both
  *  engines speak the language (English, French); elsewhere the one engine
  *  that has a voice for it answers, whatever was chosen. */
-export function engineFor(lang: SpeakLang, chosen: SpeakEngineId, installed: ReadonlySet<SpeakEngineId>): SpeakEngineId | null {
+export function engineFor(
+  lang: SpeakLang,
+  chosen: SpeakEngineId,
+  installed: ReadonlySet<SpeakEngineId>,
+  refused?: SpeakRefusals,
+): SpeakEngineId | null {
   const order: SpeakEngineId[] = chosen === "natural" ? ["natural", "light"] : ["light", "natural"];
-  for (const e of order) if (installed.has(e) && engineSpeaks(e, lang)) return e;
+  for (const e of order) if (installed.has(e) && engineSpeaks(e, lang) && !refuses(refused, e, lang)) return e;
   return null;
 }
 
 /** The engine that WOULD speak `lang` once installed: the choice if it can,
  *  else the other. What the "install the Natural voices for Japanese" line
- *  names. */
-export function engineNeeded(lang: SpeakLang, chosen: SpeakEngineId): SpeakEngineId | null {
-  if (engineSpeaks(chosen, lang)) return chosen;
+ *  names — and "install Light for French" when Natural's self-test refused
+ *  French here. */
+export function engineNeeded(lang: SpeakLang, chosen: SpeakEngineId, refused?: SpeakRefusals): SpeakEngineId | null {
+  if (engineSpeaks(chosen, lang) && !refuses(refused, chosen, lang)) return chosen;
   const other: SpeakEngineId = chosen === "light" ? "natural" : "light";
-  return engineSpeaks(other, lang) ? other : null;
+  return engineSpeaks(other, lang) && !refuses(refused, other, lang) ? other : null;
 }
 
-/** The voice to use: the owner's pick when the engine has it, else the
+/** The voice to use: the owner's pick when the engine has it (and, for a
+ *  voice that downloads on choice, when it is on disk — `ready`), else the
  *  engine's first. */
-export function voiceFor(engine: SpeakEngineId, lang: SpeakLang, picked?: string | null): string | null {
+export function voiceFor(
+  engine: SpeakEngineId,
+  lang: SpeakLang,
+  picked?: string | null,
+  ready: (id: string) => boolean = () => true,
+): string | null {
   const list = SPEAK_VOICES[engine][lang];
   if (!list || list.length === 0) return null;
-  return list.find((v) => v.id === picked)?.id ?? list[0].id;
+  return list.find((v) => v.id === picked && ready(v.id))?.id ?? list[0].id;
 }
 
 /** Is `voice` a BUILT-IN voice of `lang` in some engine? (The settings
@@ -176,13 +242,61 @@ export function speakEffective(s: SpeakSettings | undefined, local?: Partial<Spe
 /** `fetch-python`: no uv and no usable Python on the machine, so a
  *  standalone CPython is being downloaded into the data folder
  *  (server/standalonePython.ts) — the packaged desktop app's usual case. */
-export type SpeakInstallPhase = "idle" | "fetch-python" | "python" | "packages" | "models" | "done" | "failed";
+export type SpeakInstallPhase = "idle" | "fetch-python" | "python" | "packages" | "models" | "check" | "done" | "failed";
+
+/** What the self-test found for one language (server/speakSelfTest.ts). */
+export interface SpeakCheckLang {
+  ok: boolean;
+  /** The phonemes the engine made of the test word. */
+  phonemes?: string;
+  /** Why not: the English rules' phonemes came back (`english`), no sound
+   *  (`silent`), the run stopped before this language (`stopped` — espeak's
+   *  exit), or the engine raised (`error`, with its message). */
+  why?: "english" | "silent" | "stopped" | "error";
+  error?: string;
+}
+
+export interface SpeakCheck {
+  /** When it ran (ms since the epoch). */
+  at: number;
+  langs: Partial<Record<SpeakLang, SpeakCheckLang>>;
+}
 
 export interface SpeakEngineStatus {
   installed: boolean;
   /** Bytes of this engine's models on disk, and of the whole set. */
   downloaded: number;
   bytes: number;
+  /** The last self-test of this engine on this machine, or null (never run,
+   *  or the engine changed since). */
+  check: SpeakCheck | null;
+  /** A self-test is running now. */
+  checking: boolean;
+}
+
+/** The languages each engine's self-test refused. */
+export function refusalsOf(engines: Record<SpeakEngineId, Pick<SpeakEngineStatus, "check">>): SpeakRefusals {
+  const out: Partial<Record<SpeakEngineId, SpeakLang[]>> = {};
+  for (const e of SPEAK_ENGINES) {
+    const langs = engines[e].check?.langs ?? {};
+    const no = SPEAK_LANGS.filter((l) => langs[l]?.ok === false);
+    if (no.length > 0) out[e] = no;
+  }
+  return out;
+}
+
+/** A built-in voice that downloads on choice: how much of it is here. */
+export interface SpeakVoiceFile {
+  ready: boolean;
+  downloaded: number;
+  bytes: number;
+}
+
+/** The download of an on-choice voice (one at a time). */
+export interface SpeakVoiceFetch {
+  voice: string | null;
+  phase: "idle" | "downloading" | "done" | "failed";
+  error?: string;
 }
 
 export interface SpeakStatus {
@@ -197,6 +311,10 @@ export interface SpeakStatus {
     /** 0–100 while a standalone Python is fetched. */
     progress?: number;
   };
+  /** The built-in voices that download on choice (Light's Pierre, …), by
+   *  voice id, and the one downloading now. */
+  voices: Record<string, SpeakVoiceFile>;
+  fetch: SpeakVoiceFetch;
   /** The worker is up (a warm engine answers a word in well under a second). */
   warm: boolean;
   /** Jobs waiting behind the one running. */
@@ -231,6 +349,11 @@ export interface SpeechLangHints {
   /** The line or paragraph the selection sits in. One selected word has no
    *  function words to count; the sentence around it does. */
   context?: string | null;
+  /** The language of the whole passage being read (`passageSpeechLang`),
+   *  when it has one: a French lesson's heading ("Décrire son quotidien")
+   *  carries no French word a detector can count, and read sentence by
+   *  sentence it was English. */
+  passage?: string | null;
 }
 
 /** The language `lang: fr-CA` means, when it is one we speak. */
@@ -258,8 +381,10 @@ export function frontmatterLang(fmText: string): string | null {
  *    2. the note's own `lang:` when it names a language we speak;
  *    3. the sentence around the selection reads as French — one selected
  *       word ("grenouille") has nothing to count on its own;
- *    4. a lone word wearing an accent French uses and English does not;
- *    5. the twin face, the site's language, and English. */
+ *    4. the passage being read is French as a whole (most of its lines
+ *       are), so its short lines — a heading, "C'est tout." — are too;
+ *    5. a lone word wearing an accent French uses and English does not;
+ *    6. the twin face, the site's language, and English. */
 export function detectSpeechLang(text: string, hints: SpeechLangHints = {}): SpeakLang {
   const ar = text.match(ARABIC_RE)?.length ?? 0;
   const ja = text.match(JAPANESE_RE)?.length ?? 0;
@@ -270,11 +395,34 @@ export function detectSpeechLang(text: string, hints: SpeechLangHints = {}): Spe
   const note = speakLangOf(hints.noteLang);
   if (note && note !== "ar" && note !== "ja") return note;
   if (hints.context && looksFrench(hints.context)) return "fr";
+  if (speakLangOf(hints.passage) === "fr") return "fr";
   if (/^\s*\p{L}+\s*$/u.test(text) && /[àâæçéèêëîïôœùûüÿ]/i.test(text)) return "fr";
   if (hints.face === "en") return "en";
   const site = speakLangOf(hints.siteLang);
   if (site && site !== "ar" && site !== "ja") return site;
   return "en";
+}
+
+/** The language of a whole passage, for the sentences in it that carry no
+ *  evidence of their own — or null. Counted by LINE, not by marker, so an
+ *  English note quoting one French line stays English: the passage is
+ *  French when its French lines are at least half of the lines that could
+ *  tell (a line of three words or more, or one that reads as French).
+ *  Only Latin text is counted — Arabic and Japanese never needed help. */
+export function passageSpeechLang(text: string): SpeakLang | null {
+  let french = 0;
+  let telling = 0;
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim();
+    if (line === "" || (line.match(LATIN_RE)?.length ?? 0) === 0) continue;
+    if (looksFrench(line)) {
+      french++;
+      telling++;
+    } else if ((line.match(/\p{L}+/gu)?.length ?? 0) >= 3) {
+      telling++;
+    }
+  }
+  return french > 0 && french * 2 >= telling ? "fr" : null;
 }
 
 // ── Where a sentence ends ──────────────────────────────────────────────────
@@ -307,10 +455,17 @@ const CLOSERS = /[\s  ]*["'”’»)\]」』）]/y;
  *  pieces never come back; every piece is trimmed; a piece keeps its own
  *  punctuation (the engines read it as prosody). */
 export function splitSentences(text: string): string[] {
-  const out: string[] = [];
+  return splitSentencesIn(text).map((s) => s.text);
+}
+
+/** The sentences, each with the paragraph it came from — the context its
+ *  language is judged in when it has no French word of its own. */
+export function splitSentencesIn(text: string): { text: string; block: string }[] {
+  const all: { text: string; block: string }[] = [];
   // A blank line is always a boundary — a heading, a list item and a
   // paragraph are separate thoughts even when nobody punctuated them.
   for (const block of text.split(/\n[ \t]*\n|\r\n[ \t]*\r\n/)) {
+    const out: string[] = [];
     const flat = block.replace(/\s*\n\s*/g, " ").trim();
     if (flat === "") continue;
     let start = 0;
@@ -344,8 +499,9 @@ export function splitSentences(text: string): string[] {
       i = end - 1;
     }
     push(out, flat.slice(start));
+    for (const s of out) all.push({ text: s, block: flat });
   }
-  return out;
+  return all;
 }
 
 function push(out: string[], piece: string): void {
