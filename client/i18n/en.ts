@@ -3158,6 +3158,8 @@ const en = {
   menuAddToDictionary: "Add to dictionary",
   menuNoSuggestions: "No suggestions",
   menuActualSize: "Actual size",
+  // The View menu's one read-only line: the app zoom now, remembered per vault.
+  menuZoomLevel: "Zoom: {pct}%",
   menuFullScreen: "Full screen",
   menuReload: "Reload",
   menuDevTools: "Developer tools",

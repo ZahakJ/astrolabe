@@ -40,6 +40,11 @@ export interface WindowContext {
   /** Called whenever this window's geometry settles, so the vault's bounds
    *  are what the reader last left, not what they first got. */
   onBounds: (bounds: Bounds) => void;
+  /** The vault's remembered app zoom (electron/prefs.ts), set as the page's
+   *  DEFAULT factor so the first frame is already drawn at it — applied on
+   *  `did-finish-load` alone, a window shown at `ready-to-show` painted at
+   *  100% and then jumped to 120%. */
+  zoom: number;
 }
 
 /** The work area of the display a rectangle belongs to — the desk minus the
@@ -73,10 +78,11 @@ function restore(bounds: Bounds | null): { options: Partial<Electron.BrowserWind
   return { options: fitted, maximize: tooSmall };
 }
 
-function webPreferences(partition: string): Electron.WebPreferences {
+function webPreferences(partition: string, zoom: number): Electron.WebPreferences {
   return {
     preload: PRELOAD,
     partition,
+    zoomFactor: zoom,
     // The four that `npm run check-desktop` refuses to let anyone flip. They
     // are stated rather than left to default because a default is a decision
     // nobody wrote down: `sandbox` and `contextIsolation` have both been the
@@ -156,7 +162,7 @@ export function createVaultWindow(ctx: WindowContext, bounds: Bounds | null, rou
     backgroundColor: DEFAULT_GROUND,
     show: false,
     autoHideMenuBar: false,
-    webPreferences: webPreferences(ctx.partition),
+    webPreferences: webPreferences(ctx.partition, ctx.zoom),
   });
   if (opened.maximize) win.maximize();
   fence(win, ctx.origin);
@@ -206,7 +212,7 @@ export function createReferenceWindow(ctx: WindowContext, route: string): Browse
     // Visible over full-screen apps too, on the platforms that distinguish —
     // otherwise "always on top" means "except when you are actually working".
     fullscreenable: false,
-    webPreferences: webPreferences(ctx.partition),
+    webPreferences: webPreferences(ctx.partition, ctx.zoom),
   });
   win.setAlwaysOnTop(true, "floating");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });

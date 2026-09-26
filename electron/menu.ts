@@ -31,7 +31,7 @@
 // merge looks like.
 
 import { Menu, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
-import { m } from "./menuStrings.ts";
+import { m, mf } from "./menuStrings.ts";
 import type { Command } from "./ipc.ts";
 
 export interface RecentEntry {
@@ -56,6 +56,9 @@ export interface MenuHandlers {
    *  `zoomIn`/`resetZoom` roles any more, because those wrote into Chromium's
    *  per-host memory where nothing could read them back. */
   zoom: (direction: -1 | 0 | 1) => void;
+  /** The focused vault's zoom factor (1 = 100%), drawn as the View menu's
+   *  read-only "Zoom: 120%" line; null with no vault in front. */
+  zoomFactor: number | null;
   recents: RecentEntry[];
   spellcheckEnabled: boolean;
   setSpellcheck: (on: boolean) => void;
@@ -213,6 +216,12 @@ export function buildMenu(h: MenuHandlers): Menu {
       // Ctrl+- and Ctrl+0 for the PAGE it is showing — a reader who reaches
       // for the zoom keys over a book means the book — while everywhere else
       // the shell's own handler asks for an app zoom (client/desktop/).
+      // Where the zoom IS, said once, above the verbs that change it. It is
+      // the vault's remembered factor (electron/prefs.ts), so this is also
+      // what the next launch opens at.
+      ...(h.zoomFactor === null
+        ? []
+        : [{ label: mf("menuZoomLevel", { pct: Math.round(h.zoomFactor * 100) }), enabled: false }]),
       { label: m("zoomIn"), accelerator: "CmdOrCtrl+=", registerAccelerator: false, click: () => h.zoom(1) },
       { label: m("zoomOut"), accelerator: "CmdOrCtrl+-", registerAccelerator: false, click: () => h.zoom(-1) },
       // The numeric keypad is not a layout question and no page listens for

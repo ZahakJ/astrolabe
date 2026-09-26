@@ -250,6 +250,12 @@ export function rememberVault(prefs: Prefs, vaultPath: string, port: number, now
     // vault to an empty per-app home, which reads as "the desktop lost my
     // settings", the exact complaint that created the field.
     ...(existing?.data === undefined ? {} : { data: existing.data }),
+    // THE ZOOM SURVIVES IT TOO, for the same reason and after the same
+    // complaint: a reader set 120%, closed the app, and every launch came back
+    // at 100% — `rememberZoom` wrote the factor faithfully, and the next open
+    // rebuilt the row without it. "It has become a habit to set the zoom
+    // every launch." tests/prefs.test.ts holds the round trip.
+    ...(existing?.zoom === undefined ? {} : { zoom: existing.zoom }),
   };
   const rest = prefs.vaults.filter((v) => v.path !== vaultPath);
   return { ...prefs, vaults: [updated, ...rest].slice(0, MAX_RECENTS) };

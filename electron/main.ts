@@ -637,6 +637,7 @@ function windowContext(instance: Instance): Parameters<typeof createVaultWindow>
     partition: partitionFor(instance.vault),
     icon: brandIcon(ICON),
     onBounds: (bounds: Bounds) => savePrefs(rememberBounds(loadPrefs(), instance.vault, bounds)),
+    zoom: zoomOf(instance.vault),
   };
 }
 
@@ -660,6 +661,13 @@ function newWindowFor(instance: Instance, route = "/"): BrowserWindow {
   // send is what lets the status bar show it on the first paint. Every
   // navigation re-applies it, because a reload resets the renderer's factor.
   win.webContents.on("did-finish-load", () => sendZoom(win, zoomOf(instance.vault)));
+  // Ctrl + the wheel (and a trackpad's pinch-to-zoom on Windows, which
+  // Chromium reports the same way) is the other door a reader zooms through.
+  // Electron does not act on it, it only reports it: route it through the
+  // app's own factor, so the wheel's 120% is remembered like the keys' is.
+  // A book reader that takes the wheel for its page consumes the event in the
+  // renderer, and then this is never emitted.
+  win.webContents.on("zoom-changed", (_event, direction) => zoomBy(instance, direction === "in" ? 1 : -1));
   win.on("closed", () => {
     instance.windows.delete(win);
     // The last window on a vault takes the vault's server with it. A server
@@ -807,6 +815,7 @@ function applyZoom(instance: Instance, factor: number): void {
   savePrefs(rememberZoom(loadPrefs(), instance.vault, factor));
   const settled = zoomOf(instance.vault);
   for (const win of instance.windows) sendZoom(win, settled);
+  refreshMenu(); // the View menu's "Zoom: 120%" line
 }
 
 /** One press: +1 in, -1 out, 0 back to actual size. */
@@ -1037,6 +1046,7 @@ function refreshMenu(): void {
     },
     about: showAbout,
     zoom: (direction) => zoomBy(focusedInstance(), direction),
+    zoomFactor: instance ? zoomOf(instance.vault) : null,
     recents,
     spellcheckEnabled: loadPrefs().spellcheck,
     setSpellcheck: (on) => {
