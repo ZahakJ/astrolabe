@@ -56,7 +56,9 @@ comment explaining it. The table below is the short version.
 | `COMMENTS` | `on` (also `true`, `1`, `yes`) lets readers leave comments under published notes (default off) |
 | `NOTE_VERSIONS` | `off` (also `false`, `0`, `no`) stops the app keeping a copy of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
 | `PDF_SEARCH` | `off` (also `false`, `0`, `no`) stops the sidebar search from reading the text of the PDFs on your shelf (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
-| `OLLAMA_HOST` | Where [Ask the vault](ask.md) finds Ollama — the same variable Ollama itself reads (default `http://127.0.0.1:11434`) |
+| `SPEAK_EXTERNAL` | `on` (also `true`, `1`, `yes`) lets the admin set Read aloud's [external speaker](read-aloud.md#an-external-speaker), a program the server runs as its own user (default off: none can be saved, and one saved earlier is never run). **`.env` only** — the operator's decision, not the admin password's. The desktop app is its own operator and turns it on |
+| `OLLAMA_HOST` |
+ Where [Ask the vault](ask.md) finds Ollama — the same variable Ollama itself reads (default `http://127.0.0.1:11434`) |
 | `SITE_NAME` | The site's name, shown in the sidebar, in page titles and on the login dialog (default `Astrolabe`) |
 | `SITE_TAGLINE` | A short line under the site name, in blog mode |
 | `SITE_FOOTER` | The footer line in blog mode. `{year}` and `{siteName}` are filled in (default `© {year} {siteName}`) |

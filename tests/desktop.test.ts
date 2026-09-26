@@ -578,6 +578,13 @@ describe("an env-linked vault is the deployment, in a window", () => {
     assert.equal(env.ADMIN_PASSWORD_HASH, "minted-hash");
     assert.equal(env.PUBLIC, "false");
   });
+
+  it("the desktop is its own operator: Read aloud's external speaker is allowed, unless a deployment's .env says off", () => {
+    const cred = { password: "minted", hash: "minted-hash", secret: "minted-secret" };
+    assert.equal(childEnv("/v", "/data", 6821, cred, null).SPEAK_EXTERNAL, "on");
+    assert.equal(childEnv("/v", "/data", 6821, cred, { SITE_LANG: "ar" }).SPEAK_EXTERNAL, "on");
+    assert.equal(childEnv("/v", "/data", 6821, cred, { SPEAK_EXTERNAL: "off" }).SPEAK_EXTERNAL, "off");
+  });
 });
 
 // ── The spellchecker's languages ───────────────────────────────────────────

@@ -146,6 +146,10 @@ export function childEnv(
   env.HOST = "127.0.0.1";
   env.PORT = String(port);
   env.SECURE_COOKIES = "0";
+  // THE DESKTOP APP IS ITS OWN OPERATOR: the person at this window owns the
+  // machine the server runs on, so Read aloud's external speaker is allowed
+  // (docs/read-aloud.md). A deployment's own .env below may still say off.
+  env.SPEAK_EXTERNAL = "on";
   if (deployEnv !== null) {
     // AN ENV-LINKED VAULT IS THE DEPLOYMENT, IN A WINDOW. The row's `data`
     // override shares the deployment's settings.json and comments — and then

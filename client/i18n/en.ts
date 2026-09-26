@@ -4397,7 +4397,7 @@ const en = {
   // ── Settings → Language & dates → Your own voices (docs/read-aloud.md) ──
   rowOwnVoices: "Your own voices",
   hintOwnVoices: "Piper or Kokoro voices already on this computer, in every voice picker.",
-  moreOwnVoices: "The server looks through the folder and every folder inside it. A Piper voice is two files side by side: name.onnx and name.onnx.json (the catalogue's own layout, such as fr/fr_FR/upmc/medium/, is read as it is). A model with several speakers is one voice per speaker. The folder must be a full path on the machine the server runs on, outside the vault. The external speaker runs with this server's own user and permissions: whatever that user may do, the command may do. Only name a program you trust.",
+  moreOwnVoices: "The server looks through the folder and every folder inside it. A Piper voice is two files side by side: name.onnx and name.onnx.json (the catalogue's own layout, such as fr/fr_FR/upmc/medium/, is read as it is). A model with several speakers is one voice per speaker. The folder must be a full path on the machine the server runs on, outside the vault. The external speaker is offered only where the server's operator set SPEAK_EXTERNAL=on in .env; it runs with that server's own user and permissions, so whatever that user may do, the command may do. Only name a program you trust.",
   ownBrowse: "Browse…",
   ownRescan: "Rescan",
   ownScanning: "Scanning…",
@@ -4422,6 +4422,7 @@ const en = {
   ownExternalNote: "Your own program, run once per sentence. The sentence arrives on its standard input; {lang} becomes the language (fr) and {out} a file it must write a WAV or Ogg to, within 20 seconds. It runs with this server's user, and never for visitors.",
   ownExternalCommand: "The command",
   ownExternalFor: "Use it for",
+  ownExternalOff: "The operator has not allowed an external speaker on this server: set SPEAK_EXTERNAL=on in .env.",
   errVoicesDirRelative: "The voices folder must be a full path, starting with / (or with a drive letter on Windows).",
   errVoicesDirInVault: "The voices folder must be outside the vault: the vault is synced and published, and a voice file belongs to this computer.",
   errVoicesDirMissing: "There is no folder at that path on the computer the server runs on.",

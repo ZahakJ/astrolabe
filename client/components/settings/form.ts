@@ -463,6 +463,8 @@ export function speakSaveErrorKey(code: string | undefined): I18nKey | null {
       return "errVoicesDirUnreadable";
     case "speakExternalNoOut":
       return "errExternalNoOut";
+    case "speakExternalOff":
+      return "ownExternalOff";
     case "speakExternalQuotes":
       return "errExternalQuotes";
     default:

@@ -72,7 +72,7 @@ import {
   type Synthesis,
 } from "./speakEngine.ts";
 import { runExternal } from "./speakExternal.ts";
-import { speakLocal } from "./speakLocal.ts";
+import { externalAllowed, speakLocal } from "./speakLocal.ts";
 import { createSpeakQueue, type SpeakQueue } from "./speakQueue.ts";
 import { foundVoiceNow, foundVoicesSettled, ownVoicesStatus, rescanVoices, type FoundVoice } from "./speakVoices.ts";
 import { normalizeRel, readNote, VaultError } from "./vault.ts";
@@ -169,6 +169,7 @@ function statusBody(): SpeakStatus {
     test: SPEAK_FAKE,
     settings,
     own: ownVoicesStatus(),
+    externalAllowed: externalAllowed(),
   };
 }
 
@@ -240,7 +241,9 @@ speakRoutes.post("/speak", async (c: Context) => {
 
   // THE EXTERNAL SPEAKER, for the languages the owner gave it — the owner's
   // only: a visitor is never the reason this server runs a program.
-  const external = !visitor && settings.external && settings.external.langs.includes(lang) ? settings.external : null;
+  // And only when the operator allowed it (SPEAK_EXTERNAL=on): a command
+  // saved before the switch went off is never run.
+  const external = !visitor && externalAllowed() && settings.external && settings.external.langs.includes(lang) ? settings.external : null;
 
   let run: () => Promise<Synthesis>;
   let key: string;
