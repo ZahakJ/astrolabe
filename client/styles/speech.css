@@ -181,7 +181,20 @@
   color: var(--text);
 }
 
+/* In a narrow player the NAME wins: the locale beside it gives way first
+   (ellipsised), where the select's own rule would keep the note whole and
+   squeeze the name to nothing. */
+.s-speak__meta .s-speak__voice .s-ctl-select__value {
+  flex: 0 1 auto;
+  min-inline-size: 5em;
+}
+
 .s-speak__meta .s-speak__voice .s-ctl-select__note {
+  flex: 0 1 auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 0.72rem;
 }
 

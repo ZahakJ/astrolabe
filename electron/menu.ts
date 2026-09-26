@@ -31,7 +31,7 @@
 // merge looks like.
 
 import { Menu, type BrowserWindow, type MenuItemConstructorOptions } from "electron";
-import { m, mf } from "./menuStrings.ts";
+import { m } from "./menuStrings.ts";
 import type { Command } from "./ipc.ts";
 
 export interface RecentEntry {
@@ -221,7 +221,10 @@ export function buildMenu(h: MenuHandlers): Menu {
       // what the next launch opens at.
       ...(h.zoomFactor === null
         ? []
-        : [{ label: mf("menuZoomLevel", { pct: Math.round(h.zoomFactor * 100) }), enabled: false }]),
+        : // Filled by hand, not mf(): mf isolates each value with U+2068/U+2069,
+          // which a native menu draws as boxes on some systems, and a number
+          // needs no isolating.
+          [{ label: m("menuZoomLevel").replace("{pct}", String(Math.round(h.zoomFactor * 100))), enabled: false }]),
       { label: m("zoomIn"), accelerator: "CmdOrCtrl+=", registerAccelerator: false, click: () => h.zoom(1) },
       { label: m("zoomOut"), accelerator: "CmdOrCtrl+-", registerAccelerator: false, click: () => h.zoom(-1) },
       // The numeric keypad is not a layout question and no page listens for

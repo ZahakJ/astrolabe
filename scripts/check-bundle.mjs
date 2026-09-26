@@ -416,7 +416,12 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // ColumnGrip, and the dictionary's ten new keys in the Arabic chunk. The Tree,
 // the crumbs and pull-to-refresh are in the Notes screen's own lazy chunk.
 // 873 → 881.
-const PHONE_BUDGET = 881 * 1024;
+// READ ALOUD, ROUND 2: 880.5 → 882.3 kB, +1.8 kB against 3.34.0 (measured on
+// both builds) — the dictionary's new keys for the device voices and the
+// three states (the language chunk every first paint carries, +1.1 kB in
+// English), Settings' device-voices rule and the api's refused-language field
+// in the entry. The picker and its logic are in the speech chunk. 881 → 883.
+const PHONE_BUDGET = 883 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
