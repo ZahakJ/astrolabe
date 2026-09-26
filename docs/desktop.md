@@ -50,9 +50,11 @@ window snapped to half the screen, the panes stay docked and stay draggable.
 
 **Zoom belongs to the app.** `Ctrl/Cmd =`, `-` and `0` scale the whole interface, and while it is
 anything but 100% the status bar shows the percentage in the corner; clicking it is *actual
-size*, the same as `Ctrl/Cmd 0`. The factor is remembered per vault, so a window opens at the size
-you left it — and because it is written where you can see it, a window that came back smaller
-than you remember is a window you can put right with one click. Over an open book the same three
+size*, the same as `Ctrl/Cmd 0`; `Ctrl` + the mouse wheel steps it too, and **View → Zoom: 120%**
+says where it is. The factor is remembered per vault and **survives closing the app**: set 120%
+once, and every launch opens at 120% from its first frame — and because it is written where you
+can see it, a window that came back smaller than you remember is a window you can put right with
+one click. Over an open book the same three
 keys zoom **the page**, not the app: reaching for the zoom keys over a book means the book.
 
 Windows remember where they were, per vault, and are fitted to the screen they reopen on. A
@@ -183,4 +185,6 @@ same vault finds it ([settings travel with the vault](backup-and-sync.md#setting
 is packaged with `asar: false` deliberately, because the server the app starts reads real files
 from the package.
 
-The [Read aloud](read-aloud.md) voices install into that same data directory (`tts/venv/` and `models/tts/`), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with `uv` or the machine's Python 3.10–3.13 and runs the engine on the processor as a child process. Nothing about the app's permissions changes for it — the page only plays sound.
+The [Read aloud](read-aloud.md) voices install into that same data directory (`tts/venv/` and `models/tts/`), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with `uv` or the machine's Python 3.10–3.13 — and on the usual laptop, which has neither, **fetches a standalone Python** into `tts/python/` first (21–34 MB, checked before use) — and runs the engine on the processor as a child process. Nothing about the app's permissions changes for it — the page only plays sound.
+
+**On Linux the app reads once the voices are installed.** Electron has no speech engine of its own on Linux, so there are no "device voices" to fall back on: before the Install, the player says *No voice on this device speaks …* and offers the Install button; after it, the app reads in every language its voices speak. **On Windows**, until the app's voices are installed, it reads with Windows' own voices — the one you chose in Windows' own speech settings (Time & language → Speech) — and names it, with a ▾ to choose another ([This device's voices](read-aloud.md#this-devices-voices)).

@@ -66,12 +66,13 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 
 **Settings → Language & dates → Read aloud** shows what is installed and an **Install** button. Choose **Light** or **Natural** and press it; the row says what it is doing — making the Python environment, installing the engine, downloading the voices with a percentage — and the voices are ready when it says so. Install the other engine the same way at any time; Japanese needs Natural, and the row says so.
 
-The Install button needs one of two things on the machine:
+**The machine needs nothing installed first.** The Install button uses, in this order:
 
-- **[uv](https://docs.astral.sh/uv/)** on the `PATH` (it fetches its own Python 3.12), or
-- a **Python 3.10 to 3.13** (`python3`).
+- **[uv](https://docs.astral.sh/uv/)** on the `PATH`, when it is there (it fetches its own Python 3.12);
+- a **Python 3.10 to 3.13** already on the machine (`python3`; `python` or `py` on Windows);
+- otherwise it **fetches Python itself**: a standalone CPython 3.12 from [python-build-standalone](https://github.com/astral-sh/python-build-standalone) for your system and processor (Linux, Windows or macOS; 21–34 MB), checked against its exact size and checksum before it is used, into the data folder. The row says *Fetching Python for this machine* with a percentage while it arrives.
 
-Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Without uv or a Python, the row says so and the device's own voices read in the meantime.
+The last one is what makes the **desktop app** read on a machine that has never had Python — the usual Windows or Linux laptop. Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Only when Python can be neither found nor fetched (offline, or a system with no standalone build, such as Alpine Linux) does the row say so, and the device's own voices read in the meantime.
 
 The same row has a voice for English and for Japanese (when Natural is installed) and a speed: slower, normal, faster.
 
@@ -82,6 +83,7 @@ Everything is in the data folder (`ASTROLABE_DATA`), never in the vault:
 | | |
 | --- | --- |
 | `tts/venv/` | the Python environment |
+| `tts/python/` | the fetched Python, only on a machine that had none |
 | `models/tts/piper/`, `models/tts/kokoro/` | the voices |
 | `tts/cache/` | everything spoken, kept by what was said (text, language, voice, speed); at most 500 MB, the longest-unheard first to go |
 
@@ -89,9 +91,23 @@ The **desktop app** installs into its own data folder in the same way, and the I
 
 The engine starts on the first request, stays up while you listen, and stops after ten idle minutes to give its memory back (about 600 MB with both engines loaded).
 
-## When the machine cannot speak
+## This device's voices
 
-If nothing installed speaks the language — nothing installed at all, or Japanese before Natural is — the player reads with **the device's own voices** instead (the browser's speech), and says so in the player: *how it sounds depends on them.* Android's Google voices are good; a Linux desktop's are usually not. The same happens in a **pocket vault** on the phone, which has no server, and the player says that too.
+If the app's own voices are not installed for the language — nothing installed at all, or Japanese before Natural is — the player reads with **this device's voices** instead (the operating system's, through the browser), and the player always says which of three things is true:
+
+| | The player says |
+| --- | --- |
+| The app's voices speak | nothing — this is the normal case |
+| They are not installed; a device voice speaks the language | *The app's own voices for French are not installed — reading with this device's voice:* **Microsoft Paul ▾**, and a button, **Install the app's voices**, that opens the row above |
+| No voice on this device speaks the language | *No voice on this device speaks Japanese. Install the app's voices (Settings → Language & dates → Read aloud), or add a system voice.* |
+
+**Which device voice.** The one you chose for that language, on this device: the **▾** beside the voice's name in the player lists every voice the device has for the language, by name and locale, and your choice is remembered (in this browser, for this device — another computer keeps its own). The same choice is in **Settings → Language & dates → Read aloud**, under *This device's voices*: one picker per language the device speaks, and a line naming the languages it has none for. Until you choose:
+
+- in the **desktop app on Windows**, the voice you chose in Windows' own speech settings (**Time & language → Speech**) — the app reads it from Windows. A web page cannot: Chromium marks the first voice of the list as the "default" whatever Windows says, which is why a browser on Windows may read with another voice until you pick one with ▾;
+- on macOS and Android, the system's default voice for the language;
+- otherwise a voice in your own locale (French of France before French of Canada), one on the device before one that sends the words to a network service.
+
+How it sounds depends on the device: Windows' Microsoft voices and Android's Google voices are good. **The desktop app on Linux has no device voices at all** (Electron has no speech engine there), so it reads once the app's own voices are installed — the Install button works there with nothing else on the machine — and says *No voice on this device speaks …* until then rather than staying silent. A **pocket vault** on the phone has no server, so its voices are always the phone's; its Read aloud row is just the phone's voices.
 
 ## Readers may listen
 
@@ -100,6 +116,7 @@ If nothing installed speaks the language — nothing installed at all, or Japane
 ## For developers
 
 - `POST /api/speak` `{ text, lang?, path?, context?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang` and `X-Speak-Engine`. `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters; the client sends a sentence at a time and fetches the next while one plays.
-- `GET /api/speak/status` — what is installed, the install's progress, the settings in force. `POST /api/speak/install` `{ engine }` starts an install.
+- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`), the settings in force. `POST /api/speak/install` `{ engine }` starts an install.
+- The fetched Python is pinned to one python-build-standalone release by size and SHA-256 (`server/standalonePython.ts`); programs are looked up on the `PATH` in-process, never through `which` or `where`.
 - `ASTROLABE_TTS_THREADS` pins the engine's thread count (default: half the cores, at most eight).
 - `ASTROLABE_SPEAK_FAKE=1` makes a scratch server answer with a tone, for the browser gates; the row says *Test engine* while it is on.
