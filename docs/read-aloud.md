@@ -29,7 +29,10 @@ A selection is spoken in the language it is written in, decided the way the rest
 2. **French, when the words are French** — the same test [French, corrected as you type](editor.md#french-corrected-as-you-type) uses: two French function words. A French quotation in an English note is read in French.
 3. **The note's own `lang:`** in its frontmatter (`lang: fr`, `lang: es`), for Latin text the test cannot place.
 4. **The sentence around a single word.** One selected word has nothing to count; the paragraph it was selected from does, so *grenouille* selected in a French paragraph is French.
-5. The site's language, then English.
+5. **The whole passage.** A paragraph or a whole note is read a sentence at a time, and a short sentence — a heading like *Décrire son quotidien*, *Le matin* — has no French word to count. So each sentence also carries the passage it belongs to: when at least half of the passage's lines read as French, its short lines are French too. It is counted by line, so an English note quoting one French line stays English.
+6. The site's language, then English.
+
+The **Voice notes: transcription language** row beside Read aloud is not part of this: it is the language [voice notes](capture.md#voice) are transcribed in, and it never changes which language is read aloud.
 
 **Furigana** are read once, as the word: `{図書館|としょかん}` is spoken 図書館, never the word and then its reading ([Japanese & furigana](japanese.md)).
 
@@ -41,7 +44,8 @@ Both are free software, both run on the processor, and both run inside one Pytho
 | --- | --- | --- |
 | Engine | [Piper](https://github.com/rhasspy/piper) (MIT) | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (Apache-2.0) through kokoro-onnx |
 | Languages | English, French, Arabic | English, French, Japanese, Spanish, Italian, Portuguese |
-| Download | 190 MB (63 MB a voice) | 354 MB once, every language and voice |
+| Voices | Lessac (f) · French: Siwis (f), **Pierre (m)**, Jessica (f) · Kareem (m) | five English, four Japanese, two each of Spanish, Italian, Portuguese — men's and women's — and **one French voice, Siwis (f)** |
+| Download | 190 MB at Install (a voice per language); Pierre and Jessica, 77 MB together, when first chosen | 354 MB once, every language and voice |
 | A word, measured (8 / 2 / 1 cores) | 60 / 60 / 90 ms | 270 / 460 / 700 ms |
 | A 4-second sentence | 0.3 s — about 15× faster than speech | 0.9 s on 8 cores, 2.3 s on one — faster than speech even then |
 | Sounds | clear, a little flat | closer to a person, especially English and Japanese |
@@ -49,6 +53,20 @@ Both are free software, both run on the processor, and both run inside one Pytho
 Arabic is always read by Light's voice, and Japanese always by Natural's, whichever you choose; the choice decides English and French. The numbers are from an AMD Ryzen 7 7800X3D; the "2 cores" and "1 core" columns were measured with the engine pinned to that many cores, to stand in for an ordinary laptop or a small home server. On an older or low-power processor Natural can come close to real time on long sentences, which is why **Light is the default** and Natural is the choice for a machine that can afford it.
 
 **A machine with no graphics card gets exactly this.** Nothing here uses one, on any machine.
+
+### Which engine speaks which language, on this machine
+
+The table is what each engine *can* speak. What it *does* speak on your machine is checked: after an Install — and once, on its own, for an engine installed before this check existed — each engine speaks **one word per language** (*quotidien*, *mañana*, *giorno*, *coração*, *図書館*, *morning*, *مكتبة*) in a separate, short-lived process, and the app compares the sounds it made with the sounds English rules make of the same word. The row then says it plainly: *Natural speaks Japanese, English, French, Spanish, Italian and Portuguese here.*
+
+A language that fails — English sounds for a French word, no sound, or a check that stopped partway — is **never read with the English rules**: it goes to the other engine when that one is installed and passed (*Natural could not speak French on this machine; Light takes over*), and otherwise the row says which engine to install. **Check again** runs the test anew.
+
+Why this exists: Natural reads every language but Japanese through espeak-ng, and the copy of espeak-ng it ships with gave up — taking the whole speaker with it — when the folder it was installed in had a long path (160 characters or more, easy to reach under a data folder named after a long vault) or, on Windows, a path with letters outside plain ASCII (a user or vault named in Arabic). Japanese, which does not use espeak, kept speaking. The app now hands espeak-ng a short copy of its data in that case (in the temp folder, or on Windows in ProgramData, 18 MB), and the check is what proves it worked.
+
+### A man's voice, a woman's voice
+
+Every built-in voice shows **(m)** or **(f)** beside its name in the pickers. Natural (Kokoro) has **one French voice, a woman's**; Light has **Pierre (m)** and **Jessica (f)** besides Siwis — the two speakers of the `fr_FR-upmc-medium` voice. French's picker lists both engines when both are installed — *Natural: Siwis (f) · Light: Siwis (f), Pierre (m), Jessica (f)* — and **a voice you pick is spoken by its own engine**: choose Pierre with Natural selected and French is read by Light's Pierre, while Japanese and English stay Natural's.
+
+Pierre and Jessica are not part of the Install: choosing one downloads it (77 MB), with the same progress line an Install prints — *Downloading Pierre (m) — 40%* — and until it has arrived the language's first voice reads.
 
 ### How the engines were chosen
 
@@ -64,7 +82,7 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 
 ## Installing
 
-**Settings → Language & dates → Read aloud** shows what is installed and an **Install** button. Choose **Light** or **Natural** and press it; the row says what it is doing — making the Python environment, installing the engine, downloading the voices with a percentage — and the voices are ready when it says so. Install the other engine the same way at any time; Japanese needs Natural, and the row says so.
+**Settings → Language & dates → Read aloud** shows what is installed and an **Install** button. Choose **Light** or **Natural** and press it; the row says what it is doing — making the Python environment, installing the engine, downloading the voices with a percentage, then *Checking which languages it speaks* ([above](#which-engine-speaks-which-language-on-this-machine)) — and the voices are ready when it says so. Install the other engine the same way at any time; Japanese needs Natural, and the row says so.
 
 **The machine needs nothing installed first.** The Install button uses, in this order:
 
@@ -74,7 +92,7 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 
 The last one is what makes the **desktop app** read on a machine that has never had Python — the usual Windows or Linux laptop. Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Only when Python can be neither found nor fetched (offline, or a system with no standalone build, such as Alpine Linux) does the row say so, and the device's own voices read in the meantime.
 
-The same row has a speed (slower, normal, faster) and a **voice picker for every language that has a choice**: English and Japanese when Natural is installed (five and four voices), and any language you have [your own voices](#your-own-voices) for. Each picker lists the built-in voices first and then **Your voices**; the choice is the language's voice everywhere, and the player's **▾** changes the same setting.
+The same row has a speed (slower, normal, faster) and a **voice picker for every language that has a choice**: French (three Light voices, and Natural's when it is installed), English and Japanese when Natural is installed (five and four voices), and any language you have [your own voices](#your-own-voices) for. Each picker lists a group per installed engine — the one that speaks the language first — and then **Your voices**; a voice not downloaded yet says *downloads when chosen*. The choice is the language's voice everywhere, it wins over the engine choice for that language, and the player's **▾** changes the same setting.
 
 ### Where it lives
 
@@ -125,7 +143,7 @@ If you already have Piper voices on your computer — because LibreOffice's **Re
 
 Not sure where yours are? The Read Text dialog shows the command it runs, and a voice's `.onnx` path is in it or in the script it names; or search your home folder for `*.onnx.json`.
 
-**A man's or a woman's voice is a different voice file.** Piper has no "male/female" switch: each voice is one person, and choosing another voice is choosing another file. Some files hold several people — `fr_FR-upmc-medium` has two speakers, **jessica** and **pierre** — and those appear as two voices, *Upmc · Jessica* and *Upmc · Pierre*. Kokoro packs (`voices-*.bin` beside a `kokoro-*.onnx`) are read too, one voice per entry in the pack.
+**A man's or a woman's voice is a different voice file.** Piper has no "male/female" switch: each voice is one person, and choosing another voice is choosing another file. Some files hold several people — `fr_FR-upmc-medium` has two speakers, **jessica** and **pierre** — and those appear as two voices, *Upmc · Jessica* and *Upmc · Pierre*. (That one is also built in: Light's Pierre and Jessica, [above](#a-mans-voice-a-womans-voice).) Kokoro packs (`voices-*.bin` beside a `kokoro-*.onnx`) are read too, one voice per entry in the pack.
 
 **What they need.** Your Piper voices run on the **Light** engine (its runtime: onnxruntime and piper); a Kokoro pack on **Natural**'s. Until that engine is installed the row says so, with its Install button: installing Light downloads Light's own built-in voices once (about 190 MB) — **your voice files are not downloaded again**. A voice in a language Read aloud does not detect yet (German, say) is listed as skipped, with its language.
 
@@ -152,8 +170,9 @@ The pocket vault on a phone has neither: it has no server to scan a folder or ru
 
 ## For developers
 
-- `POST /api/speak` `{ text, lang?, path?, context?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang` and `X-Speak-Engine`. `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters; the client sends a sentence at a time and fetches the next while one plays.
-- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`), the settings in force, and `own`: the voices folder, what its last scan found (`voices`, by language) and what it skipped (`skipped`, with a `reason`). `POST /api/speak/install` `{ engine }` starts an install; `POST /api/speak/voices/rescan` reads the folder again.
+- `POST /api/speak` `{ text, lang?, path?, context?, passage?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang` and `X-Speak-Engine`. `context` is the sentence's paragraph, `passage` the whole passage's language (`passageSpeechLang` in `shared/speech.ts`). `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters; the client sends a sentence at a time and fetches the next while one plays.
+- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`, `check`), each engine's self-test (`engines.<engine>.check.langs.<lang>` → `ok`, the `phonemes`, and `why` not: `english`, `silent`, `stopped`, `error`), the voices that download on choice (`voices`, by id: `ready`, `downloaded`, `bytes`) and the one downloading (`fetch`), the settings in force, and `own`: the voices folder, what its last scan found (`voices`, by language) and what it skipped (`skipped`, with a `reason`). `POST /api/speak/install` `{ engine }` starts an install (and its self-test); `POST /api/speak/check` `{ engine }` runs the self-test again; `POST /api/speak/voice` `{ voice }` downloads an on-choice voice; `POST /api/speak/voices/rescan` reads the folder again.
+- The self-test is `server/speakWorker.py --selftest`, judged by `server/speakSelfTest.ts` and kept in `ASTROLABE_DATA/tts/selftest.json`; it runs again when the engine is reinstalled or the test itself changes.
 - `PATCH /api/settings` `{ speak: { voicesDir, external: { command, langs } } }` — `external` only where `SPEAK_EXTERNAL=on` (else `400 speakExternalOff`; `GET /api/speak/status` says `externalAllowed`); both are checked (an absolute path outside the vault that the server can read; a command naming `{out}`) and written to `ASTROLABE_DATA/speak-local.json`, never to `settings.json`, which the config mirror carries into the vault. A found voice is stored in `speak.voices` as `own:<path inside the folder>` (`#speaker` for one speaker of a model); the worker loads it by absolute path and keeps it loaded by path and modification time, so a replaced file is loaded again. `X-Speak-Voice` names the voice that spoke.
 
 - The fetched Python is pinned to one python-build-standalone release by size and SHA-256 (`server/standalonePython.ts`); programs are looked up on the `PATH` in-process, never through `which` or `where`.

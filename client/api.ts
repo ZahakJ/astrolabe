@@ -792,6 +792,17 @@ export function speakRescan(): Promise<SpeakStatus> {
   return request<SpeakStatus>("/api/speak/voices/rescan", { method: "POST" }, true);
 }
 
+/** Download a built-in voice that comes on choice (Light's Pierre): asked
+ *  the moment the owner chooses it; the status carries the progress. */
+export function speakFetchVoice(voice: string): Promise<SpeakStatus> {
+  return request<SpeakStatus>("/api/speak/voice", json("POST", { voice }), true);
+}
+
+/** Run an engine's self-test again: which languages it truly speaks here. */
+export function speakCheck(engine: SpeakEngineId): Promise<SpeakStatus> {
+  return request<SpeakStatus>("/api/speak/check", json("POST", { engine }), true);
+}
+
 export interface SpokenAudio {
   blob: Blob;
   lang: string | null;
@@ -809,7 +820,7 @@ export interface SpokenAudio {
 export type SpeakRefusal = ApiError & { lang?: string };
 
 export async function speakAudio(
-  body: { text: string; lang?: string; path?: string; context?: string; format?: "opus" | "wav" },
+  body: { text: string; lang?: string; path?: string; context?: string; passage?: string; format?: "opus" | "wav" },
   signal?: AbortSignal,
 ): Promise<SpokenAudio> {
   const res = await fetch("/api/speak", withPreview({ ...json("POST", body), signal: requestSignal(signal ?? null, 60_000) }));
