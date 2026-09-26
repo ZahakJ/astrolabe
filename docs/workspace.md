@@ -222,7 +222,8 @@ to the top), an icon for the mode the note is **in** — a pencil while you are 
 you are reading; tap it to switch — and **⋯**. The bar slides away as you read down and returns the
 moment you scroll up. Nothing sits at the bottom, except while you are typing: then a row of keys
 rides on top of the keyboard with `[[`, `#`, a task box, bold, a heading, undo, redo and a key that
-puts the keyboard away.
+puts the keyboard away. Tap anywhere in the note's text and the caret lands there and the row comes up; tap a
+**#tag** and its page opens instead: every note that carries it.
 
 **The note's sheet.** ⋯ opens a sheet with four parts: **Outline** (tap a heading to jump there; the
 sheet gets out of the way), **Backlinks**, **Properties** (tap one to change it, or add one) and

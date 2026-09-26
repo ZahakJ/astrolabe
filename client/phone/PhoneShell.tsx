@@ -85,6 +85,7 @@ import { chainTo, upChain } from "./up.ts";
 import ColumnGrip from "./ColumnGrip.tsx";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
+import { tagOfSearch } from "./tagTap.ts";
 import "./phone.css";
 
 const TodayScreen = lazySurface(() => import("./screens/TodayScreen.tsx"));
@@ -680,6 +681,16 @@ export default function PhoneShell() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, [nav]);
+
+  // ── a #tag tapped in a note → that tag's screen (./tagTap.ts) ─────────────
+  useEffect(() => {
+    const onSearch = (e: Event): void => {
+      const tag = tagOfSearch((e as CustomEvent<unknown>).detail);
+      if (tag !== null) api.open({ kind: "tag", tag });
+    };
+    window.addEventListener("astrolabe:search", onSearch);
+    return () => window.removeEventListener("astrolabe:search", onSearch);
+  }, [api]);
 
   // ── layers on <body> → the stack (client/overlays.ts) ────────────────────
   useEffect(() => {

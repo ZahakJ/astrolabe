@@ -139,6 +139,13 @@ heading ⋯ are hidden and the prose gutter drops to 18px; a long press on a hea
 action sheet of the heading's verbs (`client/phone/editorBridge.ts`, which alone imports
 CodeMirror and is reached by `import()`). The properties card collapses to "N properties ›"
 (the card's hidden `__count`) and opens the sheet's Properties; an empty card is not drawn.
+A tap anywhere in the note's text takes the caret (and raises the accessory bar); a tap on a
+`#tag` pill — in the editor or the reading view — opens that tag's screen: the pills' own
+`astrolabe:search` "#tag", which the desktop's sidebar answers with a search, the phone shell
+answers with `{ kind: "tag" }` (`client/phone/tagTap.ts`; through 3.35.0 nothing listened, and the
+tap was swallowed with no caret either). check-phone walks a generated long note in both chromes,
+after Read aloud stops: a prose, heading, fenced, quote, list and far-down line each raise the
+bar; a pill opens its tag.
 **The note sheet**: Outline (TocPanel; a jump closes the sheet) | Backlinks | Properties
 (editable a row at a time, an emptied value removes the key) | Actions (publish WITH a
 confirmation, the twin, share, move, history, delete).

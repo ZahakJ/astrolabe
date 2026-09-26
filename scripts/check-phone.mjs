@@ -146,6 +146,65 @@ const MEASURE = String.raw`((scope) => {
   return out;
 })`;
 
+/** WHERE A FINGER LANDS in the note screen's editor: the middle of a word in
+ *  the first line on screen of one kind — "prose" (a plain paragraph line,
+ *  nothing tappable in it), "heading", "code" (a fenced block's line),
+ *  "quote", "list" (a bullet's text, not the bullet) — or the middle of the
+ *  first "tag" pill. Only points under the top bar, above the bottom of the
+ *  glass, and not covered by another layer; a line of a named kind below the
+ *  fold is scrolled to first. Null when the note has none. */
+function linePoint(kind) {
+  const note = document.querySelector(".s-ph-note");
+  if (!note) return null;
+  const top = (note.querySelector(".s-ph-top")?.getBoundingClientRect().bottom ?? 0) + 8;
+  const bottom = window.innerHeight - 60;
+  const TAPPABLE = ".cm-s-tag, .cm-s-link, .cm-s-wikilink, .cm-s-url, .cm-s-footnote, .cm-s-task, .cm-s-bullet, .cm-s-syntax, .cm-widgetBuffer, [contenteditable='false'], img, input, a";
+  const onScreen = (r) => r.width > 0 && r.height > 0 && r.top >= top && r.bottom <= bottom;
+  const hits = (x, y, el) => {
+    const at = document.elementFromPoint(x, y);
+    return at !== null && (at === el || el.contains(at));
+  };
+  if (kind === "tag") {
+    for (const pill of note.querySelectorAll(".cm-content .cm-s-tag")) {
+      const r = pill.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      if (onScreen(r) && hits(x, y, pill)) return { x, y, text: pill.textContent };
+    }
+    return null;
+  }
+  const want = {
+    prose: (l) => !/\bcm-s-/.test(l.className),
+    heading: (l) => l.matches(".cm-s-h1, .cm-s-h2, .cm-s-h3, .cm-s-h4"),
+    code: (l) => l.matches(".cm-s-codeblock"),
+    quote: (l) => l.matches(".cm-s-quote"),
+    list: (l) => l.querySelector(".cm-s-bullet") !== null && l.querySelector(".cm-s-task") === null,
+  }[kind];
+  for (const line of note.querySelectorAll(".cm-content > .cm-line")) {
+    if (!want(line)) continue;
+    if (kind === "prose" && line.querySelector(TAPPABLE)) continue;
+    // A kind of line below the fold (the Arabic chrome's lines are taller)
+    // is brought to the middle of the glass first, as a reader scrolls to it.
+    if (kind !== "prose" && !onScreen(line.getBoundingClientRect())) line.scrollIntoView({ block: "center" });
+    const walker = document.createTreeWalker(line, NodeFilter.SHOW_TEXT);
+    for (let t = walker.nextNode(); t; t = walker.nextNode()) {
+      if (t.parentElement?.closest(TAPPABLE)) continue;
+      const text = t.textContent ?? "";
+      const i = text.search(/\p{L}{3,}/u);
+      if (i < 0) continue;
+      const range = document.createRange();
+      range.setStart(t, i + 1);
+      range.setEnd(t, i + 2);
+      const r = range.getBoundingClientRect();
+      const x = r.left + r.width / 2;
+      const y = r.top + r.height / 2;
+      if (onScreen(r) && hits(x, y, line)) return { x, y, text: text.slice(i, i + 24) };
+    }
+  }
+  return null;
+}
+const PROSE_POINT = `(${linePoint})("prose")`;
+
 /** The shapes. `touch` decides whether a press is a tap or a click. */
 const SHAPES = [
   { name: "phone", touch: true, args: [], context: { ...devices["Pixel 7"], viewport: { width: 412, height: 915 }, isMobile: true, hasTouch: true } },
@@ -619,10 +678,19 @@ try {
       }
 
       // ── the keyboard's bar (a finger's editor) ────────────────────────────
+      // The finger lands on a line of prose. It used to land on the middle of
+      // `.cm-content`'s visible part, which is whatever the note puts there:
+      // on the seed's "Hosting Your Own Vault" in the Arabic chrome (whose
+      // lines are taller) that was the `#hosting` pill — a tag, whose tap is
+      // the tag's screen, not a caret. The pills and the other targets of a
+      // long note are walked one by one in "a long note, where a finger
+      // lands" below.
       if (shape.name === "phone") {
-        await page.locator(".s-ph-note .cm-content").first().tap();
-        await settle(700);
-        check((await page.locator(".s-ph-kbbar").count()) > 0, tag("the accessory bar rides the keyboard while writing"));
+        const at = await page.evaluate(PROSE_POINT);
+        if (at) await page.touchscreen.tap(at.x, at.y);
+        else await page.locator(".s-ph-note .cm-content").first().tap();
+        await page.waitForSelector(".s-ph-kbbar", { timeout: 3000 }).catch(() => {});
+        check((await page.locator(".s-ph-kbbar").count()) > 0, tag("the accessory bar rides the keyboard while writing"), JSON.stringify(at));
         await measure("editing");
         await press(page.locator('.s-ph-kbbar__key[data-key="hide"]'));
         await settle(400);
@@ -1535,6 +1603,110 @@ try {
         [`/api/note?path=${encodeURIComponent(FILM_NOTE)}&permanent=1`, { method: "DELETE" }],
         ...(filmPath ? [[`/api/attachment?path=${encodeURIComponent(filmPath)}&permanent=true`, { method: "DELETE" }]] : []),
       ]).catch(() => {});
+      await ctx.close();
+    }
+  }
+
+  // ── a long note, where a finger lands (3.35: the bar that did not come) ──
+  // The gate's one editing tap used to go to the middle of `.cm-content`,
+  // and on the seed's "Hosting Your Own Vault" in the Arabic chrome that was
+  // the `#hosting` pill: the pill took the tap (its search had no listener on
+  // the phone), the caret never landed, and no keyboard bar came. So a long
+  // note — front matter, headings, a fenced block, a quote, a list, tags,
+  // links, three screens of prose — is written here, and in both chromes,
+  // right after Read aloud was stopped (the order the reader hit it in), a
+  // finger goes to each kind of line: every one takes the caret and raises
+  // the bar; a tag pill opens the tag's screen, and back comes home.
+  {
+    const LONG_NOTE = "check-phone-long.md";
+    const para = (n) => `Paragraph ${n} is prose a finger may land on while reading the note on a phone, long enough to wrap over several lines of the column and push the rest of the note down the screen.`;
+    const content = [
+      "---", "title: A long note", "tags: [guide, longread]", "---", "",
+      "# A long note", "", para(1), "", "Tagged in passing #longread #guide and linked to [[Welcome]].", "",
+      "## Code", "", "```sh", "ASTROLABE_VAULT=~/notes npm start", "npm start -- --vault ~/notes", "```", "",
+      "## Quote and list", "", "> Everything in its place, and a place for everything in the margin.", "",
+      "- the first item of a list, with words in it", "- the second item, with more words", "",
+      ...Array.from({ length: 10 }, (_, i) => [`## Section ${i + 1}`, "", para(i + 2), ""]).flat(),
+      "The last line of the note.", "",
+    ].join("\n");
+    await adminApi([[`/api/note?path=${encodeURIComponent(LONG_NOTE)}`, J("PUT", { content })]]);
+    const ctx = await browser.newContext(SHAPES[0].context);
+    await ctx.addCookies(cookies);
+    await ctx.addInitScript(FAKE_SPEECH);
+    const page = await ctx.newPage();
+    const barUp = () => page.waitForSelector(".s-ph-kbbar", { timeout: 3000 }).then(() => true, () => false);
+    const caretIn = () => page.evaluate(() => document.activeElement?.closest?.(".s-ph-note .cm-editor") != null);
+    const hideBar = async () => {
+      const hide = page.locator('.s-ph-kbbar__key[data-key="hide"]');
+      if ((await hide.count()) > 0) await hide.first().tap();
+      await page.waitForTimeout(400);
+    };
+    try {
+      await page.goto(url, { waitUntil: "load" });
+      for (const lang of ["en", "ar"]) {
+        const tag = (what) => `phone ${lang}: long note: ${what}`;
+        await page.evaluate((l) => {
+          localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+          localStorage.setItem("astrolabe.prefs-sync-off", "1");
+          localStorage.setItem("astrolabe.tourSeen", "1");
+          localStorage.setItem("astrolabe.editorLang", l);
+        }, lang);
+        await page.goto(`${url}/${encodeURIComponent(LONG_NOTE.replace(/\.md$/, ""))}`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector(".s-ph-note .cm-content", { timeout: 15000 }).catch(() => {});
+        await page.waitForTimeout(1500);
+        check((await page.evaluate(() => document.documentElement.lang)) === lang, tag("the chrome is in its language"));
+        // Read aloud from the ⋯ sheet, and stopped with its last button.
+        await page.locator(".s-ph-note .s-ph-top__actions button").last().tap();
+        await page.waitForTimeout(700);
+        await page.locator('.s-ph-seg__btn[data-segment="actions"]').first().tap();
+        await page.waitForTimeout(450);
+        await page.locator('.s-ph-actions__row[data-action="read-aloud"]').first().tap();
+        const spoke = await page.waitForSelector(".s-speak", { timeout: 10000 }).then(() => true, () => false);
+        check(spoke, tag("Read aloud plays over it"));
+        await page.waitForTimeout(800);
+        if (spoke) await page.locator(".s-speak .s-speak__btn").last().tap();
+        await page.waitForTimeout(300);
+        for (const kind of ["prose", "heading", "code", "quote", "list"]) {
+          const at = await page.evaluate(linePoint, kind);
+          check(at !== null, tag(`there is a ${kind} line on screen`));
+          if (at === null) continue;
+          await page.touchscreen.tap(at.x, at.y);
+          const up = await barUp();
+          check(up && (await caretIn()), tag(`a tap on a ${kind} line takes the caret and raises the bar`), JSON.stringify(at));
+          if (kind === "prose") await page.screenshot({ path: `${out}/phone-${lang}-long-note-editing.png` });
+          await hideBar();
+        }
+        // Three screens down, the same.
+        await page.evaluate(() => {
+          const s = document.querySelector(".s-ph-note .cm-scroller");
+          if (s) s.scrollTop = s.scrollHeight;
+        });
+        await page.waitForTimeout(600);
+        const far = await page.evaluate(linePoint, "prose");
+        if (far) await page.touchscreen.tap(far.x, far.y);
+        check(far !== null && (await barUp()) && (await caretIn()), tag("…and at the foot of the note"), JSON.stringify(far));
+        await hideBar();
+        // A tag pill is the tag's own screen.
+        await page.evaluate(() => {
+          const s = document.querySelector(".s-ph-note .cm-scroller");
+          if (s) s.scrollTop = 0;
+        });
+        await page.waitForTimeout(600);
+        const pill = await page.evaluate(linePoint, "tag");
+        check(pill !== null, tag("there is a tag pill on screen"));
+        if (pill) {
+          await page.touchscreen.tap(pill.x, pill.y);
+          const shown = await page.waitForSelector('[data-screen="tag"]', { timeout: 5000 }).then(() => true, () => false);
+          const title = shown ? ((await page.locator('[data-screen="tag"] .s-ph-top').first().textContent()) ?? "") : "";
+          check(shown && title.includes(pill.text.replace(/^#/, "")), tag("a tap on a #tag pill opens the tag's screen"), `${pill.text} → ${title}`);
+          if (shown) await page.screenshot({ path: `${out}/phone-${lang}-long-note-tag.png` });
+          await page.goBack();
+          const back = await page.waitForSelector(".s-ph-note .cm-content", { timeout: 5000 }).then(() => true, () => false);
+          check(back, tag("back from the tag's screen comes home to the note"));
+        }
+      }
+    } finally {
+      await adminApi([[`/api/note?path=${encodeURIComponent(LONG_NOTE)}&permanent=1`, { method: "DELETE" }]]).catch(() => {});
       await ctx.close();
     }
   }
