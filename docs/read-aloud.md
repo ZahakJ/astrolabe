@@ -74,7 +74,7 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 
 The last one is what makes the **desktop app** read on a machine that has never had Python — the usual Windows or Linux laptop. Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Only when Python can be neither found nor fetched (offline, or a system with no standalone build, such as Alpine Linux) does the row say so, and the device's own voices read in the meantime.
 
-The same row has a voice for English and for Japanese (when Natural is installed) and a speed: slower, normal, faster.
+The same row has a speed (slower, normal, faster) and a **voice picker for every language that has a choice**: English and Japanese when Natural is installed (five and four voices), and any language you have [your own voices](#your-own-voices) for. Each picker lists the built-in voices first and then **Your voices**; the choice is the language's voice everywhere, and the player's **▾** changes the same setting.
 
 ### Where it lives
 
@@ -109,6 +109,43 @@ If the app's own voices are not installed for the language — nothing installed
 
 How it sounds depends on the device: Windows' Microsoft voices and Android's Google voices are good. **The desktop app on Linux has no device voices at all** (Electron has no speech engine there), so it reads once the app's own voices are installed — the Install button works there with nothing else on the machine — and says *No voice on this device speaks …* until then rather than staying silent. A **pocket vault** on the phone has no server, so its voices are always the phone's; its Read aloud row is just the phone's voices.
 
+## Your own voices
+
+If you already have Piper voices on your computer — because LibreOffice's **Read Text** extension installed them, or because you downloaded them yourself — Astrolabe can use them. **Settings → Language & dates → Your own voices** takes a folder; the server looks through it and every folder inside it, and every voice it finds joins the pickers under **Your voices**, per language, to be chosen exactly like a built-in one. Nothing is copied or downloaded: the voice is read from where it is.
+
+**Pointing it at the folder.** Type the folder's full path (on the desktop app, **Browse…** opens the system's folder picker) and save. The row then says what it found — *French: 3 voices · Arabic: 1 voice · 2 files skipped: no .json beside the model* — and **Which files, and why** lists anything it could not use. **Rescan** reads the folder again after you add a voice; it is also read when the server starts. The folder must be a full path on the computer the server runs on, and **outside the vault** (the vault is synced and published; a 60 MB voice belongs to this computer). It is kept on this computer only, in the data folder — it does not travel with the vault to your other machines.
+
+**Where Piper voices usually are.** A Piper voice is always **two files side by side**: `name.onnx` (the voice, 20–120 MB) and `name.onnx.json` (its settings, a few kilobytes). Common places:
+
+| | |
+| --- | --- |
+| `~/.local/share/piper-voices/` | where many Piper tools, and scripts like Read Text's, keep downloaded voices on Linux |
+| `~/piper/` or `~/piper-voices/` | a hand install |
+| `…/piper-voices/fr/fr_FR/upmc/medium/fr_FR-upmc-medium.onnx` | the [piper-voices catalogue](https://huggingface.co/rhasspy/piper-voices)'s own layout — `language/locale/name/quality/` — read as it is; point at the top folder |
+
+Not sure where yours are? The Read Text dialog shows the command it runs, and a voice's `.onnx` path is in it or in the script it names; or search your home folder for `*.onnx.json`.
+
+**A man's or a woman's voice is a different voice file.** Piper has no "male/female" switch: each voice is one person, and choosing another voice is choosing another file. Some files hold several people — `fr_FR-upmc-medium` has two speakers, **jessica** and **pierre** — and those appear as two voices, *Upmc · Jessica* and *Upmc · Pierre*. Kokoro packs (`voices-*.bin` beside a `kokoro-*.onnx`) are read too, one voice per entry in the pack.
+
+**What they need.** Your Piper voices run on the **Light** engine (its runtime: onnxruntime and piper); a Kokoro pack on **Natural**'s. Until that engine is installed the row says so, with its Install button: installing Light downloads Light's own built-in voices once (about 190 MB) — **your voice files are not downloaded again**. A voice in a language Read aloud does not detect yet (German, say) is listed as skipped, with its language.
+
+**Get more voices** from the [Piper voices catalogue](https://huggingface.co/rhasspy/piper-voices) (listen first on the [samples page](https://rhasspy.github.io/piper-samples/)): download a voice's `.onnx` and `.onnx.json` into your folder and press **Rescan**.
+
+### An external speaker
+
+For anything else, **Your own voices** has a folded **An external speaker (advanced)**: a command the server runs **once per sentence**, for the languages you tick. The sentence arrives on the program's standard input; `{lang}` becomes the language (`fr`) and `{out}` a file the program must write a WAV or Ogg to, within 20 seconds. Two examples:
+
+```
+piper --model /home/you/voices/fr_FR-upmc-medium.onnx --speaker 1 --output_file {out}
+python3 /home/you/my_speaker.py --language {lang} --out {out}
+```
+
+The command is split like a shell line (quotes work) but **not run through a shell**: no pipes, no `$VARIABLES`, and the sentence is never part of the command line. If the program exits with an error, takes longer than 20 seconds, or writes no file, the sentence is **not** read in another voice: the player says *Your external speaker failed*, and the program's own message is in the server's log. It is **never run for visitors** — Readers may listen always uses the app's voices.
+
+> **It runs as the server.** The program runs with the same user and permissions as the Astrolabe server: whatever that user may do, the command may do. Only name a program you trust, and on a shared or hosted server think twice. Like the folder, the command is kept on this computer only and never travels with the vault — a command that arrived by sync and was then run would be anybody's.
+
+The pocket vault on a phone has neither: it has no server to scan a folder or run a program, and says so.
+
 ## Readers may listen
 
 **Settings → Publishing & comments → Readers may listen** gives visitors of your blog the same chip over their selection. It is off unless you turn it on, because every new sentence a visitor asks for is your machine's processor. The server then speaks only words that are on a published page (a visitor cannot send it anything else to read), at most sixty new sentences per address every ten minutes; a sentence someone has already heard is served from the cache and costs nothing.
@@ -116,7 +153,9 @@ How it sounds depends on the device: Windows' Microsoft voices and Android's Goo
 ## For developers
 
 - `POST /api/speak` `{ text, lang?, path?, context?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang` and `X-Speak-Engine`. `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters; the client sends a sentence at a time and fetches the next while one plays.
-- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`), the settings in force. `POST /api/speak/install` `{ engine }` starts an install.
+- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`), the settings in force, and `own`: the voices folder, what its last scan found (`voices`, by language) and what it skipped (`skipped`, with a `reason`). `POST /api/speak/install` `{ engine }` starts an install; `POST /api/speak/voices/rescan` reads the folder again.
+- `PATCH /api/settings` `{ speak: { voicesDir, external: { command, langs } } }` — both are checked (an absolute path outside the vault that the server can read; a command naming `{out}`) and written to `ASTROLABE_DATA/speak-local.json`, never to `settings.json`, which the config mirror carries into the vault. A found voice is stored in `speak.voices` as `own:<path inside the folder>` (`#speaker` for one speaker of a model); the worker loads it by absolute path and keeps it loaded by path and modification time, so a replaced file is loaded again. `X-Speak-Voice` names the voice that spoke.
+
 - The fetched Python is pinned to one python-build-standalone release by size and SHA-256 (`server/standalonePython.ts`); programs are looked up on the `PATH` in-process, never through `which` or `where`.
 - `ASTROLABE_TTS_THREADS` pins the engine's thread count (default: half the cores, at most eight).
 - `ASTROLABE_SPEAK_FAKE=1` makes a scratch server answer with a tone, for the browser gates; the row says *Test engine* while it is on.
