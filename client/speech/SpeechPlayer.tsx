@@ -16,11 +16,12 @@ import "../styles/speech.css";
 import { getLang, t, tf, localeNum } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { Select } from "../components/controls/Select.tsx";
-import { isSpeakLang, SPEAK_ENGINES } from "../../shared/speech.ts";
+import { isSpeakLang, refusalsOf, SPEAK_ENGINES } from "../../shared/speech.ts";
+import { speakFetchVoice } from "../api.ts";
 import { voiceChoices } from "../../shared/speechVoices.ts";
 import { deviceVoiceList, localeName, useDeviceVoicesVersion, voicesFor, voiceShortName } from "./deviceVoices.ts";
 import { cycleRate, pause, replay, resume, stop, switchDeviceVoice, switchEngineVoice, usePlayer, type DeviceReading } from "./player.ts";
-import { useSpeakStatus } from "./speakStatus.ts";
+import { setSpeakStatus, useSpeakStatus } from "./speakStatus.ts";
 import { manyVoices, voiceGroups } from "./voiceOptions.ts";
 
 function Icon({ d }: { d: string }) {
@@ -76,8 +77,9 @@ function EngineVoicePicker({ lang, voice }: { lang: string; voice: string }) {
   const status = useSpeakStatus();
   if (!status || !isSpeakLang(lang) || voice === "external") return null;
   const installed = new Set(SPEAK_ENGINES.filter((e) => status.engines[e].installed));
-  const choices = voiceChoices(lang, status.settings.engine, installed, status.own.voices);
-  const groups = voiceGroups(choices, voice, { withDefault: false });
+  const ability = { refused: refusalsOf(status.engines), ready: (id: string) => status.voices[id]?.ready ?? true };
+  const choices = voiceChoices(lang, status.settings.engine, installed, status.own.voices, ability);
+  const groups = voiceGroups(choices, voice, { withDefault: false, files: status.voices });
   if (groups.reduce((n, g) => n + g.options.length, 0) < 2) return null;
   const language = localeName(lang, getLang());
   const first = choices.builtin[0]?.id ?? null;
@@ -88,7 +90,12 @@ function EngineVoicePicker({ lang, voice }: { lang: string; voice: string }) {
         triggerClass="s-speak__voice"
         valueDir={voice.startsWith("own:") ? "ltr" : undefined}
         value={voice}
-        onChange={(id) => void switchEngineVoice(id, id === first)}
+        onChange={(id) => {
+          // A voice that comes on choice starts downloading now; the
+          // sentence is read in the language's first voice until it is here.
+          if (status.voices[id] && !status.voices[id].ready) void speakFetchVoice(id).then(setSpeakStatus, () => {});
+          void switchEngineVoice(id, id === first);
+        }}
         groups={groups}
         filter={manyVoices(groups)}
         filterPlaceholder={t("speakVoiceFilter")}

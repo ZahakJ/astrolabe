@@ -32,3 +32,19 @@ describe("the speaker loads a found voice by path", () => {
     assert.equal((out.match(/^ok /gm) ?? []).length, 12, out);
   });
 });
+
+describe("Kokoro's espeak-ng is handed a short path", () => {
+  const espeak = fileURLToPath(new URL("./helpers/speak_worker_espeak.py", import.meta.url));
+  it("the wheel's own when it fits, else a short copy — never a path its buffer cuts", { skip: python ? false : "no python3 here" }, () => {
+    const env = { ...process.env };
+    delete env.PYTHONHOME;
+    delete env.PYTHONPATH;
+    env.PYTHONDONTWRITEBYTECODE = "1";
+    const run = spawnSync(python!, [espeak], { encoding: "utf8", env });
+    const out = `${run.stdout}${run.stderr}`;
+    assert.equal(run.status, 0, out);
+    assert.match(out, /^done$/m, out);
+    assert.doesNotMatch(out, /^FAIL/m, out);
+    assert.equal((out.match(/^ok /gm) ?? []).length, 8, out);
+  });
+});

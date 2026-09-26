@@ -4322,8 +4322,9 @@ const en = {
   voiceBackendCpu: "the processor",
   rowVoiceKeepAudio: "Keep voice recordings",
   hintVoiceKeepAudio: "Off deletes a recording once its words have landed.",
-  rowVoiceLanguage: "Voice note language",
-  hintVoiceLanguage: "Pin a language, or let each recording be heard for what it is.",
+  rowVoiceLanguage: "Voice notes: transcription language",
+  hintVoiceLanguage: "The language recordings are transcribed in. Read aloud finds its own.",
+  moreVoiceLanguage: "This row is for voice notes only: the language whisper transcribes a recording in. Detect lets each recording be heard for what it is; pin a language if the detector keeps mishearing you. It does not steer Read aloud, which reads every sentence in the language it is written in, so a French note is read in French whatever this row says.",
   voiceLangAuto: "Detect",
   // ── Read aloud (docs/read-aloud.md) ──────────────────────────────────────
   // The verb on the selection menu, the chip and the shortcut sheet.
@@ -4392,6 +4393,22 @@ const en = {
   speakVoiceFilter: "Find a voice",
   speakVoiceGoneGroup: "Not found now",
   speakVoiceGone: "A voice no longer in the folder",
+  // A built-in voice's gender, beside its name in every picker.
+  speakVoiceMale: "{name} (m)",
+  speakVoiceFemale: "{name} (f)",
+  // A Light voice that is not its language's first downloads when chosen.
+  speakVoiceOnChoice: "downloads when chosen · {size}",
+  speakPhaseVoice: "Downloading {name} — {pct}%.",
+  speakVoiceFetchFailed: "{name} could not be downloaded: {error}",
+  speakFrNoMaleNatural: "Natural has one French voice, a woman's. Light's Pierre is a man's.",
+  // The self-test after an Install: which languages each engine truly
+  // speaks on this machine (server/speakSelfTest.ts).
+  speakPhaseCheck: "Checking which languages it speaks…",
+  speakCheckRunning: "Checking which languages {engine} speaks…",
+  speakCheckSpeaks: "{engine} speaks {languages} here.",
+  speakCheckRefusedOther: "{engine} could not speak {languages} on this machine; {other} takes over.",
+  speakCheckRefusedNone: "{engine} could not speak {languages} on this machine; {other}, once installed, takes over.",
+  speakCheckAgain: "Check again",
   speakExternalFailed: "Your external speaker failed on this sentence, so nothing was read. The server's log has the program's own message.",
   speakExternalOpen: "Open Your own voices",
   // ── Settings → Language & dates → Your own voices (docs/read-aloud.md) ──

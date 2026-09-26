@@ -32,7 +32,17 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fileURLToPath } from "node:url";
-import { SPEAK_VOICES, type SpeakEngineId, type SpeakInstallPhase, type SpeakLang } from "../shared/speech.ts";
+import {
+  builtinVoice,
+  isOnChoiceVoice,
+  piperFileOf,
+  SPEAK_VOICES,
+  type SpeakEngineId,
+  type SpeakInstallPhase,
+  type SpeakLang,
+  type SpeakVoiceFetch,
+  type SpeakVoiceFile,
+} from "../shared/speech.ts";
 import { dataDir } from "./site.ts";
 import { fetchStandalonePython, findOnPath, PythonFetchError, standalonePythonExe, venvPythonIn } from "./standalonePython.ts";
 
@@ -59,14 +69,14 @@ export function standaloneDir(): string {
  *  minus the two variables that would point a relocatable Python at some
  *  OTHER Python's standard library (a machine with a stale PYTHONHOME set
  *  for another program is exactly where the standalone would be needed). */
-function pyEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
+export function pyEnv(extra: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   const env: NodeJS.ProcessEnv = { ...process.env, ...extra };
   delete env.PYTHONHOME;
   delete env.PYTHONPATH;
   return env;
 }
 
-const WORKER = fileURLToPath(new URL("./speakWorker.py", import.meta.url));
+export const WORKER = fileURLToPath(new URL("./speakWorker.py", import.meta.url));
 
 // ── What an engine is made of ──────────────────────────────────────────────
 
@@ -81,20 +91,25 @@ interface ModelFile {
 
 const PIPER_HOST = "https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0";
 const KOKORO_HOST = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0";
+/** A single-speaker medium Piper model; a multi-speaker one is larger. */
 const PIPER_VOICE_BYTES = 63_201_294;
+const PIPER_BYTES: Record<string, number> = { "fr_FR-upmc-medium": 76_733_615 };
 
-function piperFiles(voice: string): ModelFile[] {
+function piperFiles(file: string): ModelFile[] {
   // en_US-lessac-medium → en/en_US/lessac/medium/
-  const [region, name, quality] = voice.split("-");
+  const [region, name, quality] = file.split("-");
   const dir = `${PIPER_HOST}/${region.split("_")[0]}/${region}/${name}/${quality}`;
   return [
-    { rel: `piper/${voice}.onnx`, url: `${dir}/${voice}.onnx`, bytes: PIPER_VOICE_BYTES },
-    { rel: `piper/${voice}.onnx.json`, url: `${dir}/${voice}.onnx.json`, bytes: null },
+    { rel: `piper/${file}.onnx`, url: `${dir}/${file}.onnx`, bytes: PIPER_BYTES[file] ?? PIPER_VOICE_BYTES },
+    { rel: `piper/${file}.onnx.json`, url: `${dir}/${file}.onnx.json`, bytes: null },
   ];
 }
 
+/** What an Install downloads: Light's FIRST voice per language (the others
+ *  download when first chosen — `fetchVoice`), and Kokoro's model and its
+ *  voices file (every Natural voice is a row of it). */
 export const ENGINE_FILES: Record<SpeakEngineId, ModelFile[]> = {
-  light: Object.values(SPEAK_VOICES.light).flatMap((voices) => voices!.flatMap((v) => piperFiles(v.id))),
+  light: Object.values(SPEAK_VOICES.light).flatMap((voices) => piperFiles(piperFileOf(voices![0]))),
   natural: [
     { rel: "kokoro/kokoro-v1.0.onnx", url: `${KOKORO_HOST}/kokoro-v1.0.onnx`, bytes: 325_532_387 },
     { rel: "kokoro/voices-v1.0.bin", url: `${KOKORO_HOST}/voices-v1.0.bin`, bytes: 28_214_398 },
@@ -138,7 +153,7 @@ export function engineDownloaded(engine: SpeakEngineId): number {
 
 /** The marker the installer writes once an engine's packages are in: a
  *  venv whose `pip install` died halfway is not an engine. */
-function packagesMarker(engine: SpeakEngineId): string {
+export function packagesMarker(engine: SpeakEngineId): string {
   return path.join(venvDir(), `.astrolabe-${engine}`);
 }
 
@@ -147,7 +162,11 @@ export function runtimeReady(): boolean {
 }
 
 function modelsReady(engine: SpeakEngineId): boolean {
-  return ENGINE_FILES[engine].every((f) => {
+  return filesReady(ENGINE_FILES[engine]);
+}
+
+function filesReady(files: readonly ModelFile[]): boolean {
+  return files.every((f) => {
     const abs = path.join(ttsModelsDir(), f.rel);
     try {
       const size = statSync(abs).size;
@@ -169,6 +188,77 @@ export function engineInstalled(engine: SpeakEngineId): boolean {
 
 export function installedEngines(): Set<SpeakEngineId> {
   return new Set((["light", "natural"] as const).filter(engineInstalled));
+}
+
+// ── Voices that download on choice ─────────────────────────────────────────
+
+/** The files an on-choice voice needs (Light's Pierre: fr_FR-upmc-medium),
+ *  or null for a voice that comes with its engine's Install. */
+function onChoiceFiles(id: string): ModelFile[] | null {
+  const b = builtinVoice(id);
+  return b && isOnChoiceVoice(id) ? piperFiles(piperFileOf(b.voice)) : null;
+}
+
+/** On-choice voices a fake engine was "given" (tests and the gates). */
+const fakeVoices = new Set<string>();
+
+/** Whether a built-in voice can be spoken now: always for one that comes
+ *  with its engine; for an on-choice one, once its model is on disk. */
+export function voiceReady(id: string): boolean {
+  const files = onChoiceFiles(id);
+  if (!files) return true;
+  if (fakeInstalled) return fakeVoices.has(id);
+  return filesReady(files);
+}
+
+/** Every on-choice voice, and how much of it is here. */
+export function voiceFiles(): Record<string, SpeakVoiceFile> {
+  const out: Record<string, SpeakVoiceFile> = {};
+  for (const voices of Object.values(SPEAK_VOICES.light)) {
+    for (const v of voices ?? []) {
+      const files = onChoiceFiles(v.id);
+      if (!files) continue;
+      const bytes = files.reduce((n, f) => n + (f.bytes ?? 0), 0);
+      const ready = voiceReady(v.id);
+      const downloaded = ready ? bytes : fakeInstalled ? 0 : files.reduce((n, f) => n + (f.bytes === null ? 0 : Math.min(onDisk(f.rel), f.bytes)), 0);
+      out[v.id] = { ready, downloaded, bytes };
+    }
+  }
+  return out;
+}
+
+let voiceFetch: SpeakVoiceFetch = { voice: null, phase: "idle" };
+let fetching: Promise<void> | null = null;
+
+export function voiceFetchState(): SpeakVoiceFetch {
+  return { ...voiceFetch };
+}
+
+/** Download an on-choice voice: the Settings picker asks the moment the
+ *  owner chooses it, and the route asks when a saved choice is not on disk
+ *  yet (a choice made on another device). One download at a time; asking
+ *  again while it runs joins it. A voice already here, or one that comes
+ *  with its engine, resolves at once. */
+export function fetchVoice(id: string): Promise<void> {
+  const files = onChoiceFiles(id);
+  if (!files || voiceReady(id)) return Promise.resolve();
+  if (fetching) return fetching;
+  voiceFetch = { voice: id, phase: "downloading" };
+  fetching = (async () => {
+    try {
+      // The fake "downloads" on the next turn, as a real one would not be
+      // done by the time the request that started it is answered.
+      if (fakeInstalled) await new Promise((r) => setTimeout(r, 20)).then(() => fakeVoices.add(id));
+      else for (const f of files) await download(f);
+      voiceFetch = { voice: id, phase: "done" };
+    } catch (err) {
+      voiceFetch = { voice: id, phase: "failed", error: (err as Error).message };
+      console.error("speak: voice download failed:", (err as Error).message);
+    }
+  })().finally(() => {
+    fetching = null;
+  });
+  return fetching;
 }
 
 // ── Installing ─────────────────────────────────────────────────────────────
@@ -322,7 +412,7 @@ async function download(file: ModelFile): Promise<void> {
 
 /** Install one engine: the venv (once), its packages, its models. One
  *  install at a time; a second press while one runs joins it. */
-export function installEngine(engine: SpeakEngineId): Promise<void> {
+export function installEngine(engine: SpeakEngineId, check?: () => Promise<unknown>): Promise<void> {
   if (installing) return installing;
   install = { phase: "python", engine };
   installing = (async () => {
@@ -332,8 +422,16 @@ export function installEngine(engine: SpeakEngineId): Promise<void> {
       if (!existsSync(packagesMarker(engine))) await installPackages(engine, tool);
       install = { phase: "models", engine };
       for (const f of ENGINE_FILES[engine]) await download(f);
-      install = { phase: "done", engine };
       stopChild(); // a running child has not imported the new engine's packages
+      // The self-test (server/speakSelfTest.ts): which languages the new
+      // engine truly speaks here. Its own process; its verdict is the
+      // row's, and a failed language is handed to the other engine — the
+      // install itself stands.
+      if (check) {
+        install = { phase: "check", engine };
+        await check().catch(() => {});
+      }
+      install = { phase: "done", engine };
     } catch (err) {
       const e = err as SpeakError;
       install = { phase: "failed", engine, error: e.message, code: e.code ?? "speakInstall" };
@@ -531,6 +629,7 @@ export function synthesize(job: SpeakJob): Promise<Synthesis> {
 export function setFakeEngine(fake: Synthesizer | null, installed: SpeakEngineId[] = []): void {
   synthesizer = fake ?? inChild;
   fakeInstalled = fake ? new Set(installed) : null;
+  fakeVoices.clear();
 }
 
 /** A tone as a WAV: what the fake engine answers. A short beep whose pitch

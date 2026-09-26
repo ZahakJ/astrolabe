@@ -29,6 +29,7 @@
 // server, the client and tests/speechVoices.test.ts read the same answers.
 
 import {
+  builtinVoice,
   engineFor,
   engineNeeded,
   isSpeakLang,
@@ -36,6 +37,7 @@ import {
   voiceFor,
   type SpeakEngineId,
   type SpeakLang,
+  type SpeakRefusals,
   type SpeakVoice,
 } from "./speech.ts";
 
@@ -270,26 +272,42 @@ export function voicesDirRefusal(
 
 // ── The picker: built-in and found, per language ───────────────────────────
 
+/** What the server knows beyond "installed": the languages an engine's
+ *  self-test refused on this machine, and which on-choice voices are on disk
+ *  (a voice not yet downloaded is offered, and speaks once it is). */
+export interface SpeakAbility {
+  refused?: SpeakRefusals;
+  ready?: (voiceId: string) => boolean;
+}
+
 export interface VoiceChoices {
   /** The engine whose built-in voices are offered (the one that speaks or
    *  would speak the language), or null when no built-in engine speaks it. */
   engine: SpeakEngineId | null;
   builtin: readonly SpeakVoice[];
+  /** The OTHER installed engine's voices for the language, when it speaks
+   *  it too — a Light voice may be chosen under Natural (French's only
+   *  man's voice is Light's Pierre), and it is that engine that speaks it. */
+  also: { engine: SpeakEngineId; voices: readonly SpeakVoice[] } | null;
   own: OwnVoice[];
 }
 
-/** Every voice a picker for `lang` offers: the built-in engine's, then the
- *  folder's ("Your voices"). */
+/** Every voice a picker for `lang` offers: the built-in engine's, the other
+ *  installed engine's, then the folder's ("Your voices"). */
 export function voiceChoices(
   lang: SpeakLang,
   chosen: SpeakEngineId,
   installed: ReadonlySet<SpeakEngineId>,
   own: readonly OwnVoice[],
+  ability: SpeakAbility = {},
 ): VoiceChoices {
-  const engine = engineFor(lang, chosen, installed) ?? engineNeeded(lang, chosen);
+  const engine = engineFor(lang, chosen, installed, ability.refused) ?? engineNeeded(lang, chosen, ability.refused);
+  const other: SpeakEngineId | null = engine === null ? null : engine === "light" ? "natural" : "light";
+  const otherVoices = other && installed.has(other) && !ability.refused?.[other]?.includes(lang) ? (SPEAK_VOICES[other][lang] ?? []) : [];
   return {
     engine,
     builtin: engine ? (SPEAK_VOICES[engine][lang] ?? []) : [],
+    also: other && otherVoices.length > 0 ? { engine: other, voices: otherVoices } : null,
     own: own.filter((v) => v.lang === lang),
   };
 }
@@ -301,12 +319,14 @@ export function pickerLangs(
   chosen: SpeakEngineId,
   installed: ReadonlySet<SpeakEngineId>,
   own: readonly OwnVoice[],
+  ability: SpeakAbility = {},
 ): SpeakLang[] {
   return langs.filter((lang) => {
-    const c = voiceChoices(lang, chosen, installed, own);
+    const c = voiceChoices(lang, chosen, installed, own, ability);
     // Several built-in voices count when their engine is here or chosen —
     // Japanese's four Kokoro voices are no choice on a Light-only machine.
-    return c.own.length > 0 || (c.builtin.length > 1 && c.engine !== null && (installed.has(c.engine) || c.engine === chosen));
+    const builtin = c.builtin.length + (c.also?.voices.length ?? 0);
+    return c.own.length > 0 || (builtin > 1 && c.engine !== null && (installed.has(c.engine) || c.engine === chosen));
   });
 }
 
@@ -320,24 +340,34 @@ export interface ResolvedVoice {
 /** WHICH VOICE SPEAKS `lang`:
  *    1. the reader's pick, when it is a found voice still in the folder and
  *       its engine's runtime is installed;
- *    2. else the built-in engine that speaks the language (the choice where
- *       both do), with the pick when it is that engine's, else its first;
- *    3. else the first found voice of the language whose runtime is here —
+ *    2. the reader's pick, when it is a built-in voice of an installed
+ *       engine that speaks the language here (not refused by its
+ *       self-test) and is on disk — whichever engine was chosen: a Light
+ *       voice picked under Natural is spoken by Light;
+ *    3. else the built-in engine that speaks the language (the choice where
+ *       both do), with its first voice;
+ *    4. else the first found voice of the language whose runtime is here —
  *       a Spanish Piper voice speaks Spanish on a Light-only machine;
- *    4. else nothing (the route's 409). */
+ *    5. else nothing (the route's 409). */
 export function resolveVoice(
   lang: SpeakLang,
   chosen: SpeakEngineId,
   picked: string | null | undefined,
   installed: ReadonlySet<SpeakEngineId>,
   own: readonly OwnVoice[],
+  ability: SpeakAbility = {},
 ): ResolvedVoice | null {
+  const ready = ability.ready ?? (() => true);
   if (isOwnVoiceId(picked)) {
     const hit = own.find((v) => v.id === picked && v.lang === lang);
     if (hit && installed.has(ownVoiceEngine(hit))) return { engine: ownVoiceEngine(hit), voice: hit.id, own: hit };
   }
-  const engine = engineFor(lang, chosen, installed);
-  if (engine) return { engine, voice: voiceFor(engine, lang, picked) as string, own: null };
+  const b = builtinVoice(picked);
+  if (b && b.lang === lang && installed.has(b.engine) && !ability.refused?.[b.engine]?.includes(lang) && ready(b.voice.id)) {
+    return { engine: b.engine, voice: b.voice.id, own: null };
+  }
+  const engine = engineFor(lang, chosen, installed, ability.refused);
+  if (engine) return { engine, voice: voiceFor(engine, lang, picked, ready) as string, own: null };
   const first = own.find((v) => v.lang === lang && installed.has(ownVoiceEngine(v)));
   if (first) return { engine: ownVoiceEngine(first), voice: first.id, own: first };
   return null;
@@ -345,10 +375,10 @@ export function resolveVoice(
 
 /** The engine to install so that `lang` can be spoken: the built-in one it
  *  needs, else the runtime its found voices need. */
-export function engineNeededWith(lang: SpeakLang, chosen: SpeakEngineId, own: readonly OwnVoice[]): SpeakEngineId | null {
+export function engineNeededWith(lang: SpeakLang, chosen: SpeakEngineId, own: readonly OwnVoice[], refused?: SpeakRefusals): SpeakEngineId | null {
   const mine = own.find((v) => v.lang === lang);
   if (mine) return ownVoiceEngine(mine);
-  return engineNeeded(lang, chosen);
+  return engineNeeded(lang, chosen, refused);
 }
 
 /** "fr: 3 voices · ar: 1" — the counts per language, most first. */

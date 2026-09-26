@@ -1846,7 +1846,10 @@ instance's language, instead of arriving as an English 400 in a toast.
 - **The popover is a PORTAL on `<body>`, positioned per open from the trigger's rect.** The panel
   is `overflow: hidden` and its body is a scroller, so an in-flow popover would be clipped by one
   and dragged by the other. Portals bubble React events through the COMPONENT tree, so the
-  popover stops its own mouse events; outside-clicks are a DOM capture listener.
+  popover stops its own mouse events; outside-clicks are a DOM capture listener. Its layer is
+  `--z-popover` (440): the settings panel rides the palette overlay (410), and at the old
+  `z-index: 200` every picker in Settings opened BENEATH the panel — laid out, focused, invisible
+  (found by the Read aloud round's screenshots, and visible in the earlier round's too).
 - **The BOUNDS are the scrolling region, not the dialog** (`[data-popbounds]`, which
   `SettingsModal` puts on `.s-smodal__body`), intersected with the viewport — the owner's words
   were "fits correctly within the settings screen bounds". Clamping to `[role="dialog"]` met that

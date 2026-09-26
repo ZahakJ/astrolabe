@@ -16,7 +16,7 @@ import { initSite } from "../server/site.ts";
 import { initVault, type VaultError } from "../server/vault.ts";
 import { api } from "../server/api.ts";
 import { getSettings, patchSettings } from "../server/settings.ts";
-import { setFakeEngine, toneWav, type SpeakJob } from "../server/speakEngine.ts";
+import { fetchVoice, setFakeEngine, toneWav, type SpeakJob } from "../server/speakEngine.ts";
 import { foldForMatch } from "../server/speak.ts";
 import { makeDir, makeVault, note, removeVault } from "./helpers/vault.ts";
 import type { SpeakStatus } from "../shared/speech.ts";
@@ -139,6 +139,110 @@ describe("POST /api/speak (the owner)", () => {
     assert.equal(((await res.json()) as { code: string }).code, "engine");
     setFakeEngine(async (job) => ({ audio: toneWav(job.text), mime: "audio/wav", ms: 1 }), ["light", "natural"]);
     assert.equal((await speak({ text: "A fresh failing sentence." })).status, 200);
+  });
+});
+
+describe("a voice that downloads on choice (Light's Pierre), and a voice of the other engine", () => {
+  const pierre = "fr_FR-upmc-medium#pierre";
+  const post = (url: string, body: unknown) =>
+    app.request(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const status = async (): Promise<SpeakStatus> => (await (await app.request("/api/speak/status")).json()) as SpeakStatus;
+
+  before(() => {
+    setFakeEngine(async (job) => {
+      asked.push(job);
+      return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+    }, ["light", "natural"]);
+  });
+
+  it("is listed as not here yet, with its size, and Install did not fetch it", async () => {
+    const s = await status();
+    assert.deepEqual(Object.keys(s.voices).sort(), ["fr_FR-upmc-medium#jessica", pierre]);
+    assert.equal(s.voices[pierre].ready, false);
+    assert.equal(s.voices[pierre].bytes, 76_733_615);
+    assert.equal(s.fetch.phase, "idle");
+  });
+
+  it("chosen but not downloaded: the language's first voice speaks, and the download starts", async () => {
+    patchSettings({ speak: { engine: "light", voices: { fr: pierre } } });
+    try {
+      asked.length = 0;
+      const res = await speak({ text: "Bonjour, je suis Pierre et je lis le français." });
+      assert.equal(res.headers.get("x-speak-voice"), "fr_FR-siwis-medium");
+      assert.equal(asked[0].voice, "fr_FR-siwis-medium");
+      // The route asked for the saved choice's model; join that download.
+      assert.equal((await status()).fetch.phase, "downloading");
+      await fetchVoice(pierre);
+      const s = await status();
+      assert.equal(s.voices[pierre].ready, true);
+      assert.equal(s.fetch.voice, pierre);
+      assert.equal(s.fetch.phase, "done");
+      // Now Pierre speaks: the model file, and the male speaker's number.
+      asked.length = 0;
+      const again = await speak({ text: "Bonjour, je suis Pierre et je lis encore." });
+      assert.equal(decodeURIComponent(again.headers.get("x-speak-voice") ?? ""), pierre);
+      assert.equal(asked[0].voice, "fr_FR-upmc-medium");
+      assert.equal(asked[0].speaker, 1);
+    } finally {
+      patchSettings({ speak: null });
+    }
+  });
+
+  it("POST /api/speak/voice downloads the voice the Settings picker just chose", async () => {
+    setFakeEngine(async (job) => {
+      asked.push(job);
+      return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+    }, ["light", "natural"]); // a fresh fake: nothing downloaded
+    assert.equal((await status()).voices["fr_FR-upmc-medium#jessica"].ready, false);
+    const res = await post("/api/speak/voice", { voice: "fr_FR-upmc-medium#jessica" });
+    assert.equal(res.status, 202);
+    const during = await status();
+    assert.deepEqual([during.fetch.voice, during.fetch.phase], ["fr_FR-upmc-medium#jessica", "downloading"]);
+    await fetchVoice("fr_FR-upmc-medium#jessica");
+    assert.equal((await status()).voices["fr_FR-upmc-medium#jessica"].ready, true);
+    // Refused: a voice that comes with Install, a Kokoro voice, nonsense.
+    assert.equal((await post("/api/speak/voice", { voice: "fr_FR-siwis-medium" })).status, 400);
+    assert.equal((await post("/api/speak/voice", { voice: "am_michael" })).status, 400);
+    assert.equal((await post("/api/speak/voice", { voice: "../../etc" })).status, 400);
+  });
+
+  it("with Light not installed, asking for a Light voice is a 409 naming Light", async () => {
+    setFakeEngine(async (job) => ({ audio: toneWav(job.text), mime: "audio/wav", ms: 1 }), ["natural"]);
+    try {
+      const res = await post("/api/speak/voice", { voice: pierre });
+      assert.equal(res.status, 409);
+      assert.equal(((await res.json()) as { needs: string }).needs, "light");
+    } finally {
+      setFakeEngine(async (job) => {
+        asked.push(job);
+        return { audio: toneWav(job.text), mime: "audio/wav", ms: 1 };
+      }, ["light", "natural"]);
+    }
+  });
+
+  it("the settings take a Light voice for French under Natural, and Light speaks it", async () => {
+    await post("/api/speak/voice", { voice: pierre });
+    await fetchVoice(pierre);
+    patchSettings({ speak: { engine: "natural", voices: { fr: pierre } } });
+    try {
+      assert.equal(getSettings().speak?.voices?.fr, pierre);
+      asked.length = 0;
+      const res = await speak({ text: "Je finis mon travail à dix-huit heures." });
+      assert.equal(res.headers.get("x-speak-lang"), "fr");
+      assert.equal(res.headers.get("x-speak-engine"), "light");
+      assert.deepEqual([asked[0].engine, asked[0].voice, asked[0].speaker], ["light", "fr_FR-upmc-medium", 1]);
+      // Japanese under the same settings is still Natural's.
+      assert.equal((await speak({ text: "図書館へ行きます" })).headers.get("x-speak-engine"), "natural");
+    } finally {
+      patchSettings({ speak: null });
+    }
+  });
+
+  it("a French lesson's heading, sent with its passage's language, is French", async () => {
+    const plain = await speak({ text: "Décrire son quotidien." });
+    assert.equal(plain.headers.get("x-speak-lang"), "en", "alone it has no French word — the bug");
+    const withPassage = await speak({ text: "Décrire son quotidien.", passage: "fr" });
+    assert.equal(withPassage.headers.get("x-speak-lang"), "fr");
   });
 });
 

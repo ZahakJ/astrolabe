@@ -370,6 +370,39 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.37.0",
+    title: { en: "French, in French", ar: "الفرنسية بالفرنسية" },
+    slides: [
+      {
+        // ── Sentences judged with their paragraph; a self-test; Pierre ────
+        title: { en: "French, in French", ar: "الفرنسية بالفرنسية" },
+        body: {
+          en: "A French note is now read in French all the way through, headings and short lines included, because each sentence is judged with its paragraph and the passage around it. After an install, each engine speaks one word in every language and the settings row says plainly which languages it truly speaks on this machine; a language it cannot manage goes to the other engine, never to English. Light gains Pierre, a man's French voice, downloaded the moment you choose him, and every voice now shows (m) or (f).",
+          ar: "صارت الملاحظة الفرنسية تُقرأ بالفرنسية من أولها إلى آخرها، عناوينها وأسطرها القصيرة معها، لأن كل جملة تُحكم مع فقرتها والمقطع الذي حولها. وبعد التثبيت ينطق كل محرّك كلمة من كل لغة، ويقول صف الإعدادات صراحة أيّ اللغات يقرؤها فعلًا على هذا الجهاز؛ واللغة التي يعجز عنها تذهب إلى المحرّك الآخر، لا إلى الإنجليزية أبدًا. ويُضاف إلى «خفيف» صوت Pierre، صوت رجل فرنسي، يُنزَّل لحظة تختاره، وكل صوت يُظهر الآن (رجل) أو (امرأة).",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="40" y="36" width="280" height="150" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="56" y="62" fill="var(--text)" font-size="13" font-weight="700">Décrire son quotidien</text>
+  <rect class="wa-pulse" x="52" y="50" width="200" height="18" rx="3" fill="var(--accent-soft)" opacity="0.6"/>
+  <g fill="var(--text-faint)"><rect x="56" y="80" width="230" height="4" rx="2"/><rect x="56" y="92" width="200" height="4" rx="2"/><rect x="56" y="104" width="240" height="4" rx="2"/></g>
+  <text x="56" y="130" fill="var(--text)" font-size="12">Le matin, je me lève…</text>
+  <rect class="wa-pulse" style="--i:1" x="52" y="119" width="150" height="16" rx="3" fill="var(--accent-soft)" opacity="0.6"/>
+  <g class="wa-late" style="--i:2"><path d="M340 60 h6 l7 -5 v22 l-7 -5 h-6 z" fill="var(--accent)"/><path d="M357 62 q5 6 0 12 M362 58 q9 10 0 20" fill="none" stroke="var(--accent)" stroke-width="1.5"/></g>
+  <g class="wa-late" style="--i:3"><rect x="390" y="50" width="120" height="20" rx="10" fill="var(--bg)" stroke="var(--border)"/><text x="450" y="64" text-anchor="middle" fill="var(--text)" font-size="11">Siwis ${L(lang, "(f)", "(امرأة)")}</text>
+  <rect x="390" y="78" width="120" height="20" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><text x="450" y="92" text-anchor="middle" fill="var(--text)" font-size="11" font-weight="700">Pierre ${L(lang, "(m)", "(رجل)")}</text></g>
+  <g class="wa-late" style="--i:4" fill="var(--text-muted)" font-size="10">${["en","fr","ja","ar"].map((l,i) => `<text x="${392 + i*32}" y="130">${l} ✓</text>`).join("")}</g>
+  <text x="180" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "every line, in its language", "كل سطر، بلغته")}</text>
+  <text x="450" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a man's voice, on choice", "صوت رجل، عند الاختيار")}</text>
+</svg>`,
+        },
+        docs: "read-aloud",
+      },
+    ],
+  },
+  {
     version: "3.36.0",
     title: { en: "Your own voices", ar: "أصواتك الخاصة" },
     slides: [
