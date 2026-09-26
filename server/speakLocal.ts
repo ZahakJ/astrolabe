@@ -122,6 +122,19 @@ const DIR_SENTENCE: Record<OwnDirProblem, string> = {
   unreadable: "The server cannot read that folder (its user has no permission)",
 };
 
+// ── The operator's switch ──────────────────────────────────────────────────
+
+/** THE EXTERNAL SPEAKER IS THE OPERATOR'S TO ALLOW, not the admin's. A
+ *  program run as the server's user is more than a setting: on a hosted
+ *  instance the admin password and the machine are not always the same
+ *  person's. So `SPEAK_EXTERNAL=on` in the server's .env (default off) is
+ *  the guard: while it is off a command cannot be saved, and one saved
+ *  earlier is never run. The desktop app is its own operator and passes it
+ *  on (electron/server.ts). Read per call, so a test can turn it. */
+export function externalAllowed(env: NodeJS.ProcessEnv = process.env): boolean {
+  return /^(on|true|1|yes)$/i.test(env.SPEAK_EXTERNAL?.trim() ?? "");
+}
+
 // ── Staging ────────────────────────────────────────────────────────────────
 
 let staged: Partial<SpeakLocal> | null = null;
@@ -161,6 +174,14 @@ export function stageExternal(value: unknown): void {
   if (command === "") {
     staged = { ...staged, external: null };
     return;
+  }
+  // Clearing is always allowed; saving a program is the operator's call.
+  if (!externalAllowed()) {
+    throw new VaultError(
+      400,
+      "The operator has not allowed an external speaker on this server: set SPEAK_EXTERNAL=on in .env",
+      "speakExternalOff",
+    );
   }
   const problem = externalCommandProblem(command);
   if (problem === "noOut") throw new VaultError(400, "The command must name {out}, the file it writes the sound to", "speakExternalNoOut");

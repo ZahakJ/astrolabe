@@ -271,10 +271,28 @@ describe("your own voices (the voices folder)", () => {
     }
   });
 
+  it("while the operator has not allowed it (no SPEAK_EXTERNAL=on), an external speaker cannot be saved", async () => {
+    delete process.env.SPEAK_EXTERNAL;
+    let code = "";
+    try {
+      patchSettings({ speak: { external: { command: `"${fakeSpeaker}" {lang} {out}`, langs: ["fr"] } } });
+    } catch (err) {
+      code = (err as VaultError).code ?? "";
+    }
+    assert.equal(code, "speakExternalOff");
+    const status = (await (await app.request("/api/speak/status")).json()) as SpeakStatus;
+    assert.equal(status.externalAllowed, false);
+    assert.equal(status.settings.external, null, "nothing was saved");
+    // Clearing is always allowed.
+    patchSettings({ speak: { external: null } });
+  });
+
   it("the external speaker speaks the languages it was given, and says when it failed", async () => {
+    process.env.SPEAK_EXTERNAL = "on";
     writeFileSync(fakeSpeaker, `#!/bin/sh\ncat > /dev/null\n[ "$1" = "fr" ] || exit 7\nprintf 'OggS-fake' > "$2"\n`);
     chmodSync(fakeSpeaker, 0o755);
     patchSettings({ speak: { external: { command: `"${fakeSpeaker}" {lang} {out}`, langs: ["fr", "ar"] } } });
+    assert.equal(((await (await app.request("/api/speak/status")).json()) as SpeakStatus).externalAllowed, true);
     assert.doesNotMatch(readFileSync(path.join(data, "settings.json"), "utf8"), /external/);
     asked.length = 0;
     const fr = await speak({ text: "Une phrase pour le programme.", lang: "fr" });
@@ -289,6 +307,24 @@ describe("your own voices (the voices folder)", () => {
     assert.equal(ar.status, 502);
     assert.equal(((await ar.json()) as { code: string }).code, "speakExternal");
   });
+
+  it("a command saved while allowed is never run once the operator turns the switch off", async () => {
+    const ran = path.join(data, "ran-while-off.txt");
+    writeFileSync(fakeSpeaker, `#!/bin/sh\ntouch "${ran}"\nprintf 'OggS-fake' > "$2"\n`);
+    chmodSync(fakeSpeaker, 0o755);
+    process.env.SPEAK_EXTERNAL = "on";
+    patchSettings({ speak: { external: { command: `"${fakeSpeaker}" {lang} {out}`, langs: ["fr"] } } });
+    process.env.SPEAK_EXTERNAL = "off";
+    try {
+      const fr = await speak({ text: "Une phrase que le programme ne lira pas.", lang: "fr" });
+      assert.equal(fr.status, 200);
+      assert.equal(fr.headers.get("x-speak-engine"), "light", "the app's own voice answered");
+      assert.equal(existsSync(ran), false, "the program never ran");
+    } finally {
+      process.env.SPEAK_EXTERNAL = "on";
+    }
+  });
+
 
   it("refuses a command with no {out}, or with quotes that do not close", () => {
     assert.throws(() => patchSettings({ speak: { external: { command: "piper --model x.onnx", langs: ["fr"] } } }), /\{out\}/);
@@ -334,6 +370,7 @@ describe("POST /api/speak (a visitor)", () => {
 
   it("never runs the owner's external speaker: a visitor hears the app's voices", async () => {
     initAuth({});
+    process.env.SPEAK_EXTERNAL = "on"; // allowed, so what refuses it here is the visitor rule
     const program = path.join(data, "never-run.sh");
     const ran = path.join(data, "never-run.txt");
     writeFileSync(program, `#!/bin/sh\ntouch "${ran}"\nprintf 'OggS' > "$1"\n`);
@@ -351,6 +388,7 @@ describe("POST /api/speak (a visitor)", () => {
     } finally {
       initAuth({});
       patchSettings({ speak: null });
+      delete process.env.SPEAK_EXTERNAL;
     }
   });
 

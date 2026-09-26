@@ -158,20 +158,41 @@ function NeedsLight() {
 
 /** The external speaker, folded: a command and the languages it speaks for. */
 function ExternalSpeaker() {
-  const { form, setForm, errors } = useSettings();
-  const ui = getLang();
-  const on = form.speakExternalCmd.trim() !== "";
+  const { form } = useSettings();
+  const status = useSpeakStatus();
+  // The operator's switch (SPEAK_EXTERNAL in the server's .env): off, the
+  // part says so instead of offering fields a save would refuse.
+  const allowed = status?.externalAllowed === true;
+  const on = allowed && form.speakExternalCmd.trim() !== "";
   const [open, setOpen] = useState(on);
-  const toggle = (lang: SpeakLang, yes: boolean): void =>
-    setForm((f) =>
-      f ? { ...f, speakExternalLangs: yes ? SPEAK_LANGS.filter((l) => l === lang || f.speakExternalLangs.includes(l)) : f.speakExternalLangs.filter((l) => l !== lang) } : f,
-    );
   return (
     <details className="s-ownvoices__external" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
       <summary>
         {t("ownExternalHead")}
         {on && form.speakExternalLangs.length > 0 && <span className="s-ownvoices__on"> · {languageList(form.speakExternalLangs)}</span>}
       </summary>
+      {allowed ? (
+        <ExternalFields />
+      ) : (
+        <p className="s-smodal__offnote" data-external-off="">
+          {t("ownExternalOff")}
+        </p>
+      )}
+    </details>
+  );
+}
+
+/** The command and its languages — drawn only where the operator allowed
+ *  an external speaker (SPEAK_EXTERNAL=on in the server's .env). */
+function ExternalFields() {
+  const { form, setForm, errors } = useSettings();
+  const ui = getLang();
+  const toggle = (lang: SpeakLang, yes: boolean): void =>
+    setForm((f) =>
+      f ? { ...f, speakExternalLangs: yes ? SPEAK_LANGS.filter((l) => l === lang || f.speakExternalLangs.includes(l)) : f.speakExternalLangs.filter((l) => l !== lang) } : f,
+    );
+  return (
+    <>
       <p className="s-smodal__note">{t("ownExternalNote")}</p>
       <TextInput
         label={t("ownExternalCommand")}
@@ -196,7 +217,7 @@ function ExternalSpeaker() {
           </label>
         ))}
       </fieldset>
-    </details>
+    </>
   );
 }
 

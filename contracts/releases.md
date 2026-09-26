@@ -47,4 +47,4 @@ Where each release's contract now lives is named beside it. Before 3.10 the hist
 
 ## Unreleased
 
-- **Your own voices** — Read aloud points at a folder of Piper voices (and Kokoro packs) already on this machine: scanned recursively, one voice per speaker, offered in every picker under "Your voices" and loaded by path; an external speaker program per sentence for the languages given, never for visitors; both kept in speak-local.json, never in the vault ([features.md](features.md), "Your own voices").
+- **Your own voices** — Read aloud points at a folder of Piper voices (and Kokoro packs) already on this machine: scanned recursively, one voice per speaker, offered in every picker under "Your voices" and loaded by path; an external speaker program per sentence for the languages given, only where the operator set SPEAK_EXTERNAL=on (the desktop app does), never for visitors; both kept in speak-local.json, never in the vault ([features.md](features.md), "Your own voices").

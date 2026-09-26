@@ -208,6 +208,9 @@ export interface SpeakStatus {
   settings: SpeakEffective;
   /** The voices folder and what its last scan found. */
   own: OwnVoicesStatus;
+  /** The operator allowed an external speaker (`SPEAK_EXTERNAL=on` in the
+   *  server's .env; the desktop app passes it on). Off, none is saved or run. */
+  externalAllowed: boolean;
 }
 
 // ── Which language ─────────────────────────────────────────────────────────

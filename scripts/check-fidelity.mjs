@@ -1074,6 +1074,16 @@ try {
         check((await found.getAttribute("data-own-voices").catch(() => null)) === "3", tag("the row counts what the scan found"));
         const line = ((await found.textContent().catch(() => "")) ?? "").replace(/[⁨⁩]/g, "");
         check(line.includes(dict.ownSkipNoJson), tag("…and says why a file was skipped"), line);
+        // The external speaker is the OPERATOR's to allow (SPEAK_EXTERNAL=on in
+        // .env): where it is not, the folded part says so instead of fields.
+        await page.locator(".s-ownvoices__external > summary").click().catch(() => {});
+        await page.waitForTimeout(200);
+        if (scan?.externalAllowed === false) {
+          const off = ((await page.locator("[data-external-off]").textContent().catch(() => "")) ?? "").trim();
+          check(off === dict.ownExternalOff && (await page.locator(".s-ownvoices__external input").count()) === 0, tag("no SPEAK_EXTERNAL: the external speaker's part names the switch, and offers no fields"), off);
+        } else {
+          check((await page.locator(".s-ownvoices__external input").count()) > 0, tag("SPEAK_EXTERNAL=on: the external speaker's fields are offered"));
+        }
         await page.locator(".s-ownvoices").scrollIntoViewIfNeeded().catch(() => {});
         await page.screenshot({ path: `${out}/own-voices-${lang}.png` });
         // The French picker in the Read aloud row: both speakers, under "Your voices".
