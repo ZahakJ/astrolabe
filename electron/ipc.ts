@@ -83,6 +83,10 @@ export const TO_MAIN = {
    *  The FACTOR is the app's, not Chromium's per-host memory — see the note on
    *  `VaultPref.zoom` in electron/prefs.ts. */
   zoomSet: "astrolabe:zoom-set",
+  /** Show the system's folder picker and answer the folder chosen (or null):
+   *  Settings → Language & dates → Your own voices' Browse… (docs/read-aloud.md).
+   *  A path goes back, nothing is read — the server checks and scans it. */
+  pickFolder: "astrolabe:pick-folder",
 } as const;
 
 /** Main tells, renderer listens (`webContents.send` ⇄ `ipcRenderer.on`). */

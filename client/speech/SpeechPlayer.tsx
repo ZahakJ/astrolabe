@@ -16,8 +16,12 @@ import "../styles/speech.css";
 import { getLang, t, tf, localeNum } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { Select } from "../components/controls/Select.tsx";
+import { isSpeakLang, SPEAK_ENGINES } from "../../shared/speech.ts";
+import { voiceChoices } from "../../shared/speechVoices.ts";
 import { deviceVoiceList, localeName, useDeviceVoicesVersion, voicesFor, voiceShortName } from "./deviceVoices.ts";
-import { cycleRate, pause, replay, resume, stop, switchDeviceVoice, usePlayer, type DeviceReading } from "./player.ts";
+import { cycleRate, pause, replay, resume, stop, switchDeviceVoice, switchEngineVoice, usePlayer, type DeviceReading } from "./player.ts";
+import { useSpeakStatus } from "./speakStatus.ts";
+import { manyVoices, voiceGroups } from "./voiceOptions.ts";
 
 function Icon({ d }: { d: string }) {
   return (
@@ -61,6 +65,55 @@ function DeviceVoicePicker({ device }: { device: DeviceReading }) {
       options={voices.map((v) => ({ value: v.voiceURI, label: voiceShortName(v), labelDir: "ltr" as const, note: localeName(v.lang, ui) }))}
     />
   );
+}
+
+/** THE APP'S VOICE, NAMED, with the ▾ of every other app voice for the
+ *  language — the built-in ones and the reader's own (the voices folder) —
+ *  for the owner. Choosing one is saving it as the language's voice, the
+ *  same setting as Settings' picker, and the sentence is read again in it.
+ *  Drawn only when there is a choice to make. */
+function EngineVoicePicker({ lang, voice }: { lang: string; voice: string }) {
+  const status = useSpeakStatus();
+  if (!status || !isSpeakLang(lang) || voice === "external") return null;
+  const installed = new Set(SPEAK_ENGINES.filter((e) => status.engines[e].installed));
+  const choices = voiceChoices(lang, status.settings.engine, installed, status.own.voices);
+  const groups = voiceGroups(choices, voice, { withDefault: false });
+  if (groups.reduce((n, g) => n + g.options.length, 0) < 2) return null;
+  const language = localeName(lang, getLang());
+  const first = choices.builtin[0]?.id ?? null;
+  return (
+    <span className="s-speak__engine" data-voice={voice}>
+      <Select
+        label={tf("speakVoiceFor", { language })}
+        triggerClass="s-speak__voice"
+        valueDir={voice.startsWith("own:") ? "ltr" : undefined}
+        value={voice}
+        onChange={(id) => void switchEngineVoice(id, id === first)}
+        groups={groups}
+        filter={manyVoices(groups)}
+        filterPlaceholder={t("speakVoiceFilter")}
+      />
+    </span>
+  );
+}
+
+/** The owner's external speaker failed on this passage. */
+function FailedLine({ owner }: { owner: boolean }) {
+  return (
+    <span className="s-speak__note" data-state="failed" role="alert">
+      {t("speakExternalFailed")}{" "}
+      {owner && (
+        <button type="button" className="s-speak__install" onClick={openOwnVoicesSettings}>
+          {t("speakExternalOpen")}
+        </button>
+      )}
+    </span>
+  );
+}
+
+function openOwnVoicesSettings(): void {
+  stop();
+  useStore.getState().openSettingsAt("rowOwnVoices");
 }
 
 /** The line under the sentence when the device's voices were asked. */
@@ -141,6 +194,9 @@ export default function SpeechPlayer({ owner = true }: { owner?: boolean }) {
             <span>{tf("speakPosition", { at: localeNum(s.index + 1), of: localeNum(s.sentences.length) })}</span>
           )}
           {s.device && <DeviceLine device={s.device} owner={owner} />}
+          {s.failed === "external" && <FailedLine owner={owner} />}
+          {owner && s.source === "engine" && s.voice && s.lang && <EngineVoicePicker lang={s.lang} voice={s.voice} />}
+
         </p>
       </div>
     </div>

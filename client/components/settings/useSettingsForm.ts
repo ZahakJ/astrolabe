@@ -15,7 +15,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CustomFontInfo, SettingsResponse } from "../../../shared/types.ts";
-import { deleteCustomFont, getSettings, listCustomFonts, patchSettings, uploadFont } from "../../api.ts";
+import { ApiError, deleteCustomFont, getSettings, listCustomFonts, patchSettings, uploadFont } from "../../api.ts";
 import { loadPeriodic } from "../../daily.ts";
 import { clearFontFaces } from "../../fontFaces.ts";
 import { t, tf } from "../../i18n.ts";
@@ -27,7 +27,8 @@ import { confirmModal } from "../Confirm.tsx";
 import type { Segment } from "../controls/Fields.tsx";
 import { SYSTEM_FONT } from "../FontPicker.tsx";
 import { fontErrorText, useFontPreview } from "./CustomFonts.tsx";
-import { buildPatch, formFrom, validate, type Form } from "./form.ts";
+import { buildPatch, formFrom, speakSaveErrorKey, validate, type Form } from "./form.ts";
+import { refreshSpeakStatus } from "../../speech/speakStatus.ts";
 import { SYNC_INTERVALS } from "./tabs.ts";
 import { useVisibility } from "./Visibility.tsx";
 
@@ -206,6 +207,9 @@ export function useSettingsForm() {
         // fresh fetch, so the sidebar's month and the status bar's crumb
         // follow a moved daily folder or a renamed format without a reload.
         void loadPeriodic();
+        // Read aloud's rows and the player read the speaker's status: a
+        // saved voices folder has just been scanned (server/speakLocal.ts).
+        if (body.speak) void refreshSpeakStatus();
         // Everything the shell renders from /api/me follows live: wordmark,
         // logo, layout, theme default, favicon link.
         await useStore.getState().loadMe();
@@ -216,7 +220,9 @@ export function useSettingsForm() {
         // A typography save is the one that can fail on the NETWORK (the
         // faces are fetched before the file is written), so its fallback
         // message says so — and settings.json is untouched either way.
-        toast(err instanceof Error ? err.message : t(body.fonts ? "fontsFetchFailed" : "settingsSaveFailed"));
+        const speakKey = err instanceof ApiError ? speakSaveErrorKey(err.code) : null;
+        if (speakKey) toast(t(speakKey), "error");
+        else toast(err instanceof Error ? err.message : t(body.fonts ? "fontsFetchFailed" : "settingsSaveFailed"));
       })
       .finally(() => setSaving(false));
   }, [form, initial, saving]);

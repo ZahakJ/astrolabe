@@ -102,6 +102,9 @@ export interface DesktopBridge {
   brandPickIcon?(): Promise<DesktopBrand>;
   brandInstall?(): Promise<{ ok: boolean; where: string; note: "png-icon-skipped" | null }>;
   brandClear?(): Promise<DesktopBrand>;
+  /** The system's folder picker: the folder chosen, or null (Your own
+   *  voices' Browse…). Absent before 3.36.0. */
+  pickFolder?(): Promise<string | null>;
 }
 
 declare global {

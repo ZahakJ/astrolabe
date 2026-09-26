@@ -853,6 +853,14 @@ function registerBridge(): void {
     const step = direction === 1 ? 1 : direction === -1 ? -1 : 0;
     zoomBy(instanceOf(event.sender), step);
   });
+  // Your own voices' Browse… (docs/read-aloud.md): the folder chosen, as a
+  // path. Nothing is read here; the vault's server checks and scans it.
+  ipcMain.handle(TO_MAIN.pickFolder, async (event): Promise<string | null> => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const opts = { title: m("dlgChooseVoices"), buttonLabel: m("dlgChooseVoicesButton"), properties: ["openDirectory" as const] };
+    const picked = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
+    return picked.canceled ? null : (picked.filePaths[0] ?? null);
+  });
   ipcMain.handle(TO_MAIN.brandGet, () => brandInfo());
   ipcMain.handle(TO_MAIN.brandSet, (_event, name: unknown) => {
     const info = setBrandName(name);

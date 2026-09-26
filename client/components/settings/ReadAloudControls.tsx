@@ -1,6 +1,8 @@
 // SETTINGS → LANGUAGE → READ ALOUD (docs/read-aloud.md). One row: the
 // engine, whether it is on this machine (and the button that puts it there),
-// a voice for the languages that have more than one, and the speed.
+// a voice for the languages that have a choice — more than one built-in
+// voice, or any of the reader's own from the voices folder (the next row,
+// OwnVoices.tsx), grouped "Built in" / "Your voices" — and the speed.
 //
 // ON THE CPU, BY DESIGN, and the row says so: the owner ruled the GPU out,
 // and the people this is for may have none. Two engines, the lighter one the
@@ -21,10 +23,12 @@
 // deviceVoices.ts). A pocket vault has no engine, so there this half is the
 // whole row.
 
-import { useEffect, useState } from "react";
-import { speakInstall, speakStatus } from "../../api.ts";
+import { speakInstall } from "../../api.ts";
 import { getLang, localeNum, t, tf } from "../../i18n.ts";
-import { SPEAK_LANGS, SPEAK_VOICES, type SpeakEngineId, type SpeakStatus } from "../../../shared/speech.ts";
+import { SPEAK_ENGINES, SPEAK_LANGS, type SpeakEngineId, type SpeakLang, type SpeakStatus } from "../../../shared/speech.ts";
+import { pickerLangs, voiceChoices } from "../../../shared/speechVoices.ts";
+import { refreshSpeakStatus, setSpeakStatus, useSpeakStatus } from "../../speech/speakStatus.ts";
+import { manyVoices, voiceGroups } from "../../speech/voiceOptions.ts";
 import {
   chooseVoice,
   chosenVoice,
@@ -46,31 +50,40 @@ function engineName(e: SpeakEngineId): string {
   return e === "natural" ? t("speakEngineNatural") : t("speakEngineLight");
 }
 
-function useSpeakStatus(): [SpeakStatus | null, () => void] {
-  const [status, setStatus] = useState<SpeakStatus | null>(null);
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    let live = true;
-    speakStatus().then(
-      (s) => {
-        if (live && "engines" in s) setStatus(s);
-      },
-      () => {},
-    );
-    return () => {
-      live = false;
-    };
-  }, [tick]);
-  // While an install runs, the row follows it.
-  const running =
-    status !== null &&
-    (status.install.phase === "fetch-python" || status.install.phase === "python" || status.install.phase === "packages" || status.install.phase === "models");
-  useEffect(() => {
-    if (!running) return;
-    const id = window.setInterval(() => setTick((n) => n + 1), 1500);
-    return () => window.clearInterval(id);
-  }, [running]);
-  return [status, () => setTick((n) => n + 1)];
+/** One picker per language with a choice to make: the built-in engine's
+ *  voices and the voices folder's, grouped (client/speech/voiceOptions.ts). */
+function VoicePickers({ status, engine }: { status: SpeakStatus | null; engine: SpeakEngineId }) {
+  const { form, setForm } = useSettings();
+  const ui = getLang();
+  const own = status?.own.voices ?? [];
+  const installed = new Set(status ? SPEAK_ENGINES.filter((e) => status.engines[e].installed) : []);
+  const langs = pickerLangs(SPEAK_LANGS, engine, installed, own);
+  if (langs.length === 0) return null;
+  const pick = (lang: SpeakLang, id: string): void =>
+    setForm((f) => (f ? { ...f, speakVoices: { ...f.speakVoices, [lang]: id } } : f));
+  return (
+    <div className="s-smodal__pair s-smodal__voices" data-voice-pickers={langs.join(" ")}>
+      {langs.map((lang) => {
+        const language = localeName(lang, ui);
+        const value = form.speakVoices[lang] ?? "";
+        const groups = voiceGroups(voiceChoices(lang, engine, installed, own), value, { withDefault: true });
+        return (
+          <div className="s-smodal__voice" key={lang} data-lang={lang}>
+            <span className="s-smodal__voicelabel" aria-hidden="true">{language}</span>
+            <Select
+              label={tf("speakVoiceFor", { language })}
+              value={value}
+              valueDir={value.startsWith("own:") ? "ltr" : undefined}
+              onChange={(v) => pick(lang, v)}
+              groups={groups}
+              filter={manyVoices(groups)}
+              filterPlaceholder={t("speakVoiceFilter")}
+            />
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engine: SpeakEngineId; onInstall: () => void }) {
@@ -169,16 +182,12 @@ function DeviceVoices() {
 
 export function ReadAloudControls() {
   const { pocket, form, field } = useSettings();
-  const [status, refresh] = useSpeakStatus();
+  const status = useSpeakStatus(!pocket);
   const engine: SpeakEngineId = form.speakEngine === "natural" ? "natural" : "light";
   const install = (which: SpeakEngineId): void => {
-    void speakInstall(which).then(refresh, refresh);
+    void speakInstall(which).then(setSpeakStatus, () => void refreshSpeakStatus());
   };
   const naturalIn = status?.engines.natural.installed ?? false;
-  const voiceOptions = (lang: "en" | "ja") => [
-    { value: "", label: SPEAK_VOICES.natural[lang]![0].name },
-    ...SPEAK_VOICES.natural[lang]!.slice(1).map((v) => ({ value: v.id, label: v.name })),
-  ];
   // A pocket vault has no engine to install or tune: its row is the
   // device's voices, which are the only ones it has.
   if (pocket) {
@@ -209,18 +218,8 @@ export function ReadAloudControls() {
           {tf("speakInstall", { engine: t("speakEngineNatural"), size: modelSize(status.engines.natural.bytes) })}
         </button>
       )}
-      {(engine === "natural" || naturalIn) && (
-        <div className="s-smodal__pair">
-          <div className="s-smodal__voice">
-            <span className="s-smodal__voicelabel" aria-hidden="true">{t("speakVoiceEn")}</span>
-            <Select label={t("speakVoiceEn")} options={voiceOptions("en")} {...field("speakVoiceEn")} />
-          </div>
-          <div className="s-smodal__voice">
-            <span className="s-smodal__voicelabel" aria-hidden="true">{t("speakVoiceJa")}</span>
-            <Select label={t("speakVoiceJa")} options={voiceOptions("ja")} {...field("speakVoiceJa")} />
-          </div>
-        </div>
-      )}
+      <VoicePickers status={status} engine={engine} />
+
       <SegmentedControl
         label={t("speakRate")}
         segments={[

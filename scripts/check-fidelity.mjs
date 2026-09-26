@@ -57,6 +57,11 @@
 // string and no key name may ever reach its DOM — the switch waits for its
 // strings, so there is no flash of the wrong language.
 //
+// And Your own voices (docs/read-aloud.md): the voices folder pointed at a
+// fixture outside the vault is listed in the row and in the French picker
+// under "Your voices"; with ASTROLABE_SPEAK_FAKE=1 the player's ▾ switches a
+// passage to a found voice. The owner's folder and voices are put back.
+//
 // And Read aloud (docs/read-aloud.md): a word selected in the editor and read with
 // Ctrl/Cmd ⇧ ., then a word selected in the reading view and read with its
 // chip — an answer from `POST /api/speak` arrives and the floating player
@@ -1016,8 +1021,124 @@ try {
       }
     }
   }
+  // ── Your own voices (docs/read-aloud.md) ───────────────────────────────
+  // The voices folder pointed at a fixture OUTSIDE the vault — two fake
+  // Piper voices (a two-speaker French model and an English one) and a model
+  // with no config beside it — and the scan's answer seen where a reader
+  // sees it: the row's count and its skipped line, a French picker in the
+  // Read aloud row with a "Your voices" group holding both speakers, and,
+  // when a tone stands in for the engines (ASTROLABE_SPEAK_FAKE=1), the
+  // player's own ▾ switching an English passage to a found voice. The
+  // folder and the voices the owner had are put back afterwards.
+  {
+    const { mkdtempSync, writeFileSync: write, rmSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = mkdtempSync(join(tmpdir(), "fidelity-voices-"));
+    const cfg = (code, extra = {}) =>
+      JSON.stringify({ audio: { sample_rate: 22050 }, phoneme_id_map: { _: [0] }, language: { code }, num_speakers: 1, speaker_id_map: {}, ...extra });
+    write(join(dir, "fr_FR-gate-low.onnx"), "onnx");
+    write(join(dir, "fr_FR-gate-low.onnx.json"), cfg("fr_FR", { num_speakers: 2, speaker_id_map: { ana: 0, bruno: 1 } }));
+    write(join(dir, "en_US-gatekeeper-low.onnx"), "onnx");
+    write(join(dir, "en_US-gatekeeper-low.onnx.json"), cfg("en_US"));
+    write(join(dir, "de_DE-lonely-low.onnx"), "onnx");
+    const before = (await api("/api/settings")).body?.effective?.speak ?? {};
+    const restore = async () => {
+      await api("/api/settings", json("PATCH", { speak: { voicesDir: before.voicesDir ?? null, voices: { fr: before.voices?.fr ?? null, en: before.voices?.en ?? null } } }));
+      rmSync(dir, { recursive: true, force: true });
+    };
+    try {
+      const saved = await api("/api/settings", json("PATCH", { speak: { voicesDir: dir } }));
+      check(saved.status === 200, "own voices: a folder outside the vault is accepted", JSON.stringify(saved.body).slice(0, 200));
+      const refused = await api("/api/settings", json("PATCH", { speak: { voicesDir: "voices" } }));
+      check(refused.status === 400 && refused.body?.code === "speakDirRelative", "own voices: a relative folder is refused with a code", JSON.stringify(refused.body));
+      const scan = (await api("/api/speak/voices/rescan", { method: "POST" })).body;
+      check(scan?.own?.voices?.length === 3, "own voices: the scan finds one voice per speaker", JSON.stringify(scan?.own?.voices?.map((v) => v.name)));
+      const fake = scan?.test === true;
+      for (const lang of ["en", "ar"]) {
+        const dict = lang === "ar" ? arDict : enDict;
+        const tag = (s) => `own voices (${lang}): ${s}`;
+        const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+        await ctx.addCookies(cookies);
+        const page = await ctx.newPage();
+        await openNote(page, lang);
+        await page.keyboard.press("Control+KeyP");
+        await page.waitForSelector(".s-palette input", { timeout: 5000 }).catch(() => {});
+        await page.keyboard.type(lang === "ar" ? "أصواتك" : "piper");
+        await page.waitForTimeout(400);
+        const rows = await page.evaluate(() => [...document.querySelectorAll(".s-palette [role=option]")].map((r) => r.textContent ?? ""));
+        check(rows.some((r) => r.includes(dict.cmdOwnVoices)), tag("the palette finds the row"), rows.slice(0, 4).join(" | "));
+        await page.keyboard.press("Enter");
+        await page.waitForSelector(".s-ownvoices__found", { timeout: 8000 }).catch(() => {});
+        const found = page.locator(".s-ownvoices__found");
+        check((await found.getAttribute("data-own-voices").catch(() => null)) === "3", tag("the row counts what the scan found"));
+        const line = ((await found.textContent().catch(() => "")) ?? "").replace(/[⁨⁩]/g, "");
+        check(line.includes(dict.ownSkipNoJson), tag("…and says why a file was skipped"), line);
+        await page.locator(".s-ownvoices").scrollIntoViewIfNeeded().catch(() => {});
+        await page.screenshot({ path: `${out}/own-voices-${lang}.png` });
+        // The French picker in the Read aloud row: both speakers, under "Your voices".
+        const fr = page.locator('.s-smodal__voices [data-lang="fr"] [role="combobox"]');
+        check((await fr.count()) === 1, tag("the Read aloud row grows a French picker"));
+        await fr.scrollIntoViewIfNeeded().catch(() => {});
+        await fr.click().catch(() => {});
+        await page.waitForTimeout(300);
+        const listed = ((await page.locator('[role="listbox"]').last().textContent().catch(() => "")) ?? "").replace(/[⁨⁩]/g, "");
+        check(listed.includes(dict.speakVoicesYours) && listed.includes("Gate · Ana") && listed.includes("Gate · Bruno"), tag("…listing both speakers under Your voices"), listed);
+        await page.screenshot({ path: `${out}/own-voices-picker-${lang}.png` });
+        await page.keyboard.press("Escape");
+        await ctx.close();
+      }
+      if (fake) {
+        // The player's ▾: an English passage in the built-in voice, then the
+        // found one chosen from the player — saved, and the sentence re-asked.
+        const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+        await ctx.addCookies(cookies);
+        const page = await ctx.newPage();
+        const voices = [];
+        page.on("response", (r) => {
+          if (r.url().endsWith("/api/speak") && r.request().method() === "POST") voices.push(decodeURIComponent(r.headers()["x-speak-voice"] ?? ""));
+        });
+        await openNote(page, "en");
+        await page.keyboard.press("Control+KeyE");
+        await page.waitForSelector(".s-reading__body", { timeout: 10000 });
+        await page.evaluate(() => {
+          const body = document.querySelector(".s-reading__body");
+          const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
+          for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+            const at = n.data.indexOf("parking");
+            if (at < 0) continue;
+            const r = document.createRange();
+            r.setStart(n, at);
+            r.setEnd(n, at + "parking line".length);
+            getSelection().removeAllRanges();
+            getSelection().addRange(r);
+            return;
+          }
+        });
+        await page.waitForSelector(".s-speak-chip", { timeout: 5000 }).catch(() => {});
+        await page.locator(".s-speak-chip").click().catch(() => {});
+        await page.waitForSelector(".s-speak__engine", { timeout: 10000 }).catch(() => {});
+        check((await page.locator(".s-speak__engine").count()) === 1, "own voices: the player names the app's voice with a ▾", voices.join(","));
+        await page.locator(".s-speak__engine [role=combobox]").click().catch(() => {});
+        await page.waitForTimeout(300);
+        await page.locator('[role="option"]', { hasText: "Gatekeeper" }).first().click().catch(() => {});
+        await page.waitForFunction(() => document.querySelector(".s-speak__engine")?.getAttribute("data-voice")?.startsWith("own:"), null, { timeout: 8000 }).catch(() => {});
+        check(voices.at(-1) === "own:en_US-gatekeeper-low.onnx", "own voices: choosing a found voice in the player re-reads the sentence in it", voices.join(","));
+        const settled = (await api("/api/settings")).body?.effective?.speak?.voices?.en;
+        check(settled === "own:en_US-gatekeeper-low.onnx", "own voices: …and it is saved as English's voice", String(settled));
+        await page.screenshot({ path: `${out}/own-voices-player-en.png` });
+        await page.locator(".s-speak .s-speak__controls .s-speak__btn").last().click().catch(() => {});
+        await ctx.close();
+      } else {
+        console.log("  (own voices: the player's ▾ half needs ASTROLABE_SPEAK_FAKE=1 on the scratch server)");
+      }
+    } finally {
+      await restore();
+    }
+  }
 } finally {
   await cleanup();
+
   for (const c of contexts) await c.close().catch(() => {});
   await browser.close();
 }

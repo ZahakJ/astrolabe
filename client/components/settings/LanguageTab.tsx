@@ -11,6 +11,7 @@ import { desktop } from "../../desktop/bridge.ts";
 import { DECLARABLE, setBrowserDictionaries, type Declarable } from "../../spellDicts.ts";
 import { Row } from "./Row.tsx";
 import { TagLabelEditor } from "./TagLabelEditor.tsx";
+import { OwnVoicesControls } from "./OwnVoices.tsx";
 import { ReadAloudControls } from "./ReadAloudControls.tsx";
 import { Consequence, LanguageConsequence, VisibilityBanner } from "./Visibility.tsx";
 
@@ -311,6 +312,13 @@ export default function LanguageTab() {
           voices (ReadAloudControls), which are the only ones it has. */}
       <Row label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
         <ReadAloudControls />
+      </Row>
+      {/* Voices already on this machine (docs/read-aloud.md, "Your own
+          voices"): a folder of Piper voices the server scans, and — folded
+          inside — an external speaker. The ⓘ says what the external speaker
+          runs as. A server's, so locked in a pocket vault. */}
+      <Row locked={pocket} label={t("rowOwnVoices")} hint={t("hintOwnVoices")} more={t("moreOwnVoices")}>
+        <OwnVoicesControls />
       </Row>
 
       {/* ── Tag labels ──────────────────────────────────────────
