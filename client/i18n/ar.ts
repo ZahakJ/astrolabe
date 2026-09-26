@@ -2562,6 +2562,7 @@ const ar = {
   menuAddToDictionary: "إضافة إلى القاموس",
   menuNoSuggestions: "لا اقتراحات",
   menuActualSize: "الحجم الفعلي",
+  menuZoomLevel: "التكبير: ٪{pct}",
   menuFullScreen: "ملء الشاشة",
   menuReload: "إعادة تحميل",
   menuDevTools: "أدوات المطوّر",

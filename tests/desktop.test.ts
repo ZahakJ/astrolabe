@@ -52,7 +52,10 @@ import {
   rememberBounds,
   rememberVault,
   rememberedPort,
+  rememberZoom,
+  saneZoom,
   seedFor,
+  stepZoom,
   type Prefs,
 } from "../electron/prefs.ts";
 
@@ -472,6 +475,37 @@ describe("the data-dir override", () => {
     prefs = rememberVault(prefs, "/v/a", 6823, 99);
     assert.equal(prefs.vaults[0].data, "/srv/astrolabe-data");
     assert.equal(prefs.vaults[0].port, 6823);
+  });
+});
+
+describe("the app zoom", () => {
+  it("survives a relaunch: remembered, written, read back, and carried through the next open", () => {
+    // The reader's report: 120%, close, launch — 100% again. rememberZoom
+    // wrote it; the next launch's rememberVault rebuilt the row without it.
+    let prefs = rememberVault(EMPTY_PREFS, "/v/a", 6842, 1);
+    prefs = rememberZoom(prefs, "/v/a", stepZoom(1, 1));
+    assert.equal(prefs.vaults[0].zoom, 1.2);
+    // desktop.json on disk, and the launch that reads it back.
+    let next = parsePrefs(JSON.parse(JSON.stringify(prefs)));
+    assert.equal(next.vaults[0].zoom, 1.2);
+    next = rememberVault(next, "/v/a", 6842, 2);
+    next = rememberBounds(next, "/v/a", { x: 10, y: 10, width: 1000, height: 700, maximized: false });
+    assert.equal(next.vaults[0].zoom, 1.2, "the open and the geometry keep the zoom");
+    // A vault never zoomed has no field at all, and opens at 1.
+    assert.equal(rememberVault(EMPTY_PREFS, "/v/b", 6843, 1).vaults[0].zoom, undefined);
+  });
+
+  it("is a sane factor whatever the file says, and a reset is exactly 1", () => {
+    assert.equal(parsePrefs({ vaults: [{ path: "/v/a", port: 6821, lastOpened: 1, zoom: 40 }] }).vaults[0].zoom, 3);
+    assert.equal(parsePrefs({ vaults: [{ path: "/v/a", port: 6821, lastOpened: 1, zoom: "big" }] }).vaults[0].zoom, 1);
+    assert.equal(saneZoom(0.1), 0.5);
+    assert.equal(stepZoom(1.44, 0), 1);
+    assert.ok(Math.abs(stepZoom(1.2, -1) - 1) < 1e-9);
+  });
+
+  it("is not invented for a vault that was never opened", () => {
+    const prefs = rememberZoom(EMPTY_PREFS, "/v/ghost", 1.2);
+    assert.equal(prefs.vaults.length, 0);
   });
 });
 
