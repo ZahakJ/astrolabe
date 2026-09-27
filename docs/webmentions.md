@@ -88,4 +88,4 @@ A published post with approved mentions grows a small **Mentions** section under
 
 `webmentions.db`, `activitypub.db` and `activitypub-key.pem` live in the server's data directory, **never in the vault**, and are never copied into it by [Backup & sync](backup-and-sync.md): they are this server's conversations with other servers, and a private key in a git history is a private key published. Approved mentions live with your comments in `comments.db`.
 
-A [pocket vault](mobile.md) has no public address, so none of this exists there: it has no Publishing tab, and the routes answer that they need a server.
+A [pocket vault](mobile.md) has no public address, so none of this exists there: its Settings → Your site has no Webmentions or Fediverse row, and the routes answer that they need a server.

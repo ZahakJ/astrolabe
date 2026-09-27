@@ -59,8 +59,9 @@ and of any user info in a URL first. **Clear token** deletes the file.
 ## 3. Turn it on
 
 Open Settings → **Backup & sync**. Switch Backup on (everything below that switch stays disabled
-until you do), paste the remote URL, pick the branch (default `main`), and choose an
-**Automatic sync** period, from *Manual only* to *Once a day*. (If a sync is still running when
+until you do), paste the remote URL, and choose an
+**Automatic sync** period, from *Manual only* to *Once a day*. The branch (default `main`) and
+**Pull first** wait behind the section's **Advanced** line; most vaults never touch them. (If a sync is still running when
 the timer fires, that tick is skipped.) If the vault is not a git repository yet, press
 **Initialize repository**. That runs `git init`, makes the first commit, writes or extends
 `.gitignore` so your data directory can never be committed, and points `origin` at your remote.
