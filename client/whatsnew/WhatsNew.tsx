@@ -139,6 +139,18 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
   useEffect(() => {
     panelRef.current?.focus();
   }, []);
+  // The dots row scrolls when there are more groups than fit beside the
+  // buttons; the current group follows the page so the reader always sees
+  // where they are. A scroll, not a scrollIntoView: the latter also scrolls
+  // the ancestors, and the phone's overlay would jump.
+  const dotsRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const row = dotsRef.current;
+    const on = row?.querySelector<HTMLElement>(".s-wn__group.is-current");
+    if (!row || !on || row.scrollWidth <= row.clientWidth) return;
+    const target = on.offsetLeft + on.offsetWidth / 2 - row.clientWidth / 2;
+    row.scrollTo({ left: target, behavior: "smooth" });
+  }, [index]);
 
   const go = useCallback(
     (delta: 1 | -1): void => {
@@ -215,7 +227,7 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
             />
             <span>{t("whatsnewDontShow")}</span>
           </label>
-          <div className="s-wn__dots" aria-label={tf("whatsnewCount", { n: localeNum(index + 1), of: localeNum(cards.length) })}>
+          <div ref={dotsRef} className="s-wn__dots" aria-label={tf("whatsnewCount", { n: localeNum(index + 1), of: localeNum(cards.length) })}>
             {groups.map((g) => (
               <div key={g.version} className={`s-wn__group${g.version === card.version ? " is-current" : ""}`}>
                 <div className="s-wn__groupdots">

@@ -209,6 +209,29 @@
   display: flex;
   align-items: flex-start;
   gap: 14px;
+  /* Many missed releases make many groups. The row gives way, not the
+     buttons: it shrinks to what is left beside the switch and the nav,
+     scrolls sideways, keeps the current group in view (WhatsNew.tsx) and
+     fades at the edge with more groups beyond it, so Next never reaches the
+     box's edge (the owner saw it touch the border after ~30 releases). */
+  min-inline-size: 0;
+  flex: 0 1 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  padding-block: 2px;
+  padding-inline: 8px;
+  scroll-padding-inline: 8px;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8px, #000 calc(100% - 8px), transparent);
+}
+.s-wn__dots::-webkit-scrollbar {
+  display: none;
+}
+.s-wn__switch,
+.s-wn__nav {
+  flex-shrink: 0;
 }
 /* One group of dots per release, its version under it, a hairline between
    groups: the walk through several missed releases says where each begins. */
@@ -218,6 +241,8 @@
   align-items: center;
   gap: 4px;
   position: relative;
+  flex-shrink: 0;
+  scroll-snap-align: center;
 }
 .s-wn__group + .s-wn__group::before {
   content: "";
