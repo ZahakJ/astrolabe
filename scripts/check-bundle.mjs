@@ -427,7 +427,10 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // FRENCH AS FRENCH, AND A MAN TO READ IT: 889.4 → 891.1 kB, +1.7 against a
 // build of a437809 — the
 // entry's +1.7 below. 890 → 892.
-const PHONE_BUDGET = 892 * 1024;
+// THE SETTINGS PURGE: 891.1 → 892.9 kB, +1.8 against a build of 3.37.0
+// (3017666) — the entry's +1.4 below and the phone's sections' guard and
+// section-id map. 892 → 894.
+const PHONE_BUDGET = 894 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1091,7 +1094,13 @@ const AUDIENCES = [
   // table beside the voice ids, `passageSpeechLang` and the sentence's
   // paragraph the player sends, the status store's wider "busy"). The row's
   // verdict and pickers ride the settings chunk. 769 → 771.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 771 * 1024 },
+  // THE SETTINGS PURGE: 770.5 → 771.9 kB, +1.4, measured against a build of
+  // 3.37.0 (3017666): the entry stylesheet's +1.46 kB (settings.css loads with
+  // it — the one row anatomy: the This device mark, parts, the Advanced line
+  // and its triangle, the ⓘ region across the row, net of the seven dead
+  // rules it removed); the entry's JS and the dictionary are within a few
+  // bytes of main (keys added and removed about even). 771 → 773.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 773 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1472,7 +1481,9 @@ const AUDIENCES = [
   // 1067 → 1074.
   // FRENCH AS FRENCH, AND A MAN TO READ IT: 1073.4 → 1075.0 kB, +1.6 — the
   // entry's, nothing else. 1074 → 1076.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1076 * 1024 },
+  // THE SETTINGS PURGE: 1075.1 → 1076.4 kB, +1.3 — the entry's stylesheet,
+  // nothing else. 1076 → 1078.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1078 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1772,7 +1783,9 @@ const AUDIENCES = [
   // palette's one row. 1026 → 1032.
   // FRENCH AS FRENCH, AND A MAN TO READ IT: 1031.7 → 1033.3 kB, +1.6 — the
   // entry's, nothing else. 1032 → 1034.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1034 * 1024 },
+  // THE SETTINGS PURGE: 1033.4 → 1034.8 kB, +1.4 — the entry's stylesheet,
+  // nothing else. 1034 → 1036.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1036 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
