@@ -35,6 +35,7 @@ import { readLanguage } from "./dictionary.mjs";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(root + p, "utf8");
 const HINT_MAX_WORDS = 14;
+const HINT_MAX_CHARS = 90;
 /** A section holds at most this many rows (parts are not rows), counted as
  *  one kind of vault sees it: a pocket's Backup & sync rows and an
  *  instance's never share a screen. */
@@ -89,6 +90,22 @@ for (const [tab, c] of inSight) {
   const n = Math.max(c.instance, c.pocket);
   if (n > PAGE_MAX_IN_SIGHT) errs.push(`  the ${tab} page shows ${n} rows before its Advanced line (max ${PAGE_MAX_IN_SIGHT}) — split the page or fold one`);
 }
+// ── The catalogue (contracts/settings-design.md) ────────────────────────────
+// Every row and part names one of the ten kinds; and a page that says once
+// that everything on it is kept on this device (tabs.ts `device`) holds only
+// rows that are.
+const KINDS = ["toggle", "segmented", "select", "chips", "slider", "path", "text", "table", "action", "status"];
+const catalogueSrc = read("client/components/settings/catalogue.ts");
+for (const k of KINDS) if (!catalogueSrc.includes(`"${k}"`)) errs.push(`  catalogue.ts does not list the ${k} kind this gate knows`);
+for (const r of fromSource) {
+  if (!KINDS.includes(r.kind)) errs.push(`  ${r.tab}/${r.label} names no control kind (kind="${r.kind}") — see contracts/settings-design.md`);
+}
+for (const p of pages().filter((x) => x.device)) {
+  for (const r of fromSource.filter((x) => x.tab === p.id && !x.row && !x.device)) {
+    errs.push(`  ${p.id} says everything on it is kept on this device, and ${r.label} is not`);
+  }
+}
+
 // Every page tabs.ts lists has a body in TabBody.tsx, and every body a page.
 const listed = pages().map((p) => p.id);
 const drawn = tabSources().map((s) => s.tab);
@@ -116,6 +133,7 @@ for (const m of panelSrc.matchAll(/hint=\{t\(([^)]*)\)\}/g)) {
   for (const k of m[1].matchAll(/"([A-Za-z0-9_]+)"/g)) hintKeys.add(k[1]);
 }
 const englishDict = readLanguage("en", root);
+const arabicDict = readLanguage("ar", root);
 const english = (k) => (englishDict.has(k) ? englishDict.get(k) : null);
 let hintsChecked = 0;
 for (const k of hintKeys) {
@@ -127,6 +145,12 @@ for (const k of hintKeys) {
   hintsChecked += 1;
   const words = en.trim().split(/\s+/).length;
   if (words > HINT_MAX_WORDS) errs.push(`  hint ${k} runs to ${words} words (max ${HINT_MAX_WORDS}): "${en}"`);
+  // ONE LINE: ninety characters fit the label column in a 1280 window
+  // (contracts/settings-design.md), in either language.
+  const ar = arabicDict.get(k) ?? "";
+  for (const [lang, text] of [["en", en], ["ar", ar]]) {
+    if (text.length > HINT_MAX_CHARS) errs.push(`  hint ${k} (${lang}) runs to ${text.length} characters (max ${HINT_MAX_CHARS}): "${text}"`);
+  }
 }
 if (hintsChecked < 60) errs.push(`  only ${hintsChecked} hints found — the hint scan is broken, not the panel`);
 
@@ -199,5 +223,5 @@ if (errs.length > 0) {
 }
 const rowCount = fromSource.filter((r) => !r.row).length;
 console.log(`check-settings: ${rowCount} rows + ${fromSource.length - rowCount} parts on ${sectionCounts.size} pages (≤ ${PAGE_MAX_IN_SIGHT} in sight each) · ${fromSource.filter((r) => r.adv && !r.row).length} behind Advanced · ${fromSource.filter((r) => r.env).length} with an env var · index matches the panel`);
-console.log(`check-settings: ${hintsChecked} hints ≤ ${HINT_MAX_WORDS} words · ${READ_SELECTORS.length} read-text selectors muted · ${topics.length} doc topics resolve`);
+console.log(`check-settings: ${hintsChecked} hints ≤ ${HINT_MAX_WORDS} words and ≤ ${HINT_MAX_CHARS} characters in both languages · ${READ_SELECTORS.length} read-text selectors muted · ${topics.length} doc topics resolve`);
 console.log("SETTINGS OK");

@@ -216,7 +216,7 @@ function InstallLine({ status, engine, onInstall }: { status: SpeakStatus; engin
         </p>
       )}
       <p className="s-smodal__note">{t("speakStatusNone")}</p>
-      <button type="button" className="s-btn s-btn--accent" onClick={onInstall}>
+      <button type="button" className="s-btn" onClick={onInstall}>
         {tf("speakInstall", { engine: engineName(engine), size: modelSize(e.bytes) })}
       </button>
     </>

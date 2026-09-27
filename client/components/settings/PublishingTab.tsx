@@ -8,6 +8,7 @@ import { useStore } from "../../state.ts";
 import { localeNum, t, tf } from "../../i18n.ts";
 import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
 import { openDesigner } from "../design/openDesigner.ts";
+import { PathInput } from "../controls/PathInput.tsx";
 import { ImageField } from "./ImageField.tsx";
 import { Consequence, VisibilityBanner } from "./Visibility.tsx";
 import { Advanced } from "./Fold.tsx";
@@ -27,7 +28,7 @@ export default function PublishingTab() {
           site (the palette), so an owner who picked "Designed" landed on a
           designed site with no design and nothing saying where designs are
           made. */}
-      <Row label={t("rowPublicLayout")} hint={t("hintPublicLayout")} env={{ name: "PUBLIC_LAYOUT", value: eff.publicLayout, inherits: form.publicLayout === "" }}>
+      <Row kind="segmented" label={t("rowPublicLayout")} hint={t("hintPublicLayout")} env={{ name: "PUBLIC_LAYOUT", value: eff.publicLayout, inherits: form.publicLayout === "" }}>
         <Parts>
           <SegmentedControl
             label={t("rowPublicLayout")}
@@ -42,10 +43,10 @@ export default function PublishingTab() {
             ]}
             {...field("publicLayout")}
           />
-          <Part label={t("rowOpenDesigner")} hint={t("hintOpenDesigner")}>
+          <Part kind="action" label={t("rowOpenDesigner")} hint={t("hintOpenDesigner")}>
             <button
               type="button"
-              className="s-btn s-btn--accent"
+              className="s-btn"
               onClick={() => {
                 useStore.getState().setSettingsOpen(false);
                 openDesigner();
@@ -60,7 +61,7 @@ export default function PublishingTab() {
       {/* The home page: read by the blog and designed layouts only; with the
           app layout the rows grey and a note says so. */}
       {homeOff && <p className="s-smodal__offnote">{t("homeBlogOnlyNotice")}</p>}
-      <Row label={t("rowMode")} hint={t("hintMode")} off={homeOff}>
+      <Row kind="segmented" label={t("rowMode")} hint={t("hintMode")} off={homeOff}>
         <SegmentedControl
           label={t("rowMode")}
           disabled={homeOff}
@@ -72,26 +73,29 @@ export default function PublishingTab() {
           {...field("homeMode")}
         />
       </Row>
-      <Row
+      <Row kind="path"
         label={t("rowHomeNote")}
         hint={t("hintHomeNote")}
         error={errors.homeNote}
         env={{ name: "HOME_NOTE", value: eff.home.note ?? "", inherits: form.homeNote.trim() === "" }}
-      >
-        <TextInput placeholder={eff.home.note ?? "Welcome.md"} dir="ltr" label={t("rowHomeNote")} invalid={errors.homeNote !== undefined} {...field("homeNote")} />
-        {/* A front door pointing at a note visitors cannot see renders a
-            blank homepage; only the server knows the publish flag AND the
-            language filter the note is about to meet. */}
-        {impact &&
+        // A front door pointing at a note visitors cannot see renders a blank
+        // homepage; only the server knows the publish flag AND the language
+        // filter the note is about to meet. Said under the field (`after`),
+        // so the field stays the row's one control and keeps its label.
+        after={
+          impact &&
           (impact.home.note === null ? (
             <Consequence>{t("homeNoteUnset")}</Consequence>
           ) : impact.home.noteVisible ? (
             <Consequence>{t("homeNoteOk")}</Consequence>
           ) : (
             <Consequence level="warn">{t("homeNoteHidden")}</Consequence>
-          ))}
+          ))
+        }
+      >
+        <PathInput kind="note" pickable placeholder={eff.home.note ?? "Welcome.md"} label={t("rowHomeNote")} invalid={errors.homeNote !== undefined} {...field("homeNote")} />
       </Row>
-      <Row label={t("rowHomeBanner")} hint={t("hintHomeBanner")} error={errors.homeBanner} off={homeOff}>
+      <Row kind="path" label={t("rowHomeBanner")} hint={t("hintHomeBanner")} error={errors.homeBanner} off={homeOff}>
         <ImageField
           value={form.homeBanner}
           placeholder={t("phVaultImageOrUrl")}
@@ -104,11 +108,9 @@ export default function PublishingTab() {
 
       {/* What an article carries. No env var behind these two — plain
           toggles. */}
-      <Row label={t("rowShareButtons")} hint={t("hintShareButtons")}>
+      <Row kind="toggle" label={t("rowShareButtons")} hint={t("hintShareButtons")}>
         <Toggle
           label={t("rowShareButtons")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.share === "on" || (form.share === "" && inh.shareButtons)}
           onChange={(on) => setForm((f) => (f ? { ...f, share: on ? "on" : "off" } : f))}
         />
@@ -116,11 +118,9 @@ export default function PublishingTab() {
       {/* ANOTHER SITE'S PLAYER (shared/externalVideo.ts) tells that site who
           is reading, so this is a consent switch: off until the owner turns
           it on, and off means the address stays a link. */}
-      <Row label={t("rowExternalVideo")} hint={t("hintExternalVideo")} more={t("moreExternalVideo")}>
+      <Row kind="toggle" label={t("rowExternalVideo")} hint={t("hintExternalVideo")} more={t("moreExternalVideo")}>
         <Toggle
           label={t("rowExternalVideo")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.externalVideo === "on" || (form.externalVideo === "" && inh.externalVideo)}
           onChange={(on) => setForm((f) => (f ? { ...f, externalVideo: on ? "on" : "off" } : f))}
         />
@@ -129,19 +129,13 @@ export default function PublishingTab() {
       <Advanced tab="publishing">
         {/* This removes topic pills — and with them whole topic pages — and
             it says so, including when the tag it names matches nothing. */}
-        <Row
+        <Row kind="text"
           label={t("rowExcludeTags")}
           hint={t("hintExcludeTags")}
           error={errors.excludeTags}
           env={{ name: "EXCLUDE_TAGS", value: eff.excludeTags.join(","), inherits: form.excludeTags.trim() === "" }}
-        >
-          <TextInput
-            placeholder={eff.excludeTags.length > 0 ? eff.excludeTags.join(", ") : t("phExcludeTags")}
-            label={t("rowExcludeTags")}
-            invalid={errors.excludeTags !== undefined}
-            {...field("excludeTags")}
-          />
-          {impact &&
+          after={
+            impact &&
             (impact.topics.suppressed.length > 0 ? (
               <Consequence>
                 {tf("excludeTagsEffect", {
@@ -154,14 +148,27 @@ export default function PublishingTab() {
               <Consequence>{t("excludeTagsNoop")}</Consequence>
             ) : (
               <Consequence>{tf("excludeTagsNone", { total: localeNum(impact.topics.total) })}</Consequence>
-            ))}
+            ))
+          }
+        >
+          <TextInput
+            placeholder={eff.excludeTags.length > 0 ? eff.excludeTags.join(", ") : t("phExcludeTags")}
+            label={t("rowExcludeTags")}
+            invalid={errors.excludeTags !== undefined}
+            {...field("excludeTags")}
+          />
         </Row>
         {/* The author's other homes, one per line: pasting six links into
             six fields is busywork this panel refuses to assign. The server
             enriches each with the site's own OpenGraph card. */}
-        <Row label={t("rowAuthorSites")} hint={t("hintAuthorSites")} error={errors.authorSites}>
+        <Row
+          kind="text" label={t("rowAuthorSites")}
+          hint={t("hintAuthorSites")}
+          error={errors.authorSites}
+          after={splitSites(form.authorSites).length > 0 && <Consequence>{tf("authorSitesEffect", { count: localeNum(splitSites(form.authorSites).length) })}</Consequence>}
+        >
           <textarea
-            className="s-smodal__textarea"
+            className="s-ctl s-ctl-input s-smodal__textarea"
             rows={3}
             dir="ltr"
             placeholder={t("phAuthorSites")}
@@ -170,9 +177,6 @@ export default function PublishingTab() {
             value={field("authorSites").value}
             onChange={(e) => field("authorSites").onChange(e.target.value)}
           />
-          {splitSites(form.authorSites).length > 0 && (
-            <Consequence>{tf("authorSitesEffect", { count: localeNum(splitSites(form.authorSites).length) })}</Consequence>
-          )}
         </Row>
       </Advanced>
     </section>

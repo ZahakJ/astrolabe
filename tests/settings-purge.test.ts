@@ -85,10 +85,17 @@ describe("the new index against the ledger", () => {
     }
   });
 
-  it("adds nothing the ledger does not account for, beyond the one new host row", () => {
+  it("adds nothing the ledger does not account for — every new entry is in its additions table, where it says", () => {
     const old = new Set(rows.map((r) => r.label));
+    const additions = audit.slice(audit.indexOf("## Round 2 additions"), audit.indexOf("## The verdicts, counted"));
+    const listed = [...additions.matchAll(/^\| `([A-Za-z0-9_]+)` \| ([^|]+) \|/gm)].map((m) => ({ label: m[1], page: m[2].trim() }));
     const added = SETTINGS_INDEX.filter((e) => !old.has(e.label)).map((e) => e.label);
-    assert.deepEqual(added, ["rowWebmentions"]);
+    assert.deepEqual(added.sort(), listed.map((l) => l.label).sort());
+    for (const l of listed) {
+      const e = byLabel.get(l.label);
+      const m = /^`([a-z]+)`(?:, part of `([A-Za-z0-9_]+)`)?$/.exec(l.page);
+      assert.ok(m && e?.tab === m[1] && e?.row === m[2], `${l.label} is not where the additions table says (${l.page})`);
+    }
   });
 });
 

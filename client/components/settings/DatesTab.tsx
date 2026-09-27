@@ -17,7 +17,7 @@ export default function DatesTab() {
   const { form, errors, field, eff, inh } = useSettings();
   return (
     <section data-section="dates">
-      <Row label={t("rowDateCalendar")} hint={t("hintDateCalendar")}>
+      <Row kind="segmented" label={t("rowDateCalendar")} hint={t("hintDateCalendar")}>
         <SegmentedControl
           label={t("rowDateCalendar")}
           segments={[
@@ -34,7 +34,7 @@ export default function DatesTab() {
           second means nothing without the first. Only while "Both" is chosen;
           the specimen below moves with them. */}
       {form.dateCalendar === "both" && (
-        <Row label={t("rowDateOrder")} hint={t("hintDateOrder")}>
+        <Row kind="segmented" label={t("rowDateOrder")} hint={t("hintDateOrder")}>
           <Parts>
             <SegmentedControl
               label={t("rowDateOrder")}
@@ -45,7 +45,7 @@ export default function DatesTab() {
               ]}
               {...field("dateOrder")}
             />
-            <Part label={t("rowDateSeparator")} hint={t("hintDateSeparator")}>
+            <Part kind="segmented" label={t("rowDateSeparator")} hint={t("hintDateSeparator")}>
               <SegmentedControl
                 label={t("rowDateSeparator")}
                 segments={[
@@ -88,7 +88,7 @@ export default function DatesTab() {
       )}
 
       <Advanced tab="dates">
-        <Row
+        <Row kind="text"
           label={t("rowDateLocale")}
           hint={t("hintDateLocale")}
           error={errors.blogLocale}

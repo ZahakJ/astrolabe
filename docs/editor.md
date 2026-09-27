@@ -613,8 +613,8 @@ one note or folder and the path to it; *Show all* brings the rest back. Every fo
 **Collapse everything inside** and *Expand everything inside*. All of this is per browser; the vault
 on disk is never reordered.
 
-**The writing column** (Settings → Appearance) is the reading measure by default. *Wide* and
-*Full width* let a table or a code-heavy note use the screen, and *Custom* takes a width of your own,
+**The writing column** (Settings → Appearance) is *Narrow* by default — lines at a reading measure. *Wide* and
+*Full* let a table or a code-heavy note use the screen, and *Custom* takes a width of your own,
 in pixels (`900px`) or as a share of the pane (`70%`), applied as you type. The reading view follows
 the same choice.
 

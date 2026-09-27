@@ -143,7 +143,7 @@ export function PocketSyncRows() {
 
   return (
     <>
-      <Row label={t("rowPocketRepo")} hint={t("hintPocketRepo")}>
+      <Row kind="status" label={t("rowPocketRepo")} hint={t("hintPocketRepo")}>
         <div className="s-smodal__sync">
           {/* A repository name is a literal somebody will compare against
               github.com, so it keeps its own LTR isolate inside an Arabic
@@ -159,7 +159,7 @@ export function PocketSyncRows() {
         </div>
       </Row>
 
-      <Row label={t("rowPocketState")} hint={t("hintPocketState")}>
+      <Row kind="status" label={t("rowPocketState")} hint={t("hintPocketState")}>
         <div className="s-smodal__sync">
           <div
             className={`s-smodal__syncline${status === null ? " s-smodal__syncline--muted" : lineTone(status)}`}
@@ -176,7 +176,7 @@ export function PocketSyncRows() {
       <div className="s-smodal__actions">
         <button
           type="button"
-          className="s-btn s-btn--accent"
+          className="s-btn"
           disabled={busy || status === null}
           onClick={() => void syncNow()}
         >
@@ -184,7 +184,7 @@ export function PocketSyncRows() {
         </button>
       </div>
 
-      <Row label={t("rowPocketConflicts")} hint={t("hintPocketConflicts")}>
+      <Row kind="status" label={t("rowPocketConflicts")} hint={t("hintPocketConflicts")}>
         <div className="s-smodal__sync">
           {conflicts.length === 0 ? (
             <div className="s-smodal__syncline s-smodal__syncline--muted">
@@ -214,7 +214,7 @@ export function PocketSyncRows() {
         </div>
       </Row>
 
-      <Row label={t("rowPocketLeave")} hint={t("hintPocketLeave")}>
+      <Row kind="action" label={t("rowPocketLeave")} hint={t("hintPocketLeave")}>
         <button type="button" className="s-btn" disabled={leaving} onClick={() => void leave()}>
           {t("pocketLeaveAction")}
         </button>

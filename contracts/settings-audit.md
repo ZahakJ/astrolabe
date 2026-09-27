@@ -158,6 +158,17 @@ settings KEY changes (only the rows' homes move), so nothing stored migrates.
 | 109 | ask | `rowAskTopK` | Passages per answer | never | — | DEMOTE | Ask › Advanced | `ask` › Advanced |
 | 110 | ask | `rowAskStatus` | What the index has read, who answers | monthly | — | KEEP | Ask | `ask` |
 
+## Round 2 additions
+
+Entries the index holds that no row of 3.37.0 was. The purge added one host row;
+the second pass added one part. `tests/settings-purge.test.ts` holds the index to
+this list: an entry that is in neither table is a row nobody accounted for.
+
+| Entry | Page (round 2) | Why |
+| ----- | -------------- | --- |
+| `rowWebmentions` | `conversation` | The purge's one new host: webmentions in and out are one row with two parts (rows 49 and 50). |
+| `feedsNoteField` | `reading`, part of `rowFeeds` | The note that lists the feeds was a field beside the Feeds switch, the one row drawn as a side-by-side pair; it is a part under the switch now, and a search lands on it by name. |
+
 ## The verdicts, counted
 
 | Verdict | Rows |

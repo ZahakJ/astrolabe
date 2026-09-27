@@ -199,7 +199,11 @@ export function ImageField({
   const { src, pending, missing } = useBannerSrc(trimmed);
   const showImg = isImage && !invalid && !broken && src !== null;
   return (
-    <div className="s-smodal__imgfield">
+    // ONE BOX (contracts/settings-design.md, the catalogue's Path field): the
+    // thumbnail inside its start, the clear × and Pick… inside its end — it
+    // was a shortened field with a thumbnail before it and two buttons after,
+    // the one row in its column whose field did not reach the column's edge.
+    <div className={`s-smodal__imgfield${isImage ? " s-smodal__imgfield--thumb" : ""}`}>
       {showImg && (
         <img
           className="s-smodal__imgthumb"
@@ -221,6 +225,8 @@ export function ImageField({
         </span>
       )}
       <TextInput
+        id={id}
+        aria-describedby={describedBy}
         value={value}
         placeholder={placeholder}
         onChange={onChange}
@@ -229,14 +235,14 @@ export function ImageField({
         label={placeholder}
         dir="ltr"
       />
-      <button type="button" className="s-btn" disabled={disabled} onClick={onOpenPicker}>
-        {t("pick")}
-      </button>
       {isImage && (
-        <button type="button" className="s-btn" disabled={disabled} onClick={() => onChange("")} aria-label={t("clear")}>
+        <button type="button" className="s-smodal__imgclear" disabled={disabled} onClick={() => onChange("")} aria-label={t("clear")} title={t("clear")}>
           ×
         </button>
       )}
+      <button type="button" className="s-smodal__imgpick" disabled={disabled} onClick={onOpenPicker}>
+        {t("pick")}
+      </button>
     </div>
   );
 }

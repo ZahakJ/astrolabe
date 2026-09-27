@@ -23,10 +23,10 @@ export default function SiteTab() {
     <section data-section="site">
       {/* WHY SOME ROWS ARE GREY, said once rather than in every hint. */}
       {pocket && <p className="s-smodal__offnote">{t("pocketSiteNotice")}</p>}
-      <Row label={t("rowSiteName")} error={errors.siteName} env={{ name: "SITE_NAME", value: eff.siteName, inherits: form.siteName.trim() === "" }}>
+      <Row kind="text" label={t("rowSiteName")} error={errors.siteName} env={{ name: "SITE_NAME", value: eff.siteName, inherits: form.siteName.trim() === "" }}>
         <TextInput placeholder={eff.siteName} maxLength={81} label={t("rowSiteName")} invalid={errors.siteName !== undefined} {...field("siteName")} />
       </Row>
-      <Row
+      <Row kind="text"
         label={t("rowTagline")}
         hint={t("hintTagline")}
         error={errors.tagline}
@@ -40,7 +40,7 @@ export default function SiteTab() {
           {...field("tagline")}
         />
       </Row>
-      <Row label={t("rowLogo")} hint={t("hintLogo")} error={errors.logo}>
+      <Row kind="path" label={t("rowLogo")} hint={t("hintLogo")} error={errors.logo}>
         <ImageField
           value={form.logo}
           placeholder={t("phVaultImageOrUrl")}
@@ -49,7 +49,7 @@ export default function SiteTab() {
           onOpenPicker={() => setPicker("logo")}
         />
       </Row>
-      <Row locked={pocket} label={t("rowFavicon")} hint={t("hintFavicon")} error={errors.favicon}>
+      <Row kind="path" locked={pocket} label={t("rowFavicon")} hint={t("hintFavicon")} error={errors.favicon}>
         <ImageField
           value={form.favicon}
           placeholder={t("phVaultIcon")}
@@ -63,7 +63,7 @@ export default function SiteTab() {
           — which room a reader with no stored choice walks into — and the
           line under it says what they are looking at tonight, in a theme's
           name, with the one click that stops following the editor. */}
-      <Row
+      <Row kind="select"
         locked={pocket}
         label={t("rowDefaultTheme")}
         hint={t("hintDefaultTheme")}
@@ -86,11 +86,9 @@ export default function SiteTab() {
         {/* Decoration, and the only row in this panel that is: beside the
             visitors' theme, which it does not change. The air a room gets is
             decided in client/styles/ambient.css; this is the whole switch. */}
-        <Row label={t("rowAmbient")} hint={t("hintAmbient")}>
+        <Row kind="toggle" label={t("rowAmbient")} hint={t("hintAmbient")}>
           <Toggle
             label={t("rowAmbient")}
-            onLabel={t("on")}
-            offLabel={t("off")}
             value={form.ambient === "on" || (form.ambient === "" && inh.ambient)}
             onChange={(on) => setForm((f) => (f ? { ...f, ambient: on ? "on" : "off" } : f))}
           />
@@ -103,7 +101,7 @@ export default function SiteTab() {
             owner writes in Arabic: `dir="auto"` lets the first strong
             character decide, so the default template renders exactly as it
             must be typed and an Arabic footer stays Arabic. */}
-        <Row
+        <Row kind="text"
           locked={pocket}
           label={t("rowFooter")}
           hint={t("hintFooter")}

@@ -470,13 +470,15 @@
    that fills — a second cue beside colour, for a reader who cannot tell
    accent from border. */
 .s-ctl-chips {
-  display: flex;
-  flex-wrap: wrap;
+  /* A grid, so a run that wraps wraps into even columns — never three chips
+     and a fourth stretched across the whole width under them. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
   gap: 6px;
 }
 
 .s-ctl-chip {
-  flex: 1 1 auto;
+  min-width: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;

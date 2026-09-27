@@ -9,7 +9,7 @@
 
 import { useSettings } from "./context.ts";
 import { t, tf } from "../../i18n.ts";
-import { TextInput } from "../controls/Fields.tsx";
+import { PathInput } from "../controls/PathInput.tsx";
 import { PeriodicForm } from "./PeriodicForm.tsx";
 import { ClipperControl } from "./ClipperControl.tsx";
 import { UniqueNoteFields } from "./PairControls.tsx";
@@ -20,26 +20,27 @@ export default function NotesTab() {
   return (
     <section data-section="notes">
       {pocket && <p className="s-smodal__offnote">{t("pocketVaultNotice")}</p>}
-      <Row label={t("templatesFolderLabel")} hint={t("templatesFolderHint")}>
+      <Row kind="path" label={t("templatesFolderLabel")} hint={t("templatesFolderHint")}>
         {/* "Templates" is not copy: it is the folder's literal default name. */}
-        <TextInput placeholder={eff.templatesFolder ?? "Templates"} dir="ltr" label={t("templatesFolderLabel")} {...field("templatesFolder")} />
+        <PathInput kind="folder" pickable placeholder={eff.templatesFolder ?? "Templates"} label={t("templatesFolderLabel")} {...field("templatesFolder")} />
       </Row>
       {form.templatesFolder.trim() === "" && eff.templatesFolderDetected && eff.templatesFolder && (
         <p className="s-smodal__note">{tf("templatesDetectedHint", { folder: eff.templatesFolder })}</p>
       )}
       {/* The {{placeholder}} grammar is the template FILE's reference, and
           sits behind this row's ⓘ. */}
-      <Row label={t("defaultTemplateLabel")} hint={t("defaultTemplateHint")} more={t("templatePlaceholdersHint")}>
-        <TextInput
+      <Row kind="path" label={t("defaultTemplateLabel")} hint={t("defaultTemplateHint")} more={t("templatePlaceholdersHint")}>
+        <PathInput
+          kind="note"
+          pickable
           placeholder={eff.templatesFolder ? `${eff.templatesFolder}/Note.md` : "Templates/Note.md"}
-          dir="ltr"
           label={t("defaultTemplateLabel")}
           {...field("defaultTemplate")}
         />
       </Row>
       {/* PERIODIC NOTES (shared/periodic.ts): ONE row with a sub-form rather
           than nine — nine rows asking the same two questions is a table. */}
-      <Row label={t("periodicRowLabel")} hint={t("periodicRowHint")} more={t("periodicFormatNote")} wide>
+      <Row kind="table" label={t("periodicRowLabel")} hint={t("periodicRowHint")} more={t("periodicFormatNote")}>
         <PeriodicForm
           form={form}
           inForce={{
@@ -53,7 +54,7 @@ export default function NotesTab() {
       {/* THE UNIQUE NOTE (client/uniqueNote.ts): the same idea as the periodic
           notes — a note named by when — with a finer clock. One row, two
           fields: where a minute-named note goes, and what it is called. */}
-      <Row label={t("uniqueRowLabel")} hint={t("uniqueFolderHint")} more={t("uniqueFormatHint")} wide>
+      <Row kind="text" label={t("uniqueRowLabel")} hint={t("uniqueFolderHint")} more={t("uniqueFormatHint")}>
         <UniqueNoteFields folder={field("uniqueFolder")} format={field("uniqueFormat")} folderInForce={eff.uniqueFolder} formatInForce={eff.uniqueFormat} vaultRoot={t("vaultRoot")} />
       </Row>
 
@@ -62,10 +63,10 @@ export default function NotesTab() {
           data directory and never in the vault. The import wizard is not a
           row; its doors are named in the note. */}
       {!pocket && <p className="s-smodal__note">{t("importDoorsNote")}</p>}
-      <Row label={t("captureInboxLabel")} hint={t("captureInboxHint")} more={t("moreCaptureInbox")}>
-        <TextInput placeholder="Inbox.md" dir="ltr" label={t("captureInboxLabel")} {...field("captureInbox")} />
+      <Row kind="path" label={t("captureInboxLabel")} hint={t("captureInboxHint")} more={t("moreCaptureInbox")}>
+        <PathInput kind="note" pickable placeholder="Inbox.md" label={t("captureInboxLabel")} {...field("captureInbox")} />
       </Row>
-      <Row locked={pocket} label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
+      <Row kind="action" locked={pocket} label={t("clipperLabel")} hint={t("clipperHint")} more={t("moreClipper")}>
         <ClipperControl siteName={eff.siteName} />
       </Row>
     </section>

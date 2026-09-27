@@ -18,28 +18,32 @@ import { DIM_MAX, WARMTH_MAX, readDim, readWarmth, setDim, setWarmth } from "../
 import { useLevel } from "./devicePrefs.ts";
 import { Part, Parts, Row } from "./Row.tsx";
 
-/** A level slider with its value spoken beside it: "45%" or "Off", because a
- *  thumb at the left end says nothing about whether the sheet is gone or
- *  merely faint. The row's label is the control's accessible name, as every
- *  row here wires it. */
-function LevelSlider({ label, max, value, onChange }: { label: string; max: number; value: number; onChange: (v: number) => void }) {
+/** A level, spoken: "45%" or "Off", because a thumb at the left end says
+ *  nothing about whether the sheet is gone or merely faint. It rides in the
+ *  row's LABEL ("Screen warmth · 30%", Row's `value`) — the 3.38.0 slider
+ *  had it flung to the far edge of the control column, a word with no row. */
+function levelText(value: number): string {
+  return value === 0 ? t("eyeComfortOff") : `${value}%`;
+}
+
+/** The slider itself, the full width of the control column. The row's label
+ *  is its accessible name, as every row here wires it; the value is its
+ *  `aria-valuetext`. */
+function LevelSlider({ label, max, value, onChange, id, "aria-describedby": describedBy }: { label: string; max: number; value: number; onChange: (v: number) => void; id?: string; "aria-describedby"?: string }) {
   return (
-    <span className="s-ctl-inline s-ctl-level">
-      <input
-        className="s-ctl-range"
-        type="range"
-        min={0}
-        max={max}
-        step={1}
-        value={value}
-        aria-label={label}
-        aria-valuetext={value === 0 ? t("eyeComfortOff") : `${value}%`}
-        onChange={(e) => onChange(Number(e.target.value))}
-      />
-      <span className="s-ctl-level__value" aria-hidden="true">
-        {value === 0 ? t("eyeComfortOff") : <bdi dir="ltr">{value}%</bdi>}
-      </span>
-    </span>
+    <input
+      className="s-ctl-range s-ctl-level"
+      type="range"
+      id={id}
+      min={0}
+      max={max}
+      step={1}
+      value={value}
+      aria-label={label}
+      aria-describedby={describedBy}
+      aria-valuetext={levelText(value)}
+      onChange={(e) => onChange(Number(e.target.value))}
+    />
   );
 }
 
@@ -63,7 +67,7 @@ export default function AppearanceTab() {
 
   return (
     <section data-section="appearance">
-      <Row device label={t("rowYourTheme")} hint={t("hintYourTheme")}>
+      <Row kind="select" device label={t("rowYourTheme")} hint={t("hintYourTheme")}>
         {/* ONE trigger, built on `.s-ctl-select` like the visitors' theme row
             on Site identity: same measure, same border, same chevron. What it
             opens is a browsing panel rather than a list — twenty-one rooms
@@ -99,16 +103,16 @@ export default function AppearanceTab() {
           the theme row does not answer: "light mode is nice but almost blinds
           me". A theme is ink and paper; these two are the lamp and the blind
           over ANY theme (client/eyeComfort.ts). Applied as it is dragged. */}
-      <Row device label={t("rowScreenWarmth")} hint={t("hintScreenWarmth")}>
+      <Row kind="slider" device label={t("rowScreenWarmth")} value={levelText(warmth)} hint={t("hintScreenWarmth")}>
         <LevelSlider label={t("rowScreenWarmth")} max={WARMTH_MAX} value={warmth} onChange={setWarmth} />
       </Row>
-      <Row device label={t("rowScreenDim")} hint={t("hintScreenDim")}>
+      <Row kind="slider" device label={t("rowScreenDim")} value={levelText(dim)} hint={t("hintScreenDim")}>
         <LevelSlider label={t("rowScreenDim")} max={DIM_MAX} value={dim} onChange={setDim} />
       </Row>
 
       {/* Segment labels name a PHYSICAL edge in both languages, exactly as the
           palette commands do; "Auto" follows the reader's language. */}
-      <Row device label={t("rowSidebarSide")} hint={t("hintSidebarSide")}>
+      <Row kind="segmented" device label={t("rowSidebarSide")} hint={t("hintSidebarSide")}>
         <SegmentedControl
           label={t("rowSidebarSide")}
           value={sidebarSidePref}
@@ -124,7 +128,7 @@ export default function AppearanceTab() {
       {/* A width of the reader's own is a PART of this row, not a row: it
           means nothing unless "Custom" is chosen, and it applies as it is
           typed (the owner: "you see it change real time"). */}
-      <Row device label={t("rowEditorWidth")} hint={t("hintEditorWidth")}>
+      <Row kind="segmented" device label={t("rowEditorWidth")} hint={t("hintEditorWidth")}>
         <Parts>
           <SegmentedControl
             label={t("rowEditorWidth")}
@@ -141,7 +145,7 @@ export default function AppearanceTab() {
             ]}
           />
           {editorWidth === "custom" && (
-            <Part label={t("editorWidthCustom")} hint={t("editorWidthCustomHint")}>
+            <Part kind="text" label={t("editorWidthCustom")} hint={t("editorWidthCustomHint")}>
               <TextInput
                 label={t("editorWidthCustom")}
                 value={customWidth}

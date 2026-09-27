@@ -142,7 +142,7 @@ function NeedsLight() {
       {!running && (
         <button
           type="button"
-          className="s-btn s-btn--accent"
+          className="s-btn"
           disabled={asked}
           onClick={() => {
             setAsked(true);
