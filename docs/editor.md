@@ -686,5 +686,5 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 (vim's `number relativenumber`). The column sits against the text, not at the window's edge, and it
 follows every caret move, not only edits. It is the only line numbering the editor has: a prose
 editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
-**Settings → Writing → Relative line numbers** (under Vim keys, on by default) turns it off for
+**Settings → Writing → Relative line numbers** (a part of Vim keys, behind the section's Advanced line; on by default) turns it off for
 readers who navigate by search.
