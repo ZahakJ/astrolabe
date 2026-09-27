@@ -26,6 +26,7 @@ import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
+import { initSittings, pruneSittings } from "./sittings.ts";
 import { initAsk } from "./ask.ts";
 import { initFeeds } from "./feeds.ts";
 import { initFederation } from "./federation.ts";
@@ -87,7 +88,11 @@ await startConfigMirror();
 // working, and this is the one line that says so.
 reportEnvFallbacks();
 startWatcher();
+// Sittings from progress (server/sittings.ts): the hook goes in before the
+// first walk, so a book moved while the instance was down is met at boot.
+initSittings();
 await initIndexer();
+pruneSittings();
 // The shelf's page text (server/pdfText.ts), read in the background after
 // the note index the first request needs. Nothing waits on it: a search that
 // arrives mid-pass answers from the books read so far, and a vault without a
