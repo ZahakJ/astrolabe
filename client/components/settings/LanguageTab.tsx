@@ -13,6 +13,7 @@ import { useSettings } from "./context.ts";
 import { localeNum, t, tf } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
 import { Chips, SegmentedControl, Toggle } from "../controls/Fields.tsx";
+import { Select } from "../controls/Select.tsx";
 import { dictionaryName, setBrowserDictionaries, spellOffer } from "../../spellDicts.ts";
 import { Row } from "./Row.tsx";
 import { Consequence, LanguageConsequence } from "./Visibility.tsx";
@@ -36,7 +37,7 @@ export default function LanguageTab() {
           public ع rewrote the owner's editor. Three states, not two: the
           default has to stay reachable, and "Follow site" names the language
           it landed on rather than being a silent state. */}
-      <Row device label={t("rowEditorLanguage")} hint={t("hintEditorLanguage")}>
+      <Row kind="segmented" device label={t("rowEditorLanguage")} hint={t("hintEditorLanguage")}>
         <SegmentedControl
           label={t("rowEditorLanguage")}
           value={editorLangPref ?? ""}
@@ -48,7 +49,7 @@ export default function LanguageTab() {
           ]}
         />
       </Row>
-      <Row
+      <Row kind="segmented"
         label={t("rowLanguage")}
         hint={t("hintLanguage")}
         env={{ name: "SITE_LANG", value: eff.language, inherits: form.language === "" }}
@@ -73,7 +74,7 @@ export default function LanguageTab() {
           dictionaries this computer has in the desktop app, and — where there
           is nothing to choose (macOS, or spelling off in the Edit menu) — one
           sentence and no control. Kept on this device, like a dictionary. */}
-      <Row device label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
+      <Row kind="chips" device label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
         {offer.mode === "browser" || offer.mode === "desktop" ? (
           <Chips
             label={t("rowSpellDicts")}
@@ -93,16 +94,36 @@ export default function LanguageTab() {
           shows, and whether a reader may flip the interface. A pocket vault
           has no visitors, so both rows are its locked facts. */}
       {pocket && <p className="s-smodal__offnote">{t("pocketLangNotice")}</p>}
-      <Row
+      <Row kind="select"
         locked={pocket}
         label={t("rowLanguageFilter")}
         hint={t("hintLanguageFilter")}
         env={{ name: "LANGUAGE_FILTER", value: eff.languageFilter, inherits: form.languageFilter === "" }}
-        wide
+        after={
+          <>
+            {impact && (
+              <LanguageConsequence
+                mode={form.languageFilter === "" ? inh.languageFilter : form.languageFilter}
+                impact={impact}
+                toggleOn={form.languageToggle === "" ? inh.languageToggle : form.languageToggle === "on"}
+                siteLang={form.language === "" ? inh.language : form.language}
+              />
+            )}
+            {impact && impact.topics.visible < impact.topics.total && (
+              <Consequence>
+                {tf("langFilterTopicsCut", { visible: localeNum(impact.topics.visible), total: localeNum(impact.topics.total) })}
+              </Consequence>
+            )}
+          </>
+        }
       >
-        <SegmentedControl
+        {/* FIVE STATES, SO A SELECT: as five segments with a note under two
+            of them the row ran wider than the control column and two storeys
+            tall. The notes ride in the list; the lines under the control say,
+            in this vault's own numbers, what the pending choice would do. */}
+        <Select
           label={t("rowLanguageFilter")}
-          segments={[
+          options={[
             { value: "", label: t("inheritSegment"), note: langFilterLabel(inh.languageFilter) },
             { value: "off", label: t("langFilterOff"), note: t("langFilterOffNote") },
             { value: "follow", label: t("langFilterFollow"), note: t("langFilterFollowNote") },
@@ -111,29 +132,14 @@ export default function LanguageTab() {
           ]}
           {...field("languageFilter")}
         />
-        {impact && (
-          <LanguageConsequence
-            mode={form.languageFilter === "" ? inh.languageFilter : form.languageFilter}
-            impact={impact}
-            toggleOn={form.languageToggle === "" ? inh.languageToggle : form.languageToggle === "on"}
-            siteLang={form.language === "" ? inh.language : form.language}
-          />
-        )}
-        {impact && impact.topics.visible < impact.topics.total && (
-          <Consequence>
-            {tf("langFilterTopicsCut", { visible: localeNum(impact.topics.visible), total: localeNum(impact.topics.total) })}
-          </Consequence>
-        )}
       </Row>
       {/* A PLAIN TOGGLE, not a three-way segment: no environment variable
           stands behind this row, so "Default" would name nothing an operator
           can set elsewhere. Its hint says what turning it on puts on the page;
           its ⓘ says what it deliberately does not move. */}
-      <Row locked={pocket} label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")} more={t("visitorSwitchNote")}>
+      <Row kind="toggle" locked={pocket} label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")} more={t("visitorSwitchNote")}>
         <Toggle
           label={t("rowLanguageToggle")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)}
           onChange={(on) => setForm((f) => (f ? { ...f, languageToggle: on ? "on" : "off" } : f))}
         />

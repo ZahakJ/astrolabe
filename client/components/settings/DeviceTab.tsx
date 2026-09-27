@@ -33,9 +33,9 @@ export default function DeviceTab() {
   return (
     <section data-section="device">
       {offlineSupported() && (
-        <Row device label={t("rowOffline")} hint={t("hintOffline")}>
+        <Row kind="toggle" device label={t("rowOffline")} hint={t("hintOffline")}>
           <div className="s-settings__inline">
-            <Toggle value={offline} onChange={setOfflineEnabled} label={t("rowOffline")} onLabel={t("on")} offLabel={t("off")} />
+            <Toggle value={offline} onChange={setOfflineEnabled} label={t("rowOffline")} />
             {/* Deletes bytes, so it asks — the panel's rule for anything that
                 does. At the trailing edge of the row, like the other verbs. */}
             <button
@@ -52,18 +52,18 @@ export default function DeviceTab() {
           </div>
         </Row>
       )}
-      <Row device label={t("rowVimKeys")} hint={t("hintVimKeys")}>
+      <Row kind="toggle" device label={t("rowVimKeys")} hint={t("hintVimKeys")}>
         <Parts>
-          <Toggle label={t("rowVimKeys")} onLabel={t("on")} offLabel={t("off")} value={vimMode} onChange={() => toggleVim()} />
+          <Toggle label={t("rowVimKeys")} value={vimMode} onChange={() => toggleVim()} />
           {vimMode && (
-            <Part label={t("rowRelativeLines")} hint={t("hintRelativeLines")}>
-              <Toggle label={t("rowRelativeLines")} onLabel={t("on")} offLabel={t("off")} value={relativeLines} onChange={() => toggleRelativeLines()} />
+            <Part kind="toggle" label={t("rowRelativeLines")} hint={t("hintRelativeLines")}>
+              <Toggle label={t("rowRelativeLines")} value={relativeLines} onChange={() => toggleRelativeLines()} />
             </Part>
           )}
         </Parts>
       </Row>
-      <Row device label={t("rowWhatsNew")} hint={t("hintWhatsNew")}>
-        <Toggle value={whatsNew} onChange={setWhatsNewEnabled} label={t("rowWhatsNew")} onLabel={t("on")} offLabel={t("off")} />
+      <Row kind="toggle" device label={t("rowWhatsNew")} hint={t("hintWhatsNew")}>
+        <Toggle value={whatsNew} onChange={setWhatsNewEnabled} label={t("rowWhatsNew")} />
       </Row>
       <AppIdentityRows />
       <UpdatesRow />
@@ -99,27 +99,27 @@ function AppIdentityRows() {
   };
   return (
     <>
-      <Row device label={t("rowAppName")} hint={t("hintAppName")}>
+      <Row kind="text" device label={t("rowAppName")} hint={t("hintAppName")}>
         <TextInput label={t("rowAppName")} value={name} placeholder={brand.name} onChange={setName} onBlur={save} />
       </Row>
-      <Row device label={t("rowAppIcon")} hint={t("hintAppIcon")}>
+      <Row kind="action" device label={t("rowAppIcon")} hint={t("hintAppIcon")}>
         <span className="s-ctl-inline">
           {brand.iconDataUrl && <img className="s-ctl-iconpreview" src={brand.iconDataUrl} alt="" width={28} height={28} />}
-          <button type="button" className="s-ctl-select" onClick={() => void bridge.brandPickIcon?.().then(apply)}>
+          <button type="button" className="s-btn" onClick={() => void bridge.brandPickIcon?.().then(apply)}>
             {t("appIconChoose")}
           </button>
           {brand.custom && (
-            <button type="button" className="s-ctl-select" onClick={() => void bridge.brandClear?.().then(apply)}>
+            <button type="button" className="s-btn" onClick={() => void bridge.brandClear?.().then(apply)}>
               {t("appBrandReset")}
             </button>
           )}
         </span>
       </Row>
       {brand.launcher !== "none" && (
-        <Row device label={t(brand.launcher === "start-menu" ? "rowAppLauncherWin" : "rowAppLauncher")} hint={t("hintAppLauncher")}>
+        <Row kind="action" device label={t(brand.launcher === "start-menu" ? "rowAppLauncherWin" : "rowAppLauncher")} hint={t("hintAppLauncher")}>
           <button
             type="button"
-            className="s-ctl-select"
+            className="s-btn"
             onClick={() =>
               void bridge.brandInstall?.().then((r) => {
                 if (!r.ok) toast(t("appLauncherFailed"), "error");
@@ -153,7 +153,7 @@ function UpdatesRow() {
   }, [bridge]);
   if (!bridge?.updatesPrefGet || pref === null) return null;
   return (
-    <Row device label={t("rowUpdates")} hint={t("hintUpdates")}>
+    <Row kind="segmented" device label={t("rowUpdates")} hint={t("hintUpdates")}>
       <SegmentedControl
         label={t("rowUpdates")}
         value={pref}

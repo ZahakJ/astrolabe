@@ -167,7 +167,7 @@ export function SyncActions({ stale, disabled }: { stale: boolean; disabled: boo
       )}
       <button
         type="button"
-        className="s-btn s-btn--accent"
+        className="s-btn"
         disabled={blocked || !status?.repo || !status.configured}
         onClick={() => void runSyncNow()}
       >

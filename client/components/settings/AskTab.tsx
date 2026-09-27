@@ -15,7 +15,7 @@ export default function AskTab() {
   const { saving, errors, field, clearAskKey, eff } = useSettings();
   return (
     <section data-section="ask">
-      <Row label={t("rowAskProvider")} hint={t("hintAskProvider")}>
+      <Row kind="segmented" label={t("rowAskProvider")} hint={t("hintAskProvider")}>
         <SegmentedControl
           label={t("rowAskProvider")}
           segments={[
@@ -25,7 +25,7 @@ export default function AskTab() {
           {...field("askProvider")}
         />
       </Row>
-      <Row label={t("rowAskChatModel")} hint={t("hintAskChatModel")} error={errors.askChatModel}>
+      <Row kind="text" label={t("rowAskChatModel")} hint={t("hintAskChatModel")} error={errors.askChatModel}>
         <TextInput
           placeholder="qwen3.5:9b"
           dir="ltr"
@@ -35,7 +35,7 @@ export default function AskTab() {
           {...field("askChatModel")}
         />
       </Row>
-      <Row label={t("rowAskAnthropicModel")} hint={t("hintAskAnthropicModel")} error={errors.askAnthropicModel}>
+      <Row kind="text" label={t("rowAskAnthropicModel")} hint={t("hintAskAnthropicModel")} error={errors.askAnthropicModel}>
         <TextInput
           placeholder={ANTHROPIC_MODEL_PLACEHOLDER}
           dir="ltr"
@@ -45,7 +45,7 @@ export default function AskTab() {
           {...field("askAnthropicModel")}
         />
       </Row>
-      <Row label={t("rowAskKey")} hint={t("hintAskKey")} error={errors.askKey} after={<span className="s-smodal__hint">{t(eff.ask.keySet ? "askKeySetYes" : "askKeySetNo")}</span>}>
+      <Row kind="text" label={t("rowAskKey")} hint={t("hintAskKey")} error={errors.askKey} after={<span className="s-smodal__hint">{t(eff.ask.keySet ? "askKeySetYes" : "askKeySetNo")}</span>}>
         <div className="s-smodal__tokenfield">
           <TextInput
             type="password"
@@ -61,11 +61,11 @@ export default function AskTab() {
           </button>
         </div>
       </Row>
-      <Row label={t("rowAskStatus")} hint={t("hintAskStatus")}>
+      <Row kind="status" label={t("rowAskStatus")} hint={t("hintAskStatus")}>
         <AskStatusBlock />
       </Row>
       <Advanced tab="ask">
-        <Row label={t("rowAskEmbedModel")} hint={t("hintAskEmbedModel")} error={errors.askEmbedModel}>
+        <Row kind="text" label={t("rowAskEmbedModel")} hint={t("hintAskEmbedModel")} error={errors.askEmbedModel}>
           <TextInput
             placeholder="embeddinggemma"
             dir="ltr"
@@ -75,7 +75,7 @@ export default function AskTab() {
             {...field("askEmbedModel")}
           />
         </Row>
-        <Row label={t("rowAskTopK")} hint={t("hintAskTopK")} error={errors.askTopK}>
+        <Row kind="text" label={t("rowAskTopK")} hint={t("hintAskTopK")} error={errors.askTopK}>
           <NumberInput
             label={t("rowAskTopK")}
             unit={t("askTopKUnit")}

@@ -37,7 +37,7 @@ export default function WritingTab() {
           session is restored underneath whichever door is chosen. The note
           path is a part of the row: it means something only while "A note"
           is the answer. */}
-      <Row label={t("rowLaunch")} hint={t("hintLaunch")}>
+      <Row kind="select" label={t("rowLaunch")} hint={t("hintLaunch")}>
         <Parts>
           <Select
             label={t("rowLaunch")}
@@ -53,8 +53,8 @@ export default function WritingTab() {
             ]}
           />
           {form.launch === "note" && (
-            <Part label={t("rowLaunchNote")} hint={t("hintLaunchNote")}>
-              <PathInput kind="note" placeholder="Home.md" label={t("rowLaunchNote")} {...field("launchNote")} />
+            <Part kind="path" label={t("rowLaunchNote")} hint={t("hintLaunchNote")}>
+              <PathInput kind="note" pickable placeholder="Home.md" label={t("rowLaunchNote")} {...field("launchNote")} />
             </Part>
           )}
         </Parts>
@@ -62,23 +62,21 @@ export default function WritingTab() {
       {/* THE LABEL IS THE THING, THE HINT SAYS WHAT ON DOES. The status bar's
           pill and the palette row flip the same values; this is simply the
           place a reader who has met neither can find them. */}
-      <Row device label={t("selToolbarLabel")} hint={t("hintSelToolbar")}>
-        <Toggle label={t("selToolbarLabel")} onLabel={t("on")} offLabel={t("off")} value={toolbar} onChange={setSelectionToolbarEnabled} />
+      <Row kind="toggle" device label={t("selToolbarLabel")} hint={t("hintSelToolbar")}>
+        <Toggle label={t("selToolbarLabel")} value={toolbar} onChange={setSelectionToolbarEnabled} />
       </Row>
       {/* FRENCH, CORRECTED AS YOU TYPE — on by default, because the person who
           asked for it writes French (client/frenchPref.ts). The hint carries
           what it changes and that one undo takes it back; the ⓘ, the list. */}
-      <Row device label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")} more={t("moreFrenchAutocorrect")}>
-        <Toggle label={t("rowFrenchAutocorrect")} onLabel={t("on")} offLabel={t("off")} value={french} onChange={setFrenchAutocorrectEnabled} />
+      <Row kind="toggle" device label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")} more={t("moreFrenchAutocorrect")}>
+        <Toggle label={t("rowFrenchAutocorrect")} value={french} onChange={setFrenchAutocorrectEnabled} />
       </Row>
       {/* The card on a note with nothing in its frontmatter yet: shown by
           default (the owner: "should prob show by default on all created
           notes"), with the switch here for the reader who wants a bare page. */}
-      <Row label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
+      <Row kind="toggle" label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
         <Toggle
           label={t("rowEmptyPropsCard")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.emptyPropsCard !== "off"}
           onChange={(on) => setForm((f) => (f ? { ...f, emptyPropsCard: on ? "on" : "off" } : f))}
         />
@@ -88,7 +86,7 @@ export default function WritingTab() {
           way so a migrating vault owner finds what they expect. Every upload
           obeys it and nothing already on disk moves when it changes. The
           folder is a PART: it belongs to two of the four modes. */}
-      <Row label={t("rowAttachmentLocation")} hint={t("hintAttachmentLocation")} error={errors.attachFolder}>
+      <Row kind="select" label={t("rowAttachmentLocation")} hint={t("hintAttachmentLocation")} error={errors.attachFolder}>
         <Parts>
           <Select
             label={t("rowAttachmentLocation")}
@@ -103,15 +101,30 @@ export default function WritingTab() {
             ]}
           />
           {modeUsesFolder(attachMode) && (
-            <Part label={t("rowAttachmentFolder")} hint={t(bySubfolder ? "hintAttachmentSubfolder" : "hintAttachmentFolder")}>
-              <TextInput
-                placeholder={eff.attachments.folder}
-                maxLength={FOLDER_MAX + 1}
-                dir="ltr"
-                label={t("rowAttachmentFolder")}
-                invalid={errors.attachFolder !== undefined}
-                {...field("attachFolder")}
-              />
+            <Part kind="path" label={t("rowAttachmentFolder")} hint={t(bySubfolder ? "hintAttachmentSubfolder" : "hintAttachmentFolder")}>
+              {/* A vault folder in "specified" mode, which the vault can
+                  offer; in "subfolder" mode a NAME made under each note's own
+                  folder, which no list of the vault's folders answers. */}
+              {bySubfolder ? (
+                <TextInput
+                  placeholder={eff.attachments.folder}
+                  maxLength={FOLDER_MAX + 1}
+                  dir="ltr"
+                  label={t("rowAttachmentFolder")}
+                  invalid={errors.attachFolder !== undefined}
+                  {...field("attachFolder")}
+                />
+              ) : (
+                <PathInput
+                  kind="folder"
+                  pickable
+                  placeholder={eff.attachments.folder}
+                  maxLength={FOLDER_MAX + 1}
+                  label={t("rowAttachmentFolder")}
+                  invalid={errors.attachFolder !== undefined}
+                  {...field("attachFolder")}
+                />
+              )}
             </Part>
           )}
         </Parts>
@@ -119,15 +132,15 @@ export default function WritingTab() {
       {/* The tag pages' folder answers "where does this instance write", and
           the labels table "what does a tag get called" — the table's hint
           says which one wins. */}
-      <Row label={t("rowTagsFolder")} hint={t("hintTagsFolder")}>
-        <TextInput placeholder={eff.tagsFolder} dir="ltr" label={t("rowTagsFolder")} {...field("tagsFolder")} />
+      <Row kind="path" label={t("rowTagsFolder")} hint={t("hintTagsFolder")}>
+        <PathInput kind="folder" pickable placeholder={eff.tagsFolder} label={t("rowTagsFolder")} {...field("tagsFolder")} />
       </Row>
       {form.tagsFolder.trim() === "" && eff.tagsFolderDetected && (
         <p className="s-smodal__note">{tf("templatesDetectedHint", { folder: eff.tagsFolder })}</p>
       )}
       {/* DISPLAY ONLY: the vault keeps its canonical tags, the URLs keep
           canonical slugs, and search answers to both — which is the ⓘ. */}
-      <Row label={t("tagLabelsRowLabel")} hint={t("tagLabelsPageWins")} more={t("tagLabelsNote")} wide>
+      <Row kind="table" label={t("tagLabelsRowLabel")} hint={t("tagLabelsPageWins")} more={t("tagLabelsNote")}>
         <TagLabelEditor rows={form.tagLabels} onChange={(rows) => setForm((f) => (f ? { ...f, tagLabels: rows } : f))} />
       </Row>
 
@@ -135,8 +148,8 @@ export default function WritingTab() {
         {/* Where the sidebar's pencil files a drawing (the owner: "create the
             drawing in a specified space in settings or by default the root
             directory"). */}
-        <Row label={t("drawingsFolderLabel")} hint={t("drawingsFolderHint")}>
-          <TextInput placeholder={t("vaultRoot")} dir="ltr" label={t("drawingsFolderLabel")} {...field("drawingsFolder")} />
+        <Row kind="path" label={t("drawingsFolderLabel")} hint={t("drawingsFolderHint")}>
+          <PathInput kind="folder" pickable placeholder={t("vaultRoot")} label={t("drawingsFolderLabel")} {...field("drawingsFolder")} />
         </Row>
       </Advanced>
     </section>

@@ -14,16 +14,20 @@ import { bannerSrc } from "../../banner.ts";
 import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
 
-export type PathKind = "image" | "note" | "attachment";
+export type PathKind = "image" | "note" | "attachment" | "folder";
 
 function collect(tree: TreeNode | null, kind: PathKind): string[] {
   const out: string[] = [];
   const walk = (node: TreeNode): void => {
     for (const child of node.children ?? []) {
       if (child.type === "folder") {
+        // A folder answers a folder field ("Templates", "Attachments/Pasted"),
+        // and is walked for what it holds either way.
+        if (kind === "folder") out.push(child.path);
         walk(child);
         continue;
       }
+      if (kind === "folder") continue;
       if (kind === "note" ? !child.attachment : kind === "image" ? child.attachment?.kind === "image" : !!child.attachment) {
         out.push(child.path);
       }
@@ -44,6 +48,9 @@ export function PathInput({
   label,
   maxLength,
   id,
+  invalid,
+  pickable,
+  "aria-describedby": describedBy,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -53,14 +60,24 @@ export function PathInput({
   label?: string;
   maxLength?: number;
   id?: string;
+  invalid?: boolean;
+  /** A *Pick…* inside the field's trailing edge that opens the vault's
+   *  answers without typing (contracts/settings-design.md, the catalogue's
+   *  Path field). Off where the field stands alone (the media form's cover). */
+  pickable?: boolean;
+  "aria-describedby"?: string;
 }) {
   const tree = useStore((s) => s.tree);
   const all = useMemo(() => collect(tree, kind), [tree, kind]);
   const [open, setOpen] = useState(false);
+  /** Opened by *Pick…*: every answer, not only the ones matching what is
+   *  already in the field — until the reader types again. */
+  const [browse, setBrowse] = useState(false);
   const [at, setAt] = useState(0);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const rows = useMemo(() => {
-    const q = value.trim().toLowerCase();
+    const q = browse ? "" : value.trim().toLowerCase();
     if (/^https?:\/\//.test(q)) return [];
     const words = q.split(/\s+/).filter(Boolean);
     const hits = all.filter((p) => {
@@ -70,7 +87,7 @@ export function PathInput({
     // The ones whose NAME starts with the words first, then the rest.
     const starts = (p: string) => words.length > 0 && p.slice(p.lastIndexOf("/") + 1).toLowerCase().startsWith(words[0]);
     return hits.sort((a, b) => Number(starts(b)) - Number(starts(a))).slice(0, MAX_ROWS);
-  }, [all, value]);
+  }, [all, value, browse]);
   useEffect(() => {
     setAt(0);
   }, [rows.length, value]);
@@ -111,16 +128,19 @@ export function PathInput({
         if (!wrapRef.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <div className="s-ctl-path__field">
+      <div className={`s-ctl-path__field${pickable ? " s-ctl-path__field--pick" : ""}`}>
         {preview && <img className="s-ctl-path__preview" src={preview} alt="" onError={(e) => ((e.target as HTMLImageElement).hidden = true)} />}
         <input
-          className="s-ctl s-ctl-input"
+          ref={inputRef}
+          className={`s-ctl s-ctl-input${invalid ? " s-ctl-input--invalid" : ""}`}
           type="text"
           value={value}
           placeholder={placeholder}
           disabled={disabled}
           id={id}
           aria-label={id ? undefined : label}
+          aria-describedby={describedBy}
+          aria-invalid={invalid || undefined}
           aria-autocomplete="list"
           aria-expanded={showList}
           dir="ltr"
@@ -130,10 +150,33 @@ export function PathInput({
           onFocus={() => setOpen(true)}
           onChange={(e) => {
             onChange(e.target.value);
+            setBrowse(false);
             setOpen(true);
           }}
           onKeyDown={onKey}
         />
+        {pickable && (
+          <button
+            type="button"
+            className="s-ctl-path__pick"
+            disabled={disabled}
+            aria-expanded={showList}
+            // The field's own name before the verb, so the page does not hold
+            // six buttons all called "Pick…".
+            aria-label={label ? `${label}: ${t("pick")}` : t("pick")}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              // Read BEFORE the focus: focusing the field opens the list on
+              // its own, and a toggle after that would shut it again.
+              const was = open;
+              inputRef.current?.focus();
+              setOpen(!was);
+              setBrowse(!was);
+            }}
+          >
+            {t("pick")}
+          </button>
+        )}
       </div>
       {showList && (
         <ul className="s-ctl-path__list" role="listbox" aria-label={t("pathSuggestions")}>

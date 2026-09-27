@@ -15,17 +15,15 @@ export default function LibraryTab() {
   const { form, setForm, errors, libraryOff } = useSettings();
   return (
     <section data-section="library">
-      <Row label={t("rowLibrary")} hint={t("hintLibrary")} more={t("libraryNote")}>
+      <Row kind="toggle" label={t("rowLibrary")} hint={t("hintLibrary")} more={t("libraryNote")}>
         <Toggle
           label={t("rowLibrary")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.libraryOn === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, libraryOn: on ? "on" : "off" } : f))}
         />
       </Row>
       {libraryOff && <p className="s-smodal__offnote">{t("libraryOffNotice")}</p>}
-      <Row label={t("rowLibraryTitle")} hint={t("hintLibraryTitle")} error={errors.libraryTitle} off={libraryOff}>
+      <Row kind="text" label={t("rowLibraryTitle")} hint={t("hintLibraryTitle")} error={errors.libraryTitle} off={libraryOff}>
         <TextInput
           value={form.libraryTitle}
           onChange={(v) => setForm((f) => (f ? { ...f, libraryTitle: v } : f))}
@@ -36,21 +34,17 @@ export default function LibraryTab() {
           maxLength={LIBRARY_SITE_TITLE_MAX}
         />
       </Row>
-      <Row label={t("rowLibraryNav")} hint={t("hintLibraryNav")} off={libraryOff}>
+      <Row kind="toggle" label={t("rowLibraryNav")} hint={t("hintLibraryNav")} off={libraryOff}>
         <Toggle
           label={t("rowLibraryNav")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           disabled={libraryOff}
           value={form.libraryNav === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, libraryNav: on ? "on" : "off" } : f))}
         />
       </Row>
-      <Row label={t("rowLibraryHome")} hint={t("hintLibraryHome")} off={libraryOff}>
+      <Row kind="toggle" label={t("rowLibraryHome")} hint={t("hintLibraryHome")} off={libraryOff}>
         <Toggle
           label={t("rowLibraryHome")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           disabled={libraryOff}
           value={form.libraryHome === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, libraryHome: on ? "on" : "off" } : f))}
@@ -60,7 +54,7 @@ export default function LibraryTab() {
           door; the roots are about the shelf, and the rows are the exceptions
           to the roots — so the general sentence is read before the twelve
           special ones. */}
-      <Row label={t("rowLibraryRoots")} hint={t("hintLibraryRoots")} error={errors.libraryRoots} off={libraryOff} wide>
+      <Row kind="table" label={t("rowLibraryRoots")} hint={t("hintLibraryRoots")} error={errors.libraryRoots} off={libraryOff}>
         <LibraryRootsEditor
           roots={form.libraryRoots}
           rows={form.libraryRows}
@@ -71,7 +65,7 @@ export default function LibraryTab() {
       </Row>
       {/* No `error` here on purpose: the message belongs beside the field
           that broke, inside its own card (§ validate). */}
-      <Row label={t("rowLibraryPaths")} hint={t("hintLibraryPaths")} off={libraryOff} wide>
+      <Row kind="table" label={t("rowLibraryPaths")} hint={t("hintLibraryPaths")} off={libraryOff}>
         <LibraryPathEditor
           rows={form.libraryRows}
           roots={form.libraryRoots}

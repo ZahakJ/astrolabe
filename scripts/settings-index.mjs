@@ -97,6 +97,8 @@ function parseFile(file, ctx, rows, groups, seen) {
   const lines = read(file).split("\n");
   const last = () => rows.at(-1);
   const lastRow = () => [...rows].reverse().find((r) => r.row === undefined);
+  /** The Row/Part tag being read, until its label line. */
+  let pending = null;
   for (const line of lines) {
     // A tag named in a comment ("`<InstanceOnly>` inside a section") is prose
     // about the wrapper, not the wrapper: only a line of code opens one.
@@ -121,6 +123,16 @@ function parseFile(file, ctx, rows, groups, seen) {
       continue;
     }
 
+    // A `<Row …>` / `<Part …>` tag may span lines; what it says about itself
+    // before its label — its catalogue `kind`, whether it is kept on this
+    // `device` — is gathered from the tag's first line to its label line.
+    if (code && /<(?:Row|Part)\b/.test(line)) pending = { kind: null, device: false, part: /<Part\b/.test(line) };
+    if (pending && code) {
+      const kind = /\bkind="(\w+)"/.exec(line);
+      if (kind) pending.kind = kind[1];
+      if (/\sdevice(?=[\s>]|$)/.test(line)) pending.device = true;
+    }
+
     const label = /label=\{t\("([A-Za-z0-9_]+)"\)\}/.exec(line);
     if (label) {
       // A row's own label and the CONTROL inside it usually carry the same key
@@ -130,13 +142,15 @@ function parseFile(file, ctx, rows, groups, seen) {
       // already collecting is that control, not a new row. The same holds for
       // a part and the control inside it, and for a host row's own control
       // that follows one of its parts.
-      const part = /<Part\b/.test(line);
+      const part = pending?.part === true;
       const host = part ? lastRow() : undefined;
       const repeat = label[1] === last()?.label || (!part && label[1] === lastRow()?.label && last()?.row === lastRow()?.label);
-      if (!repeat) {
+      if (!repeat && pending) {
         rows.push({
           tab: ctx.tab,
           label: label[1],
+          kind: pending.kind,
+          device: pending.device,
           hint: null,
           more: [],
           env: null,
@@ -145,6 +159,7 @@ function parseFile(file, ctx, rows, groups, seen) {
           adv: adv > 0,
         });
       }
+      pending = null;
     }
     const entry = last();
     if (!entry || entry.tab !== ctx.tab) continue;
@@ -179,7 +194,8 @@ export function settingsRows() {
  *  exactly this and `check-settings` compares exactly this. */
 export function entryLine(r) {
   return (
-    `  { tab: "${r.tab}", group: "${r.group}", label: "${r.label}"` +
+    `  { tab: "${r.tab}", group: "${r.group}", label: "${r.label}", kind: "${r.kind}"` +
+    (r.device ? ", device: true" : "") +
     (r.hint ? `, hint: "${r.hint}"` : "") +
     (r.more && r.more.length > 0 ? `, more: [${r.more.map((k) => `"${k}"`).join(", ")}]` : "") +
     (r.env ? `, env: "${r.env}"` : "") +

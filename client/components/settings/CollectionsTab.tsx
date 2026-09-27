@@ -19,7 +19,7 @@ export default function CollectionsTab() {
   const { form, setForm, errors, foldersOff } = useSettings();
   return (
     <section data-section="collections">
-      <Row label={t("rowTopicsMode")} hint={t("hintTopicsMode")} wide>
+      <Row kind="segmented" label={t("rowTopicsMode")} hint={t("hintTopicsMode")}>
         <SegmentedControl
           label={t("rowTopicsMode")}
           value={form.topicsMode}
@@ -37,17 +37,15 @@ export default function CollectionsTab() {
           confusing". */}
       {form.topicsMode !== "folders" && (
         <>
-          <Row label={t("rowPublicFolders")} hint={t("hintPublicFolders")}>
+          <Row kind="toggle" label={t("rowPublicFolders")} hint={t("hintPublicFolders")}>
             <Toggle
               label={t("rowPublicFolders")}
-              onLabel={t("on")}
-              offLabel={t("off")}
               value={form.publicFoldersOn === "on"}
               onChange={(on) => setForm((f) => (f ? { ...f, publicFoldersOn: on ? "on" : "off" } : f))}
             />
           </Row>
           {foldersOff && <p className="s-smodal__offnote">{t("publicFoldersOffNotice")}</p>}
-          <Row label={t("rowPublicFoldersList")} hint={t("hintPublicFoldersList")} error={errors.publicFolderRows} off={foldersOff} wide>
+          <Row kind="table" label={t("rowPublicFoldersList")} hint={t("hintPublicFoldersList")} error={errors.publicFolderRows} off={foldersOff}>
             <PublicFolderEditor
               rows={form.publicFolderRows}
               disabled={foldersOff}
@@ -61,21 +59,17 @@ export default function CollectionsTab() {
           <p className="s-smodal__offnote">{t("publicFoldersFrontmatter")}</p>
         </>
       )}
-      <Row label={t("rowPublicFoldersHome")} hint={t("hintPublicFoldersHome")} off={foldersOff}>
+      <Row kind="toggle" label={t("rowPublicFoldersHome")} hint={t("hintPublicFoldersHome")} off={foldersOff}>
         <Toggle
           label={t("rowPublicFoldersHome")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           disabled={foldersOff}
           value={form.publicFoldersHome === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, publicFoldersHome: on ? "on" : "off" } : f))}
         />
       </Row>
-      <Row label={t("rowPublicFoldersNav")} hint={t("hintPublicFoldersNav")} off={foldersOff}>
+      <Row kind="toggle" label={t("rowPublicFoldersNav")} hint={t("hintPublicFoldersNav")} off={foldersOff}>
         <Toggle
           label={t("rowPublicFoldersNav")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           disabled={foldersOff}
           value={form.publicFoldersNav === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, publicFoldersNav: on ? "on" : "off" } : f))}

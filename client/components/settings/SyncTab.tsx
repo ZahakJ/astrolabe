@@ -26,17 +26,15 @@ export default function SyncTab() {
     <section data-section="sync">
       <InstanceOnly>
         {/* A master switch is a SWITCH: two states, both visible. */}
-        <Row label={t("rowSyncEnabled")} hint={t("hintSyncEnabled")}>
+        <Row kind="toggle" label={t("rowSyncEnabled")} hint={t("hintSyncEnabled")}>
           <Toggle
             label={t("rowSyncEnabled")}
-            onLabel={t("on")}
-            offLabel={t("off")}
             value={form.syncEnabled === "on"}
             onChange={(on) => setForm((f) => (f ? { ...f, syncEnabled: on ? "on" : "off" } : f))}
           />
         </Row>
         {syncOff && <p className="s-smodal__offnote">{t("syncOffNotice")}</p>}
-        <Row label={t("rowSyncRemote")} hint={t("hintSyncRemote")} error={errors.syncRemote} off={syncOff}>
+        <Row kind="text" label={t("rowSyncRemote")} hint={t("hintSyncRemote")} error={errors.syncRemote} off={syncOff}>
           <TextInput
             placeholder={t("phSyncRemote")}
             dir="ltr"
@@ -47,7 +45,7 @@ export default function SyncTab() {
             {...field("syncRemote")}
           />
         </Row>
-        <Row label={t("rowSyncAuth")} hint={t("hintSyncAuth")} off={syncOff}>
+        <Row kind="segmented" label={t("rowSyncAuth")} hint={t("hintSyncAuth")} off={syncOff}>
           <SegmentedControl
             label={t("rowSyncAuth")}
             disabled={syncOff}
@@ -59,7 +57,7 @@ export default function SyncTab() {
           />
         </Row>
         {form.syncAuth === "token" && (
-          <Row
+          <Row kind="text"
             label={t("rowSyncToken")}
             hint={t("hintSyncToken")}
             error={errors.syncToken}
@@ -82,13 +80,13 @@ export default function SyncTab() {
                   {t("clearToken")}
                 </button>
               </div>
-              <Part label={t("rowSyncUser")} hint={t("hintSyncUser")}>
+              <Part kind="text" label={t("rowSyncUser")} hint={t("hintSyncUser")}>
                 <TextInput placeholder={t("phSyncUser")} dir="ltr" autoComplete="off" label={t("rowSyncUser")} disabled={syncOff} {...field("syncUser")} />
               </Part>
             </Parts>
           </Row>
         )}
-        <Row label={t("rowSyncInterval")} hint={t("hintSyncInterval")} error={errors.syncInterval} off={syncOff}>
+        <Row kind="select" label={t("rowSyncInterval")} hint={t("hintSyncInterval")} error={errors.syncInterval} off={syncOff}>
           {/* A closed set of SENTENCES, not a number with a decoder hint under
               it: "Every 6 hours" and "Manual only" are the two things a reader
               is choosing between. A hand-written value outside the set still
@@ -100,7 +98,7 @@ export default function SyncTab() {
             {...field("syncInterval")}
           />
         </Row>
-        <Row label={t("rowSyncStatus")} hint={t("hintSyncStatus")} off={syncOff}>
+        <Row kind="status" label={t("rowSyncStatus")} hint={t("hintSyncStatus")} off={syncOff}>
           <SyncStatusBlock authMode={form.syncAuth} remote={form.syncRemote} stale={syncStale} />
         </Row>
         {/* Section-level verbs, on their own line and with no label: they are
@@ -113,7 +111,7 @@ export default function SyncTab() {
 
       <InstanceOnly>
         <Advanced tab="sync">
-          <Row label={t("rowSyncBranch")} hint={t("hintSyncBranch")} error={errors.syncBranch} off={syncOff}>
+          <Row kind="text" label={t("rowSyncBranch")} hint={t("hintSyncBranch")} error={errors.syncBranch} off={syncOff}>
             <TextInput
               placeholder="main"
               dir="ltr"
@@ -124,11 +122,9 @@ export default function SyncTab() {
               {...field("syncBranch")}
             />
           </Row>
-          <Row label={t("rowSyncPull")} hint={t("hintSyncPull")} off={syncOff}>
+          <Row kind="toggle" label={t("rowSyncPull")} hint={t("hintSyncPull")} off={syncOff}>
             <Toggle
               label={t("rowSyncPull")}
-              onLabel={t("on")}
-              offLabel={t("off")}
               disabled={syncOff}
               value={form.syncPullFirst === "on"}
               onChange={(on) => setForm((f) => (f ? { ...f, syncPullFirst: on ? "on" : "off" } : f))}

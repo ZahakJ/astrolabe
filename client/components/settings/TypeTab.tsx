@@ -23,7 +23,7 @@ export default function TypeTab() {
   return (
     <section data-section="type">
       {pocket && <p className="s-smodal__offnote">{t("pocketSiteNotice")}</p>}
-      <Row label={t("rowTextDirection")} hint={t("hintTextDirection")} more={t("noteLayoutOverride")}>
+      <Row kind="segmented" label={t("rowTextDirection")} hint={t("hintTextDirection")} more={t("noteLayoutOverride")}>
         <SegmentedControl
           label={t("rowTextDirection")}
           segments={[
@@ -36,7 +36,7 @@ export default function TypeTab() {
       </Row>
       {/* Five values, so a Select rather than a fifth segment: a segmented
           control this wide stops being scannable and starts wrapping. */}
-      <Row label={t("rowTextAlign")} hint={t("hintTextAlign")}>
+      <Row kind="select" label={t("rowTextAlign")} hint={t("hintTextAlign")}>
         <Select
           label={t("rowTextAlign")}
           options={[
@@ -78,7 +78,7 @@ export default function TypeTab() {
           <FontSpecimens />
         </div>
 
-        <Row locked={pocket} label={t("rowFontProse")} hint={t("hintFontProse")} more={t("typographyNote")}>
+        <Row kind="select" locked={pocket} label={t("rowFontProse")} hint={t("hintFontProse")} more={t("typographyNote")}>
           <FontPicker
             slot="text"
             label={t("rowFontProse")}
@@ -88,7 +88,7 @@ export default function TypeTab() {
             onChange={(id) => setForm((f) => (f ? { ...f, fontProse: id } : f))}
           />
         </Row>
-        <Row locked={pocket} label={t("rowFontUi")} hint={t("hintFontUi")}>
+        <Row kind="select" locked={pocket} label={t("rowFontUi")} hint={t("hintFontUi")}>
           <FontPicker
             slot="text"
             label={t("rowFontUi")}
@@ -98,7 +98,7 @@ export default function TypeTab() {
             onChange={(id) => setForm((f) => (f ? { ...f, fontUi: id } : f))}
           />
         </Row>
-        <Row locked={pocket} label={t("rowFontMono")} hint={t("hintFontMono")}>
+        <Row kind="select" locked={pocket} label={t("rowFontMono")} hint={t("hintFontMono")}>
           <FontPicker
             slot="mono"
             label={t("rowFontMono")}
@@ -112,7 +112,7 @@ export default function TypeTab() {
             answers for Arabic letters INSIDE the three above, per character —
             its hint says so, and the size match below it only exists while
             there is an Arabic face to match, set against the specimen by eye. */}
-        <Row locked={pocket} label={t("rowFontArabic")} hint={t("hintFontArabic")}>
+        <Row kind="select" locked={pocket} label={t("rowFontArabic")} hint={t("hintFontArabic")}>
           <FontPicker
             slot="arabic"
             label={t("rowFontArabic")}
@@ -123,7 +123,7 @@ export default function TypeTab() {
           />
         </Row>
         {form.fontArabic !== SYSTEM_FONT && (
-          <Row locked={pocket} label={t("rowSizeAdjust")} hint={t("hintSizeAdjust")} error={errors.fontSizeAdjust}>
+          <Row kind="text" locked={pocket} label={t("rowSizeAdjust")} hint={t("hintSizeAdjust")} error={errors.fontSizeAdjust}>
             <NumberInput
               label={t("rowSizeAdjust")}
               unit="%"

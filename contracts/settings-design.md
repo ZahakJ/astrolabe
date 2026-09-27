@@ -83,16 +83,16 @@ in both languages against it.
 One anatomy, desktop measurements in the dialog at a 1280 × 800 window (1rem = 15.5px, English):
 
 ```
- ┌── label column: minmax(0, 1fr) ──────────────┐ 2rem ┌── control column: 17.5rem ──┐
- │ Label · 30%  ⓘ               (0.857rem/20px) │      │ ▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭ │ 34px control line
- │ One-line hint, ≤ 90 characters (0.75rem/17px)│      │                             │
- └──────────────────────────────────────────────┘      └─────────────────────────────┘
+ ┌── label column: minmax(0, 1fr) ──────────────┐ 1.5rem ┌── control column: 16rem ──┐
+ │ Label · 30%  ⓘ               (0.857rem/20px) │        │ ▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭▭ │ 34px control line
+ │ One-line hint, ≤ 90 characters (0.75rem/17px)│        │                           │
+ └──────────────────────────────────────────────┘        └───────────────────────────┘
    12px padding above and below · a hairline between rows · the ⓘ's paragraph opens under the
    whole row at ≤ 70ch
 ```
 
-- **Dialog** `min(66rem, 100vw − 32px)` wide (1,023px); rail `12.25rem`; page body ≈ 770px, so
-  the label column is ≈ 470px and a 90-character hint sits on one line.
+- **Dialog** `min(70rem, 100vw − 32px)` wide (1,085px); rail `13rem`; page body ≈ 820px, so
+  the label column is ≈ 550px and a 90-character hint sits on one line (the walk measures it).
 - **Label** `0.857rem`, line-height 20px, `--text`; padded 7px from the row's top so its first line
   centres on the 34px control line. A slider's value rides in the label: *Screen warmth · 30%*.
 - **Hint** one line: ≤ 90 characters and ≤ 14 words in English (`check-settings`), and it says
@@ -101,7 +101,7 @@ One anatomy, desktop measurements in the dialog at a 1280 × 800 window (1rem = 
 - **ⓘ** only where a paragraph is truly needed — a grammar, a privacy trade, the environment
   variable an operator scripts. It opens inline under the whole row and answers *why would I change
   this*, not *what is this*.
-- **Control column** `17.5rem`, one edge for every row: every control touches the column's
+- **Control column** `16rem` (248px), one edge for every row: every control touches the column's
   inline-end edge; the fill kinds span the whole column. The control line is 34px
   (`2.2rem`); a shorter control (a switch) is centred on it.
 - **Rhythm** 12px above and below each row, a 1px hairline (`--border` at 60%) between rows, no

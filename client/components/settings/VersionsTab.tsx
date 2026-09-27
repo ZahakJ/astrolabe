@@ -25,7 +25,7 @@ export default function VersionsTab() {
   return (
     <section data-section="versions">
       {pocket && <p className="s-smodal__offnote">{t("pocketVersionsNotice")}</p>}
-      <Row
+      <Row kind="segmented"
         locked={pocket}
         label={t("rowNoteVersions")}
         hint={t("hintNoteVersions")}
@@ -37,8 +37,8 @@ export default function VersionsTab() {
       <InstanceOnly>
         <TravelRow />
       </InstanceOnly>
-      <Row device label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
-        <Toggle label={t("rowPrefsSync")} onLabel={t("on")} offLabel={t("off")} value={prefsSync} onChange={setPrefsSyncEnabled} />
+      <Row kind="toggle" device label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
+        <Toggle label={t("rowPrefsSync")} value={prefsSync} onChange={setPrefsSyncEnabled} />
       </Row>
     </section>
   );

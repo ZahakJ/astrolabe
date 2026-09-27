@@ -29,18 +29,16 @@ export default function SpeechTab() {
   const voiceState = useVoiceEngine(!pocket, voiceSaved);
   return (
     <section data-section="speech">
-      <Row label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
+      <Row kind="table" label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
         <ReadAloudControls />
       </Row>
       <InstanceOnly>
         {/* Off unless the owner says so: every new sentence a visitor asks
             for is this machine's CPU; the server speaks only words that are on
             a published page, and caps each address. */}
-        <Row label={t("rowReadersListen")} hint={t("hintReadersListen")}>
+        <Row kind="toggle" label={t("rowReadersListen")} hint={t("hintReadersListen")}>
           <Toggle
             label={t("rowReadersListen")}
-            onLabel={t("on")}
-            offLabel={t("off")}
             value={form.speakPublic === "on"}
             onChange={(on) => setForm((f) => (f ? { ...f, speakPublic: on ? "on" : "off" } : f))}
           />
@@ -48,7 +46,7 @@ export default function SpeechTab() {
       </InstanceOnly>
 
       {pocket && <p className="s-smodal__offnote">{t("pocketReadingNotice")}</p>}
-      <Row locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")} more={t("moreVoiceLanguage")}>
+      <Row kind="segmented" locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")} more={t("moreVoiceLanguage")}>
         <SegmentedControl
           label={t("rowVoiceLanguage")}
           segments={[
@@ -59,7 +57,7 @@ export default function SpeechTab() {
           {...field("voiceLanguage")}
         />
       </Row>
-      <Row locked={pocket} label={t("rowVoiceModel")} hint={t("hintVoiceModel")} more={t("moreVoiceModel")} wide>
+      <Row kind="select" locked={pocket} label={t("rowVoiceModel")} hint={t("hintVoiceModel")} more={t("moreVoiceModel")}>
         <VoiceModelFields
           model={form.voiceModel}
           onModel={field("voiceModel").onChange}
@@ -69,11 +67,9 @@ export default function SpeechTab() {
         />
       </Row>
       {!pocket && <VoiceEngineNote model={form.voiceModel} backend={form.voiceBackend} saved={voiceSaved} state={voiceState} />}
-      <Row locked={pocket} label={t("rowVoiceKeepAudio")} hint={t("hintVoiceKeepAudio")}>
+      <Row kind="toggle" locked={pocket} label={t("rowVoiceKeepAudio")} hint={t("hintVoiceKeepAudio")}>
         <Toggle
           label={t("rowVoiceKeepAudio")}
-          onLabel={t("on")}
-          offLabel={t("off")}
           value={form.voiceKeepAudio === "on"}
           onChange={(on) => setForm((f) => (f ? { ...f, voiceKeepAudio: on ? "on" : "off" } : f))}
         />
@@ -83,7 +79,7 @@ export default function SpeechTab() {
         {/* Voices already on this machine (docs/read-aloud.md, "Your own
             voices"): a folder of Piper voices the server scans, and — folded
             inside — an external speaker. A server's, so locked in a pocket. */}
-        <Row locked={pocket} label={t("rowOwnVoices")} hint={t("hintOwnVoices")} more={t("moreOwnVoices")}>
+        <Row kind="table" locked={pocket} label={t("rowOwnVoices")} hint={t("hintOwnVoices")} more={t("moreOwnVoices")}>
           <OwnVoicesControls />
         </Row>
       </Advanced>
