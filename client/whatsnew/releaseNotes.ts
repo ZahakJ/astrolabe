@@ -370,6 +370,33 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.38.0",
+    title: { en: "Settings, sorted", ar: "إعدادات مرتّبة" },
+    slides: [
+      {
+        // ── Nine sections by intent; Advanced at the foot; This device marks ─
+        title: { en: "Settings, sorted", ar: "إعدادات مرتّبة" },
+        body: {
+          en: "Settings now has nine sections named for what you came to do: Appearance, Language & dates, Writing, Reading & speech, Your site, Collections, Backup & sync, Ask and About. Your theme opens the first one, and your own language sits beside the site's. A row that saves itself on this device says so, and the Save bar only rises when something has changed. The rarely touched rows wait behind one Advanced line at the foot of each section, and search finds them, even by the words behind a row's ⓘ.",
+          ar: "صارت الإعدادات تسعة أقسام مسمّاة بما جئت لتفعله: المظهر، واللغة والتواريخ، والكتابة، والقراءة والصوت، وموقعك، والمجموعات، والنسخ الاحتياطي والمزامنة، واسأل، وحول. سمتك تفتح القسم الأول، ولغتك تقف بجانب لغة الموقع. والصف الذي يحفظ نفسه على هذا الجهاز يقول ذلك، وشريط الحفظ لا يصعد إلا حين يتغيّر شيء. أما الصفوف التي قلّما تُلمس فتنتظر خلف سطر «متقدّم» واحد في آخر كل قسم، ويجدها البحث حتى بالكلمات التي خلف ⓘ.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g opacity="0.55">${[0,1,2,3,4,5].map((i) => `<rect x="${40 + (i%3)*22 + (i%2)*6}" y="${40 + i*22}" width="70" height="14" rx="2" fill="var(--bg-hover)" stroke="var(--border)" transform="rotate(${(i%2 ? -6 : 5)} ${75 + (i%3)*22} ${47 + i*22})"/>`).join("")}</g>
+  <path class="wa-draw" d="M150 110 C 190 110, 200 90, 240 90" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:1">${[["Appearance","المظهر"],["Language","اللغة"],["Writing","الكتابة"],["Reading","القراءة"],["Your site","موقعك"],["Sync","المزامنة"]].map(([en,ar],i) => `<rect x="${260 + (i%2)*130}" y="${40 + Math.floor(i/2)*44}" width="120" height="34" rx="6" fill="var(--bg)" stroke="var(--border)"/><text x="${272 + (i%2)*130}" y="${61 + Math.floor(i/2)*44}" fill="var(--text)" font-size="11">${L(lang, en, ar)}</text>`).join("")}</g>
+  <g class="wa-late" style="--i:2"><rect x="452" y="90" width="54" height="12" rx="6" fill="var(--accent-soft)"/><text x="479" y="99" text-anchor="middle" fill="var(--text)" font-size="8">${L(lang, "this device", "هذا الجهاز")}</text></g>
+  <g class="wa-late" style="--i:3"><rect x="260" y="172" width="250" height="18" rx="4" fill="var(--bg-hover)"/><text x="272" y="185" fill="var(--text-muted)" font-size="10">▸ ${L(lang, "Advanced", "متقدّم")}</text></g>
+  <text x="95" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "eight tabs, by history", "ثمانية تبويبات، بحسب التاريخ")}</text>
+</svg>`,
+        },
+        docs: "configuration",
+      },
+    ],
+  },
+  {
     version: "3.37.0",
     title: { en: "French, in French", ar: "الفرنسية بالفرنسية" },
     slides: [

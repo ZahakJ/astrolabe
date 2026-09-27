@@ -29,3 +29,4 @@ feature gets a section in the area it belongs to (or its own file, added to the 
 `scripts/check-names.mjs` reads the headings of every `contracts/*.md` file (a heading is a surface a
 reader of the contracts sees). Agents and tools that open this file find the map here; the words
 live in the files.
+- `contracts/settings-audit.md` — the 3.38.0 settings purge: every row of the old index with its verdict (keep, move, merge, demote); `tests/settings-purge.test.ts` holds the sections to it.

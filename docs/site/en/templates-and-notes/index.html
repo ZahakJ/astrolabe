@@ -54,7 +54,7 @@ gradient in the blog list and the article hero (<code>BANNER_FALLBACK=none</code
 <code>{{date}}</code> that get filled in when it is used. Point Astrolabe at a folder of template notes and it
 fills them in for you, using the same syntax as Obsidian&#39;s core Templates plugin, so <strong>the templates
 in a vault you brought over work unmodified</strong>.</p>
-<p>The folder is <code>Settings → Vault → Templates folder</code>. Leave it empty and Astrolabe finds one
+<p>The folder is <code>Settings → Writing → Templates folder</code>. Leave it empty and Astrolabe finds one
 itself, as long as the answer is unambiguous: a folder called <code>Templates</code>, <code>_templates</code> or <code>قوالب</code>,
 with a leading ordering prefix allowed (<code>4 - Templates</code>, <code>04. Templates</code>). If there are two
 plausible candidates and neither sits at the root to settle it, the setting stays empty rather than
@@ -93,8 +93,8 @@ empty, as they always were.</p>
 <p>A periodic note is one note per period, named after it: a day, a week, a month or a year.
 <code>Ctrl/Cmd Alt D</code> (or <em>Open today&#39;s daily note</em> in the palette) opens today&#39;s, creating it if it is
 not there yet; <strong>This week&#39;s note</strong>, <strong>This month&#39;s note</strong> and <strong>This year&#39;s note</strong> do the same
-for their periods. Where they live and what they are called are settings, in Settings → Vault
-under <em>Periodic notes</em> — one folder the four kinds share, and a name and a template for each:</p>
+for their periods. Where they live and what they are called are settings, in Settings → Writing
+under <em>New notes</em> — one folder the four kinds share, and a name and a template for each:</p>
 <div class="table"><table><thead><tr><th>Kind</th><th>Default name</th><th>Default template</th><th>Notes</th></tr></thead><tbody><tr><td>Day</td><td><code>YYYY-MM-DD</code></td><td><em>(the template for new notes)</em></td><td>Cannot be turned off.</td></tr><tr><td>Week</td><td><code>YYYY-[W]ww</code></td><td><em>(none)</em></td><td><code>ww</code> is the ISO week; the note is named by the ISO week-year.</td></tr><tr><td>Month</td><td><code>YYYY-MM</code></td><td><em>(none)</em></td><td>A month&#39;s name may not carry a day token.</td></tr><tr><td>Year</td><td><code>YYYY</code></td><td><em>(none)</em></td><td>A year&#39;s name may carry nothing finer than the year.</td></tr></tbody></table></div><p>Names take the tokens <code>YYYY</code>, <code>MM</code>, <code>DD</code>, <code>ww</code>, <code>[literals]</code>, and <code>/</code> for subfolders:
 <code>YYYY/YYYY-MM-DD</code> files each year in its own folder. They are always Gregorian and in Western
 digits — a file name is an address — and the period is printed beside the name in the status bar
@@ -126,7 +126,7 @@ stamp, for the idea that has no title yet and must not wait for one. <strong>New
 palette makes it and opens it with the caret in the body, asking nothing; the template for new
 notes applies as it does to any new note (and a <code>{{cursor}}</code> in it is honoured). Two ideas in one
 minute do happen: the second takes the next free name (<code>202609151042 2</code>). Where it lives and what
-it is called are settings, in Settings → Vault beside the daily rows:</p>
+it is called are settings, in Settings → Writing beside the daily rows:</p>
 <div class="table"><table><thead><tr><th>Setting</th><th>Default</th><th>Notes</th></tr></thead><tbody><tr><td>Unique notes folder</td><td><em>(the vault root)</em></td><td>Any folder; <code>zettel</code>, say.</td></tr><tr><td>Unique note name</td><td><code>YYYYMMDDHHmm</code></td><td>The daily tokens plus <code>HH</code>, <code>mm</code> and <code>ss</code>; <code>[literals]</code> and <code>/</code> work as they do for the daily name. The format must be finer than a day — a &quot;unique&quot; name that repeats every morning is a collision waiting to happen — so at least one of <code>HH</code>, <code>mm</code>, <code>ss</code> is required.</td></tr></tbody></table></div><h2 id="linguistic-twins"><a class="anchor" href="#linguistic-twins">Linguistic twins</a></h2>
 <p>You write a post twice — once in English, once in Arabic — and you would rather the pair behaved
 like one note you can turn over than like two files that happen to be about the same thing. On disk

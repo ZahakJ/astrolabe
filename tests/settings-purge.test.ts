@@ -1,6 +1,6 @@
 // The settings purge, held to its own audit.
 //
-// scratchpad/settings-purge/audit.md (tracked, though the scratchpad is not)
+// contracts/settings-audit.md (the purge audit: every row and its verdict)
 // lists the 110 rows the settings index held before the purge, each with a
 // verdict. This test reads that table as the OLD INDEX and holds the new one
 // to it: every old row still exists — as a row, or as a part folded into
@@ -16,7 +16,7 @@ import { describe, it } from "node:test";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
 import { POCKET_HIDDEN_TABS, sectionId, TABS } from "../client/components/settings/tabs.ts";
 
-const audit = readFileSync(new URL("../scratchpad/settings-purge/audit.md", import.meta.url), "utf8");
+const audit = readFileSync(new URL("../contracts/settings-audit.md", import.meta.url), "utf8");
 const VERDICTS = ["KEEP", "MOVE", "MERGE", "DEMOTE", "ENV-ONLY", "REMOVE"] as const;
 type Verdict = (typeof VERDICTS)[number];
 interface OldRow {

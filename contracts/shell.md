@@ -1685,7 +1685,7 @@ inline, bottom unpinned, max-height in the box) and the position is remembered i
 ## Settings panel (SettingsModal)
 
 **THE SETTINGS PURGE — NINE SECTIONS BY INTENT (after 3.37).** The owner: "make settings as clean
-and as intuitive as possible." The audit (`scratchpad/settings-purge/audit.md`, tracked, and read by
+and as intuitive as possible." The audit (`contracts/settings-audit.md`, read by
 `tests/settings-purge.test.ts`) gave each of the 110 rows then indexed a verdict — 38 KEEP, 50 MOVE,
 10 MERGE, 12 DEMOTE, 0 ENV-ONLY, 0 REMOVE — and the rail became, in order: **Appearance**
 (`appearance`: your theme, warmth, dim, sidebar edge, writing column; note layout; typography) ·

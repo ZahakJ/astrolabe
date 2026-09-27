@@ -62,7 +62,7 @@ remove list values as chips, add a property, or remove one with the × at the en
 with one line on what each does. Type to filter, use ↑/↓ and Enter to take one, or type any key of
 your own. <code>tags</code> and <code>aliases</code> are written as lists; comma-separated values become items. A note
 with no properties yet still gets the card: one line with <em>Add property</em> and <em>Set banner…</em>, so
-every note starts from the same place (Settings → Language &amp; dates → <em>Properties card on
+every note starts from the same place (Settings → Writing → <em>Properties card on
 empty notes</em> turns that off).
 Every one of those edits <strong>touches only its own spot</strong>: your quote style, your comments, the
 order of your keys and every line you did not touch stay exactly as they were. Deleting the last
@@ -188,7 +188,7 @@ the block — the older keys still work: <code>Tab</code> and <code>Enter</code>
 <p>If you write French, the editor quietly puts the accents back. Type <code>tres</code> and a space and it
 becomes <code>très</code>; <code>coeur</code> becomes <code>cœur</code>, <code>etre</code> becomes <code>être</code>, <code>Ecole</code> becomes <code>École</code>, <code>deja</code>
 becomes <code>déjà</code>, <code>ca</code> becomes <code>ça</code>. Nothing appears on screen to tell you: the corrected word is
-the whole message. It is on by default, and Settings → This device → <strong>Auto-correct French</strong>
+the whole message. It is on by default, and Settings → Writing → <strong>Auto-correct French</strong>
 turns it off.</p>
 <ul>
 <li><strong>Only on lines that read as French.</strong> A line counts as French when it has at least two
@@ -242,7 +242,7 @@ the editor and the embed is written for you (it uploads to your
 10 MB — behind nginx, raise <code>client_max_body_size</code> to match); to write one by hand, type <code>/embed</code> for the
 three forms, or <code>![[</code> and pick the file — the list opens on your vault&#39;s files, with the forms
 above it. The palette&#39;s <strong>Embed a file…</strong> does the same from the keyboard.</p>
-<div class="table"><table><thead><tr><th>You write</th><th>What appears</th></tr></thead><tbody><tr><td><code>![[name.png]]</code></td><td>The picture, at its own size up to the column&#39;s width.</td></tr><tr><td><code>![[name.png|300]]</code></td><td>The picture, 300 pixels wide and centred.</td></tr><tr><td><code>![alt](attachments/name.png)</code></td><td>The picture, by path — standard Markdown, relative to the note. <code>alt</code> is what a screen reader says.</td></tr><tr><td><code>![[file.pdf]]</code></td><td>A card for the file; click it to open the PDF in the <a href="../books/">reader</a>.</td></tr><tr><td><code>![[Book.pdf#page=42]]</code></td><td>Page 42 of the book, drawn as a picture, with &quot;Book, p. 42&quot; under it. <code>|300</code> sets its width.</td></tr><tr><td><code>![[lecture.mp3]]</code></td><td>A small player (also ogg, m4a and wav).</td></tr><tr><td><code>![[clip.mp4]]</code></td><td>A video player, as wide as the note at most (also webm, mov, m4v, mkv and ogv, where the browser can play them; one it cannot is a card with a Download link). A webm with no picture — a voice note&#39;s recording — is the small sound player.</td></tr><tr><td><code>![[clip.mp4|480]]</code></td><td>The video, 480 pixels wide and centred.</td></tr><tr><td><code>![[clip.mp4#t=12]]</code>, <code>![[clip.mp4#t=12,30]]</code></td><td>The video, starting at 0:12 — and with <code>,30</code>, stopping at 0:30. <code>t=1:05</code> works too.</td></tr><tr><td><code>![[clip.mp4|poster=frame.jpg]]</code></td><td>The video with <code>frame.jpg</code> (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: <code>|480|poster=frame.jpg</code>.</td></tr><tr><td><code>![alt](media/clip.mp4)</code></td><td>The video player, by path.</td></tr><tr><td><code>![[bundle.zip]]</code></td><td>A card for the file (zip, csv, txt and the rest).</td></tr><tr><td><code>https://youtu.be/…</code> on a line of its own</td><td>A link — or, with <strong>Settings → Publishing &amp; comments → Embed external video</strong> on, that site&#39;s player (YouTube, Vimeo, PeerTube).</td></tr><tr><td><code>![[sketch.excalidraw]]</code></td><td>The <a href="../drawing/">drawing</a>, as the picture it saves beside itself.</td></tr><tr><td><code>![[Note]]</code>, <code>![[Note#Heading]]</code>, <code>![[Note#^block]]</code></td><td>The note, one section of it, or one paragraph, as a card.</td></tr></tbody></table></div><p>Every embed but a note&#39;s can be <strong>picked up</strong>:</p>
+<div class="table"><table><thead><tr><th>You write</th><th>What appears</th></tr></thead><tbody><tr><td><code>![[name.png]]</code></td><td>The picture, at its own size up to the column&#39;s width.</td></tr><tr><td><code>![[name.png|300]]</code></td><td>The picture, 300 pixels wide and centred.</td></tr><tr><td><code>![alt](attachments/name.png)</code></td><td>The picture, by path — standard Markdown, relative to the note. <code>alt</code> is what a screen reader says.</td></tr><tr><td><code>![[file.pdf]]</code></td><td>A card for the file; click it to open the PDF in the <a href="../books/">reader</a>.</td></tr><tr><td><code>![[Book.pdf#page=42]]</code></td><td>Page 42 of the book, drawn as a picture, with &quot;Book, p. 42&quot; under it. <code>|300</code> sets its width.</td></tr><tr><td><code>![[lecture.mp3]]</code></td><td>A small player (also ogg, m4a and wav).</td></tr><tr><td><code>![[clip.mp4]]</code></td><td>A video player, as wide as the note at most (also webm, mov, m4v, mkv and ogv, where the browser can play them; one it cannot is a card with a Download link). A webm with no picture — a voice note&#39;s recording — is the small sound player.</td></tr><tr><td><code>![[clip.mp4|480]]</code></td><td>The video, 480 pixels wide and centred.</td></tr><tr><td><code>![[clip.mp4#t=12]]</code>, <code>![[clip.mp4#t=12,30]]</code></td><td>The video, starting at 0:12 — and with <code>,30</code>, stopping at 0:30. <code>t=1:05</code> works too.</td></tr><tr><td><code>![[clip.mp4|poster=frame.jpg]]</code></td><td>The video with <code>frame.jpg</code> (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: <code>|480|poster=frame.jpg</code>.</td></tr><tr><td><code>![alt](media/clip.mp4)</code></td><td>The video player, by path.</td></tr><tr><td><code>![[bundle.zip]]</code></td><td>A card for the file (zip, csv, txt and the rest).</td></tr><tr><td><code>https://youtu.be/…</code> on a line of its own</td><td>A link — or, with <strong>Settings → Your site → Embed external video</strong> on, that site&#39;s player (YouTube, Vimeo, PeerTube).</td></tr><tr><td><code>![[sketch.excalidraw]]</code></td><td>The <a href="../drawing/">drawing</a>, as the picture it saves beside itself.</td></tr><tr><td><code>![[Note]]</code>, <code>![[Note#Heading]]</code>, <code>![[Note#^block]]</code></td><td>The note, one section of it, or one paragraph, as a card.</td></tr></tbody></table></div><p>Every embed but a note&#39;s can be <strong>picked up</strong>:</p>
 <ul>
 <li><strong>Drag it.</strong> Within its note, the embed&#39;s line moves to where you let go — its width, its page and
 its <code>{.center}</code> go with it, and one undo puts it back. Into a note in another pane, the same
@@ -293,7 +293,7 @@ site when the note is published (its poster too). It asks for nothing until it s
 then only the file&#39;s first bytes; the server hands the rest over in pieces as you seek, so a long
 film starts at once. <code>[[clip.mp4#t=1:23]]</code> seeks it like a sound. Tab reaches the player, and the
 browser&#39;s own keys play, pause and seek it.</li>
-<li><strong>Video from another site.</strong> Off by default. With <strong>Settings → Publishing &amp; comments → Embed
+<li><strong>Video from another site.</strong> Off by default. With <strong>Settings → Your site → Embed
 external video</strong> on, a YouTube, Vimeo or PeerTube address on a line of its own — or written
 <code>![](https://youtube.com/watch?v=…)</code> — becomes that site&#39;s player in the reading view and on your
 site, and a card with the video&#39;s still in the editor (press play to load the player). The frame
@@ -426,7 +426,7 @@ measure. <code>Esc</code> (or the faint ✕) brings everything back. Every state
 and <strong>folding a pane never moves the note</strong>: the column stays optically centred in the window
 whichever panes are open, with deliberate air beside a closed pane&#39;s reopen handle.</p>
 </li>
-<li><p><strong>Notes sidebar on either side.</strong> Three states, in the palette and in Settings → This device →
+<li><p><strong>Notes sidebar on either side.</strong> Three states, in the palette and in Settings → Appearance →
 Notes sidebar: <em>follow the language</em> (the default: left in English, right in Arabic, re-evaluated
 whenever the language changes), or pin it to the left or right edge for good.</p>
 </li>
@@ -553,11 +553,11 @@ into, for as long as you are working on it; <em>Unpin all</em> clears the area. 
 one note or folder and the path to it; <em>Show all</em> brings the rest back. Every folder&#39;s menu also has
 <strong>Collapse everything inside</strong> and <em>Expand everything inside</em>. All of this is per browser; the vault
 on disk is never reordered.</p>
-<p><strong>The writing column</strong> (Settings → This device) is the reading measure by default. <em>Wide</em> and
+<p><strong>The writing column</strong> (Settings → Appearance) is the reading measure by default. <em>Wide</em> and
 <em>Full width</em> let a table or a code-heavy note use the screen, and <em>Custom</em> takes a width of your own,
 in pixels (<code>900px</code>) or as a share of the pane (<code>70%</code>), applied as you type. The reading view follows
 the same choice.</p>
-<p><strong>What&#39;s new after an update</strong> (Settings → This device, on by default). The first time this device
+<p><strong>What&#39;s new after an update</strong> (Settings → About, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release&#39;s features: one
 slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, <code>←</code>/<code>→</code> on the keyboard. It appears once per <em>minor</em> version: a
@@ -616,7 +616,7 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 (vim&#39;s <code>number relativenumber</code>). The column sits against the text, not at the window&#39;s edge, and it
 follows every caret move, not only edits. It is the only line numbering the editor has: a prose
 editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
-<strong>Settings → This device → Relative line numbers</strong> (under Vim keys, on by default) turns it off for
+<strong>Settings → Writing → Relative line numbers</strong> (under Vim keys, on by default) turns it off for
 readers who navigate by search.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/editor.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
