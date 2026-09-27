@@ -329,7 +329,7 @@ export async function mountDesktop(): Promise<void> {
   // Tell the editor which languages a DICTIONARY actually exists for, so the
   // per-line `lang` invites the checker only where checking can be right —
   // "*" is macOS, whose system checker reads the attribute itself.
-  setSpellcheckAvailable(hello.spellLanguages ?? []);
+  setSpellcheckAvailable(hello.spellLanguages ?? [], hello.spellcheck !== false);
   // The voice the reader chose in Windows (a page cannot see it): the device
   // voice that stands in for its language is that one (docs/read-aloud.md).
   setSystemVoiceName(hello.systemVoice ?? null);

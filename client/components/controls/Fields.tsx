@@ -158,6 +158,55 @@ export function SegmentedControl({
   );
 }
 
+// ------------------------------------------------------------------ Chips
+
+export interface Chip {
+  value: string;
+  /** The chip's words — a language's name in the chrome's language, never a
+   *  code and never "on/off". */
+  label: string;
+}
+
+interface ChipsProps extends ControlIdentity {
+  value: readonly string[];
+  onChange: (value: string[]) => void;
+  chips: Chip[];
+  disabled?: boolean;
+  label: string;
+}
+
+/** SEVERAL OF A SMALL SET, CHOSEN IN ONE CONTROL (contracts/settings-design.md,
+ *  the catalogue's Chips). The dictionaries row was four On/Off switches
+ *  reading "French: off · Arabic: off · Hebrew: off · Persian: off" — four
+ *  controls for one question, and the word each one led with was the state
+ *  rather than the thing. Here the row's label asks the question
+ *  ("Spellcheck in") and each chip is only a name, filled when chosen: a
+ *  group of toggle buttons (`aria-pressed`), each reachable by Tab, each
+ *  spoken as "French, toggle button, pressed". */
+export function Chips({ value, onChange, chips, disabled, label, id, "aria-describedby": describedBy }: ChipsProps) {
+  return (
+    <div className="s-ctl-chips" role="group" id={id} aria-label={label} aria-describedby={describedBy}>
+      {chips.map((chip) => {
+        const on = value.includes(chip.value);
+        return (
+          <button
+            key={chip.value}
+            type="button"
+            aria-pressed={on}
+            disabled={disabled}
+            data-chip={chip.value}
+            className={`s-ctl s-ctl-chip${on ? " s-ctl-chip--on" : ""}`}
+            onClick={() => onChange(on ? value.filter((v) => v !== chip.value) : [...value, chip.value])}
+          >
+            <span className="s-ctl-chip__mark" aria-hidden="true" />
+            <span className="s-ctl-chip__label">{chip.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // -------------------------------------------------------------- TextInput
 
 interface TextInputProps extends ControlIdentity {

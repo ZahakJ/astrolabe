@@ -230,11 +230,13 @@ turns it off.
   With vim keys on, corrections happen in insert mode only.
 - **Spellchecked as French.** A line the editor treats as French is also handed to the French
   dictionary, so the words it has just corrected are not underlined in red by the English one.
-  In the desktop app that is automatic. A browser cannot be asked which dictionaries it has, so
-  a French line there is left unchecked until you say: **Settings → Language → Browser
-  dictionaries**, tick French (and Arabic, Hebrew or Persian if your browser has them; in Chrome
-  that is Settings → Languages → Spell check), and from then on a French line gets the red
-  underline under its misspellings and none under its correct words.
+  **Settings → Language → Spellcheck in** says which line languages are checked, as one row of
+  named chips. In the desktop app it lists the dictionaries your computer really has, all chosen
+  until you untick one (on a Mac the system decides, and the row says so). A browser cannot be
+  asked which dictionaries it has, so there a French line is left unchecked until you choose
+  French (and Arabic, Hebrew or Persian if your browser has them; in Chrome that is Settings →
+  Languages → Spell check), and from then on a French line gets the red underline under its
+  misspellings and none under its correct words.
 
 ## Embeds
 

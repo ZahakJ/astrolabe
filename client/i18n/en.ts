@@ -3074,16 +3074,15 @@ const en = {
   // person needs before trusting a thing that edits their words — that a
   // single undo takes each correction back.
   rowFrenchAutocorrect: "Auto-correct French",
-  rowSpellDicts: "Browser dictionaries",
-  hintSpellDicts: "Which languages this browser spellchecks; an unticked language is left alone.",
-  moreSpellDicts: "A French or Arabic line is checked only in a language you tick here — otherwise it is left alone rather than underlined against English. Chrome: Settings → Languages → Spell check.",
+  rowSpellDicts: "Spellcheck in",
+  hintSpellDicts: "Lines in a chosen language are spellchecked; lines in the others are left alone.",
+  moreSpellDicts: "A browser does not tell a page which dictionaries it has: a language chosen here is handed to its spellchecker, which underlines only where that dictionary is installed (Chrome: Settings → Languages → Spell check). The desktop app lists the dictionaries this computer really has, and checks them all until you untick one.",
   spellDict_fr: "French",
   spellDict_ar: "Arabic",
   spellDict_he: "Hebrew",
   spellDict_fa: "Persian",
   /** A dictionary toggle's visible words: WHICH language, then its state.
    *  Four toggles reading only "Off" were four identical controls. */
-  spellDictToggle: "{lang}: {state}",
   hintFrenchAutocorrect: "Fixes missing accents and French spacing as you type; one undo takes it back.",
   moreFrenchAutocorrect: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
 
@@ -4868,6 +4867,9 @@ const en = {
   tabDevice: "This device",
   introDevice: "The app itself, here: an offline copy, Vim keys, what's new, and on the desktop its name and updates.",
   settingsDevicePage: "Everything here is kept on this device and saves as you change it.",
+  spellDictsSystem: "This Mac checks spelling in its own languages (System Settings → Keyboard → Text Input).",
+  spellDictsOff: "Spelling is off in this app: Edit → Spelling → Check spelling while typing.",
+  spellDictsNone: "This computer has no dictionary for French, Arabic, Hebrew or Persian.",
 } satisfies Record<string, string>;
 
 /** Every dictionary key — the one list both languages must cover. */
