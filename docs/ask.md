@@ -88,15 +88,17 @@ With Anthropic chosen, each question **and the passages retrieved for it** are s
 | Local model | The Ollama model that answers (default `qwen3.5:9b`) |
 | Anthropic model | The model used when Anthropic answers (default `claude-sonnet-5`) |
 | Anthropic key | Stored on the server only; **Remove key** deletes it at once |
-| Embedding model | The Ollama model that reads notes for meaning (default `embeddinggemma`). Changing it reads every note once more; switching back finds the old reading still stored |
-| Passages per answer | How many passages the answering model is given, 2 to 12 (default 6) |
 | Status | Whether Ollama is running, whether each model is pulled, and how many notes have been read; **Read again now** starts a pass at once |
+| Embedding model *(Advanced)* | The Ollama model that reads notes for meaning (default `embeddinggemma`). Changing it reads every note once more; switching back finds the old reading still stored |
+| Passages per answer *(Advanced)* | How many passages the answering model is given, 2 to 12 (default 6) |
 
-These settings travel with the vault like the rest of Settings (see [Configuration](configuration.md)); the key does not.
+The two rows marked *Advanced* wait behind the section's **Advanced** line, which names them. These settings travel with the vault like the rest of Settings (see [Configuration](configuration.md)); the key does not.
 
 ## When Ollama is not running
 
 Nothing breaks. Each door says so in one line, *Ollama is not running on this machine, so meaning search is off. Exact search still works.*, and does nothing else: the meaning mode lists that sentence instead of results, Related shows it instead of notes, Suggest links is not drawn at all, and the answer panel shows it above the question box. The ordinary search never depended on any of this. When a model is missing rather than Ollama, the line names the model and the command that pulls it. Start Ollama and the next pass (within a minute, or at once with **Read again now**) catches up.
+
+A [pocket vault](mobile.md#a-vault-from-github) — a GitHub repository opened on the Android app — has no Ask at all: it has no computer beside it to run Ollama, so its Settings has no **Ask** section and every door says it needs an Astrolabe server. The ordinary search works there as everywhere.
 
 ## Choosing the embedding model
 
