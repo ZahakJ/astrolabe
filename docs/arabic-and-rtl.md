@@ -6,7 +6,7 @@
 
 ---
 
-Astrolabe speaks Arabic. `SITE_LANG=ar` (or **Settings → Language & dates → Site language → العربية**, which applies at once, with no restart) does two things.
+Astrolabe speaks Arabic. `SITE_LANG=ar` (or **Settings → Language → Site language → العربية**, which applies at once, with no restart) does two things.
 
 **It translates the interface.** Every label, button, placeholder, menu item, toast and confirmation dialog, in the app and on the public site alike (the sidebar, the tabs, the status bar, the command palette, the backlinks, outline and local-graph panels, the settings, and the whole blog: masthead, topic row, article furniture, share row, previous/next, Marginalia), comes from one dictionary in `client/i18n.ts`. Counts are formed the way Arabic forms them (`حاشية واحدة`, `حاشيتان`, `3 حواشٍ`, `40 حاشية`), not by sticking an "s" on the end.
 
@@ -24,7 +24,7 @@ On a phone the whole shell mirrors: the back arrow and the chevrons point right-
 
 ## Your editor's language is yours
 
-`SITE_LANG` decides what language you **publish** in. It does not decide what language you have to **work** in. **Settings → Language & dates → Your language** is where the two part ways: *Follow site* (the default, which also names the language it lands on), *English*, or *العربية*. It changes the same two things the visitor switch changes, the interface strings and the direction, and it changes them for you alone. It is stored in this browser, like your theme and your sidebar edge; it is never sent to the server, never appears in anything you save, and cannot change a single byte of what a reader is served. Run an Arabic site from an English editor, or an English site from an Arabic one; the site does not notice either way.
+`SITE_LANG` decides what language you **publish** in. It does not decide what language you have to **work** in. **Settings → Language → Your language** is where the two part ways: *Follow site* (the default, which also names the language it lands on), *English*, or *العربية*. It changes the same two things the visitor switch changes, the interface strings and the direction, and it changes them for you alone. It is stored in this browser, like your theme and your sidebar edge; it is never sent to the server, never appears in anything you save, and cannot change a single byte of what a reader is served. Run an Arabic site from an English editor, or an English site from an Arabic one; the site does not notice either way.
 
 ## Switching the interface language
 
@@ -35,13 +35,13 @@ The way back is always on screen. If you switched to Arabic by mistake, or someo
 - **The keyboard**: `Ctrl/Cmd Alt Shift L` switches the interface from anywhere, even with a dialog open. It is the twin chord, `Ctrl/Cmd Alt L`, plus Shift. It works on an Arabic keyboard layout too, where the L key types `م`.
 - **The palette**: press `Ctrl/Cmd P` and type the name of the language you want, or of the one you are stuck in, in either script: `english`, `arabic`, `إنجليزي`, `عربي`. The row starts in the language it switches *to* ("التبديل إلى العربية · Switch to Arabic" from English, "Switch to English · التبديل إلى الإنجليزية" from Arabic), so the words at the start of the row are ones you can read. Press Enter.
 
-Each of these writes the same preference as **Settings → Language & dates → Your language**, and that row shows the result. Two presses always come back to *Follow site* rather than leaving the site's own language pinned. The three palette commands `Editor language: English`, `Editor language: العربية` and `Editor language: follow the site` are still there for choosing one of the three states directly.
+Each of these writes the same preference as **Settings → Language → Your language**, and that row shows the result. Two presses always come back to *Follow site* rather than leaving the site's own language pinned. The three palette commands `Editor language: English`, `Editor language: العربية` and `Editor language: follow the site` are still there for choosing one of the three states directly.
 
 > **If you are reading this because you are stuck in Arabic and did not choose it**, this is almost certainly why: before editor language and site language were separated, a visitor's EN/ع choice was applied to *every* session in that browser, the owner's editor included. On an instance whose public site is the app layout, the EN/ع control is never drawn, so there was nothing to click to undo it. Upgrading fixes it on the next reload, with no action from you. On an older build, clear the stored visitor choice by hand: `localStorage.removeItem("astrolabe.lang")` in the browser console.
 
 ## Visitor language switch
 
-`SITE_LANG` picks the language your site publishes in, for readers and, unless you said otherwise above, for you. **Settings → Language & dates → Visitor switch** (settings key `languageToggle`, **off by default**, with no `.env` counterpart) adds a small `EN` / `ع` control at the edge of the public navigation, so a reader can pick the other language for themselves. Their choice is stored in their own browser's `localStorage` and survives return visits; nobody else's site changes.
+`SITE_LANG` picks the language your site publishes in, for readers and, unless you said otherwise above, for you. **Settings → Language → Visitor switch** (settings key `languageToggle`, **off by default**, with no `.env` counterpart) adds a small `EN` / `ع` control at the edge of the public navigation, so a reader can pick the other language for themselves. Their choice is stored in their own browser's `localStorage` and survives return visits; nobody else's site changes.
 
 The switch changes the **interface strings**, the **text direction** and the **month names**, for *that reader*. An English interface prints "August"; an Arabic one prints "أغسطس". Digits stay on the instance's numeral setting, so a visitor's EN/ع tap cannot mix `١٤` with `14` on one line. The switch cannot reach your editor: an admin session reads its own **Editor language** and never a visitor's, which is why flipping the public switch to check what a reader sees no longer leaves you editing in a language you did not pick. (**Preview as visitor** is the honest way to check: previewing puts you on the visitor's side of that line deliberately, so you see their language, not yours.) Note content is untouched; it renders as you wrote it, block by block, the way it always does. Leave the switch off (the default) and the public site has no language control at all.
 
@@ -49,7 +49,7 @@ The switch changes the **interface strings**, the **text direction** and the **m
 
 ## Language filter
 
-A bilingual vault often wants a monolingual public site, or better, a bilingual one that shows each reader only their own language. **Settings → Language & dates → Language filter** (`LANGUAGE_FILTER`) has four settings:
+A bilingual vault often wants a monolingual public site, or better, a bilingual one that shows each reader only their own language. **Settings → Language → Language filter** (`LANGUAGE_FILTER`) has four settings:
 
 | Value | Who decides | What the public site shows |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Detection runs in the indexer, is cached per note, and refreshes as notes change
 
 ## Hijri dates
 
-An Arabic site often dates its writing by the Hijri calendar, and until now Astrolabe could only print Gregorian dates. **Settings → Language & dates → Date calendar** (settings key `dateCalendar`) takes three values:
+An Arabic site often dates its writing by the Hijri calendar, and until now Astrolabe could only print Gregorian dates. **Settings → Dates & calendar → Date calendar** (settings key `dateCalendar`) takes three values:
 
 | | prints |
 | --- | --- |
@@ -94,7 +94,7 @@ It reaches **every date a person reads**: post meta and dashboard cards on the b
 
 ## Note direction & alignment
 
-Two settings under **Settings → Appearance → Note layout** apply identically in the editor, the reading view and blog articles:
+Two settings under **Settings → Layout & type** apply identically in the editor, the reading view and blog articles:
 
 - **Text direction** (`textDirection`): `auto` *(default)*, `ltr`, `rtl`. `auto` is the behaviour that shipped from the start: every block takes its direction from its own first strong letter, which is what a bilingual vault wants. Pinning `ltr` or `rtl` makes the whole document read that way.
 - **Text alignment** (`textAlign`): `start` *(default)*, `left`, `right`, `center`, `justify`.
@@ -152,7 +152,7 @@ The three share one table (`shared/tashkeel.ts`): the strip removes exactly the 
 
 `> [!ayah] 2:255` renders the verse in Uthmani script with full tashkeel, set right-to-left in the Arabic font, with its reference as the caption: `﴿Al-Baqarah 2:255﴾` on an English instance, `﴿البقرة ٢٥٥﴾` on an Arabic one. A range is written `2:255-257`. The surah may be given by number or by name in either language, with the article and the pointing optional (`البقرة`, `Baqara`, `Al-Baqarah`). Any lines you write under the callout are your own commentary and render beneath the verse. In the editor, `/ayah` inserts the skeleton, and inside `> [!ayah] `, typing offers the surah names as you go. The text is the Tanzil Project's, credited under every callout. It is a 1.3 MB file that is downloaded only by a page that carries a verse, so a note without one downloads none of it, and a published note shows its verses to visitors from the same file.
 
-`> [!hadith] Bukhari 1` renders a hadith from a **corpus you supply**: notes under `Corpus/hadith/` (or the folder named in Settings → Reading & speech → Advanced, *Hadith corpus folder*) whose frontmatter carries `collection:` and `number:`; the body's first paragraph is the chain of narrators, the rest the text. The common collections answer to their usual spellings in either language (`Bukhari`, `البخاري` and `Sahih al-Bukhari` are one key); an uncommon one answers to its own name. A reference with no corpus note behind it renders as an ordinary quote callout wearing the reference as its title, never as a broken block, and a visitor is answered only from published corpus notes.
+`> [!hadith] Bukhari 1` renders a hadith from a **corpus you supply**: notes under `Corpus/hadith/` (or the folder named in Settings → Reading → Advanced, *Hadith corpus folder*) whose frontmatter carries `collection:` and `number:`; the body's first paragraph is the chain of narrators, the rest the text. The common collections answer to their usual spellings in either language (`Bukhari`, `البخاري` and `Sahih al-Bukhari` are one key); an uncommon one answers to its own name. A reference with no corpus note behind it renders as an ordinary quote callout wearing the reference as its title, never as a broken block, and a visitor is answered only from published corpus notes.
 
 ## Localised tag labels
 

@@ -82,7 +82,7 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 
 ## Installing
 
-**Settings → Reading & speech → Read aloud** shows what is installed and an **Install** button. Choose **Light** or **Natural** and press it; the row says what it is doing — making the Python environment, installing the engine, downloading the voices with a percentage, then *Checking which languages it speaks* ([above](#which-engine-speaks-which-language-on-this-machine)) — and the voices are ready when it says so. Install the other engine the same way at any time; Japanese needs Natural, and the row says so.
+**Settings → Read aloud & voice notes → Read aloud** shows what is installed and an **Install** button. Choose **Light** or **Natural** and press it; the row says what it is doing — making the Python environment, installing the engine, downloading the voices with a percentage, then *Checking which languages it speaks* ([above](#which-engine-speaks-which-language-on-this-machine)) — and the voices are ready when it says so. Install the other engine the same way at any time; Japanese needs Natural, and the row says so.
 
 **The machine needs nothing installed first.** The Install button uses, in this order:
 
@@ -117,9 +117,9 @@ If the app's own voices are not installed for the language — nothing installed
 | --- | --- |
 | The app's voices speak | nothing — this is the normal case |
 | They are not installed; a device voice speaks the language | *The app's own voices for French are not installed — reading with this device's voice:* **Microsoft Paul ▾**, and a button, **Install the app's voices**, that opens the row above |
-| No voice on this device speaks the language | *No voice on this device speaks Japanese. Install the app's voices (Settings → Reading & speech → Read aloud), or add a system voice.* |
+| No voice on this device speaks the language | *No voice on this device speaks Japanese. Install the app's voices (Settings → Read aloud & voice notes → Read aloud), or add a system voice.* |
 
-**Which device voice.** The one you chose for that language, on this device: the **▾** beside the voice's name in the player lists every voice the device has for the language, by name and locale, and your choice is remembered (in this browser, for this device — another computer keeps its own). The same choice is in **Settings → Reading & speech → Read aloud**, under *This device's voices*: one picker per language the device speaks, and a line naming the languages it has none for. Until you choose:
+**Which device voice.** The one you chose for that language, on this device: the **▾** beside the voice's name in the player lists every voice the device has for the language, by name and locale, and your choice is remembered (in this browser, for this device — another computer keeps its own). The same choice is in **Settings → Read aloud & voice notes → Read aloud**, under *This device's voices*: one picker per language the device speaks, and a line naming the languages it has none for. Until you choose:
 
 - in the **desktop app on Windows**, the voice you chose in Windows' own speech settings (**Time & language → Speech**) — the app reads it from Windows. A web page cannot: Chromium marks the first voice of the list as the "default" whatever Windows says, which is why a browser on Windows may read with another voice until you pick one with ▾;
 - on macOS and Android, the system's default voice for the language;
@@ -129,7 +129,7 @@ How it sounds depends on the device: Windows' Microsoft voices and Android's Goo
 
 ## Your own voices
 
-If you already have Piper voices on your computer — because LibreOffice's **Read Text** extension installed them, or because you downloaded them yourself — Astrolabe can use them. **Settings → Reading & speech → Your own voices** takes a folder; the server looks through it and every folder inside it, and every voice it finds joins the pickers under **Your voices**, per language, to be chosen exactly like a built-in one. Nothing is copied or downloaded: the voice is read from where it is.
+If you already have Piper voices on your computer — because LibreOffice's **Read Text** extension installed them, or because you downloaded them yourself — Astrolabe can use them. **Settings → Read aloud & voice notes → Your own voices** takes a folder; the server looks through it and every folder inside it, and every voice it finds joins the pickers under **Your voices**, per language, to be chosen exactly like a built-in one. Nothing is copied or downloaded: the voice is read from where it is.
 
 **Pointing it at the folder.** Type the folder's full path (on the desktop app, **Browse…** opens the system's folder picker) and save. The row then says what it found — *French: 3 voices · Arabic: 1 voice · 2 files skipped: no .json beside the model* — and **Which files, and why** lists anything it could not use. **Rescan** reads the folder again after you add a voice; it is also read when the server starts. The folder must be a full path on the computer the server runs on, and **outside the vault** (the vault is synced and published; a 60 MB voice belongs to this computer). It is kept on this computer only, in the data folder — it does not travel with the vault to your other machines.
 
@@ -166,7 +166,7 @@ The pocket vault on a phone has neither: it has no server to scan a folder or ru
 
 ## Readers may listen
 
-**Settings → Reading & speech → Readers may listen** gives visitors of your blog the same chip over their selection. It is off unless you turn it on, because every new sentence a visitor asks for is your machine's processor. The server then speaks only words that are on a published page (a visitor cannot send it anything else to read), at most sixty new sentences per address every ten minutes; a sentence someone has already heard is served from the cache and costs nothing.
+**Settings → Read aloud & voice notes → Readers may listen** gives visitors of your blog the same chip over their selection. It is off unless you turn it on, because every new sentence a visitor asks for is your machine's processor. The server then speaks only words that are on a published page (a visitor cannot send it anything else to read), at most sixty new sentences per address every ten minutes; a sentence someone has already heard is served from the cache and costs nothing.
 
 ## For developers
 

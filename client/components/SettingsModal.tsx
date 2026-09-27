@@ -1,20 +1,21 @@
-// The settings panel (admin): nine sections over ASTROLABE_DATA/settings.json
-// and this browser's own preferences, read and written through GET/PATCH
-// /api/settings and localStorage.
+// The settings panel (admin): eighteen short pages in four groups over
+// ASTROLABE_DATA/settings.json and this browser's own preferences, read and
+// written through GET/PATCH /api/settings and localStorage.
 //
-// THE SECTIONS ARE BY INTENT (the settings purge): Appearance, Language &
-// dates, Writing, Reading & speech, Your site, Collections, Backup & sync,
-// Ask, About — see settings/tabs.ts, and scratchpad/settings-purge/audit.md
-// for where each of the 110 rows it started from went and why.
+// THE PAGES ARE BY INTENT, IN A TWO-LEVEL RAIL (settings, round 2): You ·
+// Your site · Data · App, each a heading over its pages — see
+// settings/tabs.ts, contracts/settings-design.md for the shape and the
+// control catalogue, and contracts/settings-audit.md for where each row went.
 //
 // TWO KINDS OF ROW, ONE ANATOMY. A row the reader's browser keeps (the theme,
-// the reader's language, Vim) saves itself on click and wears a small "This
-// device" mark beside its label; every other row is a form value, and the
-// Save bar at the foot appears the moment one of them changes and speaks for
-// all of them. Every row is a label, one sentence of help under it, and its
-// control; a ⓘ beside the label opens a folded paragraph under the row (the
-// environment variable's line, or reference text); a section opens with one
-// sentence and may end with an Advanced line that names what it holds.
+// the reader's language, Vim) saves itself on click; a page made only of such
+// rows says so once under its intro, and on a mixed page those rows wear a
+// small "This device" mark. Every other row is a form value, and the Save bar
+// at the foot appears the moment one of them changes and speaks for all of
+// them. Every row is a label, one line of help under it, and its control; a ⓘ
+// beside the label opens a folded paragraph under the row (the environment
+// variable's line, or reference text); a page opens with one sentence and may
+// end with an Advanced line that names what it holds.
 // Text fields left empty inherit the env default (shown as the placeholder).
 // Saving PATCHes only the keys that changed, then refreshes /api/me so the
 // wordmark, layout, theme default, fonts and favicon apply live — no reload.
@@ -42,7 +43,7 @@ import { isThemePickerOpen } from "./ThemePicker.tsx";
 import { SettingsContext, loadedCtx } from "./settings/context.ts";
 import { ImagePicker } from "./settings/ImageField.tsx";
 import TabBody from "./settings/TabBody.tsx";
-import { POCKET_HIDDEN_TABS, rememberedTab, revealRow, TAB_STORAGE, tabIntro, TABS } from "./settings/tabs.ts";
+import { GROUPS, pageName, rememberedTab, revealRow, TAB_STORAGE, tabIntro, visiblePages } from "./settings/tabs.ts";
 import { useSettingsForm } from "./settings/useSettingsForm.ts";
 
 export default function SettingsModal() {
@@ -143,7 +144,7 @@ export default function SettingsModal() {
    *  rail, the arrow keys and the heading all read this rather than TABS — a
    *  rail that skips a tab while ↓ still walks into it is worse than either
    *  answer on its own. */
-  const visibleTabs = useMemo(() => (pocket ? TABS.filter((s) => !POCKET_HIDDEN_TABS.has(s.id)) : TABS), [pocket]);
+  const visibleTabs = useMemo(() => visiblePages(pocket), [pocket]);
 
   /** The panel remembers the last section per device, and a phone that
    *  opened an instance yesterday and a pocket vault today remembers one that
@@ -271,10 +272,7 @@ export default function SettingsModal() {
                 that one. */}
             <SettingsSearch
               inputRef={searchRef}
-              tabName={(id) => {
-                const found = TABS.find((x) => x.id === id);
-                return found === undefined ? id : t(found.key);
-              }}
+              tabName={pageName}
               onGo={(entry, label) => {
                 goToTab(entry.tab);
                 // After the tab has painted: find the row by the label it
@@ -283,29 +281,41 @@ export default function SettingsModal() {
                 reveal(label, entry.row === undefined ? undefined : t(entry.row));
               }}
             />
-            <nav
-              className="s-smodal__rail"
-              ref={railRef}
-              role="tablist"
-              aria-orientation="vertical"
-              aria-label={t("settingsSections")}
-              onKeyDown={onRailKey}
-            >
-              {visibleTabs.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  id={`s-smodal-tab-${s.id}`}
-                  aria-selected={tab === s.id}
-                  aria-controls={`s-smodal-panel-${s.id}`}
-                  tabIndex={tab === s.id ? 0 : -1}
-                  className={`s-smodal__railbtn${tab === s.id ? " s-smodal__railbtn--on" : ""}`}
-                  onClick={() => goToTab(s.id)}
-                >
-                  {t(s.key)}
-                </button>
-              ))}
+            {/* A TWO-LEVEL RAIL (settings, round 2): four group headings,
+                each with its pages under it, the open page lit. Navigation,
+                not a tab list — eighteen pages in four groups is a table of
+                contents, and a tablist may own nothing but tabs — so each
+                page is a button marked `aria-current="page"` when it is the
+                one showing, and the body is a region named by the page's own
+                heading. ↑/↓ still walk every page across the groups, and
+                Home/End jump to the ends. */}
+            <nav className="s-smodal__rail" ref={railRef} aria-label={t("settingsSections")} onKeyDown={onRailKey}>
+              {GROUPS.map((g) => {
+                const pages = visibleTabs.filter((s) => s.group === g.id);
+                if (pages.length === 0) return null;
+                return (
+                  <div className="s-smodal__railgroup" key={g.id} role="group" aria-labelledby={`s-smodal-group-${g.id}`}>
+                    <div className="s-smodal__railhead" id={`s-smodal-group-${g.id}`}>
+                      {t(g.key)}
+                    </div>
+                    {pages.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        id={`s-smodal-tab-${s.id}`}
+                        data-page={s.id}
+                        aria-current={tab === s.id ? "page" : undefined}
+                        aria-controls="s-smodal-panel"
+                        tabIndex={tab === s.id ? 0 : -1}
+                        className={`s-smodal__railbtn${tab === s.id ? " s-smodal__railbtn--on" : ""}`}
+                        onClick={() => goToTab(s.id)}
+                      >
+                        {t(s.key)}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
             </div>
 
@@ -318,13 +328,16 @@ export default function SettingsModal() {
                 className="s-smodal__body s-scrollfade"
                 data-popbounds
                 ref={bodyRef}
-                role="tabpanel"
-                id={`s-smodal-panel-${tab}`}
-                aria-labelledby={`s-smodal-tab-${tab}`}
+                role="region"
+                id="s-smodal-panel"
+                aria-labelledby="s-smodal-pagehead"
+                data-page={tab}
               >
-                {/* Every tab opens the same way: its name, then one sentence
+                {/* Every page opens the same way: its name, then one sentence
                     saying what it decides. */}
-                <div className="s-smodal__group s-smodal__tabhead">{t(TABS.find((s) => s.id === tab)?.key ?? "tabAppearance")}</div>
+                <h2 className="s-smodal__group s-smodal__tabhead" id="s-smodal-pagehead">
+                  {pageName(tab)}
+                </h2>
                 <p className="s-smodal__note">{t(tabIntro(tab, pocket))}</p>
                 <TabBody tab={tab} />
               </div>

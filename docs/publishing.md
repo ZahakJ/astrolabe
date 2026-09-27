@@ -149,7 +149,7 @@ at the proxy is a sensible extra layer — in nginx, `client_max_body_size 10m;`
 
 ## Comments
 
-Set `COMMENTS=on` (or flip the switch in Settings → Your site → Comments) and every
+Set `COMMENTS=on` (or flip the switch in Settings → Comments & mentions → Comments) and every
 **published** note grows a quiet **Marginalia** section under its reading view, where visitors
 can leave a plain-text note. A name is optional; without one the comment says "Anonymous". While
 comments are off (the default) the feature is completely absent: no interface, and its API routes
@@ -174,7 +174,7 @@ missing note would, so unpublished paths stay unguessable. With `PUBLIC=false` (
 vault), visitors can neither read nor post comments at all.
 
 Other sites can join the conversation too. With **Accept webmentions** or **Fediverse** on
-(Settings → Your site → Conversation), replies, likes and mentions written elsewhere arrive in the
+(Settings → Comments & mentions), replies, likes and mentions written elsewhere arrive in the
 same moderation panel, marked with where they came from, and the ones you approve appear under
 the comments in a small **Mentions** section. See [Webmentions & the fediverse](webmentions.md).
 

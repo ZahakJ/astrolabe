@@ -226,7 +226,7 @@ What keeps the store from growing without limit:
   delete is recoverable, and the versions are part of what that means. Erasing an entry for good
   from the trash browser erases its versions too — unless a live note has since taken the same
   path, in which case the history is that note's own.
-- **Off is a setting.** Settings → **Backup & sync** → *Keep note versions*, or `NOTE_VERSIONS=off` in
+- **Off is a setting.** Settings → Versions & travel → *Keep note versions*, or `NOTE_VERSIONS=off` in
   `.env` as that instance's default. When it is off, the History section says so and offers the
   switch. Versions never travel: they live in `ASTROLABE_DATA`, which sync never stages, and a
   visitor cannot list, read or restore them.
@@ -344,7 +344,7 @@ and instead the receiving machine downloads them itself, at boot and whenever a 
 `settings.json` or `designs.json` arrives, so a fresh install paints in your faces on its first
 load without anyone opening Settings → Appearance.
 
-**Settings → Backup & sync → What travels** is the mirror's own report: one glyph per item (the
+**Settings → Versions & travel → What travels** is the mirror's own report: one glyph per item (the
 site, designs, custom CSS, fonts with their count, layouts, books, annotations, preferences with
 their key count) — ✓ when the vault holds it, ⚠ when this machine holds something the vault does
 not yet, – when there is nothing to carry — then when the last pass ran and how many files have
@@ -367,7 +367,7 @@ anything, so a setting never arrives mid-session and moves things under you. Per
 change wins, and a setting cleared on one device clears on the next rather than coming back from
 it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
 tags shelf's height, fold state and every collapsed flag describe *this window on this screen*,
-and stay where they are. **Settings → Backup & sync → Settings travel with the vault** switches it
+and stay where they are. **Settings → Versions & travel → Settings travel with the vault** switches it
 off for a device that should keep its own. The file is admin-only and never reaches a visitor.
 If you keep the vault in git, commit `.astrolabe/` — it is not in the
 [ignore advice](#gitignore-advice) because you want it.

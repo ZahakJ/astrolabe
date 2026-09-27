@@ -513,10 +513,7 @@ const ar = {
   uploadFailed: "فشل الرفع",
 
   // ── Settings panel ──────────────────────────────────────────────────────
-  groupHome: "الصفحة الرئيسية",
   // ── Public folders: one option, its list, and two placement sub-options ──
-  groupPublicFolders: "مجلدات عامة مخصصة",
-  publicFoldersNote: "مجموعاتك الخاصة على الموقع العام، إلى جانب المواضيع التي تسمّي بها ملاحظاتك نفسها.",
   rowPublicFolders: "المجموعات",
   hintPublicFolders: "مواضيع تصنعها بيدك إلى جانب مواضيع الوسوم. والإيقاف يخفيها ولا يحذف شيئًا.",
   publicFoldersOffNotice: "المجلدات المخصصة معطّلة، فلا يصل أيٌّ منها إلى الزائر.",
@@ -628,7 +625,6 @@ const ar = {
   libraryUnitChapter: "الفصل {n}",
   libraryUnitWeek: "الأسبوع {n}",
   libraryUnitPart: "الجزء {n}",
-  groupLibrary: "المكتبة",
   libraryNote: "الكتب والدورات وسلاسل المحاضرات مساراتٌ يسلكها القارئ بالترتيب. المسار مجلد من خزانتك: مجلداته الفرعية هي الفصول أو المحاضرات، والملاحظات المنشورة داخلها هي الدروس.",
   rowLibrary: "المكتبة",
   hintLibrary: "المفتاح الرئيسي. عند الإيقاف لا يصل أي زائر إلى أي مسار.",
@@ -698,12 +694,12 @@ const ar = {
   homeNote: "ما يلقاه الزائر عند جذر الموقع.",
 
   // ── Settings tabs ────────────────────────────────────────────────────────
-  tabSite: "موقعك",
-  introSite: "ما يراه الزوار — اسم الموقع ومظهره وصفحته الأولى — ومن يحقّ له الرد.",
+  tabSite: "هوية الموقع",
+  introSite: "اسم الموقع وعلاماته، والسمة التي يصل إليها الزائر.",
   tabCollections: "المجموعات",
-  introCollections: "كيف يجمع الموقع العام الملاحظات: الموضوعات، ومجموعاتك، ورفّ المكتبة.",
+  introCollections: "كيف يجمع الموقع العام الملاحظات: بالوسوم أو بالمجلدات، ومجموعاتك الخاصة.",
   tabAbout: "حول",
-  introAbout: "هذا التطبيق وهذا الخادم: ما الجديد، والإصدار، وأين تُحفظ الملفات، والدليل.",
+  introAbout: "هذا التطبيق وهذا الخادم: الإصدار، وأين تُحفظ الملفات، وكم فيه، والدليل.",
 
   // ── Appearance ───────────────────────────────────────────────────────────
   rowYourTheme: "سمتك",
@@ -1192,7 +1188,6 @@ const ar = {
   homeBannerFailed: "فشل حفظ الغلاف",
 
   // ── Typography (settings panel) ─────────────────────────────────────────
-  groupTypography: "الطباعة",
   typographyNote: "تُجلب الخطوط مرة واحدة عند الحفظ، ثم تُقدَّم من هذا الجهاز.",
   rowFontProse: "نص القراءة",
   hintFontProse: "خط نص القراءة ونثر المحرر.",
@@ -1671,7 +1666,6 @@ const ar = {
   layoutSourceSite: "الإعداد الافتراضي للموقع",
   layoutSegmentLabel: "تخطيط النص",
 
-  groupCalendar: "التقويم",
   rowDateCalendar: "تقويم التواريخ",
   hintDateCalendar: "التقويم الذي تُطبع به كل تواريخ الموقع.",
   calGregorian: "ميلادي",
@@ -1688,7 +1682,6 @@ const ar = {
   calFeedNote: "تواريخ ‎RSS‎ تبقى ميلادية بصيغة ‎RFC-822‎، فهي ما تفهمه مجمِّعات الخلاصات.",
   calArabicSuggest: "كثير من المواقع العربية تؤرّخ كتاباتها بالتقويم الهجري.",
 
-  groupNoteLayout: "تخطيط الملاحظات",
   rowTextDirection: "اتجاه النص",
   hintTextDirection: "الاتجاه الأساسي لنص الملاحظات (يمين أو يسار)؛ و«تلقائي» يترك القرار لكل فقرة.",
   rowTextAlign: "محاذاة النص",
@@ -2457,7 +2450,6 @@ const ar = {
 
   // ── Settings → This device ──────────────────────────────────────────────
   shellChangeServer: "غيّر الخادم أو الخزانة…",
-  groupThisApp: "هذا التطبيق",
   rowUpdates: "تحديثات البرنامج",
   hintUpdates: "يخبرك فقط؛ ولا يُنزَّل شيء ولا يُثبَّت حتى تطلبه أنت.",
   updatesNotify: "أخبرني",
@@ -2504,8 +2496,8 @@ const ar = {
   moreFrenchAutocorrect: "في السطور المكتوبة بالفرنسية: الحركات الناقصة (⁦tres → très, coeur → cœur⁩)، والمسافة قبل ⁦; : ! ?⁩ وداخل ⁦« »⁩، و… بدل ثلاث نقاط. و⁦Ctrl/Cmd Z⁩ يتراجع عن تصحيح واحد.",
 
   // ── Settings → tab names that had none ──────────────────────────────────
-  tabLanguage: "اللغة والتواريخ",
-  introLanguage: "اللغة التي تقرأ بها التطبيق، واللغة التي يتكلم بها موقعك، وكيف تُكتب التواريخ.",
+  tabLanguage: "اللغة",
+  introLanguage: "اللغة التي تقرأ بها التطبيق، واللغة التي يتكلم بها موقعك، وأي الملاحظات يراها الزوار.",
 
   // ── Settings → the ⓘ disclosure (replaces the badge and the env line) ────
   envDisclose: "متغيّر البيئة",
@@ -3503,24 +3495,14 @@ const ar = {
 
   // ── The settings purge: sections by intent, the device mark, Advanced ──
   tabAppearance: "المظهر",
-  introAppearance: "كيف يبدو التطبيق لك، والحروف التي يُنضَّد بها ما يقرؤه الجميع.",
+  introAppearance: "كيف يبدو التطبيق على هذه الشاشة: السمة، والضوء فوقها، والشريط الجانبي، وعرض العمود.",
   tabWriting: "الكتابة",
-  introWriting: "كيف يتصرّف المحرّر، وأين تذهب الملاحظات الجديدة والملتقَطات والملفات.",
-  tabReading: "القراءة والصوت",
-  introReading: "عرض القراءة، وكتبك وخلاصاتك، والأصوات التي تقرأ لك، والملاحظات الصوتية.",
+  introWriting: "كيف يفتح المحرّر وكيف يتصرّف، وأين تذهب الملفات المرفوعة وصفحات الوسوم.",
+  tabReading: "القراءة",
+  introReading: "عرض القراءة، وما يقرؤه البحث داخل كتبك، والخلاصات التي تتابعها.",
   deviceRowMark: "هذا الجهاز",
   deviceRowTitle: "يُحفظ فورًا، على هذا الجهاز وحده — شريط الحفظ لا يعنيه.",
   settingsAdvanced: "متقدّم",
-  groupForVisitors: "للزوار",
-  groupNewNotes: "الملاحظات الجديدة",
-  groupFilesTags: "الملفات والوسوم",
-  groupListening: "الاستماع",
-  groupVoiceNotes: "الملاحظات الصوتية",
-  groupPublishing: "النشر",
-  groupConversation: "التفاعل",
-  groupVersions: "النسخ السابقة",
-  groupTravels: "بين الأجهزة",
-  groupThisInstance: "هذا الخادم",
   rowWebmentions: "إشارات الويب",
   hintWebmentions: "تُعلِم المواقعُ الأخرى موقعَك بأنها ربطت بتدوينة، ويُعلِمها موقعك بالمثل.",
   pocketReadingNotice: "الصفوف الباهتة تحتاج خادمًا: كتب يُبحث فيها على القرص، وخلاصات تُجلب، وأصوات تعمل على حاسوب.",
@@ -3717,7 +3699,6 @@ const ar = {
   speakRateFast: "أسرع",
   rowReadersListen: "يستطيع القرّاء الاستماع",
   hintReadersListen: "يستطيع الزوّار سماع التدوينة مقروءة؛ وكل جملة جديدة تكلّف معالج هذا الجهاز.",
-  captureSection: "الالتقاط",
   captureInboxLabel: "صندوق الالتقاط",
   captureInboxHint: "ملاحظة تستطيع ورقة الالتقاط السريع أن تضع فيها السطور بدل ملاحظة اليوم.",
   moreCaptureInbox: "‏Ctrl/Cmd Shift D يفتح الورقة. مسار ملاحظة نسبي في الخزانة؛ وفارغ يعني ملاحظة اليوم وحدها.",
@@ -4091,6 +4072,29 @@ const ar = {
   rowExternalVideo: "تضمين الفيديو الخارجي",
   hintExternalVideo: "روابط YouTube وVimeo وPeerTube في سطر مستقل تصير مشغّلات.",
   moreExternalVideo: "معطّل افتراضيًا، لأن مشغّل موقع آخر يُخبر ذلك الموقع بمن يقرأ. عند تفعيله يُشغَّل YouTube من youtube-nocookie.com، ويُطلب من Vimeo ألّا يتتبّع، ولا يُحمَّل أي إطار إلا حين يقترب من الشاشة. وعند تعطيله يبقى العنوان رابطًا.",
+  settingsGroupYou: "أنت",
+  settingsGroupSite: "موقعك",
+  settingsGroupData: "البيانات",
+  settingsGroupApp: "التطبيق",
+  tabType: "التخطيط والخط",
+  introType: "كيف يُنضَّد نص الملاحظات — اتجاهه ومحاذاته وخطوطه — لك ولكل قارئ.",
+  tabDates: "التواريخ والتقويم",
+  introDates: "بأي تقويم يُطبع كل تاريخ في الموقع، وكيف يجتمع التقويمان.",
+  tabNotes: "الملاحظات الجديدة والقوالب",
+  introNotes: "من أين تبدأ الملاحظات الجديدة: القوالب، وملاحظات التقويم، وملاحظات الدقيقة، وبابا الالتقاط.",
+  tabSpeech: "القراءة بصوت عالٍ والملاحظات الصوتية",
+  introSpeech: "الأصوات التي تقرأ لك، والكلمات التي تنطقها في ملاحظاتك.",
+  tabPublishing: "النشر",
+  introPublishing: "أي واجهة يصل إليها الزوار، وما تعرضه الصفحة الأولى، وما تحمله المقالة.",
+  tabConversation: "التعليقات والإشارات",
+  introConversation: "من يحقّ له الرد على ملاحظة منشورة: التعليقات وإشارات الويب والفيديفيرس — كلٌّ منها معطّل حتى تقرّر.",
+  tabLibrary: "المكتبة",
+  introLibrary: "رفّ كتبك العام: هل يظهر، واسمه، وأي المجلدات تملؤه.",
+  tabVersions: "النسخ السابقة والتنقّل",
+  introVersions: "نسخة من كل ملاحظة قبل كل حفظ، وما تحمله الخزانة إلى الجهاز التالي.",
+  tabDevice: "هذا الجهاز",
+  introDevice: "التطبيق نفسه، هنا: نسخة دون اتصال، ومفاتيح Vim، وما الجديد، وعلى سطح المكتب اسمه وتحديثاته.",
+  settingsDevicePage: "كل ما هنا محفوظ على هذا الجهاز، ويُحفظ حين تغيّره.",
 } satisfies Record<I18nKey, string>;
 
 export default ar;

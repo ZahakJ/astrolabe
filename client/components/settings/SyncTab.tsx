@@ -1,31 +1,27 @@
-// BACKUP & SYNC — where copies of the vault are kept. A tab body (see
-// ./TabBody.tsx), drawn in both kinds of vault since the settings purge:
+// BACKUP & SYNC — where copies of the vault are kept. A page body (see
+// ./TabBody.tsx), drawn in both kinds of vault:
 //
 //   · an instance points its server's git at a remote (the rows below);
-//   · a pocket vault IS the repository, and draws ./PocketSync.tsx instead;
-//   · both keep note versions and carry settings in the vault, which used to
-//     be two rows on two other tabs ("Vault" and "This device") — both are
-//     answers to "where are copies of my work kept", which is this section.
+//   · a pocket vault IS the repository, and draws ./PocketSync.tsx instead.
 //
-// Branch and pull-first — `main` and on for nearly everyone — sit behind the
-// Advanced line. The username a token belongs to is a part of the token row.
+// Note versions and what travels with the vault — the other two answers to
+// "where are copies of my work kept" — are their own page since the second
+// settings pass (VersionsTab). Branch and pull-first — `main` and on for
+// nearly everyone — sit behind the Advanced line. The username a token
+// belongs to is a part of the token row.
 
 import { useSettings } from "./context.ts";
 import { t } from "../../i18n.ts";
 import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
 import { Select } from "../controls/Select.tsx";
-import { prefsSyncEnabled, setPrefsSyncEnabled } from "../../prefsSync.ts";
-import { useEventPref } from "./devicePrefs.ts";
 import { Advanced, InstanceOnly, PocketOnly } from "./Fold.tsx";
 import { Part, Parts, Row } from "./Row.tsx";
 import { PocketSyncRows } from "./PocketSync.tsx";
 import { SyncStatusBlock, SyncActions } from "./SyncStatus.tsx";
-import { TravelRow } from "./TravelRow.tsx";
 import { intervalLabel } from "./tabs.ts";
 
 export default function SyncTab() {
-  const { pocket, form, setForm, saving, errors, field, onOffSegments, clearToken, eff, inh, syncOff, syncStale, intervalChoices } = useSettings();
-  const prefsSync = useEventPref("astrolabe:prefs-sync", prefsSyncEnabled);
+  const { form, setForm, saving, errors, field, clearToken, eff, syncOff, syncStale, intervalChoices } = useSettings();
   return (
     <section data-section="sync">
       <InstanceOnly>
@@ -114,34 +110,6 @@ export default function SyncTab() {
       <PocketOnly>
         <PocketSyncRows />
       </PocketOnly>
-
-      {/* ── Versions ────────────────────────────────────────────────────────
-          The net under the autosave, in the data directory: a copy of what a
-          note said before each save, with no git at all. A pocket vault's
-          history is its repository, so there it is a locked fact. */}
-      <div className="s-smodal__sub">{t("groupVersions")}</div>
-      {pocket && <p className="s-smodal__offnote">{t("pocketVersionsNotice")}</p>}
-      <Row
-        locked={pocket}
-        label={t("rowNoteVersions")}
-        hint={t("hintNoteVersions")}
-        more={t("moreNoteVersions")}
-        env={{ name: "NOTE_VERSIONS", value: eff.noteVersions ? "on" : "off", inherits: form.noteVersions === "" }}
-      >
-        <SegmentedControl label={t("rowNoteVersions")} segments={onOffSegments(inh.noteVersions)} {...field("noteVersions")} />
-      </Row>
-
-      {/* ── What travels ────────────────────────────────────────────────────
-          What the vault's .astrolabe/ folder carries for the next machine
-          (server/configMirror.ts) — independent of git sync, so not greyed
-          with it — and whether THIS browser's preferences ride along. */}
-      <div className="s-smodal__sub">{t("groupTravels")}</div>
-      <InstanceOnly>
-        <TravelRow />
-      </InstanceOnly>
-      <Row device label={t("rowPrefsSync")} hint={t("hintPrefsSync")}>
-        <Toggle label={t("rowPrefsSync")} onLabel={t("on")} offLabel={t("off")} value={prefsSync} onChange={setPrefsSyncEnabled} />
-      </Row>
 
       <InstanceOnly>
         <Advanced tab="sync">

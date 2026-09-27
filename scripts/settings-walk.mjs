@@ -17,7 +17,7 @@
 
 import enDict from "../client/i18n/en.ts";
 import arDict from "../client/i18n/ar.ts";
-import { TABS } from "../client/components/settings/tabs.ts";
+import { visiblePages } from "../client/components/settings/tabs.ts";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
 
 const DICT = { en: enDict, ar: arDict };
@@ -28,13 +28,17 @@ const DICT = { en: enDict, ar: arDict };
  *  first text field. About holds only rows this device keeps, which never
  *  raise the Save bar — so it is asked for its rows and nothing is saved. */
 export const SAVE_PLAN = {
-  appearance: { row: "rowTextDirection", seg: [2, 0] },
-  language: { row: "rowDateCalendar", seg: [1, 0] },
-  writing: { row: "templatesFolderLabel", fill: ["Templates-walk", ""] },
+  type: { row: "rowTextDirection", seg: [2, 0] },
+  dates: { row: "rowDateCalendar", seg: [1, 0] },
+  writing: { row: "rowTagsFolder", fill: ["Tags-walk", ""] },
+  notes: { row: "templatesFolderLabel", fill: ["Templates-walk", ""] },
   reading: { row: "rowPdfSearch", seg: [2, 0] },
+  speech: { row: "rowVoiceLanguage", seg: [1, 0] },
   site: { row: "rowTagline", fill: ["walked by the settings gate", ""] },
+  publishing: { row: "rowHomeNote", fill: ["Walked.md", ""] },
+  conversation: { row: "rowComments", seg: [2, 0] },
   collections: { row: "rowTopicsMode", seg: [1, 0] },
-  sync: { row: "rowNoteVersions", seg: [2, 0] },
+  versions: { row: "rowNoteVersions", seg: [2, 0] },
   ask: { row: "rowAskChatModel", fill: ["qwen-walk", ""] },
 };
 
@@ -71,7 +75,7 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
   const pocket = await page.evaluate(async () => (await (await fetch("/api/me")).json()).pocket === true);
   await openSettings();
   const scope = host === "desktop" ? ".s-smodal" : "[data-screen='settings-section']";
-  const visible = TABS.filter((s) => !(pocket && (s.id === "collections" || s.id === "ask")));
+  const visible = visiblePages(pocket);
   if (host === "phone") {
     const listed = await page.locator("[data-screen='settings'] .s-ph-row[data-section]").evaluateAll((els) => els.map((e) => e.getAttribute("data-section")));
     check(JSON.stringify(listed) === JSON.stringify(visible.map((s) => s.id)), tag("the phone lists the desktop's sections, in its order"), listed.join(" · "));
@@ -97,12 +101,12 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
     }
     const intro = (await page.locator(`${scope} .s-smodal__note`).first().textContent().catch(() => "")) ?? "";
     check(intro.trim().length > 20, tag(`${s.id}: opens with its one sentence`), intro.slice(0, 60));
-    const rows = await page.locator(`${scope} .s-smodal__row`).count();
-    check(rows <= 18 && (s.id === "about" || rows >= 4), tag(`${s.id}: ${rows} rows (≤ 18)`));
+    const rows = await page.locator(`${scope} .s-smodal__row:not(.s-smodal__adv .s-smodal__row)`).count();
+    check(rows <= 10, tag(`${s.id}: ${rows} rows in sight (≤ 10)`));
     if (shots) await page.screenshot({ path: `${shots}/settings-${host}-${lang}-${String(i + 1).padStart(2, "0")}-${s.id}.png` });
 
     const plan = SAVE_PLAN[s.id];
-    if (plan && !(pocket && (s.id === "reading" || s.id === "sync"))) {
+    if (plan && !(pocket && ["reading", "speech", "versions"].includes(s.id))) {
       const row = page.locator(`${scope} [data-setting="${esc(d[plan.row])}"]`).first();
       // Put back what was THERE, not what the plan assumes was there: another
       // step of the same gate may have saved this row already.

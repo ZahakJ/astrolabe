@@ -686,10 +686,7 @@ const en = {
   uploadFailed: "Upload failed",
 
   // ── Settings panel ──────────────────────────────────────────────────────
-  groupHome: "Home page",
   // ── Public folders: one option, its list, and two placement sub-options ──
-  groupPublicFolders: "Custom public folders",
-  publicFoldersNote: "Your own collections on the public site, beside the topics your notes tag themselves with.",
   rowPublicFolders: "Collections",
   hintPublicFolders: "Hand-made topics beside the tag topics. Off hides them; nothing is deleted.",
   publicFoldersOffNotice: "Custom folders are off, so none of them reaches a visitor.",
@@ -810,7 +807,6 @@ const en = {
   libraryUnitWeek: "Week {n}",
   libraryUnitPart: "Part {n}",
   // Settings → Publishing → The library
-  groupLibrary: "The library",
   libraryNote: "Books, courses and lecture series as paths a reader walks in order. A path is a folder of your vault: its subfolders are the chapters or lectures, the published notes inside are the lessons.",
   rowLibrary: "Library",
   hintLibrary: "The master switch. Off, no visitor can reach a path.",
@@ -888,12 +884,12 @@ const en = {
   // ── Settings tabs ────────────────────────────────────────────────────────
   // One name and one sentence each: a rail of eight category nouns tells a
   // reader where things are, never what they decide.
-  tabSite: "Your site",
-  introSite: "What visitors see — the site's name and look, its home page — and who may answer.",
+  tabSite: "Site identity",
+  introSite: "The site's name and marks, and the theme a visitor arrives on.",
   tabCollections: "Collections",
-  introCollections: "How the public site groups notes — topics, your own collections, and the library shelf.",
+  introCollections: "How the public site groups notes: by tags or by folders, and your own collections.",
   tabAbout: "About",
-  introAbout: "This app and this instance: what's new, the version, where files live, and the manual.",
+  introAbout: "This app and this instance: the version, where files live, how much is in it, and the manual.",
 
   // ── Appearance ───────────────────────────────────────────────────────────
   rowYourTheme: "Your theme",
@@ -1549,7 +1545,6 @@ const en = {
   // The type SPECIMENS are not here: a Latin sample must stay Latin in an
   // Arabic UI (and the Arabic one Arabic in an English UI) or the preview
   // stops previewing what it claims to. They live in SettingsModal.tsx.
-  groupTypography: "Typography",
   // Sub-heads inside the merged Appearance & language tab.
   typographyNote: "Faces are fetched once when you save, then served from this machine.",
   rowFontProse: "Reading text",
@@ -2172,7 +2167,6 @@ const en = {
   layoutSegmentLabel: "Text layout",
 
   // Settings → Appearance & language: the calendar.
-  groupCalendar: "Calendar",
   rowDateCalendar: "Date calendar",
   hintDateCalendar: "The calendar every date on the site is printed in.",
   calGregorian: "Gregorian",
@@ -2190,7 +2184,6 @@ const en = {
   calArabicSuggest: "Many Arabic sites date their writing by the Hijri calendar.",
 
   // Settings → Appearance & language: note direction and alignment.
-  groupNoteLayout: "Note layout",
   rowTextDirection: "Text direction",
   hintTextDirection: "Base direction (LTR or RTL) for note prose; Auto lets each paragraph decide.",
   rowTextAlign: "Text alignment",
@@ -3043,7 +3036,6 @@ const en = {
   shellChangeServer: "Change server or vault…",
   // The desktop-only group: rows that exist because there is an app around
   // the page — its name, its icon, its launcher entry, its updates.
-  groupThisApp: "This app",
   rowUpdates: "Software updates",
   hintUpdates: "It only tells you; nothing is downloaded or installed until you ask.",
   updatesNotify: "Tell me",
@@ -3096,8 +3088,8 @@ const en = {
   moreFrenchAutocorrect: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
 
   // ── Settings → tab names that had none ──────────────────────────────────
-  tabLanguage: "Language & dates",
-  introLanguage: "The language you read the app in, the one your site speaks, and how dates print.",
+  tabLanguage: "Language",
+  introLanguage: "The language you read the app in, the one your site speaks, and which notes visitors see.",
 
   // ── Settings → the ⓘ disclosure (replaces the badge and the env line) ────
   // `envDecidedBy` and `envOverridden` are SPLIT on {env}, not interpolated by
@@ -4224,24 +4216,14 @@ const en = {
 
   // ── The settings purge: sections by intent, the device mark, Advanced ──
   tabAppearance: "Appearance",
-  introAppearance: "How the app looks to you, and the type every reader sees.",
+  introAppearance: "How the app looks on this screen: the theme, the light over it, the sidebar and the column.",
   tabWriting: "Writing",
-  introWriting: "How the editor behaves, and where new notes, captures and files go.",
-  tabReading: "Reading & speech",
-  introReading: "The reading view, your books and feeds, the voices that read to you, and voice notes.",
+  introWriting: "How the editor opens and behaves, and where uploaded files and tag pages go.",
+  tabReading: "Reading",
+  introReading: "The reading view, what search reads inside your books, and the feeds you follow.",
   deviceRowMark: "This device",
   deviceRowTitle: "Saved at once, on this device only — the Save bar is not about it.",
   settingsAdvanced: "Advanced",
-  groupForVisitors: "For visitors",
-  groupNewNotes: "New notes",
-  groupFilesTags: "Files & tags",
-  groupListening: "Listening",
-  groupVoiceNotes: "Voice notes",
-  groupPublishing: "Publishing",
-  groupConversation: "Conversation",
-  groupVersions: "Versions",
-  groupTravels: "Across machines",
-  groupThisInstance: "This instance",
   rowWebmentions: "Webmentions",
   hintWebmentions: "Other sites tell yours they linked to a post, and yours tells them.",
   pocketReadingNotice: "The greyed rows need a server: books searched on disk, feeds fetched, voices run on a computer.",
@@ -4462,7 +4444,6 @@ const en = {
   // Settings → Publishing.
   rowReadersListen: "Readers may listen",
   hintReadersListen: "Visitors can have a post read aloud; each new sentence costs this machine's processor.",
-  captureSection: "Capture",
   captureInboxLabel: "Capture inbox",
   captureInboxHint: "A note the quick-capture sheet can drop lines into instead of today's note.",
   moreCaptureInbox: "Ctrl/Cmd Shift D opens the sheet. A vault-relative note path; empty means today's note only.",
@@ -4864,6 +4845,29 @@ const en = {
   rowExternalVideo: "Embed external video",
   hintExternalVideo: "YouTube, Vimeo and PeerTube links on their own line become players.",
   moreExternalVideo: "Off by default, because another site's player tells that site who is reading. When on, YouTube plays from youtube-nocookie.com, Vimeo is asked not to track, and every frame loads only when it scrolls near. Off, the address stays a link.",
+  settingsGroupYou: "You",
+  settingsGroupSite: "Your site",
+  settingsGroupData: "Data",
+  settingsGroupApp: "App",
+  tabType: "Layout & type",
+  introType: "How note prose is set — its direction, its alignment, its faces — for you and every reader.",
+  tabDates: "Dates & calendar",
+  introDates: "Which calendar every date on the site is printed in, and how two calendars sit together.",
+  tabNotes: "New notes & templates",
+  introNotes: "Where new notes start: templates, the calendar's notes, minute notes, and the two capture doors.",
+  tabSpeech: "Read aloud & voice notes",
+  introSpeech: "The voices that read to you, and the words you speak into notes.",
+  tabPublishing: "Publishing",
+  introPublishing: "Which shell visitors land in, what the home page shows, and what an article carries.",
+  tabConversation: "Comments & mentions",
+  introConversation: "Who may answer a published note: comments, webmentions and the fediverse — each off until you say.",
+  tabLibrary: "Library",
+  introLibrary: "The public shelf of your books: whether it shows, its name, and which folders fill it.",
+  tabVersions: "Versions & travel",
+  introVersions: "A copy of each note before every save, and what the vault carries to the next machine.",
+  tabDevice: "This device",
+  introDevice: "The app itself, here: an offline copy, Vim keys, what's new, and on the desktop its name and updates.",
+  settingsDevicePage: "Everything here is kept on this device and saves as you change it.",
 } satisfies Record<string, string>;
 
 /** Every dictionary key — the one list both languages must cover. */
