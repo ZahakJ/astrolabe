@@ -1336,10 +1336,10 @@ try {
           await back();
         }
         await back();
-        // EVERY SECTION, the desktop's walk (scripts/settings-walk.mjs): the
-        // list is the rail's sections in its order under its names; each one
-        // opens with its sentence, holds ≤ 18 rows and saves one change and
-        // puts it back; a hint word lands behind an Advanced line. On the
+        // EVERY PAGE, the desktop's walk (scripts/settings-walk.mjs): the
+        // list is the rail's groups and pages in its order under its names;
+        // every row is set, the app reloaded and every row read back, then put
+        // back; a hint word lands behind an Advanced line. On the
         // Pixel only: the tablets draw the section beside the list, where
         // Back means something else.
         if (shape.name === "phone") {
