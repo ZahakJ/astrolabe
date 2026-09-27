@@ -391,15 +391,15 @@ const en = {
   // arrives with that binding), so the two pane toggles took one more
   // modifier and kept their shape — same key, Shift picks the second pane.
   rowScreenWarmth: "Screen warmth",
-  hintScreenWarmth: "An amber sheet over the page, like a phone's night light. Per device.",
+  hintScreenWarmth: "An amber sheet over the page, like a phone's night light.",
   rowScreenDim: "Dim the screen",
-  hintScreenDim: "Darkens the page below what the monitor's own brightness reaches. Per device.",
+  hintScreenDim: "Darkens the page below what the monitor's own brightness reaches.",
   eyeComfortOff: "Off",
   cmdWarmScreen: "Warm the screen",
   cmdCoolScreen: "Cool the screen",
   cmdWarmScreenHint: "Night light: an amber sheet over the page, per device",
   rowEditorWidth: "Writing column",
-  hintEditorWidth: "The width of the editor's and the reading view's text. Per device.",
+  hintEditorWidth: "The width of the editor's and the reading view's text.",
   editorWidthMeasure: "Reading measure",
   editorWidthWide: "Wide",
   editorWidthFull: "Full width",
@@ -686,7 +686,6 @@ const en = {
   uploadFailed: "Upload failed",
 
   // ── Settings panel ──────────────────────────────────────────────────────
-  settingsNote: "An empty field inherits the server's default and shows it greyed.",
   groupHome: "Home page",
   // ── Public folders: one option, its list, and two placement sub-options ──
   groupPublicFolders: "Custom public folders",
@@ -889,21 +888,18 @@ const en = {
   // ── Settings tabs ────────────────────────────────────────────────────────
   // One name and one sentence each: a rail of eight category nouns tells a
   // reader where things are, never what they decide.
-  tabSite: "Site",
-  introSite: "The site's name and marks, the theme visitors land on, and the type it is set in.",
-  tabPublishing: "Publishing & comments",
+  tabSite: "Your site",
+  introSite: "What visitors see — the site's name and look, its home page — and who may answer.",
   tabCollections: "Collections",
   introCollections: "How the public site groups notes — topics, your own collections, and the library shelf.",
   tabAbout: "About",
-  introPublishing: "What visitors may see, and what the front door shows them.",
-  introAbout: "The version, where it keeps files, and how much is in it.",
+  introAbout: "This app and this instance: what's new, the version, where files live, and the manual.",
 
   // ── Appearance ───────────────────────────────────────────────────────────
   rowYourTheme: "Your theme",
-  hintYourTheme: "Only this browser sees it, light or dark mode; visitors get the site default.",
+  hintYourTheme: "Light or dark mode, for you; visitors get the site's default theme.",
 
   // ── The visitor language switch, said out loud ───────────────────────────
-  visitorSwitchHead: "Visitor language switch",
   visitorSwitchNote: "A reader who flips it changes their own interface, never the notes.",
   visitorSwitchOn: "The switch is on: visitors see EN/ع in the public chrome.",
 
@@ -961,8 +957,8 @@ const en = {
   // editor's row for the one person looking at it.
   rowLanguage: "Site language",
   hintLanguage: "The language visitors read the site and its chrome in.",
-  rowEditorLanguage: "Editor language",
-  hintEditorLanguage: "Sets your own interface here only, never what visitors read.",
+  rowEditorLanguage: "Your language",
+  hintEditorLanguage: "The app's own words on this device; visitors read the site language.",
   editorLangFollow: "Follow site",
   // The notes sidebar's edge. The segment labels name a PHYSICAL edge in both
   // languages, exactly as the palette commands do — an Arabic reader pinning
@@ -1021,7 +1017,6 @@ const en = {
   homeNoteHidden: "Visitors cannot see this note, so your homepage would be blank for them. Publish it, or pick another.",
   homeNoteOk: "Visitors can see this note.",
   homeNoteUnset: "No home note set — visitors land on the writings list.",
-  homeModeAppNote: "Visitors land in the app shell, so this front door is never rendered — the Public layout row above decides that.",
   // PUBLIC=false is env-only: the panel cannot change it, but it can and must
   // say that every count on this tab is moot while it is set.
   publicReadsOffWarn: "PUBLIC=false: this whole site is behind the login, so no visitor sees any of it. Every count on this page describes what would be public if you opened it.",
@@ -1564,10 +1559,8 @@ const en = {
   rowFontMono: "Code",
   hintFontMono: "The font for code blocks and raw markdown.",
   // The Arabic slot is a different KIND of control from the three above it —
-  // one face that answers for Arabic letters inside all of them — so it gets
-  // its own sub-heading rather than a fourth row at the same visual rank.
-  fontArabicHead: "Arabic script",
-  fontArabicHeadNote: "Arabic letters in all three slots above, per character, size-matched to the Latin face.",
+  // one face that answers for Arabic letters inside all of them — and its
+  // hint says so; the size match under it exists only while it is set.
   rowFontArabic: "Arabic face",
   hintFontArabic: "One font for the Arabic letters inside all three slots.",
   fontSystem: "system (no webfont)",
@@ -1683,7 +1676,7 @@ const en = {
   // before the panel exists. The row's own two dozen strings travel with the
   // panel's chunk (client/components/settings/travelCopy.ts).
   rowTravel: "What travels",
-  hintTravel: "Your look, your fonts and your ledgers, kept in the vault's .astrolabe folder for every machine that opens it.",
+  hintTravel: "Your look, fonts and ledgers, kept in the vault for every machine.",
   // ── A pocket vault's own Backup & sync (client/components/settings/
   //    PocketSync.tsx) ───────────────────────────────────────────────────
   // Shown INSTEAD of the rows above when /api/me says `pocket`: the vault is
@@ -1722,7 +1715,7 @@ const en = {
   // this round exists to end.
   pocketSiteNotice: "A pocket vault has no public site: the marks and faces visitors would see are an instance's.",
   pocketLangNotice: "The two rows below curate what VISITORS see, and a pocket vault has none.",
-  pocketVaultNotice: "The greyed rows need a server: a corpus on disk, a clipper reachable over the network, versions beside git.",
+  pocketVaultNotice: "The clipper needs a server reachable over the network, so it is greyed here.",
   syncErrorShort: "failed",
   syncFailed: "Sync failed",
   syncPushed: "Vault committed and pushed",
@@ -2147,7 +2140,6 @@ const en = {
   templateValuesHint: "Each answer replaces its placeholder. Enter inserts; Escape inserts nothing.",
   templateValuesInsert: "Insert",
   // Settings rows.
-  templatesSection: "Templates",
   templatesFolderLabel: "Templates folder",
   templatesFolderHint: "Template notes live here and never reach the blog's post list.",
   templatesDetectedHint: "Found automatically: {folder}",
@@ -2208,13 +2200,12 @@ const en = {
   noteLayoutOverride: "A note's own frontmatter — dir, align — overrides both.",
 
   // Settings → Appearance & language: localised tag labels.
-  groupTagLabels: "Tag labels",
   tagLabelsNote: "Display only: links, search and the vault keep the real tag.",
   rowTagsFolder: "Tags folder",
   hintTagsFolder: "Where a tag's own page lives; that page names the tag.",
   /** The table's own row label. NOT the group heading it sits under — a row
    *  whose label repeats the heading two lines above it says nothing twice. */
-  tagLabelsRowLabel: "Labels",
+  tagLabelsRowLabel: "Tag labels",
   tagLabelsTag: "Tag",
   tagLabelsEnglish: "English",
   tagLabelsArabic: "Arabic",
@@ -3048,12 +3039,8 @@ const en = {
   scColumnSelect: "Select a column",
   scColumnSelectHow: "Alt-drag",
 
-  // ── Settings → This device ──────────────────────────────────────────────
-  tabDevice: "This device",
+  // ── Settings → About → This app ─────────────────────────────────────────
   shellChangeServer: "Change server or vault…",
-  introDevice: "Preferences kept in this browser; each one saves itself on click.",
-  groupEditing: "Reading & writing",
-  groupThisBrowser: "This browser",
   // The desktop-only group: rows that exist because there is an app around
   // the page — its name, its icon, its launcher entry, its updates.
   groupThisApp: "This app",
@@ -3110,9 +3097,7 @@ const en = {
 
   // ── Settings → tab names that had none ──────────────────────────────────
   tabLanguage: "Language & dates",
-  introLanguage: "What the site speaks, and how it writes dates and tags.",
-  tabVault: "Vault",
-  introVault: "Which folders this instance writes templates, uploads and tag pages into.",
+  introLanguage: "The language you read the app in, the one your site speaks, and how dates print.",
 
   // ── Settings → the ⓘ disclosure (replaces the badge and the env line) ────
   // `envDecidedBy` and `envOverridden` are SPLIT on {env}, not interpolated by
@@ -3873,7 +3858,6 @@ const en = {
   layoutRestore: "Restore",
   layoutDelete: "Delete",
   // ── Periodic notes (shared/periodic.ts, client/daily.ts) ──
-  periodicSection: "Periodic notes",
   periodicRowLabel: "Daily, weekly, monthly and yearly notes",
   periodicRowHint: "The folder they share, and a name and a template for each.",
   periodicFormatNote: "Names take YYYY, MM, DD, ww (the ISO week), [literals] and / for subfolders — always Gregorian, because a file name is an address. Type off to turn a kind off. A template is applied when that period's note is created; empty means the template for new notes.",
@@ -3893,7 +3877,6 @@ const en = {
   yearlyNotesOff: "Yearly notes are off — set a yearly note name in Settings → Vault",
   periodWeekLabel: "Week {n} · {range}",
   // ── Open on launch (shared/launch.ts) ──
-  launchSection: "Opening",
   rowLaunch: "Open on launch",
   hintLaunch: "What the app shows first, on top of where you left off.",
   launchResume: "Where I left off",
@@ -4238,6 +4221,31 @@ const en = {
   suggestLinkTitle: "Insert {link} at the cursor",
   tabAsk: "Ask",
   introAsk: "Which models read your notes for meaning, and which one answers questions about them.",
+
+  // ── The settings purge: sections by intent, the device mark, Advanced ──
+  tabAppearance: "Appearance",
+  introAppearance: "How the app looks to you, and the type every reader sees.",
+  tabWriting: "Writing",
+  introWriting: "How the editor behaves, and where new notes, captures and files go.",
+  tabReading: "Reading & speech",
+  introReading: "The reading view, your books and feeds, the voices that read to you, and voice notes.",
+  deviceRowMark: "This device",
+  deviceRowTitle: "Saved at once, on this device only — the Save bar is not about it.",
+  settingsAdvanced: "Advanced",
+  groupForVisitors: "For visitors",
+  groupNewNotes: "New notes",
+  groupFilesTags: "Files & tags",
+  groupListening: "Listening",
+  groupVoiceNotes: "Voice notes",
+  groupPublishing: "Publishing",
+  groupConversation: "Conversation",
+  groupVersions: "Versions",
+  groupTravels: "Across machines",
+  groupThisInstance: "This instance",
+  rowWebmentions: "Webmentions",
+  hintWebmentions: "Other sites tell yours they linked to a post, and yours tells them.",
+  pocketReadingNotice: "The greyed rows need a server: books searched on disk, feeds fetched, voices run on a computer.",
+  pocketVersionsNotice: "A pocket vault's history is its repository; versions beside it are a server's.",
   rowAskProvider: "Answers come from",
   hintAskProvider: "Ollama keeps everything here; Anthropic sends each question and its passages away.",
   askProviderLocal: "This machine (Ollama)",
@@ -4641,8 +4649,6 @@ const en = {
   moreFeeds: "Network access is opt-in. On, this server asks every feed in the list on git sync's cadence (hourly when sync is off) and keeps what it fetched in its data directory, never in the vault. Keep writes an article into the vault as a private note. The list lives in the note named here, Feeds.md by default. This is not the blog's own RSS.",
   feedsFetchToggle: "Fetch feeds",
   feedsNoteField: "The list's note",
-  feedsRowOn: "This server will ask the feeds in the list for new articles over the network.",
-  feedsRowOff: "Off: this server asks no feed for anything; the Feeds page shows what was already fetched.",
   uniqueRowLabel: "Unique notes",
   // The import wizard (3.28, docs/import.md).
   cmdImportNotes: "Import notes…",

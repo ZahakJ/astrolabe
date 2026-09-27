@@ -61,7 +61,7 @@ function EnvPanel({
    *  hint itself, forty and fifty words under a label, and a hint nobody
    *  finishes is one nobody reads; behind the ⓘ it is there for the reader
    *  who asks and out of the way of the one who does not. */
-  more?: string;
+  more?: string | string[];
   id: string;
   labelledBy: string;
   open: boolean;
@@ -88,11 +88,11 @@ function EnvPanel({
     // `hidden` takes the region and its copy button out of the tab order
     // without a second rule saying so.
     <div className="s-smodal__env" id={id} role="region" aria-labelledby={labelledBy} hidden={!open}>
-      {more && (
-        <p className="s-smodal__envnote s-smodal__more" dir="auto">
-          {more}
+      {(Array.isArray(more) ? more : more ? [more] : []).map((para) => (
+        <p key={para} className="s-smodal__envnote s-smodal__more" dir="auto">
+          {para}
         </p>
-      )}
+      ))}
       {env && (
         <p className="s-smodal__envnote">
           {before}
@@ -151,6 +151,7 @@ export function Row({
   env,
   more,
   after,
+  device,
   children,
 }: {
   label: string;
@@ -179,8 +180,18 @@ export function Row({
   /** The environment variable this row answers to, behind the ⓘ. */
   env?: EnvVar;
   /** Reference text behind the same ⓘ — the syntax or grammar the one-line
-   *  hint no longer carries. A row may have either, both, or neither. */
-  more?: string;
+   *  hint no longer carries. A row may have either, both, or neither; a row
+   *  that folds two controls (webmentions in and out) may carry a paragraph
+   *  for each. */
+  more?: string | string[];
+  /** THIS ROW SAVES ITSELF, ON THIS DEVICE ONLY. Until the settings purge
+   *  such rows had a tab of their own ("This device"), a section named after
+   *  where a value is stored rather than what it is for: the theme was there
+   *  and not under anything a reader would call appearance. Now every row
+   *  sits where its question is asked, and the one thing that tab did say —
+   *  this saves at once, here, and the Save bar is not about it — is a small
+   *  mark beside the label of exactly the rows it is true of. */
+  device?: boolean;
   /** A SECOND LINE under the control, in the control column — not a second
    *  control. The row owns exactly one control (the label is wired onto it),
    *  so a row that also has something to SAY about its value says it here:
@@ -253,6 +264,11 @@ export function Row({
               focus into the field it annotates. Only the BUTTON is in here;
               the region it opens is a block, and a block inside a <label> is
               neither valid nor readable beside a 14rem label column. */}
+          {device && (
+            <span className="s-smodal__device" title={t("deviceRowTitle")}>
+              {t("deviceRowMark")}
+            </span>
+          )}
           {disclose && (
             <button
               type="button"
@@ -288,8 +304,55 @@ export function Row({
             {error}
           </span>
         )}
-        {disclose && <EnvPanel env={env} more={more} id={envId} labelledBy={envBtnId} open={envOpen} />}
       </Controls>
+      {/* The folded paragraph opens UNDER the whole row, across both columns
+          — a paragraph read in the 24rem control column wrapped every line at
+          five words, and the reader who asked for it is the one who wants to
+          read it. */}
+      {disclose && <EnvPanel env={env} more={more} id={envId} labelledBy={envBtnId} open={envOpen} />}
+    </div>
+  );
+}
+
+/** A ROW THAT FOLDS TWO CONTROLS: the host row's control, and under it the
+ *  controls that only mean something beside it — the custom width under the
+ *  width segments, relative numbers under Vim, the note path under "a note".
+ *  The audit's MERGE verdict (scratchpad/settings-purge/audit.md). The host
+ *  Row wires its own label onto this group; each `Part` names its control. */
+export function Parts({ children, id, ...aria }: { children: ReactNode; id?: string; "aria-labelledby"?: string; "aria-describedby"?: string }) {
+  return (
+    <div className="s-smodal__parts" role="group" id={id} {...aria}>
+      {children}
+    </div>
+  );
+}
+
+/** One folded control: a small caption above it, an optional one-line hint,
+ *  and the same `data-setting` stamp a Row carries — so a search hit or
+ *  `openSettingsAt("rowFediverseHandle")` lands on the part itself, not on
+ *  the row around it. `scripts/settings-index.mjs` reads a `<Part label=…>`
+ *  line as an entry that belongs to the row above it; keep it on one line. */
+export function Part({ label, hint, children }: { label: string; hint?: string; children: ReactElement }) {
+  const id = useId();
+  const kid = Children.only(children);
+  const control = isValidElement(kid)
+    ? cloneElement(kid as ReactElement<Record<string, unknown>>, {
+        id: `${id}-ctl`,
+        "aria-labelledby": `${id}-label`,
+        "aria-describedby": hint ? `${id}-hint` : undefined,
+      })
+    : kid;
+  return (
+    <div className="s-smodal__part" data-setting={label}>
+      <label className="s-smodal__partlabel" id={`${id}-label`} htmlFor={`${id}-ctl`}>
+        {label}
+      </label>
+      {control}
+      {hint && (
+        <span className="s-smodal__parthint" id={`${id}-hint`}>
+          {hint}
+        </span>
+      )}
     </div>
   );
 }

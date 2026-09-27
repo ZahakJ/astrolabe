@@ -18,7 +18,7 @@
 // does on its own anyway, the `(phone)` conflict pairs still standing, and the
 // door back to the connection screen.
 //
-// Mounted by SettingsModal.tsx's sync section when `me.pocket`, and parsed
+// Mounted by SyncTab.tsx inside `<PocketOnly>`, and parsed
 // into the settings index FROM THIS FILE with `mode: "pocket"`
 // (scripts/settings-index.mjs), so a search for "repository" or "leave" finds
 // these rows on a phone and does not offer them in a browser.
@@ -70,7 +70,7 @@ function lineTone(status: PocketSyncStatus): string {
   return " s-smodal__syncline--muted";
 }
 
-export function PocketSyncPanel() {
+export function PocketSyncRows() {
   const [status, setStatus] = useState<PocketSyncStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [leaving, setLeaving] = useState(false);

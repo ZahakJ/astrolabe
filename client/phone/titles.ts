@@ -6,7 +6,7 @@ import { noteLabelOf } from "../../shared/noteFormat.ts";
 import { t, type I18nKey } from "../i18n.ts";
 import { isBookPath, isFeedsTab, isGraphTab, isMediaTab, isOrbitsTab, isReviewWeekTab, isSigilsTab, isTimelineTab, orbitsSessionOf } from "../workspace.ts";
 import type { Screen, TabId } from "./nav.ts";
-import { TABS } from "../components/settings/tabs.ts";
+import { sectionId, TABS } from "../components/settings/tabs.ts";
 
 export const TAB_LABEL: Record<TabId, I18nKey> = {
   today: "phTabToday",
@@ -64,6 +64,7 @@ export function screenTitle(screen: Screen): string {
 
 /** Settings, or one of its sections by the name the rail gives it. */
 export function settingsTitle(section: string): string {
-  const tab = TABS.find((s) => s.id === section);
+  const id = sectionId(section);
+  const tab = TABS.find((s) => s.id === id);
   return tab ? t(tab.key) : t("siteSettings");
 }

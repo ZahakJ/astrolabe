@@ -28,33 +28,48 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { settingsRows, tabSources } from "./settings-index.mjs";
+import { entryLine, settingsRows, tabSources } from "./settings-index.mjs";
+import { INDEX_FILE, renderIndex } from "./gen-settings-index.mjs";
 import { readLanguage } from "./dictionary.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(root + p, "utf8");
 const HINT_MAX_WORDS = 14;
+/** A section holds at most this many rows (parts are not rows), counted as
+ *  one kind of vault sees it: a pocket's Backup & sync rows and an
+ *  instance's never share a screen. */
+const SECTION_MAX_ROWS = 18;
 
-const checked = read("client/components/settings/settingsIndex.ts");
-const parsed = [...checked.matchAll(/\{ tab: "([a-z]+)", label: "([A-Za-z0-9_]+)"(?:, hint: "([A-Za-z0-9_]+)")?(?:, env: "([A-Z0-9_]+)")?(?:, mode: "([a-z]+)")? \}/g)]
-  .map((m) => ({ tab: m[1], label: m[2], hint: m[3] ?? null, env: m[4] ?? null, mode: m[5] ?? null }));
-
+const checked = readFileSync(INDEX_FILE, "utf8");
 const fromSource = settingsRows();
-const key = (r) => `${r.tab}/${r.label}/${r.hint ?? ""}/${r.env ?? ""}/${r.mode ?? ""}`;
-
-const inFile = new Set(parsed.map(key));
-const inSource = new Set(fromSource.map(key));
 const errs = [];
 
-for (const r of fromSource) {
-  if (!inFile.has(key(r))) errs.push(`  ADDED or CHANGED in the panel, missing from the index: ${r.tab} / ${r.label}`);
-}
-for (const r of parsed) {
-  if (!inSource.has(key(r))) errs.push(`  REMOVED or CHANGED in the panel, still in the index: ${r.tab} / ${r.label}`);
+// The index is the generator's output for the panel as it is now, byte for
+// byte. Where it is not, name the rows that differ rather than only saying so.
+if (checked !== renderIndex(fromSource)) {
+  const inFile = new Set(checked.split("\n").filter((l) => l.startsWith("  { tab: ")));
+  const inSource = new Set(fromSource.map(entryLine));
+  for (const l of inSource) if (!inFile.has(l)) errs.push(`  ADDED or CHANGED in the panel, missing from the index:${l}`);
+  for (const l of inFile) if (!inSource.has(l)) errs.push(`  REMOVED or CHANGED in the panel, still in the index:${l}`);
+  if (errs.length === 0) errs.push("  the index file differs from the generator's output (its order or its header)");
 }
 // The panel is the thing being described, so an empty parse is a broken parser
 // rather than an empty panel — and would otherwise pass silently.
 if (fromSource.length < 40) errs.push(`  only ${fromSource.length} rows parsed out of the panel — the parser is broken, not the panel`);
+
+// ── Eighteen rows a section ─────────────────────────────────────────────────
+const sectionCounts = new Map();
+for (const r of fromSource) {
+  if (r.row) continue;
+  const c = sectionCounts.get(r.tab) ?? { instance: 0, pocket: 0 };
+  if (r.mode !== "pocket") c.instance += 1;
+  if (r.mode !== "instance") c.pocket += 1;
+  sectionCounts.set(r.tab, c);
+}
+for (const [tab, c] of sectionCounts) {
+  const n = Math.max(c.instance, c.pocket);
+  if (n > SECTION_MAX_ROWS) errs.push(`  the ${tab} section holds ${n} rows (max ${SECTION_MAX_ROWS}) — demote, merge or move one`);
+}
 
 // ── Hints: fourteen words ───────────────────────────────────────────────────
 // Every key the two panel files hand to `hint=`, including the ones chosen by
@@ -67,7 +82,7 @@ const panelSrc = [
   ...new Set([
     "client/components/SettingsModal.tsx",
     "client/components/settings/AboutTab.tsx",
-    ...tabSources().map((s) => s.files[0]),
+    ...tabSources().flatMap((s) => s.files),
   ]),
 ]
   .map(read)
@@ -158,6 +173,7 @@ if (errs.length > 0) {
   console.error(`check-settings: the panel disagrees with its own rules\n${errs.join("\n")}\n\n  index drift: run node scripts/gen-settings-index.mjs`);
   process.exit(1);
 }
-console.log(`check-settings: ${fromSource.length} rows · ${fromSource.filter((r) => r.env).length} with an env var · index matches the panel`);
+const rowCount = fromSource.filter((r) => !r.row).length;
+console.log(`check-settings: ${rowCount} rows + ${fromSource.length - rowCount} parts in ${sectionCounts.size} sections (≤ ${SECTION_MAX_ROWS} each) · ${fromSource.filter((r) => r.adv && !r.row).length} behind Advanced · ${fromSource.filter((r) => r.env).length} with an env var · index matches the panel`);
 console.log(`check-settings: ${hintsChecked} hints ≤ ${HINT_MAX_WORDS} words · ${READ_SELECTORS.length} read-text selectors muted · ${topics.length} doc topics resolve`);
 console.log("SETTINGS OK");
