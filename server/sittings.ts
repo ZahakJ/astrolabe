@@ -34,8 +34,7 @@ import {
 } from "../shared/sittings.ts";
 import { editTrackerFence, formatSessionLine, parseSessionLine, parseTracker, setTrackerFields, trackerFenceSpans, type Tracker, type TrackerSession } from "../shared/tracker.ts";
 import { bookPagesOf } from "./books.ts";
-import { notes, setTrackerObserver } from "./indexer.ts";
-import { templateMatcher } from "./indexer/folders.ts";
+import { isTemplateNote, notes, setTrackerObserver } from "./indexer.ts";
 import { dataDir } from "./site.ts";
 import { emitEvent, suppressWatcherEcho, writeNote } from "./vault.ts";
 
@@ -141,9 +140,11 @@ function apply(body: string, tracker: Tracker, action: NonNullable<SittingAction
 export async function observeNote(relPath: string, content: string, mtimeMs: number): Promise<{ content: string; mtimeMs: number } | null> {
   const mem = load();
   const prefix = `${relPath}#`;
-  if (templateMatcher()(relPath)) return null;
   const spans = trackerFenceSpans(content);
   if (spans.length === 0 && !Object.keys(mem.trackers).some((k) => k.startsWith(prefix))) return null;
+  // A template's skeleton is not a book anybody is reading. Asked only of a
+  // note with a fence, because the answer walks the vault when it is cold.
+  if (spans.length > 0 && isTemplateNote(relPath)) return null;
   const today = localIsoDay(clock());
   const next: Record<string, SeenTracker | null> = {};
   let text = content;

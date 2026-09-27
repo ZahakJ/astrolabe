@@ -281,3 +281,27 @@ describe("detection on the server", () => {
     assert.equal(server.sittings.takeSittingRewrite("Media/Books/Ulysses.md"), null);
   });
 });
+
+describe("the surfaces that read sittings", () => {
+  const sessions: TrackerSession[] = [
+    { date: "2026-09-27", from: 1, to: 21, pages: 20, minutes: 30 },
+    parseSessionLine("2026-09-27 | 21–41 | 20 pages | ~30 min | default pace")!,
+    parseSessionLine("2026-09-28 | 2 chapters | ~50 min")!,
+  ];
+  it("the day agenda counts estimated minutes, measured sittings, the basis and other units", async () => {
+    const { agendaByDay } = await import("../shared/dayAgenda.ts");
+    const agenda = agendaByDay(["2026-09-27", "2026-09-28"], { notes: new Map(), sigils: [], trackers: [{ path: "B.md", index: 0, title: "B", sessions }], grades: [] }, "2026-09-28");
+    const d27 = agenda.get("2026-09-27")!.trackers[0];
+    assert.deepEqual([d27.pages, d27.minutes, d27.estimated, d27.measured, d27.defaultPace], [40, 60, 30, 1, true]);
+    const d28 = agenda.get("2026-09-28")!.trackers[0];
+    assert.deepEqual([d28.measured, d28.defaultPace, d28.units], [0, false, [{ unit: "chapters", count: 2 }]]);
+  });
+  it("the week review and the year say how much was estimated", async () => {
+    const { booksThisWeek } = await import("../shared/weekReview.ts");
+    const [book] = booksThisWeek([{ path: "B.md", index: 0, title: "B", kind: "book", kindKey: "book", unit: null, status: "active", done: 41, total: 300, percent: 13, pace: null, due: null, sessions }], { start: "2026-09-21", end: "2026-09-28" });
+    assert.equal(book.estimated, 80);
+    const { yearNumbers } = await import("../shared/yearReview.ts");
+    const n = yearNumbers({ year: 2026, today: "2026-12-31", notes: [], daily: new Map(), sigils: [], trackers: [{ path: "B.md", title: "B", kind: "book", finished: null, rating: null, sessions }], grades: [], edges: [] });
+    assert.deepEqual([n.sittings, n.estimatedSittings, n.estimatedMinutes, n.pages], [3, 2, 80, 40]);
+  });
+});
