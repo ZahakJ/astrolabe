@@ -18,8 +18,16 @@ import { setLang, t } from "../client/i18n.ts";
 describe("the settings index", () => {
   it("covers every tab the panel has", () => {
     const tabs = new Set(SETTINGS_INDEX.map((e) => e.tab));
-    for (const id of ["device", "site", "language", "publishing", "collections", "vault", "sync"]) {
+    for (const id of ["appearance", "language", "writing", "reading", "site", "collections", "sync", "ask", "about"]) {
       assert.ok(tabs.has(id), `no rows indexed for the ${id} tab`);
+    }
+  });
+
+  it("names no key twice in the whole index — a row lives in exactly one section", () => {
+    const seen = new Set<string>();
+    for (const e of SETTINGS_INDEX) {
+      assert.ok(!seen.has(e.label), `${e.label} is indexed twice`);
+      seen.add(e.label);
     }
   });
 
@@ -32,37 +40,58 @@ describe("the settings index", () => {
     }
   });
 
-  it("spreads the rows evenly — no tab carries more than a screen and a half", () => {
+  it("spreads the rows evenly — no section carries more than a screen and a half", () => {
     // The 3.15 re-cut exists because Publishing ran to twenty-one rows while
-    // Identity and Typography held five each. A tab nobody scrolls to the end
-    // of is a tab whose rows may as well not exist; this pins the shape.
+    // Identity and Typography held five each. A section nobody scrolls to the
+    // end of is a section whose rows may as well not exist; this pins the shape.
     //
-    // Counted as ONE DEVICE sees the tab: the desktop app's own rows (its
-    // name, icon, launcher, updates) and the phone's layout row (3.26.0) are
-    // drawn on different devices and never share a screen, so a tab carries
-    // the larger of the two groups, not their sum.
+    // Counted as ONE DEVICE sees it: parts (a control folded into its host,
+    // `row` set) are not rows; the desktop app's own rows are drawn on the
+    // desktop only; and a pocket's Backup & sync rows never share a screen
+    // with an instance's — so a section carries the larger of each pair.
     const DESKTOP_APP = new Set(["rowAppName", "rowAppIcon", "rowAppLauncher", "rowAppLauncherWin", "rowUpdates"]);
-    const PHONE_ONLY = new Set(["rowPhoneLayout"]);
-    const counts = new Map<string, number>();
-    const exclusive = new Map<string, { desktop: number; phone: number }>();
-    for (const e of SETTINGS_INDEX) {
-      const x = exclusive.get(e.tab) ?? { desktop: 0, phone: 0 };
-      if (DESKTOP_APP.has(e.label)) x.desktop += 1;
-      else if (PHONE_ONLY.has(e.label)) x.phone += 1;
-      else counts.set(e.tab, (counts.get(e.tab) ?? 0) + 1);
-      exclusive.set(e.tab, x);
-    }
-    for (const [tab, x] of exclusive) counts.set(tab, (counts.get(tab) ?? 0) + Math.max(x.desktop, x.phone));
-    for (const [tab, n] of counts) {
+    const tabs = new Set(SETTINGS_INDEX.map((e) => e.tab));
+    for (const tab of tabs) {
+      const rows = SETTINGS_INDEX.filter((e) => e.tab === tab && e.row === undefined);
+      const view = (pocket: boolean, desktopApp: boolean) =>
+        rows.filter((e) => (e.mode === undefined || e.mode === (pocket ? "pocket" : "instance")) && (desktopApp || !DESKTOP_APP.has(e.label))).length;
+      const n = Math.max(view(false, true), view(true, true));
       assert.ok(n <= 18, `${tab} carries ${n} rows`);
-      assert.ok(n >= 5, `${tab} carries only ${n} rows`);
+      // About is facts first; its rows are the app's own (one in a browser).
+      if (tab !== "about") assert.ok(view(false, false) >= 5, `${tab} carries only ${view(false, false)} rows`);
     }
+  });
+
+  it("points every part at a row of its own section, and keeps parts out of Advanced unless their host is in it", () => {
+    for (const e of SETTINGS_INDEX) {
+      if (e.row === undefined) continue;
+      const host = SETTINGS_INDEX.find((h) => h.label === e.row && h.row === undefined);
+      assert.ok(host, `${e.label} names ${e.row}, which is not a row`);
+      assert.equal(host.tab, e.tab, `${e.label} is in ${e.tab} but its host is in ${host.tab}`);
+      assert.equal(e.adv === true, host.adv === true, `${e.label} and its host disagree about Advanced`);
+    }
+  });
+
+  it("finds a row by the words behind its ⓘ, and lands a part on itself", () => {
+    setLang("en");
+    const labels = (q: string): string[] => searchSettings(q, true).map((h) => h.entry.label);
+    // "Mastodon" is in the fediverse row's hint; "bookmarklet" only in the
+    // clipper's ⓘ paragraph (moreClipper) — reference text a reader remembers.
+    assert.ok(labels("Mastodon").includes("rowFediverse"));
+    // Every row with an ⓘ paragraph is found by that paragraph's longest word.
+    const longest = (text: string): string =>
+      text.split(/[^\p{L}\p{N}]+/u).reduce((a, w) => (w.length > a.length ? w : a), "");
+    const ref = SETTINGS_INDEX.find((e) => e.more?.length && !labels(longest(t(e.more[0]))).includes(e.label));
+    assert.equal(ref, undefined, `a row's ⓘ text does not find it: ${ref?.label}`);
+    const part = searchSettings("Fediverse name", true)[0];
+    assert.equal(part.entry.label, "rowFediverseHandle");
+    assert.equal(part.entry.row, "rowFediverse");
   });
 
   it("puts the desktop's update switch where a search for it lands — on the desktop", () => {
     const row = SETTINGS_INDEX.find((e) => e.label === "rowUpdates");
     assert.ok(row, "the Software updates row is not indexed");
-    assert.equal(row.tab, "device");
+    assert.equal(row.tab, "about");
     setLang("en");
     assert.ok(searchSettings("software updates", true).some((h) => h.entry.label === "rowUpdates"));
     assert.ok(searchSettings("installed", true).some((h) => h.entry.label === "rowUpdates"), "the hint's promise is not searchable");

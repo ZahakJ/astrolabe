@@ -73,6 +73,7 @@ import { chromium, devices } from "playwright";
 import { mkdirSync, readFileSync } from "node:fs";
 import enDict from "../client/i18n/en.ts";
 import arDict from "../client/i18n/ar.ts";
+import { walkSettings } from "./settings-walk.mjs";
 
 // What an Arabic first paint must never show (the dictionary step at the end):
 // an English chrome string — one of two words or more, so a note's own title
@@ -1145,6 +1146,46 @@ try {
     } finally {
       await restore();
     }
+  }
+
+  // ── Settings, section by section (scripts/settings-walk.mjs) ───────────
+  // The settings purge's nine sections: each opens under its name with its
+  // sentence and at most eighteen rows, one change per section is saved and
+  // put back (the Save bar absent until something changed), and a word only
+  // a hint carries finds its row behind an Advanced line and lands on it.
+  for (const lang of ["en", "ar"]) {
+    const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+    await ctx.addCookies(cookies);
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: "load" });
+    await page.evaluate((l) => {
+      localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+      localStorage.setItem("astrolabe.prefs-sync-off", "1");
+      localStorage.setItem("astrolabe.tourSeen", "1");
+      localStorage.setItem("astrolabe.editorLang", l);
+      localStorage.removeItem("astrolabe:settings-tab");
+    }, lang);
+    await page.reload({ waitUntil: "load" });
+    await page.waitForTimeout(1200);
+    console.log("");
+    await walkSettings({
+      page,
+      lang,
+      host: "desktop",
+      check,
+      tag: (what) => `settings ${lang}: ${what}`,
+      press: (loc) => loc.first().click(),
+      shots: out,
+      openSettings: async () => {
+        await page.keyboard.press("Control+p");
+        await page.waitForTimeout(300);
+        await page.keyboard.type(lang === "ar" ? "الإعدادات" : "Settings");
+        await page.waitForTimeout(300);
+        await page.keyboard.press("Enter");
+        await page.waitForSelector(".s-smodal .s-smodal__row", { timeout: 15000 }).catch(() => {});
+      },
+    });
+    await ctx.close();
   }
 } finally {
   await cleanup();
