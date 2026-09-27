@@ -1,8 +1,9 @@
 /* Astrolabe — the settings surface.
    Linked after app.css (client/index.html). The panel's base — a rail beside
    one long scrolling form, as app.css first built it — opens this file (it
-   moved here in 3.26.1), and the rules after it turn that panel into EIGHT
-   TABS. What changed, and why:
+   moved here in 3.26.1), and the rules after it turn that panel into its
+   sections (nine since the settings purge; the row anatomy that purge settled
+   is the last block of this file). What changed, and why:
 
      · the rail is sticky and reads as navigation (it switches the panel, it no
        longer bookmarks a scroll position);
@@ -213,15 +214,6 @@
   flex-wrap: wrap;
 }
 
-/* "This field is EMPTY and inheriting", said by the row rather than by a note
-   at the top of the panel explaining a convention. */
-.s-smodal__badge {
-  font-size: 0.714rem;
-  font-style: italic;
-  color: var(--text-faint);
-  white-space: nowrap;
-}
-
 .s-smodal__hint {
   font-size: 0.75rem;
   color: var(--text-faint);
@@ -267,14 +259,6 @@
 .s-smodal__error {
   font-size: 0.75rem;
   color: var(--danger);
-}
-
-/* Where an inheriting row's value actually comes from. The env NAME is a
-   literal to be typed into a shell or a .env file, so it keeps the mono face
-   and its own LTR run inside an Arabic panel. */
-.s-smodal__from {
-  font-size: 0.714rem;
-  color: var(--text-faint);
 }
 
 .s-smodal__envname {
@@ -414,11 +398,6 @@
   font-size: 0.821rem;
 }
 
-.s-smodal__fontfoot {
-  display: flex;
-  justify-content: flex-end;
-}
-
 /* ── Shape ───────────────────────────────────────────────────────────────── */
 
 /* ONE height for all eight tabs, and that is the whole point of the rule.
@@ -501,37 +480,11 @@
 /* The one sentence under it. Measured (62ch) so it never runs the full width
    of a 940px panel, and muted rather than faint — it is copy to be read, not
    a footnote. */
-/* A field under a segmented control, in the same row (the custom width). */
-.s-smodal__inline {
-  display: grid;
-  grid-template-columns: 9rem minmax(0, 1fr);
-  align-items: center;
-  gap: 6px 12px;
-  margin-top: 10px;
-}
-
-.s-smodal__inline .s-ctl-input {
-  inline-size: 9rem;
-}
-
-.s-smodal__inline-hint {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-}
-
 .s-smodal__note {
   max-width: 62ch;
   margin-bottom: 14px;
   font-size: 0.821rem;
   line-height: 1.55;
-  color: var(--text-muted);
-}
-
-/* The "empty fields inherit" convention note is a footnote — it explains a
-   mechanism rather than the tab, so it steps back down. */
-.s-smodal__note--inherit {
-  margin-top: -6px;
   color: var(--text-muted);
 }
 
@@ -1879,5 +1832,166 @@
 @media (max-width: 700px) {
   .s-smodal__voices > * {
     flex-basis: 100%;
+  }
+}
+
+/* ── The settings purge: one row anatomy ─────────────────────────────────────
+   Every row is a label, one sentence under it, and its control at the
+   control column's start (or across the row, for the editors marked wide).
+   Four pieces joined it (settings/Row.tsx, settings/Fold.tsx):
+     · the ⓘ's folded paragraph opens UNDER the whole row, at reading measure,
+       instead of in the 24rem control column where it wrapped at five words;
+     · a small "This device" mark beside the label of a row that saves itself
+       on this device, which is what the old "This device" tab used to say;
+     · parts — a control folded into the row it serves, with a small caption
+       of its own, under the host's control;
+     · the Advanced line at a section's foot, naming what it holds. */
+
+.s-smodal__row > .s-smodal__env {
+  grid-column: 1 / -1;
+  margin-top: 0;
+}
+
+.s-smodal__device {
+  flex: none;
+  align-self: center;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.679rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.s-smodal__parts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.s-smodal__parts > .s-ctl-seg,
+.s-smodal__parts > .s-ctl-toggle {
+  align-self: flex-start;
+}
+
+/* No rule of its own: a part sits in the control column under its host's
+   control, and its caption is what says it is a second control. A hairline
+   here met the consequence lines' own hairline under webmentions and the
+   fediverse — a border beside a border, the chrome the purge removes. */
+.s-smodal__part {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  border-radius: var(--radius);
+}
+
+.s-smodal__part > .s-ctl-seg,
+.s-smodal__part > .s-ctl-toggle,
+.s-smodal__part > .s-btn {
+  align-self: flex-start;
+}
+
+.s-smodal__partlabel {
+  font-size: 0.786rem;
+  color: var(--text);
+}
+
+.s-smodal__parthint {
+  max-width: 46ch;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+/* The Advanced line. A hairline above it and nothing else: it is the
+   section's last word, not a card. Closed, it reads "ADVANCED  Vim keys ·
+   Drawings folder"; open, its rows follow at the same rank as every row
+   above — they are rows like any other, only less often wanted. */
+.s-smodal__adv {
+  margin-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.s-smodal__advsum {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-height: 44px;
+  padding-block: 12px 8px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: var(--radius);
+}
+
+.s-smodal__advsum::-webkit-details-marker {
+  display: none;
+}
+
+/* The disclosure triangle, drawn rather than the UA's, so it sits on the
+   reading edge and points the reading direction in Arabic too. */
+.s-smodal__advsum::before {
+  content: "";
+  flex: none;
+  align-self: center;
+  width: 0;
+  height: 0;
+  border-block: 4px solid transparent;
+  border-inline-start: 6px solid var(--text-muted);
+  transition: transform 0.15s ease;
+}
+
+.s-smodal__adv[open] > .s-smodal__advsum::before {
+  transform: rotate(90deg);
+}
+
+/* In Arabic the triangle points left, so "open" turns it the other way to
+   point down. */
+.s-smodal__adv[open] > .s-smodal__advsum:dir(rtl)::before {
+  transform: rotate(-90deg);
+}
+
+.s-smodal__advsum:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.s-smodal__advsum:hover .s-smodal__advname {
+  color: var(--accent);
+}
+
+.s-smodal__advname {
+  flex: none;
+  font-size: 0.714rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text);
+}
+
+.s-smodal__advlist {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.s-smodal__adv[open] .s-smodal__advlist {
+  visibility: hidden;
+}
+
+.s-smodal__advbody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-smodal__advsum::before {
+    transition: none;
   }
 }

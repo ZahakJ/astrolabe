@@ -1518,6 +1518,21 @@
   align-items: center;
 }
 
+/* The settings purge's own pieces, at a finger's size: a switch, the ⓘ
+   beside a label (a 22px circle on the desktop, with a 44px box around it
+   here — the glyph stays small, the target does not), and the Advanced line
+   at a section's foot. */
+.s-ph-settings .s-ctl-toggle,
+.s-ph-settings .s-smodal__advsum {
+  min-block-size: 44px;
+}
+
+.s-ph-settings .s-smodal__envbtn {
+  inline-size: 44px;
+  block-size: 44px;
+  margin-block: -11px;
+}
+
 /* The row whose detail is open beside the list (a tablet's two columns). */
 .s-ph-row--on {
   background: var(--bg-hover);
