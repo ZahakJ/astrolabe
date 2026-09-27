@@ -72,8 +72,9 @@ and nothing more, and every git error you see or that reaches the log is scrubbe
 and of any user info in a URL first. <strong>Clear token</strong> deletes the file.</p>
 <h2 id="3-turn-it-on"><a class="anchor" href="#3-turn-it-on">3. Turn it on</a></h2>
 <p>Open Settings → <strong>Backup &amp; sync</strong>. Switch Backup on (everything below that switch stays disabled
-until you do), paste the remote URL, pick the branch (default <code>main</code>), and choose an
-<strong>Automatic sync</strong> period, from <em>Manual only</em> to <em>Once a day</em>. (If a sync is still running when
+until you do), paste the remote URL, and choose an
+<strong>Automatic sync</strong> period, from <em>Manual only</em> to <em>Once a day</em>. The branch (default <code>main</code>) and
+<strong>Pull first</strong> wait behind the section&#39;s <strong>Advanced</strong> line; most vaults never touch them. (If a sync is still running when
 the timer fires, that tick is skipped.) If the vault is not a git repository yet, press
 <strong>Initialize repository</strong>. That runs <code>git init</code>, makes the first commit, writes or extends
 <code>.gitignore</code> so your data directory can never be committed, and points <code>origin</code> at your remote.
