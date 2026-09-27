@@ -1,41 +1,50 @@
-// SITE — what the site is called, the theme a visitor lands on and the type it
-// is set in. A tab body, drawn by ./TabBody.tsx inside either host (the
-// desktop dialog or a phone Settings screen) from the form in ./context.ts.
-// Split out of SettingsModal.tsx (3.27.0) with no change to a single row.
+// YOUR SITE — what visitors see, and who may answer them. A tab body (see
+// ./TabBody.tsx).
+//
+// The settings purge put the old "Site" and "Publishing & comments" tabs back
+// together, because they answered one question — what does a visitor meet —
+// and the split had been made to keep a tab under eighteen rows, not because
+// a reader thinks of a site's name and its home page as different subjects.
+// The fonts left for Appearance (they set the owner's own editor too); the
+// visitors' read aloud went to Reading & speech; four controls that only mean
+// something beside another became parts of it (the designer's door under the
+// layout, the fediverse name under its switch, webmentions in and out as one
+// row); and the three rows set once and left — the footer template, the
+// excluded tags, your other sites — sit behind the Advanced line.
+//
+// A pocket vault (a repository cloned onto a phone) keeps the identity rows,
+// the ones it cannot keep locked, and draws none of the publishing rows it
+// never drew: `<InstanceOnly>` (settings/Fold.tsx), which the settings index
+// reads as `mode: "instance"`.
 
 import { useSettings } from "./context.ts";
-import { t, type I18nKey } from "../../i18n.ts";
-import { FontPicker, SYSTEM_FONT } from "../FontPicker.tsx";
-import { NumberInput, TextInput } from "../controls/Fields.tsx";
+import { useStore } from "../../state.ts";
+import { localeNum, t, tf } from "../../i18n.ts";
+import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
 import { Select } from "../controls/Select.tsx";
-import { Row } from "./Row.tsx";
-import { CustomFonts, FontSpecimens } from "./CustomFonts.tsx";
+import { openDesigner } from "../design/openDesigner.ts";
+import { FediverseNote, SentPanel } from "../../mentions/PublishingPanels.tsx";
 import { ImageField } from "./ImageField.tsx";
 import { VisitorThemeLine, themeChoices } from "./VisitorTheme.tsx";
-import { SIZE_ADJUST_MIN, SIZE_ADJUST_MAX } from "./form.ts";
+import { Consequence, VisibilityBanner } from "./Visibility.tsx";
+import { Advanced, InstanceOnly } from "./Fold.tsx";
+import { Part, Parts, Row } from "./Row.tsx";
+import { enumLabel, splitSites, splitTags } from "./form.ts";
 
 export default function SiteTab() {
-  const { pocket, loaded, form, setForm, setPicker, customFonts, fontBusy, uploadCustomFont, removeCustomFont, errors, field, eff, inh } = useSettings();
+  const { pocket, form, setForm, setPicker, errors, field, onOffSegments, eff, inh, impact, homeOff } = useSettings();
   return (
     <section data-section="site">
-      <p className="s-smodal__note s-smodal__note--inherit">{t("settingsNote")}</p>
-      {/* WHY THOSE ROWS ARE GREY, said once per tab rather than
-          fourteen times in fourteen hints — a hint is one sentence
-          about what a row DOES, and the reason a row is inert here
-          is the same reason for every one of them. */}
+      {/* The standing answer to "how much of my site is public". It describes
+          the site AS THE FORM WOULD LEAVE IT, so it moves as the controls move
+          — the operator never has to save to find out. */}
+      <InstanceOnly>
+        <VisibilityBanner impact={impact} />
+      </InstanceOnly>
+      {/* WHY SOME ROWS ARE GREY, said once rather than in every hint. */}
       {pocket && <p className="s-smodal__offnote">{t("pocketSiteNotice")}</p>}
-      <Row
-        label={t("rowSiteName")}
-        error={errors.siteName}
-        env={{ name: "SITE_NAME", value: eff.siteName, inherits: form.siteName.trim() === "" }}
-      >
-        <TextInput
-          placeholder={eff.siteName}
-          maxLength={81}
-          label={t("rowSiteName")}
-          invalid={errors.siteName !== undefined}
-          {...field("siteName")}
-        />
+      <Row label={t("rowSiteName")} error={errors.siteName} env={{ name: "SITE_NAME", value: eff.siteName, inherits: form.siteName.trim() === "" }}>
+        <TextInput placeholder={eff.siteName} maxLength={81} label={t("rowSiteName")} invalid={errors.siteName !== undefined} {...field("siteName")} />
       </Row>
       <Row
         label={t("rowTagline")}
@@ -51,40 +60,7 @@ export default function SiteTab() {
           {...field("tagline")}
         />
       </Row>
-      <Row
-        locked={pocket}
-        label={t("rowFooter")}
-        hint={t("hintFooter")}
-        error={errors.footer}
-        env={{ name: "SITE_FOOTER", value: eff.footer ?? "", inherits: form.footer.trim() === "" }}
-      >
-        {/* THE ONE FIELD WHOSE CONTENT IS A TEMPLATE.
-            `© {year} {siteName}` is machine syntax, and in an
-            Arabic panel an RTL field laid it out as
-            `{siteName} {year} ©` — measured, tokens at x 538 /
-            628 / 679 — so the operator was shown one token order
-            and had to type another. A field cannot be pinned
-            `ltr` either: this is also the site's footer PROSE, and
-            this owner writes it in Arabic. `auto` is the honest
-            answer — the first strong character decides, so the
-            default template renders exactly as it must be typed
-            and an Arabic footer stays Arabic. Alignment does not
-            follow it (controls.css): the field is flushed to the
-            panel's start edge either way, like every row above. */}
-        <TextInput
-          placeholder={eff.footer ?? "© {year} {siteName}"}
-          maxLength={201}
-          dir="auto"
-          label={t("rowFooter")}
-          invalid={errors.footer !== undefined}
-          {...field("footer")}
-        />
-      </Row>
-      <Row
-        label={t("rowLogo")}
-        hint={t("hintLogo")}
-        error={errors.logo}
-      >
+      <Row label={t("rowLogo")} hint={t("hintLogo")} error={errors.logo}>
         <ImageField
           value={form.logo}
           placeholder={t("phVaultImageOrUrl")}
@@ -93,12 +69,7 @@ export default function SiteTab() {
           onOpenPicker={() => setPicker("logo")}
         />
       </Row>
-      <Row
-        locked={pocket}
-        label={t("rowFavicon")}
-        hint={t("hintFavicon")}
-        error={errors.favicon}
-      >
+      <Row locked={pocket} label={t("rowFavicon")} hint={t("hintFavicon")} error={errors.favicon}>
         <ImageField
           value={form.favicon}
           placeholder={t("phVaultIcon")}
@@ -107,26 +78,16 @@ export default function SiteTab() {
           onOpenPicker={() => setPicker("favicon")}
         />
       </Row>
-      {/* THE THEME A VISITOR ARRIVES ON, beside the marks they arrive
-          on. It used to stand two rows from "Your theme" — two labels
-          carrying the same word, one of them in the Save diff and one
-          of them saving itself on click, with nothing on screen to tell
-          them apart. Yours is a tab away now, and this row keeps the
-          only question it ever answered: which room a reader with no
-          stored choice walks into. */}
+      {/* THE THEME A VISITOR ARRIVES ON. The reader's own theme is the first
+          row of Appearance; this one keeps the only question it ever answered
+          — which room a reader with no stored choice walks into — and the
+          line under it says what they are looking at tonight, in a theme's
+          name, with the one click that stops following the editor. */}
       <Row
         locked={pocket}
         label={t("rowDefaultTheme")}
         hint={t("hintDefaultTheme")}
         env={{ name: "DEFAULT_THEME", value: eff.defaultTheme ?? "", inherits: form.defaultTheme === "" }}
-        /* THE ROW SAYS WHAT IT DOES, IN A THEME'S NAME.
-           "Follow my editor theme" is a rule, not an appearance,
-           and an owner reading it still does not know what their
-           readers are looking at tonight. This line answers that
-           in the same breath, and — while the instance is
-           following — offers the single click that stops it. It
-           rides `after` rather than being a second child: the row
-           wires the label onto its ONE control child. */
         after={
           <VisitorThemeLine
             pref={form.defaultTheme === "" ? inh.defaultTheme : form.defaultTheme}
@@ -135,164 +96,258 @@ export default function SiteTab() {
           />
         }
       >
-        {/* Grouped, because twenty-one names in one flat list is the
-            same "which of these is dark?" guess the picker exists
-            to end. The GROUP names and the theme labels are both
-            chrome copy — an Arabic reader met "verdigris" and
-            "porphyry" in Latin script here — while the raw id
-            stays the option's VALUE and its muted note, because
-            that is what settings.defaultTheme and DEFAULT_THEME
-            take and what a reader has to type into a .env. */}
-        <Select
-          label={t("rowDefaultTheme")}
-          groups={themeChoices(inh.defaultTheme)}
-          {...field("defaultTheme")}
-        />
+        {/* Grouped, because twenty-one names in one flat list is the "which
+            of these is dark?" guess the picker exists to end; the raw id stays
+            the option's value and its muted note, because that is what a
+            reader types into a .env. */}
+        <Select label={t("rowDefaultTheme")} groups={themeChoices(inh.defaultTheme)} {...field("defaultTheme")} />
       </Row>
-      <div className="s-smodal__sub">{t("groupTypography")}</div>
-      <p className="s-smodal__note">{t("typographyNote")}</p>
-      <div data-section="typography">
-      {/* The specimen leads the typography group and STAYS on
-          screen while a picker is open: once scrolled to, it is
-          stuck to the top of the scroller for as long as the
-          group lasts, and every picker below opens downward into
-          the space under its own trigger. Choosing a face is a
-          compare-and-adjust loop — the control and its effect have
-          to be in one frame, and a popover that covers the effect
-          is the same bug as no preview at all. The wrapper is the
-          sticky's containing block, so the identity rows above
-          scroll past it untouched. */}
-      <div className="s-smodal__specwrap" data-popclear>
-        <div className="s-smodal__speclabelrow">
-          <span className="s-smodal__speccaption">{t("fontPreview")}</span>
-          <span className="s-smodal__spechint">{t("fontPreviewNote")}</span>
-          <button
-            type="button"
-            className="s-btn"
-            onClick={() =>
-              setForm((f) =>
-                f
-                  ? {
-                      ...f,
-                      fontProse: SYSTEM_FONT,
-                      fontUi: SYSTEM_FONT,
-                      fontMono: SYSTEM_FONT,
-                      fontArabic: SYSTEM_FONT,
-                      fontSizeAdjust: "",
-                    }
-                  : f,
-              )
-            }
-          >
-            {t("fontReset")}
-          </button>
-        </div>
-        <FontSpecimens />
-      </div>
 
-      <Row locked={pocket} label={t("rowFontProse")} hint={t("hintFontProse")}>
-        <FontPicker
-          slot="text"
-          label={t("rowFontProse")}
-          value={form.fontProse}
-          catalog={loaded?.fontCatalog ?? []}
-          custom={customFonts}
-          onChange={(id) => setForm((f) => (f ? { ...f, fontProse: id } : f))}
-        />
-      </Row>
-      <Row locked={pocket} label={t("rowFontUi")} hint={t("hintFontUi")}>
-        <FontPicker
-          slot="text"
-          label={t("rowFontUi")}
-          value={form.fontUi}
-          catalog={loaded?.fontCatalog ?? []}
-          custom={customFonts}
-          onChange={(id) => setForm((f) => (f ? { ...f, fontUi: id } : f))}
-        />
-      </Row>
-      <Row locked={pocket} label={t("rowFontMono")} hint={t("hintFontMono")}>
-        <FontPicker
-          slot="mono"
-          label={t("rowFontMono")}
-          value={form.fontMono}
-          catalog={loaded?.fontCatalog ?? []}
-          custom={customFonts}
-          onChange={(id) => setForm((f) => (f ? { ...f, fontMono: id } : f))}
-        />
-      </Row>
-      {/* The Arabic slot is not a fourth Latin slot: it is one face
-          that answers for Arabic letters INSIDE the three above,
-          per character. Its own sub-heading says so before the
-          hint has to. */}
-      <div className="s-smodal__sub">{t("fontArabicHead")}</div>
-      <p className="s-smodal__note">{t("fontArabicHeadNote")}</p>
-      <Row locked={pocket} label={t("rowFontArabic")} hint={t("hintFontArabic")}>
-        <FontPicker
-          slot="arabic"
-          label={t("rowFontArabic")}
-          value={form.fontArabic}
-          catalog={loaded?.fontCatalog ?? []}
-          custom={customFonts}
-          onChange={(id) => setForm((f) => (f ? { ...f, fontArabic: id } : f))}
-        />
-      </Row>
-      {/* The dial only exists while there IS an Arabic face to
-          match, and it is the one number in the panel a reader
-          arrives at by eye: it is set against the specimen two
-          rows up, which is why it lives here and not in a
-          config file. */}
-      {form.fontArabic !== SYSTEM_FONT && (
-        <Row
-          locked={pocket}
-          label={t("rowSizeAdjust")}
-          hint={t("hintSizeAdjust")}
-          error={errors.fontSizeAdjust}
-        >
-          <NumberInput
-            label={t("rowSizeAdjust")}
-            unit="%"
-            min={SIZE_ADJUST_MIN}
-            max={SIZE_ADJUST_MAX}
-            step={2}
-            placeholder={t("sizeAdjustAuto")}
-            invalid={errors.fontSizeAdjust !== undefined}
-            {...field("fontSizeAdjust")}
+      <InstanceOnly>
+        {/* Decoration, and the only row in this panel that is: beside the
+            visitors' theme, which it does not change. The air a room gets is
+            decided in client/styles/ambient.css; this is the whole switch. */}
+        <Row label={t("rowAmbient")} hint={t("hintAmbient")}>
+          <Toggle
+            label={t("rowAmbient")}
+            onLabel={t("on")}
+            offLabel={t("off")}
+            value={form.ambient === "on" || (form.ambient === "" && inh.ambient)}
+            onChange={(on) => setForm((f) => (f ? { ...f, ambient: on ? "on" : "off" } : f))}
           />
         </Row>
-      )}
 
-      {/* Uploading is the answer to the question the catalog
-          cannot answer: the face an operator already owns. An
-          uploaded face is served out of an instance's data
-          directory, which a pocket vault has not got — the route
-          is a 501 there — so the whole group goes rather than
-          standing greyed beside a drop zone that refuses. It is
-          not a settings ROW and carries nothing for the index. */}
-      {!pocket && (
-      <>
-      <div className="s-smodal__sub">{t("fontCustomHead")}</div>
-      <p className="s-smodal__note">{t("fontCustomNote")}</p>
-      <CustomFonts
-        fonts={customFonts}
-        busy={fontBusy}
-        usedBy={(id) =>
-          (
-            [
-              [form.fontProse, "rowFontProse"],
-              [form.fontUi, "rowFontUi"],
-              [form.fontMono, "rowFontMono"],
-              [form.fontArabic, "rowFontArabic"],
-            ] as [string, I18nKey][]
-          )
-            .filter(([value]) => value === id)
-            .map(([, key]) => t(key))
-        }
-        onUpload={uploadCustomFont}
-        onDelete={removeCustomFont}
-      />
-      </>
-      )}
-      </div>
+        {/* ── Publishing ────────────────────────────────────────────────────
+            Which shell a visitor lands in, and the door to the designer
+            BESIDE the switch that needs it: `openDesigner()` once had a single
+            call site (the palette), so an owner who picked "Designed" landed
+            on a designed site with no design and nothing saying where designs
+            are made. */}
+        <div className="s-smodal__sub">{t("groupPublishing")}</div>
+        <Row label={t("rowPublicLayout")} hint={t("hintPublicLayout")} env={{ name: "PUBLIC_LAYOUT", value: eff.publicLayout, inherits: form.publicLayout === "" }}>
+          <Parts>
+            <SegmentedControl
+              label={t("rowPublicLayout")}
+              segments={[
+                { value: "", label: t("inheritSegment"), note: enumLabel(inh.publicLayout) },
+                { value: "app", label: t("layoutApp") },
+                { value: "blog", label: t("layoutBlog") },
+                // Lossless in both directions — the design lives in its own
+                // file and is not consulted while this reads anything else —
+                // so "back to blog" is the rescue, never a migration.
+                { value: "designed", label: t("layoutDesigned") },
+              ]}
+              {...field("publicLayout")}
+            />
+            <Part label={t("rowOpenDesigner")} hint={t("hintOpenDesigner")}>
+              <button
+                type="button"
+                className="s-btn s-btn--accent"
+                onClick={() => {
+                  useStore.getState().setSettingsOpen(false);
+                  openDesigner();
+                }}
+              >
+                {t("designTitle")}
+              </button>
+            </Part>
+          </Parts>
+        </Row>
+        {/* No env var behind these two — plain toggles. */}
+        <Row label={t("rowShareButtons")} hint={t("hintShareButtons")}>
+          <Toggle
+            label={t("rowShareButtons")}
+            onLabel={t("on")}
+            offLabel={t("off")}
+            value={form.share === "on" || (form.share === "" && inh.shareButtons)}
+            onChange={(on) => setForm((f) => (f ? { ...f, share: on ? "on" : "off" } : f))}
+          />
+        </Row>
+        {/* ANOTHER SITE'S PLAYER (shared/externalVideo.ts) tells that site who
+            is reading, so this is a consent switch: off until the owner turns
+            it on, and off means the address stays a link. */}
+        <Row label={t("rowExternalVideo")} hint={t("hintExternalVideo")} more={t("moreExternalVideo")}>
+          <Toggle
+            label={t("rowExternalVideo")}
+            onLabel={t("on")}
+            offLabel={t("off")}
+            value={form.externalVideo === "on" || (form.externalVideo === "" && inh.externalVideo)}
+            onChange={(on) => setForm((f) => (f ? { ...f, externalVideo: on ? "on" : "off" } : f))}
+          />
+        </Row>
+
+        {/* ── Home page ─────────────────────────────────────────────────────
+            Read by the blog and designed layouts only; with the app layout
+            the rows grey and a note says so. */}
+        <div className="s-smodal__sub">{t("groupHome")}</div>
+        {homeOff && <p className="s-smodal__offnote">{t("homeBlogOnlyNotice")}</p>}
+        <Row label={t("rowMode")} hint={t("hintMode")} off={homeOff}>
+          <SegmentedControl
+            label={t("rowMode")}
+            disabled={homeOff}
+            segments={[
+              { value: "", label: t("inheritSegment"), note: enumLabel(inh.homeMode) },
+              { value: "note", label: t("modeNote") },
+              { value: "dashboard", label: t("modeDashboard") },
+            ]}
+            {...field("homeMode")}
+          />
+        </Row>
+        <Row
+          label={t("rowHomeNote")}
+          hint={t("hintHomeNote")}
+          error={errors.homeNote}
+          env={{ name: "HOME_NOTE", value: eff.home.note ?? "", inherits: form.homeNote.trim() === "" }}
+        >
+          <TextInput placeholder={eff.home.note ?? "Welcome.md"} dir="ltr" label={t("rowHomeNote")} invalid={errors.homeNote !== undefined} {...field("homeNote")} />
+          {/* A front door pointing at a note visitors cannot see renders a
+              blank homepage; only the server knows the publish flag AND the
+              language filter the note is about to meet. */}
+          {impact &&
+            (impact.home.note === null ? (
+              <Consequence>{t("homeNoteUnset")}</Consequence>
+            ) : impact.home.noteVisible ? (
+              <Consequence>{t("homeNoteOk")}</Consequence>
+            ) : (
+              <Consequence level="warn">{t("homeNoteHidden")}</Consequence>
+            ))}
+        </Row>
+        <Row label={t("rowHomeBanner")} hint={t("hintHomeBanner")} error={errors.homeBanner} off={homeOff}>
+          <ImageField
+            value={form.homeBanner}
+            placeholder={t("phVaultImageOrUrl")}
+            invalid={errors.homeBanner !== undefined}
+            disabled={homeOff}
+            onChange={(v) => setForm((f) => (f ? { ...f, homeBanner: v } : f))}
+            onOpenPicker={() => setPicker("homeBanner")}
+          />
+        </Row>
+
+        {/* ── Conversation (docs/webmentions.md) ────────────────────────────
+            Who may answer: comments, webmentions and the fediverse. Each is
+            network access or visitor input the owner consents to on its own,
+            all off on a new instance. What a switch has done is said UNDER it
+            (the row's `after` line) rather than in a row of its own. */}
+        <div className="s-smodal__sub">{t("groupConversation")}</div>
+        <Row label={t("rowComments")} hint={t("hintComments")} env={{ name: "COMMENTS", value: eff.commentsEnabled ? "on" : "off", inherits: form.comments === "" }}>
+          <SegmentedControl label={t("rowComments")} segments={onOffSegments(inh.commentsEnabled)} {...field("comments")} />
+        </Row>
+        <Row
+          label={t("rowWebmentions")}
+          hint={t("hintWebmentions")}
+          more={[t("moreWebmentionsAccept"), t("moreWebmentionsSend")]}
+          after={<SentPanel on={form.wmSend === "on"} />}
+        >
+          <Parts>
+            <Part label={t("rowWebmentionsAccept")} hint={t("hintWebmentionsAccept")}>
+              <Toggle
+                label={t("rowWebmentionsAccept")}
+                onLabel={t("on")}
+                offLabel={t("off")}
+                value={form.wmAccept === "on"}
+                onChange={(on) => setForm((f) => (f ? { ...f, wmAccept: on ? "on" : "off" } : f))}
+              />
+            </Part>
+            <Part label={t("rowWebmentionsSend")} hint={t("hintWebmentionsSend")}>
+              <Toggle
+                label={t("rowWebmentionsSend")}
+                onLabel={t("on")}
+                offLabel={t("off")}
+                value={form.wmSend === "on"}
+                onChange={(on) => setForm((f) => (f ? { ...f, wmSend: on ? "on" : "off" } : f))}
+              />
+            </Part>
+          </Parts>
+        </Row>
+        <Row
+          label={t("rowFediverse")}
+          hint={t("hintFediverse")}
+          more={t("moreFediverse")}
+          error={errors.fediHandle}
+          after={<FediverseNote on={form.fediEnabled === "on"} />}
+        >
+          <Parts>
+            <Toggle
+              label={t("rowFediverse")}
+              onLabel={t("on")}
+              offLabel={t("off")}
+              value={form.fediEnabled === "on"}
+              onChange={(on) => setForm((f) => (f ? { ...f, fediEnabled: on ? "on" : "off" } : f))}
+            />
+            {form.fediEnabled === "on" && (
+              <Part label={t("rowFediverseHandle")} hint={t("hintFediverseHandle")}>
+                <TextInput placeholder={eff.fediverse.handle} dir="ltr" label={t("rowFediverseHandle")} invalid={errors.fediHandle !== undefined} {...field("fediHandle")} />
+              </Part>
+            )}
+          </Parts>
+        </Row>
+      </InstanceOnly>
+
+      <Advanced tab="site">
+        {/* THE ONE FIELD WHOSE CONTENT IS A TEMPLATE. `© {year} {siteName}` is
+            machine syntax, and it is also the site's footer PROSE, which this
+            owner writes in Arabic: `dir="auto"` lets the first strong
+            character decide, so the default template renders exactly as it
+            must be typed and an Arabic footer stays Arabic. */}
+        <Row
+          locked={pocket}
+          label={t("rowFooter")}
+          hint={t("hintFooter")}
+          error={errors.footer}
+          env={{ name: "SITE_FOOTER", value: eff.footer ?? "", inherits: form.footer.trim() === "" }}
+        >
+          <TextInput placeholder={eff.footer ?? "© {year} {siteName}"} maxLength={201} dir="auto" label={t("rowFooter")} invalid={errors.footer !== undefined} {...field("footer")} />
+        </Row>
+        <InstanceOnly>
+          {/* This removes topic pills — and with them whole topic pages — and
+              it says so, including when the tag it names matches nothing. */}
+          <Row
+            label={t("rowExcludeTags")}
+            hint={t("hintExcludeTags")}
+            error={errors.excludeTags}
+            env={{ name: "EXCLUDE_TAGS", value: eff.excludeTags.join(","), inherits: form.excludeTags.trim() === "" }}
+          >
+            <TextInput
+              placeholder={eff.excludeTags.length > 0 ? eff.excludeTags.join(", ") : t("phExcludeTags")}
+              label={t("rowExcludeTags")}
+              invalid={errors.excludeTags !== undefined}
+              {...field("excludeTags")}
+            />
+            {impact &&
+              (impact.topics.suppressed.length > 0 ? (
+                <Consequence>
+                  {tf("excludeTagsEffect", {
+                    hidden: localeNum(impact.topics.suppressed.length),
+                    total: localeNum(impact.topics.total),
+                    tags: impact.topics.suppressed.join("، "),
+                  })}
+                </Consequence>
+              ) : splitTags(form.excludeTags).length > 0 ? (
+                <Consequence>{t("excludeTagsNoop")}</Consequence>
+              ) : (
+                <Consequence>{tf("excludeTagsNone", { total: localeNum(impact.topics.total) })}</Consequence>
+              ))}
+          </Row>
+          {/* The author's other homes, one per line: pasting six links into
+              six fields is busywork this panel refuses to assign. The server
+              enriches each with the site's own OpenGraph card. */}
+          <Row label={t("rowAuthorSites")} hint={t("hintAuthorSites")} error={errors.authorSites}>
+            <textarea
+              className="s-smodal__textarea"
+              rows={3}
+              dir="ltr"
+              placeholder={t("phAuthorSites")}
+              aria-label={t("rowAuthorSites")}
+              aria-invalid={errors.authorSites !== undefined || undefined}
+              value={field("authorSites").value}
+              onChange={(e) => field("authorSites").onChange(e.target.value)}
+            />
+            {splitSites(form.authorSites).length > 0 && (
+              <Consequence>{tf("authorSitesEffect", { count: localeNum(splitSites(form.authorSites).length) })}</Consequence>
+            )}
+          </Row>
+        </InstanceOnly>
+      </Advanced>
     </section>
   );
 }

@@ -109,7 +109,7 @@ export default function FeedsScreen({ onBack }: { onBack?: () => void }) {
                 {model.refreshing ? t("feedsChecking") : t("feedsRefresh")}
               </button>
             ) : (
-              <button type="button" className="s-ph-btn" onClick={() => phone.open({ kind: "settings", section: "vault" })}>
+              <button type="button" className="s-ph-btn" onClick={() => phone.open({ kind: "settings", section: "reading" })}>
                 {t("feedsTurnOn")}
               </button>
             )}

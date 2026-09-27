@@ -1,12 +1,14 @@
 // ASK THE VAULT (docs/ask.md): which models read the notes and answer about
-// them. Instance-only. A tab body (see ./TabBody.tsx), split out of
-// SettingsModal.tsx (3.27.0) unchanged.
+// them. Instance-only. A tab body (see ./TabBody.tsx). The embedding model
+// and the passages per answer — set once, if ever — sit behind the Advanced
+// line (the settings purge).
 
 import { useSettings } from "./context.ts";
 import { t } from "../../i18n.ts";
 import { NumberInput, SegmentedControl, TextInput } from "../controls/Fields.tsx";
 import { Row } from "./Row.tsx";
 import { AskStatusBlock } from "./AskStatusBlock.tsx";
+import { Advanced } from "./Fold.tsx";
 import { ANTHROPIC_MODEL_PLACEHOLDER } from "./tabs.ts";
 
 export default function AskTab() {
@@ -43,7 +45,7 @@ export default function AskTab() {
           {...field("askAnthropicModel")}
         />
       </Row>
-      <Row label={t("rowAskKey")} hint={t("hintAskKey")} error={errors.askKey}>
+      <Row label={t("rowAskKey")} hint={t("hintAskKey")} error={errors.askKey} after={<span className="s-smodal__hint">{t(eff.ask.keySet ? "askKeySetYes" : "askKeySetNo")}</span>}>
         <div className="s-smodal__tokenfield">
           <TextInput
             type="password"
@@ -58,31 +60,32 @@ export default function AskTab() {
             {t("askClearKey")}
           </button>
         </div>
-        <span className="s-smodal__hint">{t(eff.ask.keySet ? "askKeySetYes" : "askKeySetNo")}</span>
-      </Row>
-      <Row label={t("rowAskEmbedModel")} hint={t("hintAskEmbedModel")} error={errors.askEmbedModel}>
-        <TextInput
-          placeholder="embeddinggemma"
-          dir="ltr"
-          autoComplete="off"
-          label={t("rowAskEmbedModel")}
-          invalid={errors.askEmbedModel !== undefined}
-          {...field("askEmbedModel")}
-        />
-      </Row>
-      <Row label={t("rowAskTopK")} hint={t("hintAskTopK")} error={errors.askTopK}>
-        <NumberInput
-          label={t("rowAskTopK")}
-          unit={t("askTopKUnit")}
-          min={2}
-          max={12}
-          invalid={errors.askTopK !== undefined}
-          {...field("askTopK")}
-        />
       </Row>
       <Row label={t("rowAskStatus")} hint={t("hintAskStatus")}>
         <AskStatusBlock />
       </Row>
+      <Advanced tab="ask">
+        <Row label={t("rowAskEmbedModel")} hint={t("hintAskEmbedModel")} error={errors.askEmbedModel}>
+          <TextInput
+            placeholder="embeddinggemma"
+            dir="ltr"
+            autoComplete="off"
+            label={t("rowAskEmbedModel")}
+            invalid={errors.askEmbedModel !== undefined}
+            {...field("askEmbedModel")}
+          />
+        </Row>
+        <Row label={t("rowAskTopK")} hint={t("hintAskTopK")} error={errors.askTopK}>
+          <NumberInput
+            label={t("rowAskTopK")}
+            unit={t("askTopKUnit")}
+            min={2}
+            max={12}
+            invalid={errors.askTopK !== undefined}
+            {...field("askTopK")}
+          />
+        </Row>
+      </Advanced>
     </section>
   );
 }

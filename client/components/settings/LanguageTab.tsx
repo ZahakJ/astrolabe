@@ -1,19 +1,25 @@
-// LANGUAGE & DATES — the site's language, the visitor switch, the calendar,
-// the note layout and the tag labels. A tab body (see ./TabBody.tsx), split
-// out of SettingsModal.tsx (3.27.0) with no change to a single row.
+// LANGUAGE & DATES — which language YOU read the app in, which one the site
+// speaks to visitors, which languages this browser spellchecks, and how dates
+// are printed. A tab body (see ./TabBody.tsx).
+//
+// THE TWO LANGUAGES, SIDE BY SIDE (the settings purge). "Your language" used
+// to be on "This device" as "Editor language" and "Site language" was here,
+// three tabs apart — and they are the one pair a reader has to see together
+// to understand either: one is the app speaking to you on this device, the
+// other is the site speaking to its visitors. Note layout went to Appearance
+// (it is how prose is set), the properties card and tag labels to Writing,
+// and voice and read aloud to Reading & speech.
 
 import { useSettings } from "./context.ts";
 import { siteDateIn } from "../../dates.ts";
 import { localeNum, t, tf } from "../../i18n.ts";
+import { useStore } from "../../state.ts";
 import { SegmentedControl, TextInput, Toggle } from "../controls/Fields.tsx";
-import { Select } from "../controls/Select.tsx";
 import { desktop } from "../../desktop/bridge.ts";
 import { DECLARABLE, setBrowserDictionaries, type Declarable } from "../../spellDicts.ts";
-import { Row } from "./Row.tsx";
-import { TagLabelEditor } from "./TagLabelEditor.tsx";
-import { OwnVoicesControls } from "./OwnVoices.tsx";
-import { ReadAloudControls } from "./ReadAloudControls.tsx";
-import { Consequence, LanguageConsequence, VisibilityBanner } from "./Visibility.tsx";
+import { Advanced } from "./Fold.tsx";
+import { Part, Parts, Row } from "./Row.tsx";
+import { Consequence, LanguageConsequence } from "./Visibility.tsx";
 
 /** Named one by one so the dictionary gate sees every key used. */
 const DICT_LABELS: Record<Declarable, () => string> = {
@@ -25,22 +31,39 @@ const DICT_LABELS: Record<Declarable, () => string> = {
 
 export default function LanguageTab() {
   const { pocket, form, setForm, errors, field, langFilterLabel, eff, inh, impact, dicts } = useSettings();
+  /** The stored PREFERENCE drives the control (a pin to English and a follow
+   *  of an English site are different states that resolve alike), and the
+   *  site's own language names what "Follow site" is currently doing. */
+  const editorLangPref = useStore((s) => s.editorLangPref);
+  const setEditorLang = useStore((s) => s.setEditorLang);
+  const siteLanguage = useStore((s) => s.siteLanguage);
   return (
     <section data-section="language">
-      {/* The standing answer to "how much of my site is public",
-          at the top of both tabs that can change it. It describes
-          the site AS THE FORM WOULD LEAVE IT, so it moves as the
-          controls move — the operator never has to save to find
-          out. */}
-      <VisibilityBanner impact={impact} />
-      {pocket && <p className="s-smodal__offnote">{t("pocketLangNotice")}</p>}
+      {/* THE ROW THAT UNWELDS THE TWO LANGUAGES. The site language decides
+          what the site PUBLISHES in; this decides what the person looking at
+          the screen reads. One value used to do both jobs, so one tap on the
+          public ع rewrote the owner's editor. Three states, not two: the
+          default has to stay reachable, and "Follow site" names the language
+          it landed on rather than being a silent state. */}
+      <Row device label={t("rowEditorLanguage")} hint={t("hintEditorLanguage")}>
+        <SegmentedControl
+          label={t("rowEditorLanguage")}
+          value={editorLangPref ?? ""}
+          onChange={(v) => setEditorLang(v === "" ? null : (v as "en" | "ar"))}
+          segments={[
+            { value: "", label: t("editorLangFollow"), note: siteLanguage === "ar" ? "العربية" : "English" },
+            { value: "en", label: "English" },
+            { value: "ar", label: "العربية" },
+          ]}
+        />
+      </Row>
       <Row
         label={t("rowLanguage")}
         hint={t("hintLanguage")}
         env={{ name: "SITE_LANG", value: eff.language, inherits: form.language === "" }}
       >
-        {/* Language names stay in their own script — that is how
-            a language picker reads to the person who needs it. */}
+        {/* Language names stay in their own script — that is how a language
+            picker reads to the person who needs it. */}
         <SegmentedControl
           label={t("rowLanguage")}
           segments={[
@@ -52,7 +75,7 @@ export default function LanguageTab() {
         />
       </Row>
       {desktop() === null && (
-        <Row label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
+        <Row device label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
           <div className="s-smodal__dicts" role="group" aria-label={t("rowSpellDicts")}>
             {DECLARABLE.map((code) => (
               <Toggle
@@ -70,101 +93,11 @@ export default function LanguageTab() {
           </div>
         </Row>
       )}
-      <Row
-        label={t("rowDateLocale")}
-        hint={t("hintDateLocale")}
-        error={errors.blogLocale}
-        env={{ name: "BLOG_LOCALE", value: eff.blogLocale, inherits: form.blogLocale.trim() === "" }}
-      >
-        <TextInput
-          placeholder={eff.blogLocale}
-          dir="ltr"
-          label={t("rowDateLocale")}
-          invalid={errors.blogLocale !== undefined}
-          {...field("blogLocale")}
-        />
-      </Row>
-      {/* Four states, not two. The boolean this replaces could
-          only say "on", and "on" meant "pin to the site language"
-          — which is why turning it on took a real site from twenty
-          published posts to two with nothing said. Each segment
-          now names WHO decides, and the block under it prints, in
-          this vault's own numbers, exactly what the pending choice
-          would do. */}
-      <Row
-        locked={pocket}
-        label={t("rowLanguageFilter")}
-        hint={t("hintLanguageFilter")}
-        env={{ name: "LANGUAGE_FILTER", value: eff.languageFilter, inherits: form.languageFilter === "" }}
-        wide
-      >
-        <SegmentedControl
-          label={t("rowLanguageFilter")}
-          segments={[
-            { value: "", label: t("inheritSegment"), note: langFilterLabel(inh.languageFilter) },
-            { value: "off", label: t("langFilterOff"), note: t("langFilterOffNote") },
-            {
-              value: "follow",
-              label: t("langFilterFollow"),
-              note: t("langFilterFollowNote"),
-            },
-            { value: "ar", label: t("langFilterAr") },
-            { value: "en", label: t("langFilterEn") },
-          ]}
-          {...field("languageFilter")}
-        />
-        {impact && (
-          <LanguageConsequence
-            mode={form.languageFilter === "" ? inh.languageFilter : form.languageFilter}
-            impact={impact}
-            toggleOn={
-              form.languageToggle === "" ? inh.languageToggle : form.languageToggle === "on"
-            }
-            siteLang={form.language === "" ? inh.language : form.language}
-          />
-        )}
-        {impact && impact.topics.visible < impact.topics.total && (
-          <Consequence>
-            {tf("langFilterTopicsCut", {
-              visible: localeNum(impact.topics.visible),
-              total: localeNum(impact.topics.total),
-            })}
-          </Consequence>
-        )}
-      </Row>
-      {/* The visitor switch, spelled out. It EXISTS — it has since
-          the language round — but it lived as a two-word row in a
-          list nobody could reach, and the one person who wanted it
-          could not tell whether it was there. So it gets its own
-          sub-heading and a sentence saying exactly what turning it
-          on puts on the public page, and what it deliberately does
-          not move (dates and numerals stay on the site's locale). */}
-      <div className="s-smodal__sub">{t("visitorSwitchHead")}</div>
-      <p className="s-smodal__note">{t("visitorSwitchNote")}</p>
-      {/* A PLAIN TOGGLE, not a three-way segment: no environment
-          variable stands behind this row (server/settings.ts
-          inherits a constant), so "Default" would name nothing an
-          operator can set elsewhere. The empty stored value reads
-          as the constant it resolves to, and a flip writes on/off. */}
-      <Row locked={pocket} label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")}>
-        <Toggle
-          label={t("rowLanguageToggle")}
-          onLabel={t("on")}
-          offLabel={t("off")}
-          value={form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)}
-          onChange={(on) => setForm((f) => (f ? { ...f, languageToggle: on ? "on" : "off" } : f))}
-        />
-      </Row>
-      {(form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)) && (
-        <p className="s-smodal__offnote">{t("visitorSwitchOn")}</p>
-      )}
 
-      {/* ── Calendar ────────────────────────────────────────────
-          Under Language because it is the same question one layer
-          down: the language decides the WORDS a date is spelled
-          in, this decides which date it is. Hijri is Umm al-Qura
-          — see shared/dates.ts for why that one and not the other
-          three Intl offers. */}
+      {/* ── Calendar ────────────────────────────────────────────────────────
+          The same question one layer down: the language decides the WORDS a
+          date is spelled in, this decides which date it is. Hijri is Umm
+          al-Qura — see shared/dates.ts for why that one. */}
       <div className="s-smodal__sub">{t("groupCalendar")}</div>
       <Row label={t("rowDateCalendar")} hint={t("hintDateCalendar")}>
         <SegmentedControl
@@ -177,13 +110,14 @@ export default function LanguageTab() {
           {...field("dateCalendar")}
         />
       </Row>
-      {/* How the two calendars sit together (the owner's own
-          example: "السبت 16 ربيع الأول 1448هـ | 29 أغسطس 2026 م",
-          Hijri first, a bar between). Only shown while "Both"
-          is the choice; the specimen below moves with them. */}
+      {/* How the two calendars sit together (the owner's own example:
+          "السبت 16 ربيع الأول 1448هـ | 29 أغسطس 2026 م", Hijri first, a bar
+          between): ONE row, the order and the mark between them, because the
+          second means nothing without the first. Only while "Both" is chosen;
+          the specimen below moves with them. */}
       {form.dateCalendar === "both" && (
-        <>
-          <Row label={t("rowDateOrder")} hint={t("hintDateOrder")}>
+        <Row label={t("rowDateOrder")} hint={t("hintDateOrder")}>
+          <Parts>
             <SegmentedControl
               label={t("rowDateOrder")}
               segments={[
@@ -193,25 +127,23 @@ export default function LanguageTab() {
               ]}
               {...field("dateOrder")}
             />
-          </Row>
-          <Row label={t("rowDateSeparator")} hint={t("hintDateSeparator")}>
-            <SegmentedControl
-              label={t("rowDateSeparator")}
-              segments={[
-                { value: "bar", label: "|" },
-                { value: "dot", label: "·" },
-                { value: "parens", label: "( )" },
-              ]}
-              {...field("dateSeparator")}
-            />
-          </Row>
-        </>
+            <Part label={t("rowDateSeparator")} hint={t("hintDateSeparator")}>
+              <SegmentedControl
+                label={t("rowDateSeparator")}
+                segments={[
+                  { value: "bar", label: "|" },
+                  { value: "dot", label: "·" },
+                  { value: "parens", label: "( )" },
+                ]}
+                {...field("dateSeparator")}
+              />
+            </Part>
+          </Parts>
+        </Row>
       )}
-      {/* A SPECIMEN, not a promise. The three words above name
-          three calendars; this line is the only thing that shows
-          what one of them actually prints, in this instance's own
-          locale and numerals, and it moves as the segments do —
-          the same argument the type specimen makes one tab over. */}
+      {/* A SPECIMEN, not a promise: the only thing that shows what a calendar
+          actually prints, in this instance's own locale and numerals, moving
+          as the segments do. */}
       <p className="s-smodal__note">
         {t("calSpecimen")}
         {": "}
@@ -219,9 +151,7 @@ export default function LanguageTab() {
           {siteDateIn(
             new Date(),
             eff.blogLocale,
-            form.dateCalendar === "hijri" || form.dateCalendar === "both"
-              ? form.dateCalendar
-              : "gregorian",
+            form.dateCalendar === "hijri" || form.dateCalendar === "both" ? form.dateCalendar : "gregorian",
             { dateStyle: "long" },
             {
               order: form.dateOrder === "hijri-first" || form.dateOrder === "gregorian-first" ? form.dateOrder : "auto",
@@ -229,110 +159,86 @@ export default function LanguageTab() {
             },
           )}
         </bdi>
+        {" "}
+        {t("calFeedNote")}
       </p>
-      <p className="s-smodal__note">{t("calFeedNote")}</p>
-      {/* SUGGEST, NEVER FORCE. An Arabic instance still starts on
-          the Gregorian calendar — changing what an existing site
-          prints because its language changed would be a settings
-          panel making an editorial decision. So the panel says the
-          sentence and leaves the click to the owner. */}
-      {(form.language === "ar" || (form.language === "" && inh.language === "ar")) &&
-        form.dateCalendar === "gregorian" && (
-          <p className="s-smodal__offnote">{t("calArabicSuggest")}</p>
+      {/* SUGGEST, NEVER FORCE. An Arabic instance still starts on the
+          Gregorian calendar; the panel says the sentence and leaves the click
+          to the owner. */}
+      {(form.language === "ar" || (form.language === "" && inh.language === "ar")) && form.dateCalendar === "gregorian" && (
+        <p className="s-smodal__offnote">{t("calArabicSuggest")}</p>
+      )}
+
+      {/* ── For visitors ────────────────────────────────────────────────────
+          What the PUBLIC site does with the two languages: which notes it
+          shows, and whether a reader may flip the interface. A pocket vault
+          has no visitors, so both rows are its locked facts. The standing
+          "how much of my site is public" banner is Your site's; here the
+          filter's own consequence lines under it say the same, in numbers. */}
+      <div className="s-smodal__sub">{t("groupForVisitors")}</div>
+      {pocket && <p className="s-smodal__offnote">{t("pocketLangNotice")}</p>}
+      {/* Four states, not two. Each segment names WHO decides, and the block
+          under it prints, in this vault's own numbers, exactly what the
+          pending choice would do. */}
+      <Row
+        locked={pocket}
+        label={t("rowLanguageFilter")}
+        hint={t("hintLanguageFilter")}
+        env={{ name: "LANGUAGE_FILTER", value: eff.languageFilter, inherits: form.languageFilter === "" }}
+        wide
+      >
+        <SegmentedControl
+          label={t("rowLanguageFilter")}
+          segments={[
+            { value: "", label: t("inheritSegment"), note: langFilterLabel(inh.languageFilter) },
+            { value: "off", label: t("langFilterOff"), note: t("langFilterOffNote") },
+            { value: "follow", label: t("langFilterFollow"), note: t("langFilterFollowNote") },
+            { value: "ar", label: t("langFilterAr") },
+            { value: "en", label: t("langFilterEn") },
+          ]}
+          {...field("languageFilter")}
+        />
+        {impact && (
+          <LanguageConsequence
+            mode={form.languageFilter === "" ? inh.languageFilter : form.languageFilter}
+            impact={impact}
+            toggleOn={form.languageToggle === "" ? inh.languageToggle : form.languageToggle === "on"}
+            siteLang={form.language === "" ? inh.language : form.language}
+          />
         )}
+        {impact && impact.topics.visible < impact.topics.total && (
+          <Consequence>
+            {tf("langFilterTopicsCut", { visible: localeNum(impact.topics.visible), total: localeNum(impact.topics.total) })}
+          </Consequence>
+        )}
+      </Row>
+      {/* A PLAIN TOGGLE, not a three-way segment: no environment variable
+          stands behind this row, so "Default" would name nothing an operator
+          can set elsewhere. Its hint says what turning it on puts on the page;
+          its ⓘ says what it deliberately does not move. */}
+      <Row locked={pocket} label={t("rowLanguageToggle")} hint={t("hintLanguageToggle")} more={t("visitorSwitchNote")}>
+        <Toggle
+          label={t("rowLanguageToggle")}
+          onLabel={t("on")}
+          offLabel={t("off")}
+          value={form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)}
+          onChange={(on) => setForm((f) => (f ? { ...f, languageToggle: on ? "on" : "off" } : f))}
+        />
+      </Row>
+      {(form.languageToggle === "on" || (form.languageToggle === "" && inh.languageToggle)) && (
+        <p className="s-smodal__offnote">{t("visitorSwitchOn")}</p>
+      )}
 
-      {/* ── Note layout ─────────────────────────────────────────
-          Direction and alignment for the PROSE, applied
-          identically in the editor, the reading view and blog
-          articles. A note overrides both from its own
-          frontmatter, and says so where the reader can see it. */}
-      <div className="s-smodal__sub">{t("groupNoteLayout")}</div>
-      <Row label={t("rowTextDirection")} hint={t("hintTextDirection")}>
-        <SegmentedControl
-          label={t("rowTextDirection")}
-          segments={[
-            { value: "auto", label: t("layoutDirAuto") },
-            { value: "ltr", label: t("layoutDirLtr") },
-            { value: "rtl", label: t("layoutDirRtl") },
-          ]}
-          {...field("textDirection")}
-        />
-      </Row>
-      {/* Five values, so a Select rather than a fifth segment: a
-          segmented control this wide stops being scannable and
-          starts wrapping, which is the trap the theme list was
-          moved out of the palette to avoid. */}
-      <Row label={t("rowTextAlign")} hint={t("hintTextAlign")}>
-        <Select
-          label={t("rowTextAlign")}
-          options={[
-            { value: "start", label: t("layoutAlignStart") },
-            { value: "left", label: t("layoutAlignLeft") },
-            { value: "right", label: t("layoutAlignRight") },
-            { value: "center", label: t("layoutAlignCenter") },
-            { value: "justify", label: t("layoutAlignJustify") },
-          ]}
-          {...field("textAlign")}
-        />
-      </Row>
-      <p className="s-smodal__note">{t("noteLayoutOverride")}</p>
-      {/* The card on a note with nothing in its frontmatter yet:
-          shown by default (the owner: "should prob show by
-          default on all created notes"), with the switch here
-          for the reader who wants a bare page. */}
-      <Row label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
-        <SegmentedControl
-          label={t("rowEmptyPropsCard")}
-          segments={[
-            { value: "on", label: t("on") },
-            { value: "off", label: t("off") },
-          ]}
-          {...field("emptyPropsCard")}
-        />
-      </Row>
-      {/* Which language a voice note is heard in (docs/capture.md
-          "Voice"). Detect is right for a vault that speaks both;
-          a pin is right for a speaker whose Arabic the detector
-          keeps hearing as something else. */}
-      <Row locked={pocket} label={t("rowVoiceLanguage")} hint={t("hintVoiceLanguage")} more={t("moreVoiceLanguage")}>
-        <SegmentedControl
-          label={t("rowVoiceLanguage")}
-          segments={[
-            { value: "auto", label: t("voiceLangAuto") },
-            { value: "ar", label: t("langAr") },
-            { value: "en", label: t("langEn") },
-          ]}
-          {...field("voiceLanguage")}
-        />
-      </Row>
-      {/* The other direction (docs/read-aloud.md): a selection read aloud
-          by voices on this machine's CPU, in the language it is written in.
-          One row — the engine, its install, the voices, the speed. */}
-      {/* Not locked in a pocket vault: there the row is this phone's own
-          voices (ReadAloudControls), which are the only ones it has. */}
-      <Row label={t("rowReadAloud")} hint={t("hintReadAloud")} more={t("moreReadAloud")}>
-        <ReadAloudControls />
-      </Row>
-      {/* Voices already on this machine (docs/read-aloud.md, "Your own
-          voices"): a folder of Piper voices the server scans, and — folded
-          inside — an external speaker. The ⓘ says what the external speaker
-          runs as. A server's, so locked in a pocket vault. */}
-      <Row locked={pocket} label={t("rowOwnVoices")} hint={t("hintOwnVoices")} more={t("moreOwnVoices")}>
-        <OwnVoicesControls />
-      </Row>
-
-      {/* ── Tag labels ──────────────────────────────────────────
-          DISPLAY ONLY, and the copy says so before the table does
-          anything: the vault keeps its canonical tags, the URLs
-          keep canonical slugs, and search answers to both. */}
-      <div className="s-smodal__sub">{t("groupTagLabels")}</div>
-      <p className="s-smodal__note">{t("tagLabelsNote")}</p>
-      <Row label={t("tagLabelsRowLabel")} hint={t("tagLabelsPageWins")} wide>
-        <TagLabelEditor
-          rows={form.tagLabels}
-          onChange={(rows) => setForm((f) => (f ? { ...f, tagLabels: rows } : f))}
-        />
-      </Row>
+      <Advanced tab="language">
+        <Row
+          label={t("rowDateLocale")}
+          hint={t("hintDateLocale")}
+          error={errors.blogLocale}
+          env={{ name: "BLOG_LOCALE", value: eff.blogLocale, inherits: form.blogLocale.trim() === "" }}
+        >
+          <TextInput placeholder={eff.blogLocale} dir="ltr" label={t("rowDateLocale")} invalid={errors.blogLocale !== undefined} {...field("blogLocale")} />
+        </Row>
+      </Advanced>
     </section>
   );
 }

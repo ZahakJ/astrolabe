@@ -1,12 +1,12 @@
 // Search the whole panel, from any tab.
 //
-// Eight tabs and eighty-eight rows is a map a reader has to learn before they
+// Nine sections and a hundred rows is a map a reader has to learn before they
 // can use it — and the commonest question about a settings panel is not "what
 // is on the Publishing tab", it is "where is the thing that does X". The rail
 // answers the first question and could never answer the second.
 //
-// It matches the LABEL, the one-sentence help, and the environment variable
-// behind the row's ⓘ. That last one is the operator's half: someone reading a
+// It matches the LABEL, the one-sentence help, the paragraph behind the row's
+// ⓘ, and the environment variable behind it. That last one is the operator's half: someone reading a
 // deployment script types `SITE_LANG`, and the row it belongs to is the answer.
 //
 // It searches the WORDS, not the keys, resolved through `t()` at the moment the
@@ -19,7 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { RefObject } from "react";
 import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
-import { searchSettings } from "./searchSettings.ts";
+import { hitPlace, searchSettings } from "./searchSettings.ts";
 import type { SettingEntry } from "./settingsIndex.ts";
 
 export default function SettingsSearch({
@@ -103,7 +103,7 @@ export default function SettingsSearch({
               >
                 <span className="s-smodal__resultname" dir="auto">{hit.label}</span>
                 <span className="s-smodal__resultwhere">
-                  {tabName(hit.entry.tab)}
+                  {hitPlace(hit.entry, tabName)}
                   {hit.entry.env !== undefined && (
                     // The variable, in the row it belongs to — the operator's
                     // half of this search.

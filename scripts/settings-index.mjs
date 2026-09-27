@@ -1,12 +1,13 @@
 // Derive the settings index from the panel's own source.
 //
 // Shared by `scripts/check-settings.mjs` (which asserts the checked-in index
-// still matches) and by the generator that writes it. It is a SOURCE parse, not
-// an import: the panel is React with store closures in it, and a gate that
-// needs a browser is a gate nobody runs — the same reason check-i18n reads the
-// dictionary files as text.
+// still matches), by the generator that writes it and by `check-docs` (which
+// reads the group headings a "Settings → A → B" path may name). It is a
+// SOURCE parse, not an import: the panel is React with store closures in it,
+// and a gate that needs a browser is a gate nobody runs — the same reason
+// check-i18n reads the dictionary files as text.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -15,28 +16,46 @@ const read = (p) => readFileSync(root + p, "utf8");
 /** The tab switch (client/components/settings/TabBody.tsx): one line per tab
  *  body, `{tab === "site" && <SiteTab />}`, in the order a reader meets them.
  *
- *  A line may also say WHICH KIND OF VAULT it is drawn in. Since 3.22.2 the
- *  panel has two Backup & sync tabs and two fewer tabs on a phone: a pocket
- *  vault is a repository cloned onto a device, with no public site to publish
- *  to and no server-side repository to point at a remote, so `{tab ===
- *  "publishing" && !pocket && <PublishingTab />}` and `{tab === "sync" &&
- *  pocket && …<PocketSyncPanel />…}` are both real render conditions in the
- *  source. The mode is read off that condition rather than out of a second
- *  list somebody has to remember to update — the same bargain the whole index
- *  strikes with the panel. A row with no mode is drawn in both kinds of vault,
- *  which is nearly all of them.
+ *  A line may say WHICH KIND OF VAULT it is drawn in — `{tab === "ask" &&
+ *  !pocket && <AskTab />}` — and the mode is read off that condition rather
+ *  than out of a second list somebody has to remember to update. A row with
+ *  no mode is drawn in both kinds of vault, which is nearly all of them.
  *
- *  SINCE 3.27.0 EACH BODY IS A FILE (the panel was 5,190 lines and the phone
- *  shell hosts the same bodies as pushed screens), so a line names the
- *  COMPONENT and the rows are read out of that component's file. */
+ *  INSIDE a tab's file (the settings purge) four more things are read, each
+ *  a tag on a line of its own:
+ *    · `<InstanceOnly>` … `</InstanceOnly>` and `<PocketOnly>` … — the kind of
+ *      vault the rows between them are drawn in (settings/Fold.tsx);
+ *    · `<Advanced tab="…">` … `</Advanced>` — rows behind the section's
+ *      Advanced line, which the index marks `adv: true`;
+ *    · `<Part label={t("…")} …>` — a control folded into the row above it
+ *      (the audit's MERGE), indexed as its own entry with `row:` naming its
+ *      host, so a search still finds it and lands on it;
+ *    · `<SomethingRows />` or `<SomethingRow />` — a component in its own
+ *      file under settings/ whose rows are read IN PLACE, inheriting the
+ *      mode and the Advanced flag around it (the travel row, the pocket's
+ *      sync rows). */
 const SETTINGS_DIR = "client/components/settings/";
-/** A component a tab line renders → the file its rows are written in. */
-const FILE_OF = { PocketSyncPanel: "PocketSync.tsx" };
-/** Row-bearing components a tab body mounts inside itself, appended after
- *  the body's own rows in the order a reader meets them. The travel row is
- *  mounted at the end of the sync tab (`<TravelRow />`); it reports what an
- *  instance's data directory has mirrored into the vault. */
-const NESTED = { SyncTab: ["TravelRow"] };
+/** A component a line renders → the file its rows are written in, when the
+ *  two names differ. */
+const FILE_OF = { PocketSyncRows: "PocketSync.tsx" };
+
+function fileOf(comp) {
+  const file = SETTINGS_DIR + (FILE_OF[comp] ?? `${comp}.tsx`);
+  return existsSync(root + file) ? file : null;
+}
+
+/** Every file a tab body reads rows from, nested components included. */
+function nestedFiles(file, seen = new Set()) {
+  if (seen.has(file)) return [];
+  seen.add(file);
+  const out = [file];
+  for (const line of read(file).split("\n")) {
+    const inline = /^\s*(?:\{[^}]*&&\s*)?<([A-Z][A-Za-z]*Rows?)\b[^>]*\/>/.exec(line);
+    const nested = inline && fileOf(inline[1]);
+    if (nested) out.push(...nestedFiles(nested, seen));
+  }
+  return out;
+}
 
 /** Every tab body the switch renders: its tab, its mode and its files. */
 export function tabSources() {
@@ -47,47 +66,109 @@ export function tabSources() {
     const mode = m[2] === undefined ? null : m[2] === "!" ? "instance" : "pocket";
     const comp = /<([A-Z][A-Za-z]+)/.exec(line.slice(m.index + m[0].length))?.[1];
     if (!comp) throw new Error(`settings-index: no component on the ${m[1]} line of TabBody.tsx`);
-    const files = [FILE_OF[comp] ?? `${comp}.tsx`, ...(NESTED[comp] ?? []).map((c) => FILE_OF[c] ?? `${c}.tsx`)];
-    out.push({ tab: m[1], mode, files: files.map((f) => SETTINGS_DIR + f) });
+    const file = fileOf(comp);
+    if (!file) throw new Error(`settings-index: ${comp} (the ${m[1]} tab) has no file under ${SETTINGS_DIR}`);
+    out.push({ tab: m[1], mode, files: nestedFiles(file) });
   }
   return out;
 }
 
-function rowsIn(lines, from, to, tab, mode = null) {
-  const out = [];
-  let pending = null;
-  for (let i = from; i < to; i++) {
-    const line = lines[i];
+/** Read one file's rows (and group headings) in reading order. */
+function parseFile(file, ctx, rows, groups, seen) {
+  if (seen.has(file)) return;
+  seen.add(file);
+  const modes = [ctx.mode];
+  let adv = ctx.adv ? 1 : 0;
+  const lines = read(file).split("\n");
+  const last = () => rows.at(-1);
+  const lastRow = () => [...rows].reverse().find((r) => r.row === undefined);
+  for (const line of lines) {
+    // A tag named in a comment ("`<InstanceOnly>` inside a section") is prose
+    // about the wrapper, not the wrapper: only a line of code opens one.
+    const code = !/^\s*(?:\/\/|\/\*|\*|\{\/\*)/.test(line);
+    if (code && /<InstanceOnly>/.test(line)) modes.push("instance");
+    if (code && /<PocketOnly>/.test(line)) modes.push("pocket");
+    if (code && /<\/(?:InstanceOnly|PocketOnly)>/.test(line)) modes.pop();
+    if (code && /<Advanced\b/.test(line)) {
+      adv += 1;
+      groups.push({ tab: ctx.tab, key: "settingsAdvanced" });
+    }
+    if (code && /<\/Advanced>/.test(line)) adv -= 1;
+    const mode = modes.at(-1) ?? null;
+
+    const sub = /s-smodal__sub"?>\{t\("(\w+)"\)\}/.exec(line);
+    if (sub) groups.push({ tab: ctx.tab, key: sub[1] });
+
+    const inline = /^\s*(?:\{[^}]*&&\s*)?<([A-Z][A-Za-z]*Rows?)\b[^>]*\/>/.exec(line);
+    const nested = inline && fileOf(inline[1]);
+    if (nested) {
+      parseFile(nested, { tab: ctx.tab, mode, adv: adv > 0 }, rows, groups, seen);
+      continue;
+    }
+
     const label = /label=\{t\("([A-Za-z0-9_]+)"\)\}/.exec(line);
     if (label) {
       // A row's own label and the CONTROL inside it usually carry the same key
       // — `<Row label={t("rowVimKeys")}><Toggle label={t("rowVimKeys")} …>` —
       // because the control needs an accessible name and the row already has
       // the right words. Two matches, one row: a repeat of the key we are
-      // already collecting is that control, not a new row.
-      if (label[1] !== pending?.label) {
-        if (pending) out.push(pending);
-        pending = { tab, label: label[1], hint: null, env: null, mode };
+      // already collecting is that control, not a new row. The same holds for
+      // a part and the control inside it, and for a host row's own control
+      // that follows one of its parts.
+      const part = /<Part\b/.test(line);
+      const host = part ? lastRow() : undefined;
+      const repeat = label[1] === last()?.label || (!part && label[1] === lastRow()?.label && last()?.row === lastRow()?.label);
+      if (!repeat) {
+        rows.push({
+          tab: ctx.tab,
+          label: label[1],
+          hint: null,
+          more: [],
+          env: null,
+          mode,
+          row: host?.label,
+          adv: adv > 0,
+        });
       }
     }
-    if (!pending) continue;
+    const entry = last();
+    if (!entry || entry.tab !== ctx.tab) continue;
     const hint = /hint=\{t\("([A-Za-z0-9_]+)"\)\}/.exec(line);
-    if (hint && pending.hint === null) pending.hint = hint[1];
+    if (hint && entry.hint === null) entry.hint = hint[1];
     const env = /name:\s*"([A-Z0-9_]+)"/.exec(line);
-    if (env && pending.env === null) pending.env = env[1];
+    if (env && entry.env === null) entry.env = env[1];
+    const more = /more=\{(\[?\s*t\("[A-Za-z0-9_]+"\)(?:\s*,\s*t\("[A-Za-z0-9_]+"\))*\s*\]?)\}/.exec(line);
+    if (more && entry.more.length === 0) entry.more = [...more[1].matchAll(/t\("([A-Za-z0-9_]+)"\)/g)].map((m) => m[1]);
   }
-  if (pending) out.push(pending);
-  return out;
 }
 
-/** Every row the panel renders, in the order a reader meets them. */
-export function settingsRows() {
+/** Every row and group heading the panel renders, in the order a reader
+ *  meets them. */
+export function parseSettings() {
   const rows = [];
+  const groups = [];
   for (const { tab, mode, files } of tabSources()) {
-    for (const file of files) {
-      const lines = read(file).split("\n");
-      rows.push(...rowsIn(lines, 0, lines.length, tab, mode));
-    }
+    parseFile(files[0], { tab, mode, adv: false }, rows, groups, new Set());
   }
-  return rows;
+  return { rows, groups };
+}
+
+/** Every row the panel renders (parts included), in reading order. */
+export function settingsRows() {
+  return parseSettings().rows;
+}
+
+/** One index entry as the checked-in file writes it — the generator writes
+ *  exactly this and `check-settings` compares exactly this. */
+export function entryLine(r) {
+  return (
+    `  { tab: "${r.tab}", label: "${r.label}"` +
+    (r.hint ? `, hint: "${r.hint}"` : "") +
+    (r.more && r.more.length > 0 ? `, more: [${r.more.map((k) => `"${k}"`).join(", ")}]` : "") +
+    (r.env ? `, env: "${r.env}"` : "") +
+    (r.mode ? `, mode: "${r.mode}"` : "") +
+    (r.row ? `, row: "${r.row}"` : "") +
+    (r.adv ? ", adv: true" : "") +
+    " },"
+  );
 }

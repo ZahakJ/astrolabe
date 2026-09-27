@@ -11,7 +11,7 @@ import { IS_DESKTOP } from "../../desktop/bridge.ts";
 import { SETTINGS_INDEX, type SettingEntry } from "./settingsIndex.ts";
 import { foldTerm } from "../../../shared/fold.ts";
 
-/** Rows that exist only where there is an app around the page (DeviceTab's
+/** Rows that exist only where there is an app around the page (About's
  *  "This app" group). The index is generated from the panel's source and
  *  cannot know which rows a browser will not draw; a hit that scrolls to
  *  nothing is the failure this module exists to prevent, so these are named
@@ -33,6 +33,16 @@ function fold(text: string): string {
 export interface SettingHit {
   entry: SettingEntry;
   label: string;
+}
+
+/** Where a hit lives, for its second line: the section, and — when the row
+ *  is behind the section's Advanced line, or is a part folded into another
+ *  row — which. "Writing · Advanced", "Your site · Fediverse". */
+export function hitPlace(entry: SettingEntry, sectionName: (id: string) => string): string {
+  const parts = [sectionName(entry.tab)];
+  if (entry.row !== undefined) parts.push(t(entry.row));
+  else if (entry.adv === true) parts.push(t("settingsAdvanced"));
+  return parts.join(" · ");
 }
 
 /** A WORD-START match, not a substring. `includes` answered "graph" with Text
@@ -73,14 +83,19 @@ export function searchSettings(
     const label = t(entry.label);
     const hint = entry.hint === undefined ? "" : t(entry.hint);
     const env = entry.env ?? "";
+    // The paragraph behind the ⓘ is searched too (the settings purge): the
+    // word a reader types — "Mastodon", "bookmarklet", "accents" — is often
+    // in the reference text and nowhere in the label or the one-line hint.
+    const more = (entry.more ?? []).map((k) => t(k)).join(" ");
     const inLabel = matches(fold(label), q);
     const inEnv = matches(fold(env), q);
     const inHint = matches(fold(hint), q);
-    if (!inLabel && !inEnv && !inHint) continue;
+    const inMore = more !== "" && matches(fold(more), q);
+    if (!inLabel && !inEnv && !inHint && !inMore) continue;
     // A label match is what the reader meant; a help match is a hint that they
     // are close. Ranking rather than filtering, because the help sentence is
     // often where the WORD they are searching for actually lives.
-    hits.push({ hit: { entry, label }, rank: inLabel ? 0 : inEnv ? 1 : 2 });
+    hits.push({ hit: { entry, label }, rank: inLabel ? 0 : inEnv ? 1 : inHint ? 2 : 3 });
   }
   return hits.sort((a, b) => a.rank - b.rank).map((h) => h.hit);
 }

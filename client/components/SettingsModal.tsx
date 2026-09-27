@@ -1,31 +1,31 @@
-// The settings panel (admin): eight tabs over ASTROLABE_DATA/settings.json,
-// read and written through GET/PATCH /api/settings.
+// The settings panel (admin): nine sections over ASTROLABE_DATA/settings.json
+// and this browser's own preferences, read and written through GET/PATCH
+// /api/settings and localStorage.
 //
-// ONE TAB IS NOT ABOUT THE SITE AT ALL, and saying so out loud is what this
-// round was for. "This device" (settings/DeviceTab.tsx) holds the preferences
-// that live in localStorage and commit on click — your theme, your editor
-// language, the sidebar's edge, vim, the floating toolbar, reading-view
-// numbering. Every other tab is a form under one Save button. The two used to
-// be interleaved, two rows apart, in one visual rank.
+// THE SECTIONS ARE BY INTENT (the settings purge): Appearance, Language &
+// dates, Writing, Reading & speech, Your site, Collections, Backup & sync,
+// Ask, About — see settings/tabs.ts, and scratchpad/settings-purge/audit.md
+// for where each of the 110 rows it started from went and why.
 //
-// The rest is the ordinary shape: two-column label/control rows, a label that
-// SAYS what its control decides in five words or fewer, and one sentence of
-// help under it — never a paragraph. Text fields left empty inherit the env
-// default (shown as the placeholder); a filled field overrides it, and the ⓘ
-// beside such a label opens the variable's own line, ready to copy. Typography,
-// Backup and the localisation rows have no "inherit" state at all — none of
-// them has an env counterpart — so their controls always show the value in
-// force. Saving PATCHes only the keys that changed, then refreshes /api/me so
-// the wordmark, layout, theme default, fonts and favicon apply live — no
-// reload.
+// TWO KINDS OF ROW, ONE ANATOMY. A row the reader's browser keeps (the theme,
+// the reader's language, Vim) saves itself on click and wears a small "This
+// device" mark beside its label; every other row is a form value, and the
+// Save bar at the foot appears the moment one of them changes and speaks for
+// all of them. Every row is a label, one sentence of help under it, and its
+// control; a ⓘ beside the label opens a folded paragraph under the row (the
+// environment variable's line, or reference text); a section opens with one
+// sentence and may end with an Advanced line that names what it holds.
+// Text fields left empty inherit the env default (shown as the placeholder).
+// Saving PATCHes only the keys that changed, then refreshes /api/me so the
+// wordmark, layout, theme default, fonts and favicon apply live — no reload.
 //
 // THE PANEL IS A HOST (3.27.0). The form, its rules and its Save live in
-// settings/useSettingsForm.ts; each tab's rows in settings/<Tab>Tab.tsx,
+// settings/useSettingsForm.ts; each section's rows in settings/<Tab>Tab.tsx,
 // chosen by one switch (settings/TabBody.tsx). What stays here is the
-// DIALOG: the rail, the search above it, the footer, the picker stacked on
+// DIALOG: the rail, the search above it, the Save bar, the picker stacked on
 // top, and the exits that ask before discarding. The phone shell hosts the
-// same form and the same tab bodies as pushed screens (client/phone/screens/
-// SettingsScreen.tsx) — which is why they had to come out of this file.
+// same form and the same section bodies as pushed screens (client/phone/
+// screens/SettingsScreen.tsx), in the same order under the same names.
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 // Aliased: the panel also installs a window keydown listener, and React's
 // KeyboardEvent would shadow the DOM one that listener is typed with.
@@ -50,7 +50,7 @@ export default function SettingsModal() {
   const settingsFocus = useStore((s) => s.settingsFocus);
   useStore((s) => s.language); // re-render the chrome strings on language change
   const settings = useSettingsForm();
-  const { pocket, form, eff, inh, loadError, saving, patch, dirty, valid, save, picker, setPicker, setForm, dirtyRef } = settings;
+  const { pocket, form, eff, inh, loadError, saving, patch, dirty, valid, save, discard, picker, setPicker, setForm, dirtyRef } = settings;
   const ctx = loadedCtx(settings);
   /** The panel is gone. Only `requestClose` below may call this from an exit
    *  path a reader takes; this is the half that runs once the question of
@@ -106,9 +106,9 @@ export default function SettingsModal() {
 
   const bodyRef = useRef<HTMLDivElement>(null);
   const railRef = useRef<HTMLElement>(null);
-  /** The tab the panel last showed, on this device. A panel that always
-   *  reopens on This device sends a reader who is tuning Backup & sync back
-   *  through the rail on every visit; the tab is the panel's one piece of
+  /** The section the panel last showed, on this device. A panel that always
+   *  reopens on the first section sends a reader who is tuning Backup & sync
+   *  back through the rail on every visit; it is the panel's one piece of
    *  per-device state and it is cheap to keep. */
   const [tab, setTab] = useState(rememberedTab);
   /** THE BODY'S SCROLL EDGES ARE A MASK, NOT AN OVERLAY.
@@ -145,10 +145,10 @@ export default function SettingsModal() {
    *  answer on its own. */
   const visibleTabs = useMemo(() => (pocket ? TABS.filter((s) => !POCKET_HIDDEN_TABS.has(s.id)) : TABS), [pocket]);
 
-  /** The panel remembers the last tab per device, and a phone that opened an
-   *  instance yesterday and a pocket vault today remembers one that is not
-   *  here. The first tab — This device, which every vault has — is the answer,
-   *  and it is taken before a single row renders. */
+  /** The panel remembers the last section per device, and a phone that
+   *  opened an instance yesterday and a pocket vault today remembers one that
+   *  is not here. The first — Appearance, which every vault has — is the
+   *  answer, and it is taken before a single row renders. */
   useEffect(() => {
     if (!visibleTabs.some((s) => s.id === tab)) goToTab(visibleTabs[0].id);
   }, [visibleTabs, tab, goToTab]);
@@ -157,7 +157,7 @@ export default function SettingsModal() {
    *  without marking it leaves the reader looking at a list and guessing which
    *  one answered. Shared by the panel's own search and by the surfaces
    *  elsewhere in the app that point at a row (`openSettingsAt`). */
-  const reveal = useCallback((label: string) => revealRow(bodyRef.current, label), []);
+  const reveal = useCallback((label: string, host?: string) => revealRow(bodyRef.current, label, host), []);
 
   /** ↑/↓ walk the rail, the way a tab list is expected to behave; the arrow
    *  keys never leave the rail, and Home/End jump to its ends. */
@@ -193,7 +193,7 @@ export default function SettingsModal() {
     useStore.setState({ settingsFocus: null });
     if (entry === undefined) return;
     goToTab(entry.tab);
-    reveal(t(entry.label));
+    reveal(t(entry.label), entry.row === undefined ? undefined : t(entry.row));
   }, [settingsFocus, form, goToTab, reveal]);
 
   // Esc closes — the picker first when it is open (capture phase, so the
@@ -262,9 +262,9 @@ export default function SettingsModal() {
         {ctx && (
           <SettingsContext.Provider value={ctx}>
           <div className="s-smodal__cols">
-            {/* Six tabs, not six anchors: the rail switches what the panel
-                is showing, and it is sticky so the whole map stays on screen
-                while a tab scrolls. */}
+            {/* Sections, not anchors: the rail switches what the panel is
+                showing, and it is sticky so the whole map stays on screen
+                while a section scrolls. */}
             <div className="s-smodal__railwrap">
             {/* SEARCH SITS ABOVE THE RAIL, not inside the body: it searches
                 every tab, so putting it in one of them would say it searched
@@ -278,8 +278,9 @@ export default function SettingsModal() {
               onGo={(entry, label) => {
                 goToTab(entry.tab);
                 // After the tab has painted: find the row by the label it
-                // stamped (settings/Row.tsx).
-                reveal(label);
+                // stamped (settings/Row.tsx) — or, for a part not drawn right
+                // now, the row it folds into.
+                reveal(label, entry.row === undefined ? undefined : t(entry.row));
               }}
             />
             <nav
@@ -323,7 +324,7 @@ export default function SettingsModal() {
               >
                 {/* Every tab opens the same way: its name, then one sentence
                     saying what it decides. */}
-                <div className="s-smodal__group s-smodal__tabhead">{t(TABS.find((s) => s.id === tab)?.key ?? "tabDevice")}</div>
+                <div className="s-smodal__group s-smodal__tabhead">{t(TABS.find((s) => s.id === tab)?.key ?? "tabAppearance")}</div>
                 <p className="s-smodal__note">{t(tabIntro(tab, pocket))}</p>
                 <TabBody tab={tab} />
               </div>
@@ -332,35 +333,28 @@ export default function SettingsModal() {
           </SettingsContext.Provider>
         )}
 
-        {/* The footer belongs to the SERVER tabs. On This device every row
-            commits on click, so a footer reading "Unsaved changes" with a live
-            Save button under it was the panel's two-kinds-of-row confusion
-            drawn one more time, on the one tab built to end it. The edits it
-            speaks for survive the tab switch; the buttons come back with the
-            next tab. */}
-        {tab !== "device" && (
-        <div className="s-smodal__foot">
-          {/* "Unsaved changes" / "Fix the marked fields" / "Saving…" is the
-              panel's only status text — it has to be spoken, not just shown. */}
-          <span className="s-smodal__dirty" role="status">
-            {saving
-              ? t(patch.fonts ? "fontFetching" : "saving")
-              : dirty
-                ? t(valid ? "unsavedChanges" : "fixMarkedFields")
-                : ""}
-          </span>
-          <button type="button" className="s-btn" onClick={requestClose}>
-            {t("close")}
-          </button>
-          <button
-            type="button"
-            className="s-btn s-btn--accent"
-            disabled={!dirty || !valid || saving}
-            onClick={save}
-          >
-            {t("save")}
-          </button>
-        </div>
+        {/* THE SAVE BAR APPEARS ONLY WHEN THERE IS SOMETHING TO SAVE. It used
+            to stand under every server tab with a disabled Save and a Close
+            beside the header's ×, and to vanish on This device — a bar whose
+            presence depended on which tab was open rather than on whether
+            anything had changed. Now it rises when a form value changes, on
+            any section (the edits survive a section switch), and goes when it
+            is saved or discarded. Rows marked "This device" save on click and
+            never raise it. */}
+        {(dirty || saving) && (
+          <div className="s-smodal__foot">
+            {/* "Unsaved changes" / "Fix the marked fields" / "Saving…" is the
+                panel's only status text — it has to be spoken, not just shown. */}
+            <span className="s-smodal__dirty" role="status">
+              {saving ? t(patch.fonts ? "fontFetching" : "saving") : t(valid ? "unsavedChanges" : "fixMarkedFields")}
+            </span>
+            <button type="button" className="s-btn" onClick={discard} disabled={saving}>
+              {t("discardChanges")}
+            </button>
+            <button type="button" className="s-btn s-btn--accent" disabled={!dirty || !valid || saving} onClick={save}>
+              {t("save")}
+            </button>
+          </div>
         )}
 
         {picker && (
