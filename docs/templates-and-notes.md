@@ -49,7 +49,7 @@ A template is a note you use as a starting point for other notes, with placehold
 fills them in for you, using the same syntax as Obsidian's core Templates plugin, so **the templates
 in a vault you brought over work unmodified**.
 
-The folder is `Settings → Vault → Templates folder`. Leave it empty and Astrolabe finds one
+The folder is `Settings → Writing → Templates folder`. Leave it empty and Astrolabe finds one
 itself, as long as the answer is unambiguous: a folder called `Templates`, `_templates` or `قوالب`,
 with a leading ordering prefix allowed (`4 - Templates`, `04. Templates`). If there are two
 plausible candidates and neither sits at the root to settle it, the setting stays empty rather than
@@ -112,8 +112,8 @@ empty, as they always were.
 A periodic note is one note per period, named after it: a day, a week, a month or a year.
 `Ctrl/Cmd Alt D` (or *Open today's daily note* in the palette) opens today's, creating it if it is
 not there yet; **This week's note**, **This month's note** and **This year's note** do the same
-for their periods. Where they live and what they are called are settings, in Settings → Vault
-under *Periodic notes* — one folder the four kinds share, and a name and a template for each:
+for their periods. Where they live and what they are called are settings, in Settings → Writing
+under *New notes* — one folder the four kinds share, and a name and a template for each:
 
 | Kind | Default name | Default template | Notes |
 | --- | --- | --- | --- |
@@ -160,7 +160,7 @@ stamp, for the idea that has no title yet and must not wait for one. **New uniqu
 palette makes it and opens it with the caret in the body, asking nothing; the template for new
 notes applies as it does to any new note (and a `{{cursor}}` in it is honoured). Two ideas in one
 minute do happen: the second takes the next free name (`202609151042 2`). Where it lives and what
-it is called are settings, in Settings → Vault beside the daily rows:
+it is called are settings, in Settings → Writing beside the daily rows:
 
 | Setting | Default | Notes |
 | --- | --- | --- |

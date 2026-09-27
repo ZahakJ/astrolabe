@@ -67,7 +67,7 @@ comment explaining it. The table below is the short version.
 | `DEFAULT_THEME` | The theme a visitor sees before choosing one: any of the forty-six built-in themes, `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`. Unset means `follow`: visitors get whichever theme *you* are editing in. Case does not matter; an unknown name is ignored with one line on stderr |
 | `EXCLUDE_TAGS` | Comma-separated tags to hide from the public site's topic lists and tag pills — typically workflow tags like `draft,seedling`. Case does not matter and a leading `#` is fine. The admin's own views are not affected |
 | `PUBLIC_LAYOUT` | What a visitor sees: `blog` for a classic blog layout (see [Blog mode](blog-mode.md)), `designed` for a home page you compose yourself (see [Designer](designer.md)), anything else for `app`, the read-only app (the default) |
-| `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → This device → *Editor language* |
+| `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → Language & dates → *Your language* |
 | `BLOG_LOCALE` | A language-and-region code (a BCP47 tag like `ar-EG` or `en-GB`) that decides the digits in post dates and the RSS feed's language (default: follows `SITE_LANG`). Month names follow the interface language when the visitor language switch is on |
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default, show all) · `follow` (each reader sees their own language) · `ar` · `en`. The old values `true` and `false` still work — see [Language filter](arabic-and-rtl.md#language-filter) |
 | `ATTACHMENTS_DIR` | The vault folder that uploads from inside the app are saved into (default `Attachments`, or `مرفقات` on an Arabic site; an existing `attachments` folder is kept). It is created when first needed. The **Attachments** setting can send uploads elsewhere entirely — see [Attachments](#attachments) |
@@ -92,58 +92,83 @@ you run the app behind a proxy, a matching limit there is a sensible extra layer
 
 Most of the site-identity keys above can also be changed **at runtime, from the app** — no
 `.env` edit, no restart. As admin, open **Settings** (the gear in the top cluster, or the
-command palette): a panel with eight tabs, each opening with its name and one sentence saying
-what it decides. The first tab is yours; the rest are the site's and share one **Save** button.
+command palette): nine sections, named for what you came to do rather than for where a value
+is stored, each opening with its name and one sentence saying what it decides. A search box
+above them finds any row by its name, its one-line help, the paragraph behind its ⓘ or its
+environment variable, and takes you to it wherever it lives.
 
-- **This device** — preferences kept in this browser, each saving itself on click: your own
-  theme and the two eye-comfort sliders, your **editor language** (*Follow site* / English /
-  العربية — never what visitors get) and which edge the **notes sidebar** sits on; under
-  *Reading & writing*, the writing column, vim keys, relative line numbers, the floating toolbar,
-  numbered headings and **Auto-correct French** (see
-  [the editor](editor.md#french-corrected-as-you-type)); under *This browser*, the what's-new
-  deck, the offline copy and whether
-  settings travel with the vault; and, in the desktop app only, *This app* — its name, its icon,
-  a launcher entry and **Software updates** (see [the desktop app](desktop.md#updates)).
-- **Site** — what the site is called and looks like: name, tagline, footer line, a **logo**
-  image (replaces the text wordmark in the sidebar and the blog masthead), a **favicon** (served
-  at `/favicon.ico` with its real content type and injected into every page's `<link
-  rel="icon">`), the **default theme** visitors arrive on, and the four font slots (text /
-  interface / code / Arabic script) over a curated, self-hosted catalog *or* faces you upload
-  yourself, with a live specimen that stays on screen while you choose. See
-  [Typography](typography.md).
-- **Language & dates** — the **site language** (English / العربية — what visitors read it in),
-  the date locale, the language filter and the optional **visitor switch**; the **browser
-  dictionaries** (which languages this browser can spellcheck, so a French or Arabic line is
-  checked as its own language rather than underlined against English); the **date calendar**
-  (Gregorian / Hijri / both, with a live specimen of today); the **note layout** pair (text
-  direction and alignment for note prose, which any note may override from its own
-  frontmatter); the empty properties card; and the **tag labels** table — display names for
-  canonical tags, for a front end that should read «برمجيات» over a vault that keeps
-  `#software`. See [Hijri dates](arabic-and-rtl.md#hijri-dates),
-  [Note direction & alignment](arabic-and-rtl.md#note-direction--alignment) and
-  [Localised tag labels](arabic-and-rtl.md#localised-tag-labels).
-- **Publishing & comments** — public layout (`app` / `blog` / `designed`), the designer,
-  excluded tags, the comments and share-button toggles, the ambient masthead, author sites, and
-  the home page visitors land on at `/`: classic `note` mode with a chosen home note, or the
-  `dashboard` magazine layout, plus an optional hero banner. The home rows are read by the `blog`
-  and `designed` layouts only, so with `Public layout: app` the panel greys them and says so — an
-  app-layout instance opens the home note at `/`.
-- **Collections** — how the public site groups notes: whether categories come from tags or from
-  folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
-  [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
-- **Vault** — where this instance writes things: the templates folder and the template for new
-  notes, the hadith corpus folder (the notes that answer `> [!hadith]` callouts — see
-  [Ayah and hadith callouts](arabic-and-rtl.md#ayah-and-hadith-callouts)), the [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the
-  four kinds share, and a name and a template each for the day, the week, the month and the
-  year), the [unique note](templates-and-notes.md#unique-notes)'s folder and name, the drawings
-  folder, **Open on launch** (where the app opens — where you left off, the Sigils page, the Orbits
-  shelf, today's note, or a note of your choosing — on top of the restored session, and never over
-  a pasted link), the [capture inbox and the clipper](capture.md), **where new attachments are
-  written** (see [Attachments](#attachments)), the tags folder, note versions and PDF search.
-- **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
-  on a timer. Off until you turn it on. See [Backup & sync](backup-and-sync.md).
-- **About** — the version, the Node version, the vault's counts, and the absolute paths of the
-  vault, the data directory, `settings.json` and the uploaded-fonts folder.
+**Two kinds of row, one look.** Every row is a label, one sentence under it, and its control. A
+row marked **This device** is kept in this browser and saves itself the moment you choose; every
+other row is the site's, and a **Save** bar rises at the foot of the panel as soon as one of them
+changes (with **Discard** beside it), and goes when you save. A **ⓘ** beside a label opens a
+paragraph under the row: the environment variable behind it, ready to copy, or reference text
+such as a template's placeholders. A section may end with an **Advanced** line naming the rows
+it holds — the ones set once, if ever — which opens in place.
+
+1. **Appearance** — how the app looks to you, and the type every reader sees: **your theme**
+   and the two eye-comfort sliders (see [Theming](theming.md)), which edge the **notes
+   sidebar** sits on, and the **writing column**'s width (each marked *This device*); the
+   **note layout** pair — text direction and alignment for note prose, which any note may
+   override from its own frontmatter (see
+   [Note direction & alignment](arabic-and-rtl.md#note-direction--alignment)); and
+   **Typography**: the four font slots (reading text / interface / code / Arabic face) over a
+   curated, self-hosted catalog *or* faces you upload yourself, with a live specimen that stays
+   on screen while you choose (see [Typography](typography.md)).
+2. **Language & dates** — **your language** (*Follow site* / English / العربية — the app's own
+   words for you on this device, never what visitors get) beside the **site language** (what
+   visitors read it in); the **browser dictionaries** (which languages this browser can
+   spellcheck, so a French or Arabic line is checked as its own language rather than underlined
+   against English); the **date calendar** (Gregorian / Hijri / both, with a live specimen of
+   today, and with *Both* which one leads and the mark between them — see
+   [Hijri dates](arabic-and-rtl.md#hijri-dates)); *For visitors*: the **language filter** and
+   the optional **visitor switch**; and under *Advanced*, the date locale.
+3. **Writing** — **Open on launch** (where the app opens — where you left off, the Sigils page,
+   the Orbits shelf, today's note, or a note of your choosing — on top of the restored session,
+   and never over a pasted link), the formatting toolbar, **Auto-correct French** (see
+   [the editor](editor.md#french-corrected-as-you-type)) and the empty properties card; *New
+   notes*: the templates folder and the template for new notes, the
+   [periodic notes](templates-and-notes.md#periodic-notes) (one row: the folder the four kinds
+   share, and a name and a template each for the day, the week, the month and the year) and the
+   [unique note](templates-and-notes.md#unique-notes)'s folder and name; *Capture*: the
+   [capture inbox and the clipper](capture.md); *Files & tags*: **where new attachments are
+   written** (see [Attachments](#attachments)), the tags folder and the **tag labels** table —
+   display names for canonical tags, for a front end that should read «برمجيات» over a vault
+   that keeps `#software` (see [Localised tag labels](arabic-and-rtl.md#localised-tag-labels));
+   and under *Advanced*, Vim keys (with relative line numbers) and the drawings folder.
+4. **Reading & speech** — numbered headings in the reading view, the offline copy, **search
+   inside books** (PDF search) and [feeds](feeds.md); *Listening*: [Read aloud](read-aloud.md)
+   and whether your blog's readers may listen; *Voice notes*: the transcription language, the
+   model and where it runs, and whether recordings are kept (see [Capture](capture.md)); and
+   under *Advanced*, your own voices and the hadith corpus folder (the notes that answer
+   `> [!hadith]` callouts — see
+   [Ayah and hadith callouts](arabic-and-rtl.md#ayah-and-hadith-callouts)).
+5. **Your site** — what visitors see and who may answer: name, tagline, a **logo** image
+   (replaces the text wordmark in the sidebar and the blog masthead), a **favicon** (served at
+   `/favicon.ico` with its real content type and injected into every page's `<link
+   rel="icon">`), the **default theme** visitors arrive on and the ambient masthead; *Publishing*:
+   public layout (`app` / `blog` / `designed`, with the door to the [designer](designer.md) under
+   it), share buttons and external video; *Home page*: classic `note` mode with a chosen home
+   note, or the `dashboard` magazine layout, plus an optional hero banner (read by the `blog` and
+   `designed` layouts only, so with `Public layout: app` the panel greys them and says so);
+   *Conversation*: comments, [webmentions and the fediverse](webmentions.md); and under
+   *Advanced*, the footer line, excluded tags and your other sites.
+6. **Collections** — how the public site groups notes: whether categories come from tags or from
+   folders, your own hand-made **collections** and where they sit, and the **library** shelf. See
+   [Blog mode](blog-mode.md#custom-public-folders) and [The library](library.md).
+7. **Backup & sync** — commit the vault and push it to a private git remote you own, manually or
+   on a timer (off until you turn it on); *Versions*: keep a copy of each note before every save;
+   *Across machines*: what the vault's `.astrolabe/` folder carries, and whether this browser's
+   preferences travel with it; and under *Advanced*, the branch and pull-first. See
+   [Backup & sync](backup-and-sync.md).
+8. **Ask** — which models read the notes and answer about them, with the embedding model and the
+   passages per answer under *Advanced*. See [Ask the vault](ask.md).
+9. **About** — *This app*: the what's-new deck and, in the desktop app only, its name, its icon,
+   a launcher entry and **Software updates** (see [the desktop app](desktop.md#updates)); then
+   the version, the Node version, the vault's counts, and the absolute paths of the vault, the
+   data directory, `settings.json` and the uploaded-fonts folder.
+
+A **pocket vault** (a GitHub repository opened on the Android app) shows seven: Collections and
+Ask need a server, and the rows it cannot keep are drawn greyed, with one line saying why.
 
 Image fields reuse the banner machinery: pick from the vault's attachments or upload right
 there (drag & drop; bytes are sniffed; lands wherever the [Attachments](#attachments) setting
@@ -154,8 +179,8 @@ points).
 An *attachment* is any file you put into the vault that is not a note — a picture, a PDF, an
 audio clip. **Where new attachments go** is a setting, named the same way Obsidian names it
 (*Default location for new attachments*), so a vault that moved from Obsidian behaves the way
-its owner already expects. It lives in the **Vault** tab, beside the templates and drawings
-folders.
+its owner already expects. It lives in **Settings → Writing → New attachments**, beside the
+templates folder and the tags folder.
 
 | Mode | An upload lands in |
 | --- | --- |
@@ -218,7 +243,7 @@ inside the field. The reason: a native `<select>` opens a window drawn by the op
 which no theme can style and no panel can keep inside its bounds — exactly what a font list of
 twenty-seven faces must not do.
 
-**On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of its sections — More → **Settings** — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the section any other way with changes unsaved asks first. **This device** has no bar: it saves each choice as you make it.
+**On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of the same nine sections, in the same order and under the same names — More → **Settings** — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the section any other way with changes unsaved asks first. A row marked **This device** saves itself as you choose and never raises the bar.
 
 ## Settings keys
 
@@ -238,10 +263,10 @@ above.
 | `language` | `en` · `ar` | `SITE_LANG`, else `en` |
 | `languageFilter` | `off` · `follow` · `ar` · `en` | `LANGUAGE_FILTER`, else `off` |
 | `languageToggle` | boolean — the public `EN`/`ع` switch. **No env counterpart** | `false` |
-| `topics` | `tags` · `folders` — where the public site's categories come from (the Collections tab) | `tags` |
+| `topics` | `tags` · `folders` — where the public site's categories come from (Settings → Collections) | `tags` |
 | `excludeTags` | array of strings, ≤ 200 entries, ≤ 50 chars each | `EXCLUDE_TAGS`, else empty |
 | `commentsEnabled` | boolean | `COMMENTS`, else `false` |
-| `noteVersions` | boolean — keep a version of every note before each save (Vault tab) | `NOTE_VERSIONS`, else `true` |
+| `noteVersions` | boolean — keep a version of every note before each save (Settings → Backup & sync) | `NOTE_VERSIONS`, else `true` |
 | `shareButtons` | boolean — the share row under blog articles | `true` |
 | `authorSites` | array of `{ url }` (https); each site's title and preview image are fetched once (from its OpenGraph tags) and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |

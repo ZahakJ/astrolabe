@@ -79,10 +79,10 @@ browser cannot:
 
 ## Your own name and icon
 
-"Astrolabe" is one person's name for it. **Settings → This device → This app** lets you call the
+"Astrolabe" is one person's name for it. **Settings → About → This app** lets you call the
 app whatever you like on this computer and give it your own icon. The tray, its tooltip, the
 window icon, the About box and the launcher entry all follow. The site's own name and logo are a
-separate thing, on the **Site** tab (Settings → Site), and they title the window and the sidebar. **An update never
+separate thing, under **Your site** (Settings → Your site), and they title the window and the sidebar. **An update never
 touches either**: the AppImage is replaced at its own path, so a file you renamed keeps its
 name; the Windows installer replaces the program directory and nothing else; and your name and
 icon live beside the app's settings, which no update writes.
@@ -141,7 +141,7 @@ same release again. A check you ask for by hand always answers.
    app restarts into the new version.
 
 **Help → Check for updates…** always works by hand, and says so when you are already on the
-latest. If you would rather not be told at all, **Settings → This device → Software updates**
+latest. If you would rather not be told at all, **Settings → About → Software updates**
 has two positions: *tell me* (the default) and *off*, which stops the automatic check entirely.
 The menu item still works when the check is off.
 

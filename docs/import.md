@@ -43,7 +43,7 @@ Choose the source, the export and the folder to import into (`Imported` unless y
 
 - how many notes and attachments, and the folder they go into;
 - how many links it rewrote;
-- where the attachments go: the folder your attachment setting names (Settings → Vault → New attachments), as a pasted image would;
+- where the attachments go: the folder your attachment setting names (Settings → Writing → New attachments), as a pasted image would;
 - the frontmatter it wrote or kept: properties, tags, created dates, aliases, and any `publish:` taken off;
 - **every name already taken**, and what the note becomes instead. Nothing is ever overwritten: a note whose name the vault already has, or that the export holds twice, becomes `Name 2`, and the links that pointed at it follow it;
 - where the first notes land, and what was left behind.

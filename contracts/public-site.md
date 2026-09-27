@@ -1839,7 +1839,7 @@ site with no design and no signpost to the tool, and the entire feature was behi
 guess at the word. It now also opens from:
 
 - **the status bar**, beside the gear — where an admin already goes to change what a visitor sees;
-- **Settings → Publishing & comments**, in the row directly under the layout segment. The row that
+- **Settings → Your site**, in the row directly under the layout segment. The row that
   just taught somebody the word "designed" is the row that has to hand them the tool.
 
 Both are the same `openDesigner()`; the settings door closes the settings modal first, because two
@@ -1996,7 +1996,7 @@ under `reducedMotion: "reduce"`, in RTL, at 1280×800, and on light and dark the
 
 ## Another site's video (shared/externalVideo.ts, server/index.ts `shellCsp`)
 
-- **A consent switch, default OFF.** `settings.externalVideo` (Settings → Publishing & comments →
+- **A consent switch, default OFF.** `settings.externalVideo` (Settings → Your site →
   Embed external video; `PATCH /api/settings { externalVideo: true | null }`), sent on `/api/me`
   ONLY when on and whatever the layout, since the editor draws it too. The pocket refuses it
   (`keepExternalVideo`): the Publishing tab is an instance's.

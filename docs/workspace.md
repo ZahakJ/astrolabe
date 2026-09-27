@@ -262,8 +262,8 @@ first.
 saying what it decides, and a search above them that finds any setting by name. A section is a
 screen of its own. As soon as you change something a bar rises from the bottom with **Discard** and
 **Save**; if you go back, switch door or open something else with changes unsaved, Astrolabe asks
-before throwing them away. **This device** saves each choice as you make it, as it does on the
-desktop.
+before throwing them away. A row marked **This device** saves itself as you choose, as it does on
+the desktop, and never raises the bar.
 
 **Sheets and the back gesture.** Every sheet rises from the bottom, can be dragged down to close,
 dragged up to see more, or dismissed by tapping the page behind it. The phone's back gesture — the

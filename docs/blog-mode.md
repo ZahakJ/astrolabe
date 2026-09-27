@@ -6,7 +6,7 @@
 
 ---
 
-Astrolabe can show visitors your published notes in the shape of a classic blog. Turn it on with `PUBLIC_LAYOUT=blog`, or in **Settings → Publishing & comments → Public layout → Blog**. Visitors then get:
+Astrolabe can show visitors your published notes in the shape of a classic blog. Turn it on with `PUBLIC_LAYOUT=blog`, or in **Settings → Your site → Public layout → Blog**. Visitors then get:
 
 - a **masthead** at the top of every page, carrying the site name and its tagline (`SITE_TAGLINE`);
 - a horizontal row of **topics**, one per tag;
@@ -103,7 +103,7 @@ After the reader scrolls about one screen down, a small ✦ appears in the botto
 
 ## Dashboard home
 
-Would you rather have a magazine front page than a note-style home page? Set **Settings → Publishing & comments → Home page → Mode → Dashboard**. (The settings key is `home.mode: "dashboard"`; you can also write `{ "home": { "mode": "dashboard" } }` into `ASTROLABE_DATA/settings.json` or send it through `PATCH /api/settings`, and the change is picked up live.) The front page `/` then becomes:
+Would you rather have a magazine front page than a note-style home page? Set **Settings → Your site → Home page → Mode → Dashboard**. (The settings key is `home.mode: "dashboard"`; you can also write `{ "home": { "mode": "dashboard" } }` into `ASTROLABE_DATA/settings.json` or send it through `PATCH /api/settings`, and the change is picked up live.) The front page `/` then becomes:
 
 - a full-width **hero** (a big opening block at the top of the page): the site name (or logo) and tagline over a banner image (`home.banner`, an https URL or a vault attachment; without one, a gradient generated from the site name);
 - a **grid of cards** for the latest posts, one, two or three columns depending on the width, each card with a banner thumbnail (the same generated fallback), an excerpt and tag chips;
@@ -117,7 +117,7 @@ The home rows are read by the `blog` and `designed` layouts and by nothing else.
 
 ![Blog article with comments](screenshots/blog-article.png)
 
-Each article ends with share links (Settings → Publishing & comments can turn the row off), links to the previous and next posts, a "Related" list (published notes that link to this one or that it links to), and [comments](publishing.md#comments), followed, when other sites have replied, liked or mentioned it and you approved them, by a small **Mentions** section ([Webmentions & the fediverse](webmentions.md)). The footer carries a quiet RSS link, a sign-in link and a tiny "powered by Astrolabe" credit. To hide the credit, put `.s-blog-powered { display: none }` in your [`custom.css`](theming.md#restyle-it).
+Each article ends with share links (Settings → Your site → Share buttons can turn the row off), links to the previous and next posts, a "Related" list (published notes that link to this one or that it links to), and [comments](publishing.md#comments), followed, when other sites have replied, liked or mentioned it and you approved them, by a small **Mentions** section ([Webmentions & the fediverse](webmentions.md)). The footer carries a quiet RSS link, a sign-in link and a tiny "powered by Astrolabe" credit. To hide the credit, put `.s-blog-powered { display: none }` in your [`custom.css`](theming.md#restyle-it).
 
 ## RSS, sitemap and SEO
 

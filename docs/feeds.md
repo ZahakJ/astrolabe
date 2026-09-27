@@ -12,7 +12,7 @@ It is **not** the blog's RSS. The feed your own site publishes (`/feed.xml`, see
 
 ## The list is a note
 
-The feeds you follow live in a note, `Feeds.md` at the vault root unless Settings → Vault → Feeds names another. Inside it, a `feeds` code block holds one address per line:
+The feeds you follow live in a note, `Feeds.md` at the vault root unless Settings → Reading & speech → Feeds names another. Inside it, a `feeds` code block holds one address per line:
 
 ````markdown
 # Feeds
@@ -36,7 +36,7 @@ Because the list is a note, it syncs, keeps its history and can be annotated lik
 
 ## Fetching is yours to switch on
 
-A new instance fetches **nothing**. Turn on **Fetch feeds** in Settings → Vault → Feeds, and the server starts asking. Turned off, no feed is asked for anything: the Feeds page still lists what was already fetched, and says why nothing new arrives.
+A new instance fetches **nothing**. Turn on **Fetch feeds** in Settings → Reading & speech → Feeds, and the server starts asking. Turned off, no feed is asked for anything: the Feeds page still lists what was already fetched, and says why nothing new arrives.
 
 With fetching on, the server asks every feed in the list:
 

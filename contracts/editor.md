@@ -451,7 +451,7 @@ seam between them was the defect; this is the rule that closes it.
   **Re-measured, because the box grew back.** The 3.3.1 number (273×458) stopped being true as rows
   were added, and an audit of 3.17.3 found it at 233×650 in a 900px viewport — clamped to y = 8,
   which is to say nowhere near the words it acts on. Three cuts, in the repo's own moves: the
-  "Hide the floating toolbar" row is **gone** (Settings › This device and the palette own that
+  "Hide the floating toolbar" row is **gone** (Settings › Writing and the palette own that
   preference, and a menu of verbs about the selected words is not where a menu configures itself);
   Extract, Annotate and Make a card are **one untitled group**, because they are one idea — what
   the selection becomes somewhere else — and each rule between them cost 11px; and desktop rows are
@@ -748,7 +748,7 @@ entry chunk). `![](media/clip.mp4)` (the `Image` node) is the same player with a
 - **On the caret's line it is source**, like every embed that is not a picture.
 - **`[[clip.mp4#t=1:23]]`** is a moment link (`isTimedMediaName`), seeking the film's player as it
   seeks a sound's.
-- **Another site's film.** With `store.externalVideo` on (Settings → Publishing & comments; default
+- **Another site's film.** With `store.externalVideo` on (Settings → Your site; default
   off; see public-site.md), a line that is nothing but a YouTube / Vimeo / PeerTube address
   (`externalVideoLine`), off the caret, is replaced by `ExternalVideoWidget`, and so is an
   `![](https://…)` whose URL `parseExternalVideo` accepts. The editor draws a CARD — the host's

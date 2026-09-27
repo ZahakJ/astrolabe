@@ -226,7 +226,7 @@ What keeps the store from growing without limit:
   delete is recoverable, and the versions are part of what that means. Erasing an entry for good
   from the trash browser erases its versions too — unless a live note has since taken the same
   path, in which case the history is that note's own.
-- **Off is a setting.** Settings → **Vault** → *Keep note versions*, or `NOTE_VERSIONS=off` in
+- **Off is a setting.** Settings → **Backup & sync** → *Keep note versions*, or `NOTE_VERSIONS=off` in
   `.env` as that instance's default. When it is off, the History section says so and offers the
   switch. Versions never travel: they live in `ASTROLABE_DATA`, which sync never stages, and a
   visitor cannot list, read or restore them.
@@ -342,7 +342,7 @@ asked to hold a hand-dropped 80 MB face; the row below names every file that sta
 why. The catalog families you chose (`fonts/catalog/`) are not copied — they are re-fetchable —
 and instead the receiving machine downloads them itself, at boot and whenever a newer
 `settings.json` or `designs.json` arrives, so a fresh install paints in your faces on its first
-load without anyone opening Settings → Site.
+load without anyone opening Settings → Appearance.
 
 **Settings → Backup & sync → What travels** is the mirror's own report: one glyph per item (the
 site, designs, custom CSS, fonts with their count, layouts, books, annotations, preferences with
@@ -353,7 +353,7 @@ been reconciled, a red line for every file a pass could not copy (a cap, a permi
 saves you a search on a new machine: still yours to redo are the git token or SSH key, the admin
 password and screen warmth.
 
-The settings on the **This device** tab — theme, interface and editor language, vim, the writing
+The settings marked **This device** — theme, interface and editor language, vim, the writing
 column's width, heading numbers, the formatting toolbar, which side the sidebar hangs on — are
 kept in **one file inside the vault**, `.astrolabe/prefs.json`, and every server over that folder
 reads it: the desktop app on your Linux machine, the desktop app on your Windows machine, and
@@ -367,7 +367,7 @@ anything, so a setting never arrives mid-session and moves things under you. Per
 change wins, and a setting cleared on one device clears on the next rather than coming back from
 it. What travels is what a person would call a setting. Tabs, the workspace, pane widths, the
 tags shelf's height, fold state and every collapsed flag describe *this window on this screen*,
-and stay where they are. **Settings → This device → Settings travel with the vault** switches it
+and stay where they are. **Settings → Backup & sync → Settings travel with the vault** switches it
 off for a device that should keep its own. The file is admin-only and never reaches a visitor.
 If you keep the vault in git, commit `.astrolabe/` — it is not in the
 [ignore advice](#gitignore-advice) because you want it.

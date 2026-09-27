@@ -44,7 +44,7 @@ those four words freely.
   with one line on what each does. Type to filter, use ↑/↓ and Enter to take one, or type any key of
   your own. `tags` and `aliases` are written as lists; comma-separated values become items. A note
   with no properties yet still gets the card: one line with *Add property* and *Set banner…*, so
-  every note starts from the same place (Settings → Language & dates → *Properties card on
+  every note starts from the same place (Settings → Writing → *Properties card on
   empty notes* turns that off).
   Every one of those edits **touches only its own spot**: your quote style, your comments, the
   order of your keys and every line you did not touch stay exactly as they were. Deleting the last
@@ -190,7 +190,7 @@ the block — the older keys still work: `Tab` and `Enter` walk cells, `Alt ↑ 
 If you write French, the editor quietly puts the accents back. Type `tres` and a space and it
 becomes `très`; `coeur` becomes `cœur`, `etre` becomes `être`, `Ecole` becomes `École`, `deja`
 becomes `déjà`, `ca` becomes `ça`. Nothing appears on screen to tell you: the corrected word is
-the whole message. It is on by default, and Settings → This device → **Auto-correct French**
+the whole message. It is on by default, and Settings → Writing → **Auto-correct French**
 turns it off.
 
 - **Only on lines that read as French.** A line counts as French when it has at least two
@@ -260,7 +260,7 @@ above it. The palette's **Embed a file…** does the same from the keyboard.
 | `![[clip.mp4\|poster=frame.jpg]]` | The video with `frame.jpg` (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: `\|480\|poster=frame.jpg`. |
 | `![alt](media/clip.mp4)` | The video player, by path. |
 | `![[bundle.zip]]` | A card for the file (zip, csv, txt and the rest). |
-| `https://youtu.be/…` on a line of its own | A link — or, with **Settings → Publishing & comments → Embed external video** on, that site's player (YouTube, Vimeo, PeerTube). |
+| `https://youtu.be/…` on a line of its own | A link — or, with **Settings → Your site → Embed external video** on, that site's player (YouTube, Vimeo, PeerTube). |
 | `![[sketch.excalidraw]]` | The [drawing](drawing.md), as the picture it saves beside itself. |
 | `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` | The note, one section of it, or one paragraph, as a card. |
 
@@ -317,7 +317,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   then only the file's first bytes; the server hands the rest over in pieces as you seek, so a long
   film starts at once. `[[clip.mp4#t=1:23]]` seeks it like a sound. Tab reaches the player, and the
   browser's own keys play, pause and seek it.
-- **Video from another site.** Off by default. With **Settings → Publishing & comments → Embed
+- **Video from another site.** Off by default. With **Settings → Your site → Embed
   external video** on, a YouTube, Vimeo or PeerTube address on a line of its own — or written
   `![](https://youtube.com/watch?v=…)` — becomes that site's player in the reading view and on your
   site, and a card with the video's still in the editor (press play to load the player). The frame
@@ -451,7 +451,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   measure. `Esc` (or the faint ✕) brings everything back. Every state is remembered across reloads,
   and **folding a pane never moves the note**: the column stays optically centred in the window
   whichever panes are open, with deliberate air beside a closed pane's reopen handle.
-- **Notes sidebar on either side.** Three states, in the palette and in Settings → This device →
+- **Notes sidebar on either side.** Three states, in the palette and in Settings → Appearance →
   Notes sidebar: *follow the language* (the default: left in English, right in Arabic, re-evaluated
   whenever the language changes), or pin it to the left or right edge for good.
 - **Your editor's language is yours.** Three more states in the same two places: *Editor language:
@@ -611,12 +611,12 @@ one note or folder and the path to it; *Show all* brings the rest back. Every fo
 **Collapse everything inside** and *Expand everything inside*. All of this is per browser; the vault
 on disk is never reordered.
 
-**The writing column** (Settings → This device) is the reading measure by default. *Wide* and
+**The writing column** (Settings → Appearance) is the reading measure by default. *Wide* and
 *Full width* let a table or a code-heavy note use the screen, and *Custom* takes a width of your own,
 in pixels (`900px`) or as a share of the pane (`70%`), applied as you type. The reading view follows
 the same choice.
 
-**What's new after an update** (Settings → This device, on by default). The first time this device
+**What's new after an update** (Settings → About, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release's features: one
 slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, `←`/`→` on the keyboard. It appears once per *minor* version: a
@@ -686,5 +686,5 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 (vim's `number relativenumber`). The column sits against the text, not at the window's edge, and it
 follows every caret move, not only edits. It is the only line numbering the editor has: a prose
 editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
-**Settings → This device → Relative line numbers** (under Vim keys, on by default) turns it off for
+**Settings → Writing → Relative line numbers** (under Vim keys, on by default) turns it off for
 readers who navigate by search.
