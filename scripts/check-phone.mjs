@@ -71,6 +71,7 @@ import { mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createServer } from "node:http";
 import path from "node:path";
 import { zipSync } from "../shared/zip.ts";
+import { walkSettings } from "./settings-walk.mjs";
 
 const [url = "http://localhost:8190", out = "shots"] = process.argv.slice(2);
 mkdirSync(out, { recursive: true });
@@ -1310,11 +1311,11 @@ try {
         const saved = await page.evaluate(async () => (await (await fetch("/api/settings")).json()).effective?.tagline);
         check(saved === value, tag("a Settings section saves"), `tagline is ${JSON.stringify(saved)}`);
         await back();
-        // WEBMENTIONS AND THE FEDIVERSE (docs/webmentions.md): the three
-        // switches and the handle are rows of the Publishing section on a
-        // phone too, each with its own label, and the section is measured
-        // with them in it.
-        const publishing = page.locator('.s-ph-row[data-section="publishing"]');
+        // WEBMENTIONS AND THE FEDIVERSE (docs/webmentions.md): the switches
+        // and the handle are in Your site on a phone too (the settings purge
+        // folded the Publishing tab into it), each with its own label, and
+        // the section is measured with them in it.
+        const publishing = page.locator('.s-ph-row[data-section="site"]');
         if ((await publishing.count()) > 0) {
           await press(publishing);
           await page.waitForSelector("[data-screen='settings-section'] .s-smodal__row", { timeout: 10000 }).catch(() => {});
@@ -1323,10 +1324,10 @@ try {
             [...document.querySelectorAll("[data-screen='settings-section'] .s-smodal__row")].map((r) => r.textContent ?? ""),
           );
           const want = lang === "ar"
-            ? ["استقبال إشارات الويب", "إرسال إشارات الويب", "الفيديفيرس", "الاسم في الفيديفيرس"]
-            : ["Accept webmentions", "Send webmentions", "Fediverse", "Fediverse name"];
-          check(want.every((w) => rows.some((r) => r.includes(w))), tag("Publishing holds the webmention and fediverse rows"), want.filter((w) => !rows.some((r) => r.includes(w))).join(", "));
-          check(rows.length <= 18, tag("Publishing stays at eighteen rows or fewer"), `${rows.length} rows`);
+            ? ["استقبال إشارات الويب", "إرسال إشارات الويب", "الفيديفيرس"]
+            : ["Accept webmentions", "Send webmentions", "Fediverse"];
+          check(want.every((w) => rows.some((r) => r.includes(w))), tag("Your site holds the webmention and fediverse rows"), want.filter((w) => !rows.some((r) => r.includes(w))).join(", "));
+          check(rows.length <= 18, tag("Your site stays at eighteen rows or fewer"), `${rows.length} rows`);
           await page.evaluate(() => {
             const r = [...document.querySelectorAll("[data-screen='settings-section'] .s-smodal__row")].find((x) => /webmention|إشارات الويب/.test(x.textContent ?? ""));
             r?.scrollIntoView({ block: "start" });
@@ -1335,6 +1336,28 @@ try {
           await back();
         }
         await back();
+        // EVERY SECTION, the desktop's walk (scripts/settings-walk.mjs): the
+        // list is the rail's sections in its order under its names; each one
+        // opens with its sentence, holds ≤ 18 rows and saves one change and
+        // puts it back; a hint word lands behind an Advanced line. On the
+        // Pixel only: the tablets draw the section beside the list, where
+        // Back means something else.
+        if (shape.name === "phone") {
+          await walkSettings({
+            page,
+            lang,
+            host: "phone",
+            check,
+            tag,
+            press,
+            shots: out,
+            back: () => back(700),
+            openSettings: async () => {
+              await moreRow(/^(Settings|الإعدادات)$/);
+              await page.waitForSelector("[data-screen='settings'] .s-ph-row[data-section]", { timeout: 10000 }).catch(() => {});
+            },
+          });
+        }
       }
 
       // THE PUBLIC MENTIONS SECTION (docs/webmentions.md), when this instance
