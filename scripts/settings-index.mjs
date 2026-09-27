@@ -57,6 +57,21 @@ function nestedFiles(file, seen = new Set()) {
   return out;
 }
 
+/** The pages as client/components/settings/tabs.ts lists them — id, label key
+ *  and rail group, in rail order — read as text like everything here. */
+export function pages() {
+  const src = /export const TABS: Tab\[\] = \[([\s\S]*?)\n\];/.exec(read(SETTINGS_DIR + "tabs.ts"))?.[1] ?? "";
+  const out = [...src.matchAll(/\{ id: "(\w+)", key: "(\w+)", intro: "(\w+)", group: "(\w+)"(, device: true)? \}/g)].map((m) => ({
+    id: m[1],
+    key: m[2],
+    intro: m[3],
+    group: m[4],
+    device: m[5] !== undefined,
+  }));
+  if (out.length < 10) throw new Error(`settings-index: only ${out.length} pages read out of tabs.ts — the parser is broken`);
+  return out;
+}
+
 /** Every tab body the switch renders: its tab, its mode and its files. */
 export function tabSources() {
   const out = [];
@@ -150,6 +165,8 @@ export function parseSettings() {
   for (const { tab, mode, files } of tabSources()) {
     parseFile(files[0], { tab, mode, adv: false }, rows, groups, new Set());
   }
+  const groupOf = new Map(pages().map((p) => [p.id, p.group]));
+  for (const r of rows) r.group = groupOf.get(r.tab) ?? "";
   return { rows, groups };
 }
 
@@ -162,7 +179,7 @@ export function settingsRows() {
  *  exactly this and `check-settings` compares exactly this. */
 export function entryLine(r) {
   return (
-    `  { tab: "${r.tab}", label: "${r.label}"` +
+    `  { tab: "${r.tab}", group: "${r.group}", label: "${r.label}"` +
     (r.hint ? `, hint: "${r.hint}"` : "") +
     (r.more && r.more.length > 0 ? `, more: [${r.more.map((k) => `"${k}"`).join(", ")}]` : "") +
     (r.env ? `, env: "${r.env}"` : "") +

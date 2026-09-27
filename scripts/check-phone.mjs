@@ -1312,10 +1312,10 @@ try {
         check(saved === value, tag("a Settings section saves"), `tagline is ${JSON.stringify(saved)}`);
         await back();
         // WEBMENTIONS AND THE FEDIVERSE (docs/webmentions.md): the switches
-        // and the handle are in Your site on a phone too (the settings purge
-        // folded the Publishing tab into it), each with its own label, and
-        // the section is measured with them in it.
-        const publishing = page.locator('.s-ph-row[data-section="site"]');
+        // and the handle are on Comments & mentions on a phone too (a page of
+        // its own since the second settings pass), each with its own label,
+        // and the page is measured with them in it.
+        const publishing = page.locator('.s-ph-row[data-section="conversation"]');
         if ((await publishing.count()) > 0) {
           await press(publishing);
           await page.waitForSelector("[data-screen='settings-section'] .s-smodal__row", { timeout: 10000 }).catch(() => {});
@@ -1326,8 +1326,8 @@ try {
           const want = lang === "ar"
             ? ["استقبال إشارات الويب", "إرسال إشارات الويب", "الفيديفيرس"]
             : ["Accept webmentions", "Send webmentions", "Fediverse"];
-          check(want.every((w) => rows.some((r) => r.includes(w))), tag("Your site holds the webmention and fediverse rows"), want.filter((w) => !rows.some((r) => r.includes(w))).join(", "));
-          check(rows.length <= 18, tag("Your site stays at eighteen rows or fewer"), `${rows.length} rows`);
+          check(want.every((w) => rows.some((r) => r.includes(w))), tag("Comments & mentions holds the webmention and fediverse rows"), want.filter((w) => !rows.some((r) => r.includes(w))).join(", "));
+          check(rows.length <= 10, tag("Comments & mentions stays at ten rows or fewer"), `${rows.length} rows`);
           await page.evaluate(() => {
             const r = [...document.querySelectorAll("[data-screen='settings-section'] .s-smodal__row")].find((x) => /webmention|إشارات الويب/.test(x.textContent ?? ""));
             r?.scrollIntoView({ block: "start" });

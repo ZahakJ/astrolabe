@@ -28,7 +28,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { entryLine, settingsRows, tabSources } from "./settings-index.mjs";
+import { entryLine, pages, settingsRows, tabSources } from "./settings-index.mjs";
 import { INDEX_FILE, renderIndex } from "./gen-settings-index.mjs";
 import { readLanguage } from "./dictionary.mjs";
 
@@ -39,6 +39,8 @@ const HINT_MAX_WORDS = 14;
  *  one kind of vault sees it: a pocket's Backup & sync rows and an
  *  instance's never share a screen. */
 const SECTION_MAX_ROWS = 18;
+/** Rows in sight before a page's Advanced line (contracts/settings-design.md). */
+const PAGE_MAX_IN_SIGHT = 10;
 
 const checked = readFileSync(INDEX_FILE, "utf8");
 const fromSource = settingsRows();
@@ -70,6 +72,28 @@ for (const [tab, c] of sectionCounts) {
   const n = Math.max(c.instance, c.pocket);
   if (n > SECTION_MAX_ROWS) errs.push(`  the ${tab} section holds ${n} rows (max ${SECTION_MAX_ROWS}) — demote, merge or move one`);
 }
+
+// ── Ten rows in sight a page (settings, round 2) ────────────────────────────
+// contracts/settings-design.md: a page answers one question, and past ten
+// rows in sight it is two questions or a list nobody finishes. Rows behind
+// the page's Advanced line do not count; parts never do.
+const inSight = new Map();
+for (const r of fromSource) {
+  if (r.row || r.adv) continue;
+  const c = inSight.get(r.tab) ?? { instance: 0, pocket: 0 };
+  if (r.mode !== "pocket") c.instance += 1;
+  if (r.mode !== "instance") c.pocket += 1;
+  inSight.set(r.tab, c);
+}
+for (const [tab, c] of inSight) {
+  const n = Math.max(c.instance, c.pocket);
+  if (n > PAGE_MAX_IN_SIGHT) errs.push(`  the ${tab} page shows ${n} rows before its Advanced line (max ${PAGE_MAX_IN_SIGHT}) — split the page or fold one`);
+}
+// Every page tabs.ts lists has a body in TabBody.tsx, and every body a page.
+const listed = pages().map((p) => p.id);
+const drawn = tabSources().map((s) => s.tab);
+for (const id of listed) if (!drawn.includes(id)) errs.push(`  tabs.ts lists the ${id} page, and TabBody.tsx draws no body for it`);
+for (const id of drawn) if (!listed.includes(id)) errs.push(`  TabBody.tsx draws a ${id} body that tabs.ts does not list`);
 
 // ── Hints: fourteen words ───────────────────────────────────────────────────
 // Every key the two panel files hand to `hint=`, including the ones chosen by
@@ -174,6 +198,6 @@ if (errs.length > 0) {
   process.exit(1);
 }
 const rowCount = fromSource.filter((r) => !r.row).length;
-console.log(`check-settings: ${rowCount} rows + ${fromSource.length - rowCount} parts in ${sectionCounts.size} sections (≤ ${SECTION_MAX_ROWS} each) · ${fromSource.filter((r) => r.adv && !r.row).length} behind Advanced · ${fromSource.filter((r) => r.env).length} with an env var · index matches the panel`);
+console.log(`check-settings: ${rowCount} rows + ${fromSource.length - rowCount} parts on ${sectionCounts.size} pages (≤ ${PAGE_MAX_IN_SIGHT} in sight each) · ${fromSource.filter((r) => r.adv && !r.row).length} behind Advanced · ${fromSource.filter((r) => r.env).length} with an env var · index matches the panel`);
 console.log(`check-settings: ${hintsChecked} hints ≤ ${HINT_MAX_WORDS} words · ${READ_SELECTORS.length} read-text selectors muted · ${topics.length} doc topics resolve`);
 console.log("SETTINGS OK");

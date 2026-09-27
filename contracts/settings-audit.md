@@ -11,6 +11,14 @@ exist in the new index — as a row, or as a part folded into another row — by
 its label key, unless its verdict is **REMOVE** or **ENV-ONLY**. Edit a verdict
 here and the test follows.
 
+**Round 2 (after 3.38.0).** The purge's nine sections still read as long mixed
+lists, and the second pass broke them into eighteen short pages in four groups
+([`settings-design.md`](settings-design.md)). The last column, *Page (round 2)*,
+is where each row landed: the page id (`TABS` in `settings/tabs.ts`), and
+"› Advanced" or "part of" where that holds. The test holds the index to this
+column too — a row's page, its Advanced flag and its host — so the ledger and
+the panel cannot drift. The *New home* column is the purge's, kept as history.
+
 ## How to read a row
 
 - **Who** — how often a reader touches it: *first-day* (on the way in),
@@ -37,118 +45,118 @@ settings KEY changes (only the rows' homes move), so nothing stored migrates.
 
 ## The rows
 
-| # | Old tab | Row | What it does | Who | ⓘ | Verdict | New home |
-| - | ------- | --- | ------------ | --- | - | ------- | -------- |
-| 1 | device | `rowAppName` | Renames the desktop app (tray, window, launcher) | once | — | MOVE | About › This app |
-| 2 | device | `rowAppIcon` | Replaces the desktop app's icon | once | — | MOVE | About › This app |
-| 3 | device | `rowUpdates` | Desktop: tell me about releases, or never check | once | — | MOVE | About › This app |
-| 4 | device | `rowYourTheme` | Opens the theme picker for this browser | first-day | — | MOVE | Appearance (first row) |
-| 5 | device | `rowScreenWarmth` | Amber night-light sheet over any theme | monthly | — | MOVE | Appearance |
-| 6 | device | `rowScreenDim` | Darkens the page below the monitor's floor | monthly | — | MOVE | Appearance |
-| 7 | device | `rowEditorLanguage` | The language the app speaks to *you*, per device | first-day | — | MOVE | Language & dates (first row, now called "Your language") |
-| 8 | device | `rowSidebarSide` | Which edge the notes sidebar sits on | once | — | MOVE | Appearance |
-| 9 | device | `rowEditorWidth` | The writing/reading column's width | monthly | — | MOVE | Appearance |
-| 10 | device | `editorWidthCustom` | Not a row: the custom-width field inside row 9, counted as one because its control repeats a label | once | — | MERGE | `rowEditorWidth` |
-| 11 | device | `rowVimKeys` | Modal Vim editing | once | — | DEMOTE | Writing › Advanced |
-| 12 | device | `rowRelativeLines` | Relative line numbers, only meaningful with Vim | once | — | MERGE | `rowVimKeys` |
-| 13 | device | `selToolbarLabel` | Formatting buttons over a selection | once | — | MOVE | Writing |
-| 14 | device | `rowHeadingNumbers` | Numbers headings in the reading view | once | — | MOVE | Reading & speech |
-| 15 | device | `rowFrenchAutocorrect` | Accents and French spacing as you type | once | yes (the list of corrections) | MOVE | Writing |
-| 16 | device | `rowWhatsNew` | The what's-new deck after an update | once | — | MOVE | About › This app |
-| 17 | device | `rowOffline` | Keeps opened notes readable offline | once | — | MOVE | Reading & speech |
-| 18 | device | `rowPrefsSync` | Keeps this browser's preferences in the vault | once | — | MOVE | Backup & sync › What travels |
-| 19 | site | `rowSiteName` | The site's name | first-day | env | KEEP | Your site |
-| 20 | site | `rowTagline` | The line under the name | first-day | env | KEEP | Your site |
-| 21 | site | `rowFooter` | The footer template on every public page | once | env | DEMOTE | Your site › Advanced |
-| 22 | site | `rowLogo` | Image wordmark | once | — | KEEP | Your site |
-| 23 | site | `rowFavicon` | Browser-tab icon | once | — | KEEP | Your site |
-| 24 | site | `rowDefaultTheme` | The theme a visitor lands on | once | env | KEEP | Your site |
-| 25 | site | `rowFontProse` | Reading/prose face (site-wide, saved) | monthly | — | MOVE | Appearance › Typography |
-| 26 | site | `rowFontUi` | Interface face | monthly | — | MOVE | Appearance › Typography |
-| 27 | site | `rowFontMono` | Code face | once | — | MOVE | Appearance › Typography |
-| 28 | site | `rowFontArabic` | The Arabic face inside all three | monthly | — | MOVE | Appearance › Typography |
-| 29 | site | `rowSizeAdjust` | Scales the Arabic face to the Latin one | once | — | MOVE | Appearance › Typography |
-| 30 | language | `rowLanguage` | The site's language (what visitors read) | first-day | env | KEEP | Language & dates |
-| 31 | language | `rowSpellDicts` | Which languages this browser spellchecks | once | yes (why a French line is not underlined) | KEEP | Language & dates |
-| 32 | language | `rowDateLocale` | A BCP-47 tag deciding digits in dates and RSS | never | env | DEMOTE | Language & dates › Advanced |
-| 33 | language | `rowLanguageFilter` | Which notes the public site shows, by language | once | env | KEEP | Language & dates › For visitors |
-| 34 | language | `rowLanguageToggle` | Public English/Arabic switch | once | — | KEEP | Language & dates › For visitors |
-| 35 | language | `rowDateCalendar` | Gregorian / Hijri / both | once | — | KEEP | Language & dates |
-| 36 | language | `rowDateOrder` | With both calendars: which leads | once | — | KEEP | Language & dates (now "Two calendars", holding row 37) |
-| 37 | language | `rowDateSeparator` | With both calendars: the mark between them | once | — | MERGE | `rowDateOrder` |
-| 38 | language | `rowTextDirection` | Base direction of note prose | once | — | MOVE | Appearance › Text |
-| 39 | language | `rowTextAlign` | Alignment of note prose | once | — | MOVE | Appearance › Text |
-| 40 | language | `rowEmptyPropsCard` | The properties card on a bare note | once | — | MOVE | Writing |
-| 41 | language | `rowVoiceLanguage` | Which language voice notes are transcribed in | once | yes (it does not steer Read aloud) | MOVE | Reading & speech › Voice notes |
-| 42 | language | `rowReadAloud` | Engines, install, voices and speed for Read aloud | monthly | yes (which engine speaks what) | MOVE | Reading & speech › Read aloud |
-| 43 | language | `rowOwnVoices` | A folder of Piper/Kokoro voices and an external speaker | never | yes (file layout, the operator switch) | DEMOTE | Reading & speech › Advanced |
-| 44 | language | `tagLabelsRowLabel` | Display names for canonical tags | once | — | MOVE | Writing › Tags |
-| 45 | publishing | `rowPublicLayout` | App / blog / designed | first-day | env | MOVE | Your site › Publishing |
-| 46 | publishing | `rowOpenDesigner` | A button opening the designer (the palette's "Open the designer" too) | monthly | — | MERGE | `rowPublicLayout` (the button rides under the layout it serves) |
-| 47 | publishing | `rowExcludeTags` | Tags hidden from visitors | once | env | DEMOTE | Your site › Advanced |
-| 48 | publishing | `rowComments` | Comments under published notes | once | env | MOVE | Your site › Conversation |
-| 49 | publishing | `rowWebmentionsAccept` | Accept webmentions | once | yes (what the server fetches) | MERGE | new row `rowWebmentions` (Your site › Conversation) |
-| 50 | publishing | `rowWebmentionsSend` | Send webmentions | once | yes (what is sent, when) | MERGE | new row `rowWebmentions` |
-| 51 | publishing | `rowFediverse` | The blog as an ActivityPub account | once | yes (followers, deletes, SITE_URL) | MOVE | Your site › Conversation (holding row 52) |
-| 52 | publishing | `rowFediverseHandle` | The name before the @ | once | — | MERGE | `rowFediverse` |
-| 53 | publishing | `rowShareButtons` | Share links under articles | once | — | MOVE | Your site › Publishing |
-| 54 | publishing | `rowReadersListen` | Visitors may use Read aloud | once | — | MOVE | Reading & speech › Read aloud (instance only, as before) |
-| 55 | publishing | `rowAmbient` | Faint atmosphere behind the masthead | once | — | MOVE | Your site (with the visitors' theme) |
-| 56 | publishing | `rowExternalVideo` | YouTube/Vimeo/PeerTube links become players | once | yes (the privacy trade) | MOVE | Your site › Publishing |
-| 57 | publishing | `rowAuthorSites` | Cards for your other sites | never | — | DEMOTE | Your site › Advanced |
-| 58 | publishing | `rowMode` | Home page: intro note or dashboard | once | — | MOVE | Your site › Home page |
-| 59 | publishing | `rowHomeNote` | The note at the site root | once | env | MOVE | Your site › Home page |
-| 60 | publishing | `rowHomeBanner` | The front page's banner | once | — | MOVE | Your site › Home page |
-| 61 | collections | `rowTopicsMode` | Categories from tags or folders | once | — | KEEP | Collections |
-| 62 | collections | `rowPublicFolders` | Hand-made collections on/off | once | — | KEEP | Collections |
-| 63 | collections | `rowPublicFoldersList` | The collections table | monthly | — | KEEP | Collections |
-| 64 | collections | `rowPublicFoldersHome` | Collections on the home page | once | — | KEEP | Collections |
-| 65 | collections | `rowPublicFoldersNav` | Collections in the navigation | once | — | KEEP | Collections |
-| 66 | collections | `rowLibrary` | The library on/off | once | — | KEEP | Collections |
-| 67 | collections | `rowLibraryTitle` | The library's name | once | — | KEEP | Collections |
-| 68 | collections | `rowLibraryNav` | Library link in the navigation | once | — | KEEP | Collections |
-| 69 | collections | `rowLibraryHome` | Shelf on the home page | once | — | KEEP | Collections |
-| 70 | collections | `rowLibraryRoots` | Folders whose published notes are shelved | once | — | KEEP | Collections |
-| 71 | collections | `rowLibraryPaths` | Per-folder exceptions | monthly | — | KEEP | Collections |
-| 72 | vault | `templatesFolderLabel` | Where templates live | once | — | MOVE | Writing › New notes |
-| 73 | vault | `hadithFolderLabel` | The corpus folder callouts read (detected when empty) | never | yes (the frontmatter it reads) | DEMOTE | Reading & speech › Advanced |
-| 74 | vault | `defaultTemplateLabel` | Template for every new note | once | yes (the placeholder grammar) | MOVE | Writing › New notes |
-| 75 | vault | `periodicRowLabel` | Daily/weekly/monthly/yearly notes | once | yes (the name grammar) | MOVE | Writing › New notes |
-| 76 | vault | `uniqueRowLabel` | Minute-named notes' folder and name | once | yes (the tokens) | MOVE | Writing › New notes |
-| 77 | vault | `captureInboxLabel` | Quick capture's second target | once | yes (shortcut, path form) | MOVE | Writing › Capture |
-| 78 | vault | `clipperLabel` | The clipper bookmarklet and its token | once | yes (what the token is) | MOVE | Writing › Capture |
-| 79 | vault | `rowFeeds` | Fetch the feeds a note lists | once | yes (network access, where items live) | MOVE | Reading & speech |
-| 80 | vault | `rowVoiceModel` | Transcription model and where it runs | once | yes (GPU/CPU, downloads) | MOVE | Reading & speech › Voice notes |
-| 81 | vault | `rowVoiceKeepAudio` | Keep recordings after transcription | once | — | MOVE | Reading & speech › Voice notes |
-| 82 | vault | `drawingsFolderLabel` | Where new drawings start | never | — | DEMOTE | Writing › Advanced |
-| 83 | vault | `rowLaunch` | What the app opens on | once | — | MOVE | Writing (first row) |
-| 84 | vault | `rowLaunchNote` | The note "a note" opens | once | — | MERGE | `rowLaunch` |
-| 85 | vault | `rowAttachmentLocation` | Where uploads are written | once | — | MOVE | Writing › Files & tags |
-| 86 | vault | `rowAttachmentFolder` | The folder two of those modes need | once | — | MERGE | `rowAttachmentLocation` |
-| 87 | vault | `rowTagsFolder` | Where a tag's own page lives | once | — | MOVE | Writing › Files & tags |
-| 88 | vault | `rowNoteVersions` | Keep a history of each note | never | yes (the caps) + env | MOVE | Backup & sync › Versions |
-| 89 | vault | `rowPdfSearch` | Search reads the shelf's PDFs | never | env | MOVE | Reading & speech |
-| 90 | sync | `rowSyncEnabled` | Git backup on/off | first-day | — | KEEP | Backup & sync |
-| 91 | sync | `rowSyncRemote` | The remote URL | first-day | — | KEEP | Backup & sync |
-| 92 | sync | `rowSyncBranch` | The branch (`main` for nearly everyone) | never | — | DEMOTE | Backup & sync › Advanced |
-| 93 | sync | `rowSyncAuth` | SSH or token | first-day | — | KEEP | Backup & sync |
-| 94 | sync | `rowSyncUser` | The token's user | once | — | MERGE | `rowSyncToken` |
-| 95 | sync | `rowSyncToken` | The access token (write-only) | once | — | KEEP | Backup & sync (holding row 94) |
-| 96 | sync | `rowSyncPull` | Fast-forward before pushing | never | — | DEMOTE | Backup & sync › Advanced |
-| 97 | sync | `rowSyncInterval` | How often it backs up | once | — | KEEP | Backup & sync |
-| 98 | sync | `rowSyncStatus` | The repository's state and the verbs | monthly | — | KEEP | Backup & sync |
-| 99 | sync | `rowTravel` | What the vault's .astrolabe folder carries | monthly | — | KEEP | Backup & sync › What travels (hint cut to one sentence ≤ 14 words; it ran to 19) |
-| 100 | sync | `rowPocketRepo` | Pocket: the repository and branch | monthly | — | KEEP | Backup & sync (pocket) |
-| 101 | sync | `rowPocketState` | Pocket: the sync line | monthly | — | KEEP | Backup & sync (pocket) |
-| 102 | sync | `rowPocketConflicts` | Pocket: notes kept side by side | monthly | — | KEEP | Backup & sync (pocket) |
-| 103 | sync | `rowPocketLeave` | Pocket: forget this vault | once | — | KEEP | Backup & sync (pocket) |
-| 104 | ask | `rowAskProvider` | Ollama or Anthropic | once | — | KEEP | Ask |
-| 105 | ask | `rowAskChatModel` | Local chat model | once | — | KEEP | Ask |
-| 106 | ask | `rowAskAnthropicModel` | Anthropic model | once | — | KEEP | Ask |
-| 107 | ask | `rowAskKey` | Anthropic key | once | — | KEEP | Ask |
-| 108 | ask | `rowAskEmbedModel` | Embedding model (re-reads every note) | never | — | DEMOTE | Ask › Advanced |
-| 109 | ask | `rowAskTopK` | Passages per answer | never | — | DEMOTE | Ask › Advanced |
-| 110 | ask | `rowAskStatus` | What the index has read, who answers | monthly | — | KEEP | Ask |
+| # | Old tab | Row | What it does | Who | ⓘ | Verdict | New home | Page (round 2) |
+| - | ------- | --- | ------------ | --- | - | ------- | -------- | -------------- |
+| 1 | device | `rowAppName` | Renames the desktop app (tray, window, launcher) | once | — | MOVE | About › This app | `device` |
+| 2 | device | `rowAppIcon` | Replaces the desktop app's icon | once | — | MOVE | About › This app | `device` |
+| 3 | device | `rowUpdates` | Desktop: tell me about releases, or never check | once | — | MOVE | About › This app | `device` |
+| 4 | device | `rowYourTheme` | Opens the theme picker for this browser | first-day | — | MOVE | Appearance (first row) | `appearance` |
+| 5 | device | `rowScreenWarmth` | Amber night-light sheet over any theme | monthly | — | MOVE | Appearance | `appearance` |
+| 6 | device | `rowScreenDim` | Darkens the page below the monitor's floor | monthly | — | MOVE | Appearance | `appearance` |
+| 7 | device | `rowEditorLanguage` | The language the app speaks to *you*, per device | first-day | — | MOVE | Language & dates (first row, now called "Your language") | `language` |
+| 8 | device | `rowSidebarSide` | Which edge the notes sidebar sits on | once | — | MOVE | Appearance | `appearance` |
+| 9 | device | `rowEditorWidth` | The writing/reading column's width | monthly | — | MOVE | Appearance | `appearance` |
+| 10 | device | `editorWidthCustom` | Not a row: the custom-width field inside row 9, counted as one because its control repeats a label | once | — | MERGE | `rowEditorWidth` | `appearance`, part of `rowEditorWidth` |
+| 11 | device | `rowVimKeys` | Modal Vim editing | once | — | DEMOTE | Writing › Advanced | `device` |
+| 12 | device | `rowRelativeLines` | Relative line numbers, only meaningful with Vim | once | — | MERGE | `rowVimKeys` | `device`, part of `rowVimKeys` |
+| 13 | device | `selToolbarLabel` | Formatting buttons over a selection | once | — | MOVE | Writing | `writing` |
+| 14 | device | `rowHeadingNumbers` | Numbers headings in the reading view | once | — | MOVE | Reading & speech | `reading` |
+| 15 | device | `rowFrenchAutocorrect` | Accents and French spacing as you type | once | yes (the list of corrections) | MOVE | Writing | `writing` |
+| 16 | device | `rowWhatsNew` | The what's-new deck after an update | once | — | MOVE | About › This app | `device` |
+| 17 | device | `rowOffline` | Keeps opened notes readable offline | once | — | MOVE | Reading & speech | `device` |
+| 18 | device | `rowPrefsSync` | Keeps this browser's preferences in the vault | once | — | MOVE | Backup & sync › What travels | `versions` |
+| 19 | site | `rowSiteName` | The site's name | first-day | env | KEEP | Your site | `site` |
+| 20 | site | `rowTagline` | The line under the name | first-day | env | KEEP | Your site | `site` |
+| 21 | site | `rowFooter` | The footer template on every public page | once | env | DEMOTE | Your site › Advanced | `site` › Advanced |
+| 22 | site | `rowLogo` | Image wordmark | once | — | KEEP | Your site | `site` |
+| 23 | site | `rowFavicon` | Browser-tab icon | once | — | KEEP | Your site | `site` |
+| 24 | site | `rowDefaultTheme` | The theme a visitor lands on | once | env | KEEP | Your site | `site` |
+| 25 | site | `rowFontProse` | Reading/prose face (site-wide, saved) | monthly | — | MOVE | Appearance › Typography | `type` |
+| 26 | site | `rowFontUi` | Interface face | monthly | — | MOVE | Appearance › Typography | `type` |
+| 27 | site | `rowFontMono` | Code face | once | — | MOVE | Appearance › Typography | `type` |
+| 28 | site | `rowFontArabic` | The Arabic face inside all three | monthly | — | MOVE | Appearance › Typography | `type` |
+| 29 | site | `rowSizeAdjust` | Scales the Arabic face to the Latin one | once | — | MOVE | Appearance › Typography | `type` |
+| 30 | language | `rowLanguage` | The site's language (what visitors read) | first-day | env | KEEP | Language & dates | `language` |
+| 31 | language | `rowSpellDicts` | Which languages this browser spellchecks | once | yes (why a French line is not underlined) | KEEP | Language & dates | `language` |
+| 32 | language | `rowDateLocale` | A BCP-47 tag deciding digits in dates and RSS | never | env | DEMOTE | Language & dates › Advanced | `dates` › Advanced |
+| 33 | language | `rowLanguageFilter` | Which notes the public site shows, by language | once | env | KEEP | Language & dates › For visitors | `language` |
+| 34 | language | `rowLanguageToggle` | Public English/Arabic switch | once | — | KEEP | Language & dates › For visitors | `language` |
+| 35 | language | `rowDateCalendar` | Gregorian / Hijri / both | once | — | KEEP | Language & dates | `dates` |
+| 36 | language | `rowDateOrder` | With both calendars: which leads | once | — | KEEP | Language & dates (now "Two calendars", holding row 37) | `dates` |
+| 37 | language | `rowDateSeparator` | With both calendars: the mark between them | once | — | MERGE | `rowDateOrder` | `dates`, part of `rowDateOrder` |
+| 38 | language | `rowTextDirection` | Base direction of note prose | once | — | MOVE | Appearance › Text | `type` |
+| 39 | language | `rowTextAlign` | Alignment of note prose | once | — | MOVE | Appearance › Text | `type` |
+| 40 | language | `rowEmptyPropsCard` | The properties card on a bare note | once | — | MOVE | Writing | `writing` |
+| 41 | language | `rowVoiceLanguage` | Which language voice notes are transcribed in | once | yes (it does not steer Read aloud) | MOVE | Reading & speech › Voice notes | `speech` |
+| 42 | language | `rowReadAloud` | Engines, install, voices and speed for Read aloud | monthly | yes (which engine speaks what) | MOVE | Reading & speech › Read aloud | `speech` |
+| 43 | language | `rowOwnVoices` | A folder of Piper/Kokoro voices and an external speaker | never | yes (file layout, the operator switch) | DEMOTE | Reading & speech › Advanced | `speech` › Advanced |
+| 44 | language | `tagLabelsRowLabel` | Display names for canonical tags | once | — | MOVE | Writing › Tags | `writing` |
+| 45 | publishing | `rowPublicLayout` | App / blog / designed | first-day | env | MOVE | Your site › Publishing | `publishing` |
+| 46 | publishing | `rowOpenDesigner` | A button opening the designer (the palette's "Open the designer" too) | monthly | — | MERGE | `rowPublicLayout` (the button rides under the layout it serves) | `publishing`, part of `rowPublicLayout` |
+| 47 | publishing | `rowExcludeTags` | Tags hidden from visitors | once | env | DEMOTE | Your site › Advanced | `publishing` › Advanced |
+| 48 | publishing | `rowComments` | Comments under published notes | once | env | MOVE | Your site › Conversation | `conversation` |
+| 49 | publishing | `rowWebmentionsAccept` | Accept webmentions | once | yes (what the server fetches) | MERGE | new row `rowWebmentions` (Your site › Conversation) | `conversation`, part of `rowWebmentions` |
+| 50 | publishing | `rowWebmentionsSend` | Send webmentions | once | yes (what is sent, when) | MERGE | new row `rowWebmentions` | `conversation`, part of `rowWebmentions` |
+| 51 | publishing | `rowFediverse` | The blog as an ActivityPub account | once | yes (followers, deletes, SITE_URL) | MOVE | Your site › Conversation (holding row 52) | `conversation` |
+| 52 | publishing | `rowFediverseHandle` | The name before the @ | once | — | MERGE | `rowFediverse` | `conversation`, part of `rowFediverse` |
+| 53 | publishing | `rowShareButtons` | Share links under articles | once | — | MOVE | Your site › Publishing | `publishing` |
+| 54 | publishing | `rowReadersListen` | Visitors may use Read aloud | once | — | MOVE | Reading & speech › Read aloud (instance only, as before) | `speech` |
+| 55 | publishing | `rowAmbient` | Faint atmosphere behind the masthead | once | — | MOVE | Your site (with the visitors' theme) | `site` |
+| 56 | publishing | `rowExternalVideo` | YouTube/Vimeo/PeerTube links become players | once | yes (the privacy trade) | MOVE | Your site › Publishing | `publishing` |
+| 57 | publishing | `rowAuthorSites` | Cards for your other sites | never | — | DEMOTE | Your site › Advanced | `publishing` › Advanced |
+| 58 | publishing | `rowMode` | Home page: intro note or dashboard | once | — | MOVE | Your site › Home page | `publishing` |
+| 59 | publishing | `rowHomeNote` | The note at the site root | once | env | MOVE | Your site › Home page | `publishing` |
+| 60 | publishing | `rowHomeBanner` | The front page's banner | once | — | MOVE | Your site › Home page | `publishing` |
+| 61 | collections | `rowTopicsMode` | Categories from tags or folders | once | — | KEEP | Collections | `collections` |
+| 62 | collections | `rowPublicFolders` | Hand-made collections on/off | once | — | KEEP | Collections | `collections` |
+| 63 | collections | `rowPublicFoldersList` | The collections table | monthly | — | KEEP | Collections | `collections` |
+| 64 | collections | `rowPublicFoldersHome` | Collections on the home page | once | — | KEEP | Collections | `collections` |
+| 65 | collections | `rowPublicFoldersNav` | Collections in the navigation | once | — | KEEP | Collections | `collections` |
+| 66 | collections | `rowLibrary` | The library on/off | once | — | KEEP | Collections | `library` |
+| 67 | collections | `rowLibraryTitle` | The library's name | once | — | KEEP | Collections | `library` |
+| 68 | collections | `rowLibraryNav` | Library link in the navigation | once | — | KEEP | Collections | `library` |
+| 69 | collections | `rowLibraryHome` | Shelf on the home page | once | — | KEEP | Collections | `library` |
+| 70 | collections | `rowLibraryRoots` | Folders whose published notes are shelved | once | — | KEEP | Collections | `library` |
+| 71 | collections | `rowLibraryPaths` | Per-folder exceptions | monthly | — | KEEP | Collections | `library` |
+| 72 | vault | `templatesFolderLabel` | Where templates live | once | — | MOVE | Writing › New notes | `notes` |
+| 73 | vault | `hadithFolderLabel` | The corpus folder callouts read (detected when empty) | never | yes (the frontmatter it reads) | DEMOTE | Reading & speech › Advanced | `reading` › Advanced |
+| 74 | vault | `defaultTemplateLabel` | Template for every new note | once | yes (the placeholder grammar) | MOVE | Writing › New notes | `notes` |
+| 75 | vault | `periodicRowLabel` | Daily/weekly/monthly/yearly notes | once | yes (the name grammar) | MOVE | Writing › New notes | `notes` |
+| 76 | vault | `uniqueRowLabel` | Minute-named notes' folder and name | once | yes (the tokens) | MOVE | Writing › New notes | `notes` |
+| 77 | vault | `captureInboxLabel` | Quick capture's second target | once | yes (shortcut, path form) | MOVE | Writing › Capture | `notes` |
+| 78 | vault | `clipperLabel` | The clipper bookmarklet and its token | once | yes (what the token is) | MOVE | Writing › Capture | `notes` |
+| 79 | vault | `rowFeeds` | Fetch the feeds a note lists | once | yes (network access, where items live) | MOVE | Reading & speech | `reading` |
+| 80 | vault | `rowVoiceModel` | Transcription model and where it runs | once | yes (GPU/CPU, downloads) | MOVE | Reading & speech › Voice notes | `speech` |
+| 81 | vault | `rowVoiceKeepAudio` | Keep recordings after transcription | once | — | MOVE | Reading & speech › Voice notes | `speech` |
+| 82 | vault | `drawingsFolderLabel` | Where new drawings start | never | — | DEMOTE | Writing › Advanced | `writing` › Advanced |
+| 83 | vault | `rowLaunch` | What the app opens on | once | — | MOVE | Writing (first row) | `writing` |
+| 84 | vault | `rowLaunchNote` | The note "a note" opens | once | — | MERGE | `rowLaunch` | `writing`, part of `rowLaunch` |
+| 85 | vault | `rowAttachmentLocation` | Where uploads are written | once | — | MOVE | Writing › Files & tags | `writing` |
+| 86 | vault | `rowAttachmentFolder` | The folder two of those modes need | once | — | MERGE | `rowAttachmentLocation` | `writing`, part of `rowAttachmentLocation` |
+| 87 | vault | `rowTagsFolder` | Where a tag's own page lives | once | — | MOVE | Writing › Files & tags | `writing` |
+| 88 | vault | `rowNoteVersions` | Keep a history of each note | never | yes (the caps) + env | MOVE | Backup & sync › Versions | `versions` |
+| 89 | vault | `rowPdfSearch` | Search reads the shelf's PDFs | never | env | MOVE | Reading & speech | `reading` |
+| 90 | sync | `rowSyncEnabled` | Git backup on/off | first-day | — | KEEP | Backup & sync | `sync` |
+| 91 | sync | `rowSyncRemote` | The remote URL | first-day | — | KEEP | Backup & sync | `sync` |
+| 92 | sync | `rowSyncBranch` | The branch (`main` for nearly everyone) | never | — | DEMOTE | Backup & sync › Advanced | `sync` › Advanced |
+| 93 | sync | `rowSyncAuth` | SSH or token | first-day | — | KEEP | Backup & sync | `sync` |
+| 94 | sync | `rowSyncUser` | The token's user | once | — | MERGE | `rowSyncToken` | `sync`, part of `rowSyncToken` |
+| 95 | sync | `rowSyncToken` | The access token (write-only) | once | — | KEEP | Backup & sync (holding row 94) | `sync` |
+| 96 | sync | `rowSyncPull` | Fast-forward before pushing | never | — | DEMOTE | Backup & sync › Advanced | `sync` › Advanced |
+| 97 | sync | `rowSyncInterval` | How often it backs up | once | — | KEEP | Backup & sync | `sync` |
+| 98 | sync | `rowSyncStatus` | The repository's state and the verbs | monthly | — | KEEP | Backup & sync | `sync` |
+| 99 | sync | `rowTravel` | What the vault's .astrolabe folder carries | monthly | — | KEEP | Backup & sync › What travels (hint cut to one sentence ≤ 14 words; it ran to 19) | `versions` |
+| 100 | sync | `rowPocketRepo` | Pocket: the repository and branch | monthly | — | KEEP | Backup & sync (pocket) | `sync` |
+| 101 | sync | `rowPocketState` | Pocket: the sync line | monthly | — | KEEP | Backup & sync (pocket) | `sync` |
+| 102 | sync | `rowPocketConflicts` | Pocket: notes kept side by side | monthly | — | KEEP | Backup & sync (pocket) | `sync` |
+| 103 | sync | `rowPocketLeave` | Pocket: forget this vault | once | — | KEEP | Backup & sync (pocket) | `sync` |
+| 104 | ask | `rowAskProvider` | Ollama or Anthropic | once | — | KEEP | Ask | `ask` |
+| 105 | ask | `rowAskChatModel` | Local chat model | once | — | KEEP | Ask | `ask` |
+| 106 | ask | `rowAskAnthropicModel` | Anthropic model | once | — | KEEP | Ask | `ask` |
+| 107 | ask | `rowAskKey` | Anthropic key | once | — | KEEP | Ask | `ask` |
+| 108 | ask | `rowAskEmbedModel` | Embedding model (re-reads every note) | never | — | DEMOTE | Ask › Advanced | `ask` › Advanced |
+| 109 | ask | `rowAskTopK` | Passages per answer | never | — | DEMOTE | Ask › Advanced | `ask` › Advanced |
+| 110 | ask | `rowAskStatus` | What the index has read, who answers | monthly | — | KEEP | Ask | `ask` |
 
 ## The verdicts, counted
 

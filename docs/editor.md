@@ -231,7 +231,7 @@ turns it off.
 - **Spellchecked as French.** A line the editor treats as French is also handed to the French
   dictionary, so the words it has just corrected are not underlined in red by the English one.
   In the desktop app that is automatic. A browser cannot be asked which dictionaries it has, so
-  a French line there is left unchecked until you say: **Settings → Language & dates → Browser
+  a French line there is left unchecked until you say: **Settings → Language → Browser
   dictionaries**, tick French (and Arabic, Hebrew or Persian if your browser has them; in Chrome
   that is Settings → Languages → Spell check), and from then on a French line gets the red
   underline under its misspellings and none under its correct words.
@@ -260,7 +260,7 @@ above it. The palette's **Embed a file…** does the same from the keyboard.
 | `![[clip.mp4\|poster=frame.jpg]]` | The video with `frame.jpg` (any picture in the vault, by name) shown until it plays; without one, the first frame. Combine with a width: `\|480\|poster=frame.jpg`. |
 | `![alt](media/clip.mp4)` | The video player, by path. |
 | `![[bundle.zip]]` | A card for the file (zip, csv, txt and the rest). |
-| `https://youtu.be/…` on a line of its own | A link — or, with **Settings → Your site → Embed external video** on, that site's player (YouTube, Vimeo, PeerTube). |
+| `https://youtu.be/…` on a line of its own | A link — or, with **Settings → Publishing → Embed external video** on, that site's player (YouTube, Vimeo, PeerTube). |
 | `![[sketch.excalidraw]]` | The [drawing](drawing.md), as the picture it saves beside itself. |
 | `![[Note]]`, `![[Note#Heading]]`, `![[Note#^block]]` | The note, one section of it, or one paragraph, as a card. |
 
@@ -317,7 +317,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   then only the file's first bytes; the server hands the rest over in pieces as you seek, so a long
   film starts at once. `[[clip.mp4#t=1:23]]` seeks it like a sound. Tab reaches the player, and the
   browser's own keys play, pause and seek it.
-- **Video from another site.** Off by default. With **Settings → Your site → Embed
+- **Video from another site.** Off by default. With **Settings → Publishing → Embed
   external video** on, a YouTube, Vimeo or PeerTube address on a line of its own — or written
   `![](https://youtube.com/watch?v=…)` — becomes that site's player in the reading view and on your
   site, and a card with the video's still in the editor (press play to load the player). The frame
@@ -686,5 +686,5 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 (vim's `number relativenumber`). The column sits against the text, not at the window's edge, and it
 follows every caret move, not only edits. It is the only line numbering the editor has: a prose
 editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
-**Settings → Writing → Relative line numbers** (under Vim keys, on by default) turns it off for
+**Settings → This device → Relative line numbers** (under Vim keys, on by default) turns it off for
 readers who navigate by search.

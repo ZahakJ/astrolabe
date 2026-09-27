@@ -6,7 +6,7 @@
 
 ---
 
-Visitors can see your site in one of three shapes. The **app** layout shows them the reading app itself. The [**blog**](blog-mode.md) layout shows them a ready-made blog with a fixed front page. **Designed** mode, the third, lets you compose the front page yourself. Turn it on with `PUBLIC_LAYOUT=designed` or in **Settings → Your site → Public layout → Designed**.
+Visitors can see your site in one of three shapes. The **app** layout shows them the reading app itself. The [**blog**](blog-mode.md) layout shows them a ready-made blog with a fixed front page. **Designed** mode, the third, lets you compose the front page yourself. Turn it on with `PUBLIC_LAYOUT=designed` or in **Settings → Publishing → Public layout → Designed**.
 
 In designed mode your home page is built from **sections** you choose and order: a hero (a big opening block with a heading), blocks of markdown, a whole note pulled in, a grid or a list of posts, a cloud of topics, a call-to-action button, rules and empty space. Around the sections you make site-wide choices: a full masthead, a single bar, or no header at all; how wide the reading column is; how dense the page feels; and which parts of an article page are shown.
 

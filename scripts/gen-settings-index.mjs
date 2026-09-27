@@ -33,8 +33,11 @@ export function renderIndex(rows) {
 import type { I18nKey } from "../../i18n.ts";
 
 export interface SettingEntry {
-  /** The section this row lives in — \`TABS[].id\` in settings/tabs.ts. */
+  /** The page this row lives in — \`TABS[].id\` in settings/tabs.ts. */
   tab: string;
+  /** The rail group of that page — \`GROUPS[].id\` (You · Your site · Data ·
+   *  App), read out of tabs.ts with the page. */
+  group: "you" | "site" | "data" | "app";
   /** The row's label key. Also how a result finds its row in the DOM: \`Row\`
    *  stamps the RESOLVED label as \`data-setting\`, and the result resolves the
    *  same key to look it up. */

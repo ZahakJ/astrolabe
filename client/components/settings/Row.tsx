@@ -6,9 +6,17 @@
 // shape, wired once, is the only reason a label in one tab and a label in the
 // next can be trusted to name their control the same way.
 
-import { Children, cloneElement, isValidElement, useId, useState } from "react";
+import { Children, cloneElement, createContext, isValidElement, useContext, useId, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { t } from "../../i18n.ts";
+
+/** THIS PAGE KEEPS EVERYTHING HERE. Provided by TabBody from `Tab.device`
+ *  (tabs.ts): on such a page (Appearance, This device) the page says it once
+ *  under its intro, and a mark beside every row would only repeat it — the
+ *  3.38.0 screenshots had one on nearly every row of Appearance. A row still
+ *  SAYS it is per-device (`device`), and the index records it; it just draws
+ *  no mark where the page has said so. */
+export const DevicePage = createContext(false);
 
 /** `SITE_LANG=en`, ready to paste into a .env file or a shell.
  *
@@ -201,6 +209,7 @@ export function Row({
   after?: ReactNode;
   children: ReactNode;
 }) {
+  const onDevicePage = useContext(DevicePage);
   const cls = [
     "s-smodal__row",
     wide ? "s-smodal__row--wide" : "",
@@ -253,7 +262,7 @@ export function Row({
     // same key through `t()`, and the two meet here. Deriving it from the label
     // the row already has means no call site had to learn about the index —
     // eighty-eight of them would have had to grow an id otherwise.
-    <div className={cls} data-setting={label}>
+    <div className={cls} data-setting={label} data-device={device ? "" : undefined}>
       <label className="s-smodal__label" htmlFor={id}>
         <span className="s-smodal__labeltext">
           <span id={labelTextId}>{label}</span>
@@ -264,7 +273,7 @@ export function Row({
               focus into the field it annotates. Only the BUTTON is in here;
               the region it opens is a block, and a block inside a <label> is
               neither valid nor readable beside a 14rem label column. */}
-          {device && (
+          {device && !onDevicePage && (
             <span className="s-smodal__device" title={t("deviceRowTitle")}>
               {t("deviceRowMark")}
             </span>

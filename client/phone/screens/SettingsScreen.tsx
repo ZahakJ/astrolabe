@@ -3,7 +3,7 @@
 // The desktop's panel is a dialog with a rail beside one scrolling form; on a
 // phone the audit found it a full-screen sheet whose rail had become a strip
 // of truncated tabs ("Publishing & co") over a desktop-dense form. Here the
-// rail IS the screen — one 52px row per section, its one-sentence intro
+// rail IS the screen — its four groups as headed lists, one 52px row per page, its one-sentence intro
 // under its name — and a section is a screen of its own
 // (./SettingsSectionScreen.tsx) with its own Save. The search the panel keeps
 // above its rail keeps its place above the list, and a hit opens the section
@@ -14,8 +14,8 @@
 // `settingsFocus`; this screen carries it on to the row's section.
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { POCKET_HIDDEN_TABS, TABS } from "../../components/settings/tabs.ts";
-import { searchSettings } from "../../components/settings/searchSettings.ts";
+import { GROUPS, pageName, tabIntro, visiblePages } from "../../components/settings/tabs.ts";
+import { hitPlace, searchSettings } from "../../components/settings/searchSettings.ts";
 import { SETTINGS_INDEX } from "../../components/settings/settingsIndex.ts";
 import { t } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
@@ -33,7 +33,7 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
   const [query, setQuery] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
   useScrollMemory(scrollRef);
-  const sections = useMemo(() => (pocket ? TABS.filter((s) => !POCKET_HIDDEN_TABS.has(s.id)) : TABS), [pocket]);
+  const sections = useMemo(() => visiblePages(pocket), [pocket]);
   const hits = useMemo(() => (query.trim() === "" ? [] : searchSettings(query, undefined, pocket)), [query, pocket]);
   const open = (section: string): void => phone.open({ kind: "settings", section });
   // On a tablet the section open beside this list is lit in it.
@@ -87,7 +87,7 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
                   >
                     <span className="s-ph-hit__text">
                       <bdi className="s-ph-row__name" dir="auto">{hit.label}</bdi>
-                      <span className="s-ph-hit__snippet">{t(TABS.find((x) => x.id === hit.entry.tab)?.key ?? "siteSettings")}</span>
+                      <span className="s-ph-hit__snippet">{hitPlace(hit.entry, pageName)}</span>
                     </span>
                     <span className="s-ph-row__chev" aria-hidden="true">
                       <IconChevron />
@@ -98,27 +98,40 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
             </ul>
           )
         ) : (
-          <ul className="s-ph-list" aria-label={t("settingsSections")}>
-            {sections.map((s) => (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  className={`s-ph-row s-ph-hit${current === s.id ? " s-ph-row--on" : ""}`}
-                  data-section={s.id}
-                  aria-current={current === s.id ? "page" : undefined}
-                  onClick={() => open(s.id)}
-                >
-                  <span className="s-ph-hit__text">
-                    <span className="s-ph-row__name">{t(s.key)}</span>
-                    <span className="s-ph-hit__snippet">{t(pocket && s.id === "sync" ? "pocketSyncNote" : s.intro)}</span>
-                  </span>
-                  <span className="s-ph-row__chev" aria-hidden="true">
-                    <IconChevron />
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          // The rail's four groups, as headed lists (More's own idiom), each
+          // page a row with its one sentence under its name.
+          <nav aria-label={t("settingsSections")}>
+            {GROUPS.map((g) => {
+              const pages = sections.filter((s) => s.group === g.id);
+              if (pages.length === 0) return null;
+              return (
+                <section className="s-ph-group" key={g.id} aria-label={t(g.key)} data-group={g.id}>
+                  <h2 className="s-ph-head">{t(g.key)}</h2>
+                  <ul className="s-ph-list s-ph-list--grouped">
+                    {pages.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          className={`s-ph-row s-ph-hit${current === s.id ? " s-ph-row--on" : ""}`}
+                          data-section={s.id}
+                          aria-current={current === s.id ? "page" : undefined}
+                          onClick={() => open(s.id)}
+                        >
+                          <span className="s-ph-hit__text">
+                            <span className="s-ph-row__name">{t(s.key)}</span>
+                            <span className="s-ph-hit__snippet">{t(tabIntro(s.id, pocket))}</span>
+                          </span>
+                          <span className="s-ph-row__chev" aria-hidden="true">
+                            <IconChevron />
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </nav>
         )}
       </div>
     </div>

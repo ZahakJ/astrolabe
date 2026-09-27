@@ -34,7 +34,7 @@ a lesson, and a path with no lesson a visitor may read is not sent to that visit
 
 There are four ways, and they all end in the same place.
 
-**From a shelf root.** Settings → Collections → The library → **Shelf roots**: choose `Books`
+**From a shelf root.** Settings → Library → **Shelf roots**: choose `Books`
 once, say *book*, and every folder inside it that holds a published note is a path — titled by its
 name, addressed by its title, covered by its [Media tracker](trackers.md#the-media-page) when one
 names it. The next book you publish joins by itself. A root is one sentence about the shape of
@@ -56,7 +56,7 @@ under *Talks* a series), takes the folder's name as the title, and **Put on the 
 it. The first path switches the library on. Right-click the same folder again and the popover
 says it is on the shelf, opens it, or takes it off.
 
-**Settings → Collections → The library.** The rows — each one the override of a single folder,
+**Settings → Library.** The rows — each one the override of a single folder,
 with the fields the tree does not ask for. **Add a path** opens the vault's folders to click (type
 to filter), and each row's folder line reopens that chooser; nothing here is typed as a path. Each
 row is folded to one line until you press it.
