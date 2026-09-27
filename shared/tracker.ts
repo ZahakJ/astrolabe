@@ -109,6 +109,10 @@ export interface Tracker {
   /** `sessions:` — the reading sessions the PDF reader logged here, oldest
    *  first, one line each (see TrackerSession). Empty when none. */
   sessions: TrackerSession[];
+  /** `sittings:` — `manual` turns off the estimated sittings the instance
+   *  writes when the progress moves forward with no sitting to account for
+   *  it (shared/sittings.ts); anything else, or no line, is `auto`. */
+  sittings: "auto" | "manual";
 }
 
 /** One sitting with the book, as the reader logged it into the fence:
@@ -126,9 +130,20 @@ export interface TrackerSession {
   date: string;
   from: number | null;
   to: number | null;
-  /** Pages finished — every page turned away from, not the span. */
+  /** Pages finished — every page turned away from, not the span. Zero on a
+   *  line counted in another unit (`3 chapters`), which `count`/`unit` carry. */
   pages: number;
   minutes: number;
+  /** Absent on a MEASURED sitting — the reader's clock, or a line typed by
+   *  hand. Present when the minutes carry the `~` mark: the instance wrote
+   *  the line from a forward move of `progress:` and ESTIMATED the time
+   *  (shared/sittings.ts) — `pace` from the reader's own measured pace,
+   *  `default` (the line ends `| default pace`) from the stated defaults. */
+  estimate?: "pace" | "default";
+  /** A line counted in a unit other than pages: the number and the word as
+   *  written (`3 chapters` → 3, "chapters"). Absent on a line in pages. */
+  count?: number;
+  unit?: string;
 }
 
 /** What a ```tracker-board fence asks for. Every field optional: an empty
@@ -497,6 +512,7 @@ export function parseTracker(body: string): Tracker | null {
     folder: folder === undefined || folder === "" || folder.includes("..") ? null : folder,
     file: file === null || file === "" || file.includes("..") ? null : file,
     sessions,
+    sittings: (fields.get("sittings") ?? "").trim().toLowerCase() === "manual" ? "manual" : "auto",
     step,
     pace,
     due,
@@ -538,32 +554,53 @@ export function paceProjection(tracker: Pick<Tracker, "done" | "total" | "pace" 
  *  whatever they wrote in it. */
 const PAGE_WORDS = ["page", "pages", "p", "pp", "صفحة", "صفحات", "ص"];
 const MINUTE_WORDS = ["min", "mins", "minute", "minutes", "m", "دقيقة", "دقائق", "د"];
+const HOUR_WORDS = ["h", "hr", "hrs", "hour", "hours", "ساعة", "ساعات", "س"];
+/** The last segment of a line whose estimate rests on the stated defaults
+ *  rather than the reader's own pace — `| default pace`. */
+const DEFAULT_PACE_WORDS = ["default pace", "وتيرة افتراضية"];
+/** The mark before the minutes that says they were estimated, not timed. */
+export const ESTIMATE_MARK = "~";
 
 /** One session line → a session, or null when the line carries no date. A
  *  segment `112–139` (any dash) is the page range; `27 pages` and `41 min`
  *  are read by their unit word in either order; a bare number with no word
  *  counts as pages, since that is what a hand-written line most likely
- *  means. Everything unrecognised is ignored. */
+ *  means. `~32 min` is an estimated time (see TrackerSession.estimate), and a
+ *  count in any other word (`3 chapters`) is kept as `count`/`unit`.
+ *  Everything unrecognised is ignored. */
 export function parseSessionLine(raw: string): TrackerSession | null {
   const text = foldDigits(raw).trim();
   const m = /^(\d{4}-\d{2}-\d{2})(?:[ T]\d{1,2}:\d{2})?\s*(?:\||$)/.exec(text);
   if (!m) return null;
   const session: TrackerSession = { date: m[1], from: null, to: null, pages: 0, minutes: 0 };
+  let estimated = false;
+  let defaultPace = false;
   const rest = text.slice(m[0].length);
   for (const seg of rest.split("|").map((s) => s.trim()).filter((s) => s !== "")) {
+    if (DEFAULT_PACE_WORDS.includes(seg.toLowerCase())) {
+      defaultPace = true;
+      continue;
+    }
     const range = /^(?:pp?\.?\s*)?(\d+)\s*[-–—]\s*(\d+)$/i.exec(seg);
     if (range) {
       session.from = Number(range[1]);
       session.to = Number(range[2]);
       continue;
     }
-    const count = /^(\d+(?:[.,]\d+)?)\s*([^\d\s].*)?$/.exec(seg);
+    const count = /^([~≈])?\s*(\d+(?:[.,]\d+)?)\s*([^\d\s].*)?$/.exec(seg);
     if (!count) continue;
-    const n = num(count[1]) ?? 0;
-    const word = (count[2] ?? "").trim().toLowerCase().replace(/\.$/, "");
-    if (MINUTE_WORDS.includes(word)) session.minutes = n;
-    else if (word === "" || PAGE_WORDS.includes(word)) session.pages = n;
+    const n = num(count[2]) ?? 0;
+    const word = (count[3] ?? "").trim().toLowerCase().replace(/\.$/, "");
+    if (MINUTE_WORDS.includes(word) || HOUR_WORDS.includes(word)) {
+      session.minutes = HOUR_WORDS.includes(word) ? n * 60 : n;
+      if (count[1] !== undefined) estimated = true;
+    } else if (word === "" || PAGE_WORDS.includes(word)) session.pages = n;
+    else if (session.unit === undefined) {
+      session.count = n;
+      session.unit = (count[3] ?? "").trim();
+    }
   }
+  if (estimated) session.estimate = defaultPace ? "default" : "pace";
   return session;
 }
 
@@ -584,8 +621,10 @@ export function parseSessions(block: string): TrackerSession[] {
 export function formatSessionLine(session: TrackerSession): string {
   const parts = [session.date];
   if (session.from !== null && session.to !== null) parts.push(`${session.from}–${session.to}`);
-  parts.push(`${Math.round(session.pages)} pages`);
-  parts.push(`${Math.round(session.minutes)} min`);
+  if (session.unit !== undefined && session.count !== undefined) parts.push(`${Math.round(session.count * 100) / 100} ${session.unit}`);
+  else parts.push(`${Math.round(session.pages * 100) / 100} pages`);
+  parts.push(`${session.estimate !== undefined ? ESTIMATE_MARK : ""}${Math.round(session.minutes)} min`);
+  if (session.estimate === "default") parts.push(DEFAULT_PACE_WORDS[0]);
   return parts.join(" | ");
 }
 
@@ -617,12 +656,14 @@ export function dropLastTrackerSession(body: string): string {
  *  told about this month. */
 export const SPEED_SESSIONS = 5;
 
-/** Pages a minute over the last `SPEED_SESSIONS` sessions that counted
- *  both pages and minutes — or null when nothing was timed. A ratio of
+/** Pages a minute over the last `SPEED_SESSIONS` measured sessions that
+ *  counted both pages and minutes — or null when nothing was timed. A ratio of
  *  sums, not a mean of ratios: a two-minute sitting must not weigh as much
  *  as an hour's. */
 export function readingSpeed(sessions: readonly TrackerSession[]): number | null {
-  const timed = sessions.filter((s) => s.minutes > 0 && s.pages > 0).slice(-SPEED_SESSIONS);
+  // Measured sittings only: an estimated one is this speed (or the default)
+  // read back, and counting it would pull the speed toward its own guess.
+  const timed = sessions.filter((s) => s.estimate === undefined && s.minutes > 0 && s.pages > 0).slice(-SPEED_SESSIONS);
   const minutes = timed.reduce((n, s) => n + s.minutes, 0);
   const pages = timed.reduce((n, s) => n + s.pages, 0);
   return minutes > 0 && pages > 0 ? pages / minutes : null;

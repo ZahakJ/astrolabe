@@ -506,6 +506,15 @@ export async function save(path: string, explicit = false): Promise<void> {
     announceWrite(path, written.mtimeMs);
     // Only clean if nothing was typed while the request was in flight.
     if (buf.state.doc.toString() === content) setDirty(buf, false);
+    // THE SAVE MOVED A BOOK FORWARD and the server wrote the day's estimated
+    // sitting into the note (server/sittings.ts). A clean buffer takes the
+    // new text as an external change — undoable, not dirtying. A buffer typed
+    // into meanwhile keeps its old precondition, so its next save meets the
+    // conflict strip with both texts rather than deleting the line unseen.
+    if (written.sitting && !buf.dirty) {
+      adoptExternal(path, { path, content: written.sitting.content, mtimeMs: written.sitting.mtimeMs });
+      announceWrite(path, written.sitting.mtimeMs);
+    }
     // The write that a dirty last-release was waiting on: nothing holds the
     // buffer any more and it is clean, so it goes now — lease included.
     if (buf.refs <= 0 && !buf.dirty) dispose(path, buf);

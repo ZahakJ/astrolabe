@@ -652,6 +652,16 @@ function handleEvent(event: VaultEvent): void {
   void enqueue(apply, `apply ${event.kind} ${event.path}`);
 }
 
+/** Called with every markdown note the index reads, before its record is
+ *  built; answers the note's new text when it wrote one. server/sittings.ts
+ *  registers itself here (a hook, not an import: that module reads the index
+ *  for the vault's reading pace, and the index must not import it back). */
+export type TrackerObserver = (relPath: string, content: string, mtimeMs: number) => Promise<{ content: string; mtimeMs: number } | null>;
+let trackerObserver: TrackerObserver | null = null;
+export function setTrackerObserver(observer: TrackerObserver | null): void {
+  trackerObserver = observer;
+}
+
 /** Index (or reindex) one note immediately. Exported so API writes can update
  *  the index synchronously instead of waiting out the watcher debounce —
  *  otherwise a rename issued right after a save misses freshly written links.
@@ -727,8 +737,11 @@ async function applyIndexFile(relPath: string): Promise<void> {
     return;
   }
   let content: string;
+  let mtimeMs = stat.mtimeMs;
   try {
-    content = (await readNote(relPath)).content;
+    const read = await readNote(relPath);
+    content = read.content;
+    mtimeMs = read.mtimeMs;
   } catch (err) {
     if (!isMissing(err)) {
       keepStale(relPath, err, "read");
@@ -736,6 +749,20 @@ async function applyIndexFile(relPath: string): Promise<void> {
     }
     removeFile(relPath); // vanished between the stat and the read
     return;
+  }
+  // SITTINGS FROM PROGRESS (server/sittings.ts). A book's `progress:` that
+  // moved forward with no sitting to account for it gets an estimated one,
+  // written into the note HERE, on the chain, before the record is built:
+  // every door a note comes in by (a save, the Media page, a sync, a pull,
+  // the watcher) passes this line, the chain keeps two moves from racing
+  // each other's fold, and the record indexed is the note as it now stands
+  // on disk. Markdown only: a drawing or a .tex paper holds no fence.
+  if (trackerObserver !== null && !isDrawingPath(relPath) && !isTexPath(relPath)) {
+    const rewritten = await trackerObserver(relPath, content, mtimeMs);
+    if (rewritten !== null) {
+      content = rewritten.content;
+      mtimeMs = rewritten.mtimeMs;
+    }
   }
   // Read BEFORE the record is torn down: the graph revision moves only if this
   // reindex changes something the graph can see, and that comparison needs the
@@ -790,7 +817,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     tasks: scanTasks(content),
     cards: scanCards(content),
     deck: deckOf(content, relPath, title),
-    mtimeMs: stat.mtimeMs,
+    mtimeMs,
     published: publishFlag(fm),
     page: pageFlag(fm),
     banner: bannerOf(fm),

@@ -45,6 +45,7 @@ import { staticPagesActive } from "./pages.ts";
 // The three v1.8 bulk verbs: the engine, the tag surgeon, the heading detector.
 import { applyBulk, undoBulk } from "./bulkRewrite.ts";
 import { anchorsOfContent, forgetRename, observeWrite, rewriteHeadingLinks } from "./headingRepair.ts";
+import { takeSittingRewrite } from "./sittings.ts";
 import { addNoteAlias, setNoteFrontmatterLine, setNotePublishFlag, twinSeed } from "./noteFrontmatter.ts";
 import { TWIN_KEY, twinLine } from "../shared/twins.ts";
 import { frontmatterKeyRefusal, setNoteProperty } from "../shared/frontmatterEdit.ts";
@@ -540,10 +541,18 @@ api.put("/note", async (c) => {
   suppressWatcherEcho(path);
   const written = await writeNote(path, body.content, baseMtime(body));
   emitEvent({ kind: existed ? "changed" : "created", path: written.path });
+  // Whatever an earlier read of this note left behind is not this save's.
+  takeSittingRewrite(written.path);
   // Index now rather than after the watcher debounce, so an immediately
   // following rename/search sees this note's links.
   await indexFile(written.path);
   const result: NoteWriteResult = { ...written };
+  // The read just now may have written an estimated sitting into the note
+  // (server/sittings.ts). Its "changed" lands inside the editor's own-save
+  // window and is ignored there, so the new text rides back on the answer
+  // and the buffer adopts it (client/editor/buffers.ts).
+  const sitting = takeSittingRewrite(written.path);
+  if (sitting !== null) result.sitting = sitting;
   if (existed) {
     const offer = await headingRepairOffer(written.path, anchorsBefore, body.content);
     if (offer) result.headingRepair = offer;
