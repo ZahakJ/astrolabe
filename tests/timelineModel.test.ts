@@ -75,7 +75,7 @@ describe("the items", () => {
   it("carries the calendar's excerpt for a daily note and each note's own for the rest", () => {
     assert.deepEqual(items[0].detail, { kind: "excerpt", text: "A quiet Tuesday" });
     assert.deepEqual(items[2].detail, { kind: "catch", lines: 2, voice: 0 });
-    assert.deepEqual(items[5].detail, { kind: "session", pages: 12, minutes: 30, sessions: 1 });
+    assert.deepEqual(items[5].detail, { kind: "session", pages: 12, minutes: 30, sessions: 1, estimated: 0, units: [] });
   });
 
   it("gives every item a unique key", () => {

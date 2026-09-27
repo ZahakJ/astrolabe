@@ -48,7 +48,7 @@ import { getDateBothStyle, getDateCalendar, siteDate, siteDateIn } from "../date
 import { countPhrase, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { readLog, type LogEntry } from "../orbits/log.ts";
 import { useStore } from "../state.ts";
-import { formatDuration } from "../trackerUnits.ts";
+import { estimateNote, sittingAmount, sittingDuration } from "../sittingWords.ts";
 import "../styles/calendarpage.css";
 
 /** The vault event the Sigils page listens to as well: a box ticked in the
@@ -446,11 +446,14 @@ export default function CalendarView({ dayHost, timelineDoor = true }: { dayHost
               <h3 className="s-calpage__paneh3">{t("calendarReading")}</h3>
               <ul className="s-calpage__panelist">
                 {selected.trackers.map((tr) => (
-                  <li key={`${tr.path}#${tr.index}`} className="s-calpage__panerow">
+                  <li key={`${tr.path}#${tr.index}`} className={tr.estimated > 0 ? "s-calpage__panerow s-calpage__panerow--est" : "s-calpage__panerow"}>
                     <button type="button" className="s-calpage__panelink" dir="auto" onClick={() => openNote(tr.path)}>
                       {tr.title}
                     </button>
-                    <span className="s-calpage__fact">{tf("calendarTrackerRow", { pages: countPhrase(tr.pages, "pages"), time: formatDuration(tr.minutes) })}</span>
+                    <span className="s-calpage__fact">{tf("calendarTrackerRow", { pages: sittingAmount(tr.pages, tr.units), time: sittingDuration(tr.minutes, tr.estimated) })}</span>
+                    {/* A time the bar implied, not one a clock counted — and
+                        whose guess it was: the reader's pace or the default. */}
+                    {tr.estimated > 0 && <span className="s-calpage__panenote">{estimateNote(tr.defaultPace)}</span>}
                   </li>
                 ))}
               </ul>
@@ -501,7 +504,7 @@ function Cell({
   // A line is either something the day HELD (solid) or something a course is
   // on course to ask of it (faint): the projection is not a fact about the
   // day, and drawing it in the same ink as a kept sigil would say it was.
-  const lines: { text: string; ahead?: true }[] = [];
+  const lines: { text: string; ahead?: true; est?: true }[] = [];
   for (const s of day.sigils) {
     // A course's day is named by the step it answered, not by the course:
     // "Japanese" on twenty cells says nothing the month did not already.
@@ -509,7 +512,9 @@ function Cell({
     else lines.push({ text: s.title });
   }
   if (graded.graded > 0) lines.push({ text: countPhrase(graded.graded, "cards") });
-  for (const tr of day.trackers) lines.push({ text: tr.title });
+  // A book known only from its progress bar that day is listed like any
+  // other, in muted ink: it was read, but its time is a guess.
+  for (const tr of day.trackers) lines.push(tr.measured === 0 ? { text: tr.title, est: true } : { text: tr.title });
   for (const p of day.projected) lines.push({ text: p.text, ahead: true });
   const shown = lines.slice(0, ROWS_PER_CELL);
   const dayName = siteDate(cell.date, locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
@@ -520,7 +525,7 @@ function Cell({
     day.note !== null ? t("calendarCellNote") : null,
     ...day.sigils.map((s) => `${s.title} — ${t(STATUS_LABEL[s.status])}`),
     graded.graded > 0 ? countPhrase(graded.graded, "cards") : null,
-    ...day.trackers.map((tr) => tr.title),
+    ...day.trackers.map((tr) => (tr.measured === 0 ? tf("calendarCellEstimated", { title: tr.title }) : tr.title)),
     ...day.projected.map((p) => `${p.text} — ${t("sigilCourseProjected")}`),
   ]
     .filter(Boolean)
@@ -560,7 +565,7 @@ function Cell({
         </span>
         <span className="s-calpage__lines" aria-hidden="true">
           {shown.map((line, i) => (
-            <span key={i} className={line.ahead ? "s-calpage__line s-calpage__line--ahead" : "s-calpage__line"} dir="auto">
+            <span key={i} className={line.ahead ? "s-calpage__line s-calpage__line--ahead" : line.est ? "s-calpage__line s-calpage__line--est" : "s-calpage__line"} dir="auto">
               {line.text}
             </span>
           ))}

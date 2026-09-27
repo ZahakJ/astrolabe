@@ -279,6 +279,14 @@
   font-style: italic;
 }
 
+/* A SITTING KNOWN ONLY FROM THE PROGRESS BAR (shared/sittings.ts): the book
+   was read that day, so it is listed, but in muted ink even as the cell's
+   first line, because its time is an estimate and not a clock's. */
+.s-calpage__day .s-calpage__line--est,
+.s-calpage__day.has-items .s-calpage__line--est:first-child {
+  color: var(--text-muted);
+}
+
 /* ── The months ahead, as unit bands ────────────────────────────────────── */
 .s-calpage__bands {
   margin-block-start: 14px;

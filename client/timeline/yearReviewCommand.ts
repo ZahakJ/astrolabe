@@ -21,6 +21,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import { gregorianDate } from "./words.tsx";
+import { sittingDuration } from "../sittingWords.ts";
 
 /** A sentence for the NOTE, not the chrome: `tf` isolates every placeholder
  *  with FSI/PDI so a phrase sits right inside a line of the other script on
@@ -43,6 +44,7 @@ function words(year: number): YearReviewWords {
     sigilTicks: (n) => pf("yearReviewTicks", { ticks: countPhrase(n, "ticks") }),
     cardsReviewed: (n) => pf("yearReviewCards", { cards: countPhrase(n, "cards") }),
     pagesRead: (pages, sittings) => pf("yearReviewPages", { pages: countPhrase(pages, "pages"), sittings: countPhrase(sittings, "sittings") }),
+    estimatedSittings: (sittings, minutes) => pf("yearReviewEstimated", { sittings: countPhrase(sittings, "sittings"), time: sittingDuration(minutes, minutes) }),
     booksFinished: (n) => pf("yearReviewBooks", { books: countPhrase(n, "books") }),
     months: t("yearReviewMonths"),
     monthColumns: [t("yearReviewColMonth"), t("yearReviewColNotes"), t("yearReviewColDaily"), t("yearReviewColTicks"), t("yearReviewColCards"), t("yearReviewColPages")],

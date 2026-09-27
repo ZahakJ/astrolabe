@@ -77,6 +77,9 @@ export interface BookWeek {
   pages: number;
   minutes: number;
   sessions: number;
+  /** How many of `minutes` were estimated from a move of the progress bar
+   *  (shared/sittings.ts) — the review draws the time with a `~`. */
+  estimated: number;
   /** Pages a minute over the book's last sessions, or null. */
   speed: number | null;
 }
@@ -94,6 +97,7 @@ export function booksThisWeek(trackers: readonly ReviewTracker[], week: WeekRang
       pages: inside.reduce((n, s) => n + s.pages, 0),
       minutes: inside.reduce((n, s) => n + s.minutes, 0),
       sessions: inside.length,
+      estimated: inside.reduce((n, s) => n + (s.estimate !== undefined ? s.minutes : 0), 0),
       speed: readingSpeed(t.sessions),
     });
   }
