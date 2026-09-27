@@ -12,27 +12,27 @@ You can read this manual as a website, with search, a page outline and both lang
 
 | | |
 | --- | --- |
-| [Configuration](configuration.md) | Every setting you can change, where each one lives (the `.env` file or the Settings panel), [where attachments are stored](configuration.md#attachments), and which setting wins when two disagree |
+| [Configuration](configuration.md) | Every setting you can change, where each one lives (the `.env` file or the Settings panel's nine sections), [where attachments are stored](configuration.md#attachments), and which setting wins when two disagree |
 | [Publishing & access](publishing.md) | How visitors read your site while only you can edit it: the `publish:` flag, previewing the site as a visitor, HTTPS, and comments |
 | [Backup & sync](backup-and-sync.md) | Saving your vault to a private git repository, by hand or on a timer; [reading an old version of a note](backup-and-sync.md#note-history-reading-what-the-backup-kept) from that backup; and the [versions the app keeps on every save](backup-and-sync.md#versions-before-and-beside-git), with or without git |
 | [Offline reading](offline.md) | The notes you have already opened stay readable when the network is gone: what is kept, what is not, and the strip that tells you |
-| [Capture](capture.md) | Getting things in without opening a note: `Ctrl/Cmd Shift D` drops a line into today's note from anywhere, a bookmarklet clips a web page into `Clips/` as Markdown, and the installed site takes shares from a phone |
+| [Capture](capture.md) | Getting things in without opening a note: `Ctrl/Cmd Shift D` drops a line into today's note from anywhere, a [voice note](capture.md#voice) is transcribed by your own server on its processor, a bookmarklet clips a web page into `Clips/` as Markdown, and the installed site takes shares from a phone |
 | [Feeds](feeds.md) | Other people's feeds, read here: a list in `Feeds.md`, fetched only when you switch it on, and **Keep** to write an article into the vault as a private note. Not the blog's own RSS |
 | [Import](import.md) | A Notion, Evernote or Obsidian export into a folder: previewed first (collisions, links, frontmatter), written with progress, undone with one button |
 | [Export](export.md) | Download a note, a folder, a tag or the whole vault as a ZIP with the files it uses, with `[[wikilinks]]` kept or turned into ordinary links; or save any note as a standalone HTML page |
-| [The desktop app](desktop.md) | The app as a native program: the menu bar, several vaults, the reference window, find in page, updates, and links that open straight into a note |
-| [The Android app](mobile.md) | A door onto your own server from a phone: connecting, the share sheet that captures into the vault, updates, and what it deliberately does not do |
+| [The desktop app](desktop.md) | The app as a native program: the menu bar, several vaults, a zoom that survives a relaunch, the reference window, find in page, updates, and links that open straight into a note |
+| [The Android app](mobile.md) | A door onto your own server from a phone, or [a vault from a private GitHub repository](mobile.md#a-vault-from-github) with no server at all, every save a commit: connecting, the share sheet that captures into the vault, updates, and what it deliberately does not do |
 | [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Writing
 
 | | |
 | --- | --- |
-| [The editor & reading view](editor.md) | Writing with live preview, linking notes with wikilinks, selecting text, how notes are rendered, and moving around |
-| [Templates, banners & notes](templates-and-notes.md) | A banner image at the top of a note (`banner:`), templates with `{{date}}` and friends, sections, attachments, and the trash |
+| [The editor & reading view](editor.md) | Writing with live preview, linking notes with wikilinks, [tables you edit in the grid](editor.md#tables), [embeds](editor.md#embeds) you can drag and rename (pictures, PDF pages, drawings, video), how notes are rendered, and moving around |
+| [Templates, banners & notes](templates-and-notes.md) | A banner image at the top of a note (`banner:`), templates with `{{date}}` and friends, [linguistic twins](templates-and-notes.md#linguistic-twins) (one note in two languages), sections, attachments, and the trash |
 | [LaTeX notes](latex.md) | A `.tex` file is a note like any other: the `astrolabe.sty` package and exactly what the app can render |
 | [Trackers](trackers.md) | A `tracker` block that keeps a list of things you follow (games, films, books), the board it draws, the Media page that shelves them all, and what a visitor sees |
-| [Sigils](sigils.md) | Your daily habits, one per sigil: a plan for each day, a log the app writes for you, streaks, a heatmap, templates, and the Sigils page |
+| [Sigils](sigils.md) | Your daily habits, one per sigil: a plan for each day, a log the app writes for you, streaks, a heatmap, templates, [courses](sigils.md#a-course) whose dates move when you miss a day, and the Sigils page |
 | [Today](today.md) | The day on one page: a line to capture, today's note, the sigils, cards and tasks due, on this day, and an evening question |
 | [The Timeline](timeline.md) | The vault by date, newest first, with filters and a month rail — and the year in review |
 | [The Calendar](calendar.md) | The month as a page of its own: every day's note, the sigils you kept, the cards you graded and the pages you read, with a pane that opens any day in full |
@@ -40,7 +40,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Drawings](drawing.md) | A drawing canvas (Excalidraw) inside your vault: `.excalidraw` files and the Obsidian plugin's `.excalidraw.md`, an SVG exported beside each one, and `![[sketch.excalidraw]]` to embed it anywhere |
 | [The book reader](books.md) | Every PDF and every EPUB in the vault opens as a book: vim keys, the place you left off in, highlights that become notes with a citation — and, for an EPUB, text your browser sets and reflows at the size you ask for |
 | [Ask the vault](ask.md) | Search by meaning in either language, the notes related to the open one, links worth adding, and questions answered from your notes with citations — on your own machine through Ollama, or from Anthropic if you choose |
-| [Panes, tabs & windows](workspace.md) | Splitting the screen, preview tabs and pinned tabs, several windows on one vault, the local graph, the trash, the tour, and aliases |
+| [Panes, tabs & windows](workspace.md) | Splitting the screen, preview tabs and pinned tabs, several windows on one vault, the local graph, the trash, the tour, aliases, and [the phone and tablet layout](workspace.md#on-a-phone) |
 | [Printing & PDF](printing.md) | Putting a note on paper: the print palette, page breaks, PDF bookmarks, and internal links that still work in the PDF |
 | [Keymap](keymap.md) | Every keyboard shortcut, and why the awkward ones are where they are |
 
@@ -59,9 +59,9 @@ You can read this manual as a website, with search, a page outline and both lang
 | --- | --- |
 | [Theming](theming.md) | The forty-six built-in colour themes, the eye-comfort sliders, the tool for building your own theme, the CSS variables the app is painted with, and `custom.css` |
 | [Typography](typography.md) | Choosing fonts from a built-in catalog served by your own server, uploading your own fonts, and giving Arabic letters their own font even inside English text |
-| [Arabic & RTL](arabic-and-rtl.md) | The whole interface in Arabic and mirrored right-to-left, a language switch for visitors, showing each reader only notes in their language, Hijri dates, and Arabic names for your tags |
+| [Arabic & RTL](arabic-and-rtl.md) | The whole interface in Arabic and mirrored right-to-left, a language switch for visitors, showing each reader only notes in their language, Hijri dates, Arabic names for your tags, and [a key that switches the interface language back](arabic-and-rtl.md#switching-the-interface-language) from anywhere |
 | [Japanese & furigana](japanese.md) | Readings over kanji with `{漢字|かんじ}`, a right-click that suggests them from the jōyō table, an automatic mode, and a Japanese typeface that only Japanese lines get |
-| [Read aloud](read-aloud.md) | Select a word or a paragraph and hear it in its own language — French, Japanese, Arabic, English — from voices on your own machine's processor; two engines, what each costs, and how they were chosen by ear |
+| [Read aloud](read-aloud.md) | Select a word or a paragraph and hear it in its own language — French, Japanese, Arabic, English — from voices on your own machine's processor; two engines, what each costs, how they were chosen by ear, this device's voices when they are not installed, and your own voices from a folder |
 
 ## Also in the repo
 
