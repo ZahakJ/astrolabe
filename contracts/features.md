@@ -893,7 +893,7 @@ FLUSHED (`flushBufferPath`) before the server appends, because the append's prec
 file's mtime; and the buffer then ADOPTS the result explicitly (`adoptExternalChange`), because
 the SSE echo arrives inside `SELF_SAVE_WINDOW_MS` of the flush and the shell would read it as our
 own save. The reading view gets `bumpReload`. The inbox is `settings.captureInbox` (validated like
-a template note; `effective.captureInbox`; rides `templateSettings()`), Settings → Vault → Capture.
+a template note; `effective.captureInbox`; rides `templateSettings()`), Settings → Writing → Capture.
 Phone: the sheet is a bottom sheet with 44px targets under 700px.
 
 **The manifest (`shared/manifest.ts`, `server/manifest.ts`).** `/manifest.webmanifest` and
@@ -1246,14 +1246,14 @@ one that wrote `large-v3-turbo-q5_0` down keeps it; and choosing the large turbo
 now on WRITES it (it is no longer the default), so the next default change cannot take it
 (`tests/settings.test.ts`, a hand-written settings.json each way).
 
-Rows: Settings → Vault → **Voice transcription** — ONE row with two controls, because Vault holds
+Rows: Settings → Reading & speech → **Voice transcription** — ONE row with two controls, because Vault holds
 eighteen: a Select of the four models and Off (each option's note is its download in the form this
 machine will run and, on the processor, "a minute of speech in about N s on two cores"; the note is
 hidden in the closed trigger, where it pushed the name out) and a segmented **Auto / Processor
 only**. The line under it (`voiceStatusLine`) is the download line unchanged (not downloaded / N% /
 the size), then which model ran where: "Downloaded; Small, compact (the default) last ran on the
 processor." — or "runs on the processor" before the first job when that is already known.
-**Keep voice recordings** (a Toggle); Settings → Language & dates → **Voice notes: transcription language** (Detect /
+**Keep voice recordings** (a Toggle); Settings → Reading & speech → **Voice notes: transcription language** (Detect /
 Arabic / English). **The ≤18-rows rule decided the split:** Vault held 16, so two voice rows brought
 it to exactly 18 and the language pin sits on the Language tab; the backend is the model row's
 second control for the same reason.
@@ -1380,7 +1380,7 @@ A reader's report (Windows desktop app, both engines, Natural chosen): "it reads
 - A DOM selection inside `.s-reading`, `.s-epub__body`, `.s-book__doc` or `.s-blog-article` grows a chip BELOW its last line (the annotation button sits above it, Android's callout too); on the phone the chip also answers an editor selection, since the phone has no selection menu. The palette's **Read this note aloud** and the phone note sheet's Actions row read the rendered body in the reading view (lit), else the editor from the caret's line (the whole note from the top or the frontmatter), else the source.
 - Text is spoken as the reader sees it: `<rt>`/`<rp>` dropped (furigana read once, as the base — the engine's G2P reads the kanji; never base then reading), buttons and footnote marks dropped, a block's end a sentence's end; an editor selection goes through `speechTextOfNote` (the word count's prose reduction). `splitSentences` knows spaced French `?`/`!` and guillemets, Japanese 「。」 with no space after it, the Arabic `؟`, abbreviations, initials and decimals, and cuts past 280 characters at a breath.
 - The player (`client/speech/player.ts`, drawn by `SpeechPlayer.tsx`, one lazy mount per shell) asks a sentence at a time and prefetches the next; the current sentence is lit in the page with the Custom Highlight API (`astrolabe-speaking`) when the passage came from the page. Audio reaches `<audio>` as a `data:` URL: the shell CSP has no `blob:` and must not (check-books), and the first run fell straight through to the device's voices on exactly that. The rate button is `playbackRate` over the synthesis rate, pitch kept.
-- When the server cannot speak — `speakNotInstalled` (whose body's `lang`, the server's decision, is the language the device voice is chosen for), the pocket's 501, a visitor's 404, a network failure, an undecodable answer — the rest of the passage is read by `speechSynthesis`, and the player says which of THREE states is true, never the old "no voice installed here" (a Windows reader with three French voices read it as "we cannot see your system's voices"): **(a)** the app's voices spoke → nothing; **(b)** a device voice speaks the language → `speakAppVoicesMissing` ("The app's own voices for French are not installed — reading with this device's voice:") / `speakPocketReading` / `speakDeviceNote`, then the voice's NAME with a ▾ (the shared `Select`) of every device voice for the language, then, for the owner on a server, **Install the app's voices** → `openSettingsAt("rowReadAloud")`; **(c)** none does → `speakNoDeviceVoice` (the owner, naming Settings → Language & dates → Read aloud and a system voice, with the same button) / `speakNoDeviceVoicePocket` / `speakNoDeviceVoiceVisitor`. An EMPTY voice list is still tried (some engines never list), and an utterance with no `start` in 4 s, or an `error`, is (c) — a Linux Electron accepts `speak()` and never speaks.
+- When the server cannot speak — `speakNotInstalled` (whose body's `lang`, the server's decision, is the language the device voice is chosen for), the pocket's 501, a visitor's 404, a network failure, an undecodable answer — the rest of the passage is read by `speechSynthesis`, and the player says which of THREE states is true, never the old "no voice installed here" (a Windows reader with three French voices read it as "we cannot see your system's voices"): **(a)** the app's voices spoke → nothing; **(b)** a device voice speaks the language → `speakAppVoicesMissing` ("The app's own voices for French are not installed — reading with this device's voice:") / `speakPocketReading` / `speakDeviceNote`, then the voice's NAME with a ▾ (the shared `Select`) of every device voice for the language, then, for the owner on a server, **Install the app's voices** → `openSettingsAt("rowReadAloud")`; **(c)** none does → `speakNoDeviceVoice` (the owner, naming Settings → Reading & speech → Read aloud and a system voice, with the same button) / `speakNoDeviceVoicePocket` / `speakNoDeviceVoiceVisitor`. An EMPTY voice list is still tried (some engines never list), and an utterance with no `start` in 4 s, or an `error`, is (c) — a Linux Electron accepts `speak()` and never speaks.
 - Which device voice (`client/speech/deviceVoices.ts`, pure `pickVoice` over the list): the reader's choice for the language (localStorage `astrolabe.speak.deviceVoices`, `{lang: voiceURI}`, per device), else in the desktop app on Windows the voice chosen in Windows' Settings → Speech (`electron/systemVoice.ts` reads `HKCU\Software\Microsoft\Speech_OneCore\Voices\DefaultTokenId`, then SAPI's, via `reg query`, and hands the token's name over `hello.systemVoice`; matched by name or by short name without " Desktop"), else the browser's `default` voice for the language — NOT on Windows, where Chromium marks the first voice of the registry (`is_default = (i == 0)`) and a page is never told the system's choice — else the reader's own locale, else a local voice over a network one, else the first. Choosing in the player re-reads the current sentence in the new voice.
 - Visitors: see `/api/speak` in [vault-server.md](vault-server.md). The blog's article carries `data-note-path` so a visitor's request names its page.
 
@@ -1401,8 +1401,8 @@ The ask was a friend's again, a Linux reader who already runs Piper voices throu
 
 ### THE SETTINGS, THE ROW, THE POCKET, THE DESKTOP
 
-- `speak { engine, rate, voices, public }`, every default stored as its absence: Light, rate 1 (0.8 / 1 / 1.2 offered), each engine's first voice, not public. Settings → Language & dates → **Read aloud** is one row (the tab goes to 14): the engine segment, the install line and button, the two facts the choice does not change (Japanese is Natural's, Arabic is Light's), a voice picker for each language with a choice (above), the speed,
- and **this device's voices**: a picker per language the device speaks (Automatic — <the voice `pickVoice` takes>, then every voice by name with its locale), one line naming the languages it has none for, or "This device offers no voices of its own". In a pocket vault the row is not locked: it is the pocket note and the device's voices, the only ones it has. Settings → Publishing & comments → **Readers may listen** (the tab goes to 15).
+- `speak { engine, rate, voices, public }`, every default stored as its absence: Light, rate 1 (0.8 / 1 / 1.2 offered), each engine's first voice, not public. Settings → Reading & speech → **Read aloud** is one row (the tab goes to 14): the engine segment, the install line and button, the two facts the choice does not change (Japanese is Natural's, Arabic is Light's), a voice picker for each language with a choice (above), the speed,
+ and **this device's voices**: a picker per language the device speaks (Automatic — <the voice `pickVoice` takes>, then every voice by name with its locale), one line naming the languages it has none for, or "This device offers no voices of its own". In a pocket vault the row is not locked: it is the pocket note and the device's voices, the only ones it has. Settings → Reading & speech → **Readers may listen** (the tab goes to 15).
 - The pocket refuses `/api/speak*` with `refuseSpeaker`, and its effective `speak` is the fixed facts; the client reads with the phone's voices, names the one reading, and says so.
 - The desktop app ships `server/**/*.py` (electron-builder `files`), and its bundled server makes the venv under its own data folder; Electron's permissions are unchanged (the page only plays audio).
 - `ASTROLABE_SPEAK_FAKE=1` stands a tone in for both engines on a scratch server so check-fidelity and check-phone hear an answer in seconds; the row says *Test engine* while it is on.
@@ -1492,7 +1492,7 @@ pins the bytes.
 
 **DOORS AND KEYS.** Today: the status bar's first door (`data-testid="today-door"`), the palette
 (`open-today`), `Ctrl/Cmd Alt Shift D` (`cmdOpenToday`, checked before capture's Shift and the
-daily note's Alt), and launch door `"today-page"` on Settings → Vault → Open on launch — a door on
+daily note's Alt), and launch door `"today-page"` on Settings → Writing → Open on launch — a door on
 the existing setting, not a new Device row: This device and Vault each already carry 18 rows, and
 two settings deciding what a launch opens would need a rule for which wins. Timeline: the palette
 (`open-timeline`), the Calendar page's door, the phone's More and Calendar `⋯`.

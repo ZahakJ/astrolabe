@@ -212,7 +212,9 @@ pane's switch under a top bar — is left for the graph and a drawing only.
   before every move and on every pop — a pop the browser already made is undone by pushing the
   entry straight back, so the form is never unmounted — and `onBlocked(proceed)` asks "Close
   without saving?" through the confirm sheet; Discard releases the guard, resets the form and
-  proceeds. A section's save bar rises by `transform`. This device has no bar and no guard.
+  proceeds. A section's save bar rises by `transform`. Every section registers the guard; rows
+marked *This device* commit on tap and never make the form dirty. The list and the sections are
+TABS in order under the same names as the dialog's rail (`sectionId` maps a pre-purge id).
 - **Scroll memory**: a push stamps the leaving list's `scrollTop` into the entry it leaves
   (`scrollOf`), and a pop hands it back as `NavState.scroll`; `useScrollMemory` re-applies it
   as a late-arriving list grows (≤1.2s, never after the reader touches it).
@@ -1682,6 +1684,53 @@ inline, bottom unpinned, max-height in the box) and the position is remembered i
 
 ## Settings panel (SettingsModal)
 
+**THE SETTINGS PURGE — NINE SECTIONS BY INTENT (after 3.37).** The owner: "make settings as clean
+and as intuitive as possible." The audit (`scratchpad/settings-purge/audit.md`, tracked, and read by
+`tests/settings-purge.test.ts`) gave each of the 110 rows then indexed a verdict — 38 KEEP, 50 MOVE,
+10 MERGE, 12 DEMOTE, 0 ENV-ONLY, 0 REMOVE — and the rail became, in order: **Appearance**
+(`appearance`: your theme, warmth, dim, sidebar edge, writing column; note layout; typography) ·
+**Language & dates** (`language`: your language, site language, dictionaries, calendar; for
+visitors; Advanced: date locale) · **Writing** (`writing`: open on launch, toolbar, French,
+properties card; new notes; capture; files & tags; Advanced: Vim, drawings) · **Reading & speech**
+(`reading`: numbering, offline, book search, feeds; listening; voice notes; Advanced: own voices,
+hadith folder) · **Your site** (`site`: identity, ambient; publishing; home page; conversation;
+Advanced: footer, excluded tags, other sites) · **Collections** · **Backup & sync** (`sync`, ONE
+body for both kinds of vault: an instance's repository rows or a pocket's, then versions and what
+travels; Advanced: branch, pull-first) · **Ask** (Advanced: embedding model, passages) · **About**
+(This app: what's new and the desktop's name, icon, launcher, updates; then the facts). Rows
+101 + 10 parts: 12 · 8 · 15 · 11 · 18 · 11 · 11 instance / 6 pocket · 7 · 4. No stored key moved,
+was renamed or migrated; only rows' homes did. Former ids map forward (`sectionId`: device →
+appearance, vault → writing, publishing → site) for a remembered tab, a restored phone entry or
+an old `{kind: "settings", section}`. A pocket vault draws seven (Collections and Ask are
+`!pocket` in `TabBody`).
+- **"This device" is not a section.** It was named after a storage mechanism; its rows now sit
+  where their questions are, and `Row`'s `device` prop draws a small *This device* mark beside
+  the label of each row that saves itself on this device (title: saved at once, here only; the
+  Save bar is not about it).
+- **One row anatomy** (`settings/Row.tsx`): label (+ mark, + ⓘ) · one-line hint · control at the
+  control column's start, or across the row when `wide`; the ⓘ's region (env line, `more`
+  paragraphs — `more` may be an array) opens UNDER the whole row (`grid-column: 1 / -1`). A
+  MERGED control is a `<Part label hint>` inside `<Parts>` under its host's control: its own
+  caption, hint and `data-setting`, so a search or `openSettingsAt` lands on the part itself;
+  when the part is not drawn right now (the launch note while no note is chosen) `revealRow`
+  falls back to the host (`entry.row`). Toggles: every two-state row is a switch (the properties
+  card was the last On/Off segment).
+- **Advanced** (`settings/Fold.tsx`): a native `<details>` at a section's foot, its summary
+  naming the rows it holds from the index (filtered by mode and desktop, like the search); a
+  reveal opens it before scrolling. `<InstanceOnly>` / `<PocketOnly>` wrap rows one kind of vault
+  draws. The index parser reads all four tags — each on a line of its own, comment lines
+  ignored — plus `<XRows />`/`<XRow />` lines naming a file under settings/, whose rows it reads in
+  place with the surrounding mode and Advanced flag. Entries gain `more` (keys), `row` (host of a
+  part) and `adv`; `check-settings` compares the checked-in file to the generator's output byte
+  for byte, caps a section at 18 rows (parts excluded, the larger of the instance and pocket
+  views), and scans every parsed file's hints. `check-docs` takes group headings (and
+  *Advanced*) from the same parser.
+- **The Save bar appears only when something changed**, on every section and in both hosts: the
+  dialog's footer renders while `dirty || saving`, with Discard and Save (the header's × and Esc
+  close); a phone section always registers its guard and its bar rises on the first edit.
+- **Search** matches the ⓘ paragraphs too (rank: label, env, hint, ⓘ), and a result's second line
+  names the section and, for a part, its host row or, behind the line, *Advanced*.
+
 **ONE FORM, TWO HOSTS (3.27.0).** `SettingsModal.tsx` is the DIALOG only — the rail, the search above
 it, the footer, the image picker, the exits that ask — and nothing it draws is a row. The form and
 its rules are `components/settings/form.ts` (`Form`, `formFrom`, `validate`, `buildPatch`); the
@@ -1691,8 +1740,9 @@ loaded form through `settings/context.ts` (mounted only once the settings have a
 `eff` and `inh` are never null in a tab); and ONE switch, `settings/TabBody.tsx`, turns a tab id into
 its body for both the dialog and the phone shell's Settings section screens. The switch's
 `{tab === "…" && [!]pocket && <XTab />}` lines ARE the index's source: `scripts/settings-index.mjs`
-reads each line's mode and the rows out of the file of the component it names (plus the travel row
-the sync tab mounts), and regenerated the index byte-identical across the split. `TABS` lives in
+reads each line's mode and the rows out of the file of the component it names (and, since the
+purge, the wrappers, parts and nested row files inside it — above), and regenerated the index
+byte-identical across the split. `TABS` lives in
 `settings/tabs.ts` (check-docs reads it there). Split with no change to a row, a hint, a request or
 a toast; `tests/settingsForm.test.ts` holds the round trip.
 
@@ -1708,9 +1758,8 @@ discarded." / Discard)` over a dirty one — the designer's own twelve lines
 (`DesignerPanel.tsx`), and the two keys are now `closeUnsavedTitle` /
 `closeUnsavedBody` / `discardChanges`, generic because two panels ask the
 same question. The Esc listener stands down while the question is on screen,
-so Esc there means Cancel. The footer renders only when `tab !== "device"`:
-This device commits on click, and a footer reading "Unsaved changes" over it
-was the two-kinds-of-row confusion drawn once more on the tab built to end it.
+so Esc there means Cancel. (The footer rendered only when `tab !== "device"`
+until the purge; it now renders only while the form is dirty or saving.)
 **Row anatomy:** the label column is `minmax(0, 19rem)` and the hint wraps at
 `46ch` (they were 14.45rem and 30ch, and every fourteen-word hint ran to three
 or four lines beside an empty control column); the hint, the footer status,
@@ -1748,7 +1797,7 @@ and `Row` names its control by `aria-labelledby` as well as `htmlFor`, since a
 `SegmentedControl` is a radiogroup `<div>` that `for` cannot reach. Clearing
 the offline copy asks first, like removing a font: it deletes bytes.
 
-**THE TAB MAP (3.15):** This device · Site · Language & dates · Publishing &
+**THE TAB MAP (3.15, superseded by the purge above):** This device · Site · Language & dates · Publishing &
 comments · Collections · Vault · Backup & sync · About. Eight, as before, but
 re-cut: the previous eight ran Identity five rows, Typography five, Publishing
 twenty-one, and a rail is a promise about where things are that a tab nobody
@@ -2045,7 +2094,7 @@ command, the gear's `aria-label`, the `Ctrl/Cmd+/` row and the README section �
 and every surface follows. `siteSettingsTitle` is the gear's tooltip and carries the same word.
 The Arabic is the dictionary's own noun (`settingsSaved`, `settingsSections`), not a new
 coinage; likewise `browseThemes`, which is now *Themes* / «السمات» — `docTheming`'s word — on the
-palette row, the `Ctrl/Cmd+/` row and the Settings → This device trigger. The README heading
+palette row, the `Ctrl/Cmd+/` row and the Settings → Appearance trigger. The README heading
 moved with them, so `DOC_LINKS`' anchor is `#settings`.
 
 `settings.defaultTheme` is parsed leniently like `settings.language`: trimmed **and lowercased**.
@@ -2154,7 +2203,7 @@ visitors, which is what lets it name absolute paths.
 
 The owner: "whenever you update to a new version and open that version for the first time you get
 some super nice looking modern popup with a preview of all the features added in said update" —
-on by default, a switch in Settings → This device, "not just a bunch of words but images", and
+on by default, a switch in Settings → About, "not just a bunch of words but images", and
 "we shouldn't change it for bug fixes".
 
 **Three files, one boundary.** `versions.ts` is the list of minor versions that have a deck and a

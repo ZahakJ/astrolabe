@@ -16,7 +16,7 @@ came from uses.
 `Ctrl/Cmd Alt Shift D`, or by typing **Open Today** in the command palette. It opens as a tab in the
 pane you are in, like the [Calendar](calendar.md), and its address is `/today`. On a phone it is the
 first tab of the bottom bar and the screen the app opens on. To open it every time Astrolabe starts,
-choose **The Today page** under Settings → Vault → Open on launch (the session you left is restored
+choose **The Today page** under Settings → Writing → Open on launch (the session you left is restored
 underneath it).
 
 The chord is the third verb of one idea: `Ctrl/Cmd Alt D` opens today's note, `Ctrl/Cmd Shift D`

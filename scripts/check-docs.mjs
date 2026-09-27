@@ -36,7 +36,7 @@ import { fileURLToPath } from "node:url";
 import { marked } from "marked";
 import { PAGES, headingIds } from "./build-docs.mjs";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
-import { tabSources } from "./settings-index.mjs";
+import { parseSettings } from "./settings-index.mjs";
 import { readDictionary } from "./dictionary.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
@@ -49,22 +49,18 @@ function dictionary() {
   return readDictionary(root);
 }
 
-/** The panel's tabs (`TABS` in settings/tabs.ts) and, per tab, the group
- *  headings it renders (`s-smodal__sub`) — read out of each tab body's file
- *  through the same switch scripts/settings-index.mjs reads for rows. */
+/** The panel's sections (`TABS` in settings/tabs.ts) and, per section, the
+ *  group headings it renders (`s-smodal__sub`, and the Advanced line) — read
+ *  by the same parser that builds the settings index, so a heading inside a
+ *  nested file or behind `<InstanceOnly>` counts exactly as a row there does.
+ *  Rows are the index's entries, parts included: "Settings → Your site →
+ *  Fediverse name" names a control a reader can find. */
 function panel(dict) {
   const tabsFile = read("client/components/settings/tabs.ts");
   const tabsSrc = /const TABS: Tab\[\] = \[([\s\S]*?)\];/.exec(tabsFile)?.[1] ?? "";
   const tabs = [...tabsSrc.matchAll(/id: "(\w+)", key: "(\w+)"/g)].map((m) => ({ id: m[1], label: dict.get(m[2]) }));
   const groups = new Map(tabs.map((t) => [t.id, []]));
-  for (const { tab, files } of tabSources()) {
-    for (const file of files) {
-      for (const line of read(file).split("\n")) {
-        const sub = /s-smodal__sub"?>\{t\("(\w+)"\)\}/.exec(line);
-        if (sub && groups.has(tab)) groups.get(tab).push(dict.get(sub[1]));
-      }
-    }
-  }
+  for (const g of parseSettings().groups) groups.get(g.tab)?.push(dict.get(g.key));
   const rows = new Map(tabs.map((t) => [t.id, []]));
   for (const r of SETTINGS_INDEX) rows.get(r.tab)?.push(dict.get(r.label));
   return { tabs, groups, rows };

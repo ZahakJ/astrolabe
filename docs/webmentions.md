@@ -8,7 +8,7 @@
 
 A published post can be part of a conversation that happens elsewhere: someone writes a reply on their own blog, likes it from Mastodon, or links to it in a weekly roundup. Astrolabe can hear about those, keep the ones you approve under the post, and tell other sites when your posts talk about them. It does this with two open standards: **webmentions** (a site POSTs "my page links to yours" to an address yours advertises) and **ActivityPub** (the protocol Mastodon, Pixelfed and the rest of the fediverse speak).
 
-Each part is network access, so each is its own switch in **Settings → Publishing & comments**, and a new instance has all three **off**:
+Each part is network access, so each is its own switch in **Settings → Your site → Conversation**, and a new instance has all three **off**:
 
 | Row | What it does while on |
 | --- | --- |
@@ -17,7 +17,7 @@ Each part is network access, so each is its own switch in **Settings → Publish
 | **Fediverse** | The blog is one ActivityPub account: people can find it, follow it, like, boost and reply. |
 | **Fediverse name** | The name before the `@` in the account's address. |
 
-Set `SITE_URL` (see [Configuration](configuration.md)). Other servers remember your site by its address, and the fediverse account *is* its address: without `SITE_URL` the server uses the address you last opened Settings → Publishing & comments at, which is fine on a laptop and fragile behind a proxy. The rows say so when it matters.
+Set `SITE_URL` (see [Configuration](configuration.md)). Other servers remember your site by its address, and the fediverse account *is* its address: without `SITE_URL` the server uses the address you last opened Settings → Your site at, which is fine on a laptop and fragile behind a proxy. The rows say so when it matters.
 
 ## What counts as public
 

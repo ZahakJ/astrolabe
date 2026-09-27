@@ -35,7 +35,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
 - The file lives INSIDE the vault (a dot-directory: never listed, indexed, watched or served) and
   not in `ASTROLABE_DATA`, because the point is every server over the folder — each machine's
   desktop app, the hosted instance the phone opens — reading the same one, carried by whatever
-  carries the notes. `Settings → Device → Settings travel with the vault` is the per-device
+  carries the notes. `Settings → Backup & sync → Settings travel with the vault` is the per-device
   switch (`astrolabe.prefs-sync-off`, itself never synced).
 
 ## Instance settings travel with the vault (server/configMirror.ts)
@@ -68,7 +68,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
   design name are fetched — `warmFonts()` in server/fonts.ts, the same
   `catalogSlotIds(fontSlots())` + `designCatalogIds(activeDesignFontRefs(), fontSlots())` the
   settings PATCH warms, fire-and-forget, logged on failure. Before 3.18.0 a fresh clone reported
-  `ui: "lora"` with zero `@font-face` until someone opened Settings → Site.
+  `ui: "lora"` with zero `@font-face` until someone opened Settings → Appearance.
 - **Visible.** `GET /api/sync/travel` (admin-only, `isPublishLimited` → 401) reports each
   travelling item's presence on either side, the last pass (`at`, what moved, `problems`) and
   how many files have been reconciled; `POST /api/sync/travel` runs one pass plus the warm and
@@ -623,7 +623,7 @@ under a "could not check" title — and `found` is kept so that click retries at
 updater remembers the offer, not the stumble, as what `hello` hands a later window. **The preference** `updates: "notify" | "off"` lives in
 `desktop.json` beside the window bounds (`electron/prefs.ts`, parsed by `parseUpdatesPref`;
 anything but the literal "off" is notify), is read fresh on every tick so a change needs no
-restart, and is exposed as `updatesPrefGet`/`updatesPrefSet` — Settings → This device → This app
+restart, and is exposed as `updatesPrefGet`/`updatesPrefSet` — Settings → About → This app
 → **Software updates** (*Tell me* / *Off*), desktop only. *Off* stops the timer asking at all; the
 menu item still works by hand. Turning it back on runs one quiet check straight away. `hello`
 carries `update` (the updater's last word) so a window opened after the check draws the pill
