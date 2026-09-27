@@ -12,19 +12,10 @@
 import { useSettings } from "./context.ts";
 import { localeNum, t, tf } from "../../i18n.ts";
 import { useStore } from "../../state.ts";
-import { SegmentedControl, Toggle } from "../controls/Fields.tsx";
-import { desktop } from "../../desktop/bridge.ts";
-import { DECLARABLE, setBrowserDictionaries, type Declarable } from "../../spellDicts.ts";
+import { Chips, SegmentedControl, Toggle } from "../controls/Fields.tsx";
+import { dictionaryName, setBrowserDictionaries, spellOffer } from "../../spellDicts.ts";
 import { Row } from "./Row.tsx";
 import { Consequence, LanguageConsequence } from "./Visibility.tsx";
-
-/** Named one by one so the dictionary gate sees every key used. */
-const DICT_LABELS: Record<Declarable, () => string> = {
-  fr: () => t("spellDict_fr"),
-  ar: () => t("spellDict_ar"),
-  he: () => t("spellDict_he"),
-  fa: () => t("spellDict_fa"),
-};
 
 export default function LanguageTab() {
   const { pocket, form, setForm, field, langFilterLabel, eff, inh, impact, dicts } = useSettings();
@@ -34,6 +25,9 @@ export default function LanguageTab() {
   const editorLangPref = useStore((s) => s.editorLangPref);
   const setEditorLang = useStore((s) => s.setEditorLang);
   const siteLanguage = useStore((s) => s.siteLanguage);
+  /** What this device can offer, read afresh on each render — `dicts` below
+   *  re-renders the page whenever the chosen set moves (SPELL_DICTS_EVENT). */
+  const offer = spellOffer();
   return (
     <section data-section="language">
       {/* THE ROW THAT UNWELDS THE TWO LANGUAGES. The site language decides
@@ -71,22 +65,28 @@ export default function LanguageTab() {
           {...field("language")}
         />
       </Row>
-      {desktop() === null && (
-        <Row device label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
-          <div className="s-smodal__dicts" role="group" aria-label={t("rowSpellDicts")}>
-            {DECLARABLE.map((code) => (
-              <Toggle
-                key={code}
-                label={DICT_LABELS[code]()}
-                onLabel={tf("spellDictToggle", { lang: DICT_LABELS[code](), state: t("on") })}
-                offLabel={tf("spellDictToggle", { lang: DICT_LABELS[code](), state: t("off") })}
-                value={dicts.includes(code)}
-                onChange={(on) => setBrowserDictionaries(on ? [...dicts, code] : dicts.filter((d) => d !== code))}
-              />
-            ))}
-          </div>
-        </Row>
-      )}
+      {/* SPELLCHECK IN — ONE multi-select, not four switches (the owner:
+          "wth is this browser dictionaries with like so many on off
+          toggles"). Each chip is a language's NAME in the chrome's language;
+          what is offered is what this device can honestly check
+          (client/spellDicts.ts): the four line languages in a browser, the
+          dictionaries this computer has in the desktop app, and — where there
+          is nothing to choose (macOS, or spelling off in the Edit menu) — one
+          sentence and no control. Kept on this device, like a dictionary. */}
+      <Row device label={t("rowSpellDicts")} hint={t("hintSpellDicts")} more={t("moreSpellDicts")}>
+        {offer.mode === "browser" || offer.mode === "desktop" ? (
+          <Chips
+            label={t("rowSpellDicts")}
+            chips={offer.offered.map((code) => ({ value: code, label: dictionaryName(code) }))}
+            value={dicts}
+            onChange={(next) => setBrowserDictionaries(next)}
+          />
+        ) : (
+          <p className="s-smodal__status" data-spell-mode={offer.mode}>
+            {t(offer.mode === "system" ? "spellDictsSystem" : offer.mode === "off" ? "spellDictsOff" : "spellDictsNone")}
+          </p>
+        )}
+      </Row>
 
       {/* ── For visitors ──────────────────────────────────────────────────────
           What the PUBLIC site does with the two languages: which notes it

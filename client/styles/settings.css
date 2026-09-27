@@ -2047,3 +2047,15 @@ h2.s-smodal__tabhead {
 .s-smodal__railbtn {
   padding-block: 6px;
 }
+
+/* A STATUS LINE (contracts/settings-design.md, the catalogue's Status): what
+   is true now, in the control column, where a control would be — the
+   repository's state, the spellchecker's languages when there is nothing to
+   choose. Read, so muted; never a control. */
+.s-smodal__status {
+  margin: 0;
+  padding-top: 7px;
+  font-size: 0.786rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
