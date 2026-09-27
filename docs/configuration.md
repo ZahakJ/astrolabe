@@ -57,8 +57,7 @@ comment explaining it. The table below is the short version.
 | `NOTE_VERSIONS` | `off` (also `false`, `0`, `no`) stops the app keeping a copy of every note before each save in `ASTROLABE_DATA/versions/` (default on) — see [Versions, before and beside git](backup-and-sync.md#versions-before-and-beside-git) |
 | `PDF_SEARCH` | `off` (also `false`, `0`, `no`) stops the sidebar search from reading the text of the PDFs on your shelf (default on; see [Searching inside every book](books.md#searching-inside-every-book)) |
 | `SPEAK_EXTERNAL` | `on` (also `true`, `1`, `yes`) lets the admin set Read aloud's [external speaker](read-aloud.md#an-external-speaker), a program the server runs as its own user (default off: none can be saved, and one saved earlier is never run). **`.env` only** — the operator's decision, not the admin password's. The desktop app is its own operator and turns it on |
-| `OLLAMA_HOST` |
- Where [Ask the vault](ask.md) finds Ollama — the same variable Ollama itself reads (default `http://127.0.0.1:11434`) |
+| `OLLAMA_HOST` | Where [Ask the vault](ask.md) finds Ollama — the same variable Ollama itself reads (default `http://127.0.0.1:11434`) |
 | `SITE_NAME` | The site's name, shown in the sidebar, in page titles and on the login dialog (default `Astrolabe`) |
 | `SITE_TAGLINE` | A short line under the site name, in blog mode |
 | `SITE_FOOTER` | The footer line in blog mode. `{year}` and `{siteName}` are filled in (default `© {year} {siteName}`) |
@@ -86,7 +85,8 @@ it, and there is no key for this: 10 MB on any `/api` request, and a much smalle
 two things anonymous visitors can send (comments and login attempts). Anything bigger is refused
 with HTTP 413 ("request too large") instead of being held in memory. Uploads have their own, separate allowance. If
 you run the app behind a proxy, a matching limit there is a sensible extra layer — in nginx,
-`client_max_body_size 10m;`.
+`client_max_body_size 10m;`, or `256m` if you will drop [films into notes](editor.md#embeds),
+since a video upload's own allowance is 256 MB.
 
 ## The Settings panel
 
@@ -207,8 +207,9 @@ belong to no note and are measured from the vault root. Fonts (`ASTROLABE_DATA/f
 `custom.css` have their own homes and are not affected.
 
 **Any file the vault can hold, not just images.** `POST /api/upload` accepts images (png, jpeg,
-webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, opus, flac) and video (mp4,
-mov, webm), up to 10 MB each. The *contents* of the file are inspected, so a program renamed to
+webp, gif, svg, avif, heic, bmp), **PDF**, audio (mp3, m4a, wav, ogg, oga, opus, flac) and video (mp4,
+m4v, mov, webm, mkv, ogv). A film may be up to 256 MB and is written to disk as it arrives; every
+other file is capped at 10 MB. The *contents* of the file are inspected, so a program renamed to
 `.png` is refused whatever its extension says. Anything not on that list is refused **in the
 browser, before the upload starts**, with a message naming what was refused and what would have
 been accepted.
@@ -271,6 +272,12 @@ above.
 | `authorSites` | array of `{ url }` (https); each site's title and preview image are fetched once (from its OpenGraph tags) and cached in `ASTROLABE_DATA/author-sites.json`; rendered on the blog as *More from the author* cards. **No env counterpart** | empty |
 | `ambient` | boolean — a slow decorative atmosphere behind the public masthead, drawn per theme (see [Theming](theming.md#the-ambient-masthead)) | `false` |
 | `pdfSearch` | boolean — the sidebar search reads the pages of every PDF on the shelf (see [Searching inside every book](books.md#searching-inside-every-book)) | `PDF_SEARCH`, else `true` |
+| `externalVideo` | boolean — a YouTube, Vimeo or PeerTube link on a line of its own plays in place, in the app and on the blog (Settings → Your site → Embed external video; see [Embeds](editor.md#embeds)). **No env counterpart** | `false` |
+| `feeds` | `{ fetch, note }` — [feeds](feeds.md): whether the server may fetch the feeds you follow (Settings → Reading & speech → Feeds), and the note that lists them | `fetch: false`, `note: Feeds.md` |
+| `voice` | `{ model, backend, language, keepAudio }` — [voice notes](capture.md#voice): the transcription model (`base-q5_1` · `small-q5_1` · `large-v3-turbo-q5_0` · `large-v3-turbo` · `off`), where it runs (`auto` · `cpu`, the processor only), the language (`auto` · `ar` · `en`), and whether the recording is kept | `small-q5_1`, `auto`, `auto`, `true` |
+| `speak` | `{ engine, rate, voices, public }` — [Read aloud](read-aloud.md): the engine (`light` · `natural`), the pace (`0.8` · `1` · `1.2`), a chosen voice per language, and whether the blog's readers may listen. Two more sub-keys, `voicesDir` (your own voices folder) and `external` (`{ command, langs }`, the external speaker), are accepted here but written to `ASTROLABE_DATA/speak-local.json`, never to `settings.json`: they name this machine's paths and programs, and do not travel | `light`, `1`, each engine's first voice, `false` |
+| `webmentions` | `{ accept, send }` — [webmentions](webmentions.md): receive them into moderation, and tell the sites a post links to when it is published (Settings → Your site → Webmentions). **No env counterpart** | both `false` |
+| `fediverse` | `{ enabled, handle }` — the blog as one [fediverse](webmentions.md#the-fediverse) account, and the name before the `@` (1–30 letters, digits or underscores). **No env counterpart** | `enabled: false`; the handle is the site's name folded to that alphabet, else `blog` |
 | `ask` | `{ provider, chatModel, anthropicModel, embedModel, topK }` — [Ask the vault](ask.md): who answers (`ollama` · `anthropic`), the model names, and how many passages an answer reads (2–12). The Anthropic key is **not** here: it is write-only and lives in `ASTROLABE_DATA/ask-credentials.json`, which never travels | `ollama`, `qwen3.5:9b`, `claude-sonnet-5`, `embeddinggemma`, `6` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |
