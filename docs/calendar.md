@@ -26,7 +26,9 @@ A cell carries the day's number and, under it, what that day held:
 - **Each [sigil](sigils.md) that logged something that day**, by name.
 - **The cards you graded** in [Orbits](orbits.md) that day — *3 cards* — read from this device's
   own log.
-- **Each book or work you read**, from the sittings in its [tracker](trackers.md).
+- **Each book or work you read**, from the sittings in its [tracker](trackers.md), including a book
+  you only moved forward on its bar, whose sitting Astrolabe [estimates](trackers.md#sittings-from-progress).
+  Four books moved on one day are four lines; a book the day knows only from its bar is in muted ink.
 - **The steps a [course](sigils.md#a-course) is on course to ask of a day ahead**, faint and in
   italic. They are projected, not recorded: nothing in the note is dated, and if you answer a step
   late every one after it moves with it, here as on the card. A course's *past* days name the steps
@@ -54,7 +56,9 @@ narrow pane or a phone) opens on that day in full:
   (*2 of 2*) coloured the way the card colours it, and the line of prose you wrote in the log.
 - **Orbits** — the decks you studied, how many cards and how many you kept. From this device's own
   log; grades given on another device are not counted here.
-- **Reading** — the pages and the time from each tracker's sittings.
+- **Reading** — the pages and the time from each tracker's sittings. A time with `~` before it was
+  [estimated from a move of the progress bar](trackers.md#sittings-from-progress), and the line under
+  it says whether from your own pace or from the defaults.
 
 Every name in the pane is a door to the note it came from.
 

@@ -850,6 +850,32 @@ logs an older one for its own day. `TrackerMeta` carries `file` (null to a visit
 `client/review/ReviewWeekView.tsx`, `/review-week`, a lazy chunk) computes everything on open and
 stores nothing; `client/print.ts` `setPrintable` lets it own Ctrl+P while it is on screen.
 
+**Sittings from progress.** A book's `progress:` that moves forward with no sitting to account for
+it gets an estimated one. The rule is `shared/sittings.ts` (pure): `observeProgress(prev, tracker,
+today)` answers the new `SeenTracker` and an action — `add {from,to}` for a forward move past the
+day's high-water mark, `shrink {by}` for a move down while the day's own line is still there word
+for word, nothing for a first sighting, a renamed tracker, `sittings: manual`, a kind that is not
+reading (`isReadingTracker`: `kind: book` or a kindless fence in pages), or a save that ADDED a
+measured line (the reader's close-book write). `estimateMinutes` is the one estimate: minutes a unit
+over this tracker's last five measured sittings in the unit, else the vault's, else (a non-page unit
+with a known PDF page count, `server/books.ts` `bookPagesOf`) pages ÷ total at the page pace or 1.5,
+else `DEFAULT_MINUTES` (pages 1.5, chapters 30, sections 10, parts 120, hours 60, minutes 1, any
+other word 10); `basis` is `pace` or `default`. The line is the reader's shape with `~` before the
+minutes (`ESTIMATE_MARK`, `TrackerSession.estimate`) and `| default pace` after a default estimate;
+`appendSittingLine`/`replaceSittingLine` touch exactly one line of the block, never re-render it.
+`server/sittings.ts` is the memory (`ASTROLABE_DATA/trackers-progress.json`, `path#index` →
+`SeenTracker`, written through before the note's event) and the write: `setTrackerObserver` hooks
+it into `applyIndexFile` before the record is built, so every door (PUT /api/note, POST
+/api/tracker, sync, pull, watcher) passes it on the index chain; the write carries the read's mtime
+precondition and, refused, remembers nothing for the note. `initSittings()` runs before the boot
+walk, `pruneSittings()` after it; templates are skipped. PUT /api/note returns the rewrite as
+`NoteWriteResult.sitting` and a clean editor buffer adopts it (its own "changed" falls inside the
+self-save window). Estimated sittings never feed `readingSpeed`. Readers: `DayTracker.estimated`,
+`measured`, `defaultPace`, `units` (the pane's `~`, its *estimated* / *estimated from your pace*,
+the month cell's muted `s-calpage__line--est`); `BookWeek.estimated`, `units`; the Timeline's
+session detail; `YearNumbers.estimatedSittings`/`estimatedMinutes`. The words are
+`client/sittingWords.ts`. The pocket does not estimate: its moves are met when they reach a server.
+
 ## Capture: the quick-capture sheet, the clipper, the installable site
 
 **The text arithmetic (`shared/capture.ts`).** `appendCaptured(content, text, time)` puts `- HH:MM
