@@ -25,12 +25,9 @@ import { localeNum, t, tf, countPhrase } from "../i18n.ts";
 import { useStore } from "../state.ts";
 
 /** One wikilink in a task's text, resolved to a vault path when the tree
- *  knows the note. `label` is what the card shows in place of the brackets:
- *  the alias if one was written, else the last segment of the target. */
+ *  knows the note. */
 export interface TaskLink {
-  raw: string;
   path: string | null;
-  label: string;
 }
 
 function samePath(a: string, b: string): boolean {
@@ -47,8 +44,7 @@ export function linksOf(task: RoutineTask, tree: TreeNode | null): TaskLink[] {
     // own spelling still names the note, so a `Orbits/…/Hiragana`
     // link ticks and links correctly even then.
     const path = resolveLink(parts.target, tree) ?? (parts.target.includes("/") ? `${stripNoteExt(parts.target)}.md` : null);
-    const label = parts.alias ?? stripNoteExt(parts.target).split("/").pop() ?? parts.target;
-    out.push({ raw: m[0], path, label });
+    out.push({ path });
   }
   return out;
 }
@@ -155,10 +151,11 @@ export async function tickSlotForDeck(path: string): Promise<number> {
 }
 
 /** Dress a drawn sigil card: for each of today's tasks that links a
- *  deck, show the link by its name instead of its brackets and add
- *  a chip per deck, "N due · Study", opening the session. The card
- *  is the reading renderer's, rebuilt whole on every change, so this runs
- *  after each draw and holds nothing between draws.
+ *  deck, add a chip per deck, "N due · Study", opening the session (the
+ *  link itself the renderer has already drawn, by its name, through
+ *  client/inlineLinks.tsx). The card is the reading renderer's, rebuilt
+ *  whole on every change, so this runs after each draw and holds nothing
+ *  between draws.
  *
  *  Two passes: the chips are drawn at once from the shelf's last answer, so
  *  a card that is about to be MORPHED into a standing one carries them; then
@@ -190,18 +187,6 @@ export function decorateDeckTasks(card: HTMLElement, meta: RoutineMeta, today: s
     if (!row) return;
     const links = linksOf(task, tree).filter((l) => l.path !== null);
     if (links.length === 0) return;
-    const unbracket = (text: string): string => {
-      for (const l of links) text = text.split(l.raw).join(l.label);
-      return text;
-    };
-    for (const span of row.querySelectorAll<HTMLElement>(".s-rv-routine__taskkey, .s-rv-routine__tasktext")) {
-      span.textContent = unbracket(span.textContent ?? "");
-    }
-    // The checkbox names the task for the screen reader; it loses the
-    // brackets too, or it would read the slot as "review: bracket bracket".
-    const check = row.querySelector<HTMLElement>(".s-rv-routine__check");
-    const aria = check?.getAttribute("aria-label");
-    if (check && aria) check.setAttribute("aria-label", unbracket(aria));
     linked.push({ i, task, links });
   });
   if (linked.length === 0) return;
