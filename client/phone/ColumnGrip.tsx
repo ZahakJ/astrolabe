@@ -1,9 +1,9 @@
 // The grip between a two-column screen's list and its note: drag it (or give
 // it focus and use the arrow keys) to trade width between them; a double tap
 // puts it back. The width is remembered per device and written as one custom
-// property on the columns (`--ph-list-w`), which phone.css clamps so the note
-// never narrows past a phone's measure whatever was remembered on a wider
-// screen. The finger's drag writes that property straight onto the element —
+// property on the columns (`--ph-list-w`), which phone.css clamps to a list's
+// measure, 240–360: two columns start at 1000px (client/shellQuery.ts
+// SPLIT_QUERY), so the note beside it always keeps a reading measure. The finger's drag writes that property straight onto the element —
 // no React render per move — and the width is saved on release.
 
 import { useEffect, useRef, type RefObject } from "react";
@@ -11,8 +11,8 @@ import { t } from "../i18n.ts";
 
 const KEY = "astrolabe.phone-list-width";
 const MIN = 240;
-/** The note keeps at least this much. */
-const NOTE_MIN = 320;
+/** A list's measure, never a share of the page (phone.css holds the same). */
+const MAX = 360;
 const STEP = 16;
 
 export function readListWidth(): number | null {
@@ -38,8 +38,7 @@ export default function ColumnGrip({ cols, list }: { cols: RefObject<HTMLElement
   const drag = useRef<{ id: number } | null>(null);
 
   const bounds = (): [number, number] => {
-    const total = cols.current?.clientWidth ?? 0;
-    return [MIN, Math.max(MIN, total - NOTE_MIN)];
+    return [MIN, MAX];
   };
   const apply = (w: number | null): number | null => {
     const el = cols.current;
@@ -75,6 +74,7 @@ export default function ColumnGrip({ cols, list }: { cols: RefObject<HTMLElement
       aria-orientation="vertical"
       aria-label={t("phListWidth")}
       aria-valuemin={MIN}
+      aria-valuemax={MAX}
       tabIndex={0}
       data-grip="list"
       onPointerDown={(e) => {

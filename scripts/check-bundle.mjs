@@ -440,7 +440,11 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // drawing the four groups as headed lists. 894 → 906.
 // 3.39.0 MERGED: the link round's +3.2 and the settings round's +11.9, each
 // measured against 3.38.0, add: 908.6 kB measured after the merge. 906 → 909.
-const PHONE_BUDGET = 909 * 1024;
+// A NOTE TAKES THE PAGE: 908.6 → 912.7 kB, +4.1 against the 3.39.0 build
+// (ad7a815a) — the note's tabs (client/phone/noteTabs.ts, which the shell
+// holds for a rename, and the strip's rules in phone.css), the rail's Hide
+// list and its remembered state, and four strings a language. 909 → 913.
+const PHONE_BUDGET = 913 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against

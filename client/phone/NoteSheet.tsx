@@ -6,7 +6,7 @@
 // (one card per note, each line a door to the mention), PROPERTIES (the
 // frontmatter, editable a row at a time), and ACTIONS (publish — asking
 // first — the twin, share, move, history, delete). Opens at half height; a
-// drag up takes it to 90%. On a tablet it is a 360px slide-over from the
+// drag up takes it to 90%. On two columns it is a 360px slide-over from the
 // trailing edge that never narrows the note.
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -285,7 +285,7 @@ export default function NoteSheet({ leaving }: { leaving: boolean }) {
     <Sheet
       label={t("phNoteSheet")}
       detent="half"
-      side={phone.tablet}
+      side={phone.split}
       leaving={leaving}
       onDismiss={() => phone.closeSheet(NOTE_SHEET)}
       className="s-ph-notesheet"

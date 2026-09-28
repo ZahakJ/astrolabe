@@ -106,7 +106,7 @@ export default function TagPickerSheet({ leaving }: { leaving: boolean }) {
     <Sheet
       label={title}
       detent="half"
-      side={phone.tablet}
+      side={phone.split}
       leaving={leaving}
       onDismiss={() => phone.closeSheet(TAG_SHEET)}
       className="s-ph-tagsheet"

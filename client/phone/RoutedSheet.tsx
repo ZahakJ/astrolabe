@@ -36,7 +36,7 @@ export default function RoutedSheet({ id, label, header, detent = "half", onGone
   // calendar's day, 3.26.0 — measured by nothing, because the gate skips
   // inert targets).
   return createPortal(
-    <Sheet label={label} header={header} detent={detent} side={phone.tablet} onDismiss={() => phone.closeSheet(id)}>
+    <Sheet label={label} header={header} detent={detent} side={phone.split} onDismiss={() => phone.closeSheet(id)}>
       {children}
     </Sheet>,
     layerHost(),

@@ -15,9 +15,11 @@ export interface SheetData {
   [key: string]: unknown;
 }
 
-/** How `open` places a screen: `auto` lets a tablet REPLACE the detail
- *  beside the list; `push` always stacks (a step deeper into what is open). */
-export type OpenHow = "auto" | "push";
+/** How `open` places a screen: `auto` lets two columns REPLACE the detail
+ *  beside the list; `push` always stacks (a step deeper into what is open);
+ *  `swap` replaces the open detail on either layout (a note's tab: switching
+ *  notes is not a step Back should retrace). */
+export type OpenHow = "auto" | "push" | "swap";
 
 /** A screen that may refuse to be left: a Settings section holding edits. */
 export interface LeaveGuard {
@@ -30,11 +32,15 @@ export interface LeaveGuard {
 export interface PhoneApi {
   nav: Nav;
   state: NavState;
-  /** Two columns: a rail, a list and the note beside it. */
-  tablet: boolean;
+  /** Two columns: a rail, a list and the note beside it (client/shellQuery.ts
+   *  SPLIT_QUERY, from 1000px). Otherwise one: the phone's stack. */
+  split: boolean;
+  /** The note screen carries its tabs (client/shellQuery.ts NOTE_TABS_QUERY:
+   *  the open Fold, a tablet either way up; ./noteTabs.ts). */
+  noteTabs: boolean;
   /** A hardware keyboard has been seen (client/phone/hardwareKeyboard.ts). */
   keyboard: boolean;
-  /** Open a screen. On a tablet, a note picked from the list column REPLACES
+  /** Open a screen. On two columns, a note picked from the list column REPLACES
    *  the note beside it rather than stacking — the list is the navigation
    *  there, and forty notes read in a row are not forty steps back. */
   open(screen: Screen, how?: OpenHow): void;
