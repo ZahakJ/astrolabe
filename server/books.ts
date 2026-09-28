@@ -519,3 +519,20 @@ export async function openBook(rel: string): Promise<BookEntry> {
     state: getBookState(key),
   };
 }
+
+/** Pages in the PDF a tracker's `file:` names, as the reader last counted
+ *  them — what server/sittings.ts spreads over a book counted in chapters
+ *  when it estimates a sitting. Matched on the path, or on the bare file name
+ *  with or without its extension, as the reader matches it. Null when the
+ *  book was never opened here, or is an EPUB (its `pages` are chapters). */
+export function bookPagesOf(file: string | null): number | null {
+  if (file === null || file.trim() === "") return null;
+  const want = file.trim().toLowerCase().replace(/^\/+/, "");
+  const bare = (p: string): string => (p.split("/").pop() ?? p).replace(/\.(pdf|epub)$/i, "");
+  for (const state of Object.values(readStore().books)) {
+    if (!state.path || !/\.pdf$/i.test(state.path) || !(state.pages > 0)) continue;
+    const have = state.path.toLowerCase();
+    if (have === want || bare(have) === bare(want)) return state.pages;
+  }
+  return null;
+}

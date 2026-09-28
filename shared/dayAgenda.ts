@@ -38,7 +38,7 @@ import {
 } from "./routine.ts";
 import { inboxDayOf, isVoiceNotePath } from "./noteDays.ts";
 import type { TrackerSession } from "./tracker.ts";
-import { localDay, type ReviewGrade } from "./weekReview.ts";
+import { localDay, unitCounts, type ReviewGrade } from "./weekReview.ts";
 
 /** The slice of a `RoutineMeta` the page needs. */
 export interface AgendaSigilSource {
@@ -158,6 +158,16 @@ export interface DayTracker {
   pages: number;
   minutes: number;
   sessions: number;
+  /** How many of `minutes` were ESTIMATED from a move of `progress:`
+   *  (shared/sittings.ts) rather than timed — drawn with a `~`. */
+  estimated: number;
+  /** How many of `sessions` were measured; zero is a day known only from
+   *  the progress bar, which the month cell draws muted. */
+  measured: number;
+  /** Some estimate rested on the stated defaults, not the reader's pace. */
+  defaultPace: boolean;
+  /** Counts in units other than pages (`2 chapters`), summed per word. */
+  units: { unit: string; count: number }[];
 }
 
 export interface DayAgenda {
@@ -274,10 +284,14 @@ export function agendaByDay(days: readonly string[], sources: AgendaSources, tod
     const byDay = new Map<string, DayTracker>();
     for (const session of tracker.sessions) {
       if (!wanted.has(session.date)) continue;
-      const row = byDay.get(session.date) ?? { path: tracker.path, index: tracker.index, title: tracker.title, pages: 0, minutes: 0, sessions: 0 };
+      const row = byDay.get(session.date) ?? { path: tracker.path, index: tracker.index, title: tracker.title, pages: 0, minutes: 0, sessions: 0, estimated: 0, measured: 0, defaultPace: false, units: [] };
       row.pages += session.pages;
       row.minutes += session.minutes;
       row.sessions += 1;
+      if (session.estimate === undefined) row.measured += 1;
+      else row.estimated += session.minutes;
+      if (session.estimate === "default") row.defaultPace = true;
+      if (session.unit !== undefined) row.units = unitCounts([...row.units, session]);
       byDay.set(session.date, row);
     }
     for (const [iso, row] of byDay) out.get(iso)?.trackers.push(row);

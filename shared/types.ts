@@ -1918,6 +1918,10 @@ export interface HeadingRepairOffer {
 /** PUT /api/note → the note as written, plus the one thing the write noticed. */
 export interface NoteWriteResult extends NoteData {
   headingRepair?: HeadingRepairOffer;
+  /** The note as it stands after the save's own read wrote an estimated
+   *  sitting into it (server/sittings.ts) — the text and its new mtime, for
+   *  the editor to adopt. Absent when nothing was written. */
+  sitting?: { content: string; mtimeMs: number };
 }
 
 // POST /api/upload (admin only): multipart file (field "file") → saved under

@@ -48,6 +48,7 @@ import { readLog } from "../orbits/log.ts";
 import { printNote, setPrintable } from "../print.ts";
 import { useStore } from "../state.ts";
 import { formatDuration, KIND_UNIT, unitKey } from "../trackerUnits.ts";
+import { sittingAmount, sittingDuration } from "../sittingWords.ts";
 import "../styles/review.css";
 
 /** How many notes the version store is asked about: the ones touched most
@@ -173,7 +174,7 @@ export default function ReviewWeekView() {
   const isCurrent = week.start === current.start;
   const dateOf = (iso: string): string => siteDate(`${iso}T12:00:00`, locale, { day: "numeric", month: "long" });
   const range = tf("reviewWeekOf", { start: dateOf(week.start), end: dateOf(week.end) });
-  const totals = data ? data.books.reduce((acc, b) => ({ pages: acc.pages + b.pages, minutes: acc.minutes + b.minutes }), { pages: 0, minutes: 0 }) : null;
+  const totals = data ? data.books.reduce((acc, b) => ({ pages: acc.pages + b.pages, minutes: acc.minutes + b.minutes, estimated: acc.estimated + b.estimated }), { pages: 0, minutes: 0, estimated: 0 }) : null;
 
   return (
     <div className="s-review" data-testid="review-week">
@@ -217,14 +218,14 @@ export default function ReviewWeekView() {
                           {b.title}
                         </a>
                         <span className="s-review__fact">
-                          {tf("reviewBookRow", { pages: countPhrase(b.pages, "pages"), time: formatDuration(b.minutes), sessions: countPhrase(b.sessions, "sessions") })}
+                          {tf("reviewBookRow", { pages: sittingAmount(b.pages, b.units), time: sittingDuration(b.minutes, b.estimated), sessions: countPhrase(b.sessions, "sessions") })}
                           {b.speed !== null && ` · ${tf("reviewBookSpeed", { speed: countPhrase(Math.round(b.speed * 10) / 10, "pages") })}`}
                         </span>
                       </li>
                     ))}
                   </ul>
                   {totals !== null && data.books.length > 1 && (
-                    <p className="s-review__total">{tf("reviewTotals", { pages: countPhrase(totals.pages, "pages"), time: formatDuration(totals.minutes) })}</p>
+                    <p className="s-review__total">{tf("reviewTotals", { pages: countPhrase(totals.pages, "pages"), time: sittingDuration(totals.minutes, totals.estimated) })}</p>
                   )}
                 </>
               )}

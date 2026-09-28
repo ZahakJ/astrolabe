@@ -5,7 +5,7 @@
 import { dateNamesLocale } from "../../shared/dates.ts";
 import { siteDateIn } from "../dates.ts";
 import { countPhrase, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
-import { formatDuration } from "../trackerUnits.ts";
+import { sittingAmount, sittingDuration } from "../sittingWords.ts";
 import type { ItemDetail, TimelineKind } from "./model.ts";
 
 const KIND_LABEL: Record<TimelineKind, I18nKey> = {
@@ -44,8 +44,9 @@ export function detailText(detail: ItemDetail): string {
     case "sigil":
       return detail.note ?? (detail.of > 0 ? tf("timelineSigilDone", { done: localeNum(detail.done), of: localeNum(detail.of) }) : "");
     case "session": {
-      const pages = detail.pages > 0 ? countPhrase(detail.pages, "pages") : "";
-      const time = detail.minutes > 0 ? formatDuration(detail.minutes) : "";
+      const pages = detail.pages > 0 || detail.units.length > 0 ? sittingAmount(detail.pages, detail.units) : "";
+      // `~` when any of the time was estimated from the progress bar.
+      const time = detail.minutes > 0 ? sittingDuration(detail.minutes, detail.estimated) : "";
       return [pages, time].filter(Boolean).join(" · ") || countPhrase(detail.sessions, "sessions");
     }
     case "catch": {
