@@ -48,7 +48,7 @@ import { readLog } from "../orbits/log.ts";
 import { printNote, setPrintable } from "../print.ts";
 import { useStore } from "../state.ts";
 import { formatDuration, KIND_UNIT, unitKey } from "../trackerUnits.ts";
-import { sittingDuration } from "../sittingWords.ts";
+import { sittingAmount, sittingDuration } from "../sittingWords.ts";
 import "../styles/review.css";
 
 /** How many notes the version store is asked about: the ones touched most
@@ -218,7 +218,7 @@ export default function ReviewWeekView() {
                           {b.title}
                         </a>
                         <span className="s-review__fact">
-                          {tf("reviewBookRow", { pages: countPhrase(b.pages, "pages"), time: sittingDuration(b.minutes, b.estimated), sessions: countPhrase(b.sessions, "sessions") })}
+                          {tf("reviewBookRow", { pages: sittingAmount(b.pages, b.units), time: sittingDuration(b.minutes, b.estimated), sessions: countPhrase(b.sessions, "sessions") })}
                           {b.speed !== null && ` · ${tf("reviewBookSpeed", { speed: countPhrase(Math.round(b.speed * 10) / 10, "pages") })}`}
                         </span>
                       </li>
