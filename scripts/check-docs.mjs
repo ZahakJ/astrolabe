@@ -130,9 +130,24 @@ function checkSettingsPaths(file, markdown, lang, p, errors) {
   for (const m of prose.matchAll(re)) {
     const line = prose.slice(0, m.index).split("\n").length;
     const segs = segmentsOf(m[1]);
-    const tab = p.tabs.find((t) => labelAt(segs[0], [t.label?.[lang]]));
+    // The LONGEST page name that opens the segment: "Read aloud & voice notes"
+    // begins with a word that another page's name might, and in Arabic
+    // "القراءة بصوت عالٍ…" begins with "القراءة" (Reading).
+    const tab = p.tabs
+      .filter((t) => labelAt(segs[0], [t.label?.[lang]]))
+      .sort((a, b) => b.label[lang].length - a.label[lang].length)[0];
     if (!tab) {
       errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]}" names no settings tab (${p.tabs.map((t) => t.label?.[lang]).join(" · ")})`);
+      continue;
+    }
+    // Prose may follow a page's name ("Settings → Reading to switch it on"),
+    // but a path that goes ON past a longer name is naming a page that is not
+    // there: "Settings → Language & dates → Date calendar" began with the
+    // page "Language", and passed for as long as that was all this looked at.
+    const rest = segs[0].slice(tab.label[lang].length).trim();
+    const oneWord = rest.split(/\s+/).length <= 1;
+    if (segs[0] !== tab.label[lang] && (/^&/.test(rest) || (oneWord && /^(?:and\b|و)/.test(rest)) || (segs.length >= 2 && rest.split(/\s+/).length <= 2))) {
+      errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]}" is not a page name (the page is "${tab.label[lang]}")`);
       continue;
     }
     if (segs[0] !== tab.label[lang] || segs.length < 2) continue; // prose follows the tab, or the path ends there

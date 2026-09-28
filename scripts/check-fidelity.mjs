@@ -1199,10 +1199,10 @@ try {
   }
 
   // ── Settings, section by section (scripts/settings-walk.mjs) ───────────
-  // The settings purge's nine sections: each opens under its name with its
-  // sentence and at most eighteen rows, one change per section is saved and
-  // put back (the Save bar absent until something changed), and a word only
-  // a hint carries finds its row behind an Advanced line and lands on it.
+  // Every page of the two-level rail: each opens under its name with its
+  // sentence and at most ten rows in sight; EVERY row is set by its kind, the
+  // app reloaded and every row read back, then put back and read back (the
+  // Save bar only when dirty); Discard restores; a hint word lands its row.
   for (const lang of ["en", "ar"]) {
     const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
     await ctx.addCookies(cookies);

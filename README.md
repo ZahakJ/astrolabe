@@ -83,7 +83,7 @@ Visitors now get a read-only view; a "Sign in" link in the status bar unlocks ed
 **2. Mark a note as public** — add `publish: true` to its frontmatter, or press `Ctrl/Cmd Shift P`
 with it open. Nothing else is visible to anyone.
 
-**3. Turn on the blog**, in `.env` or live from Settings → Your site:
+**3. Turn on the blog**, in `.env` or live from Settings → Publishing:
 
 ```sh
 PUBLIC_LAYOUT=blog
@@ -97,7 +97,7 @@ internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
 
 ## Make it yours
 
-The desktop app answers to whatever name and icon you give it. **Settings → About → This app**
+The desktop app answers to whatever name and icon you give it. **Settings → This device**
 sets both on your computer — the tray, the window icon, the About box and a launcher entry in
 your name — and an update never takes them back. To bake your name and icon into the executable
 itself:

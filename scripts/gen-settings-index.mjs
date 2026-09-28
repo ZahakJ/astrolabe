@@ -31,14 +31,25 @@ export function renderIndex(rows) {
 // one searches English, from one index.
 
 import type { I18nKey } from "../../i18n.ts";
+import type { ControlKind } from "./catalogue.ts";
 
 export interface SettingEntry {
-  /** The section this row lives in — \`TABS[].id\` in settings/tabs.ts. */
+  /** The page this row lives in — \`TABS[].id\` in settings/tabs.ts. */
   tab: string;
+  /** The rail group of that page — \`GROUPS[].id\` (You · Your site · Data ·
+   *  App), read out of tabs.ts with the page. */
+  group: "you" | "site" | "data" | "app";
   /** The row's label key. Also how a result finds its row in the DOM: \`Row\`
    *  stamps the RESOLVED label as \`data-setting\`, and the result resolves the
    *  same key to look it up. */
   label: I18nKey;
+  /** Which control of the catalogue draws it (contracts/settings-design.md;
+   *  \`kind\` on the row in the source). The browser walk sets every row by
+   *  its kind and reads it back after a reload. */
+  kind: ControlKind;
+  /** Kept in this browser (or by the desktop install) and saved as it
+   *  changes: it never raises the Save bar. */
+  device?: true;
   hint?: I18nKey;
   /** The paragraph(s) behind the row's ⓘ — searched too, because the word a
    *  reader types is often in the reference text and not in the label. */

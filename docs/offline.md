@@ -26,7 +26,7 @@ While the browser reports that it has no network, a grey strip appears above the
 
 ## Settings
 
-**Settings → Reading & speech → Offline reading** turns the copy on or off for this device. It is on by default. **Clear offline copy** deletes the copy right now, which is useful on a shared machine, or for a vault you would rather not leave behind. The desktop app has no such row: its server runs on the same machine as the app, so there is nothing to be offline from.
+**Settings → This device → Offline reading** turns the copy on or off for this device. It is on by default. **Clear offline copy** deletes the copy right now, which is useful on a shared machine, or for a vault you would rather not leave behind. The desktop app has no such row: its server runs on the same machine as the app, so there is nothing to be offline from.
 
 ## How it works
 

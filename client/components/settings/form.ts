@@ -765,6 +765,12 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (f.comments !== initial.comments) {
     patch.commentsEnabled = f.comments === "" ? null : f.comments === "on";
+  }
+  // Its own condition. It rode inside the comments' one, so "Share buttons"
+  // saved only when Comments changed in the same Save — switched on its own,
+  // it was a switch that moved, raised the Save bar, and saved nothing (found
+  // by the settings walk, which reads every row back after a reload).
+  if (f.share !== initial.share) {
     patch.shareButtons = f.share === "" ? null : f.share === "on";
   }
   if (f.ambient !== initial.ambient) {

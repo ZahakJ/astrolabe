@@ -108,7 +108,7 @@ export function TravelRow() {
   const problems = pass?.problems ?? [];
 
   return (
-    <Row label={t("rowTravel")} hint={t("hintTravel")}>
+    <Row kind="status" label={t("rowTravel")} hint={t("hintTravel")}>
       <div className="s-smodal__sync s-travel">
         {status === null ? (
           <div className="s-smodal__syncline s-smodal__syncline--muted">

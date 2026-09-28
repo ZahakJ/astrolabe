@@ -52,7 +52,7 @@ const LATIN_RE = /[A-Za-z\u00c0-\u024f]/g;
 /** Which of the line-level languages a DICTIONARY actually exists for lives
  *  in shared/spellKnown.ts (no imports, so the entry chunk can ask it);
  *  re-exported here for the callers that always asked this module. */
-export { setSpellcheckAvailable, setSpellcheckDeclared, spellcheckKnown } from "./spellKnown.ts";
+export { setSpellcheckAvailable, setSpellcheckDeclared, spellcheckEnv, spellcheckKnown } from "./spellKnown.ts";
 
 /** @param noteFrench the note said `lang: fr` in its frontmatter, so every
  *  Latin line is French without the per-line test (the caller reads it once

@@ -56,6 +56,23 @@ describe("the settings form, as both hosts hold it", () => {
     assert.deepEqual(buildPatch(edited, after), {});
   });
 
+  it("every switch saves on its own — Share buttons without Comments beside it", () => {
+    // The settings walk found it: "Share buttons" rode inside the comments'
+    // condition in buildPatch, so switched alone it raised the Save bar and
+    // saved nothing. Each two-state row must patch its own key, alone.
+    const initial = formFrom(settingsResponse());
+    const off = { ...initial, share: "off" };
+    const patch = buildPatch(initial, off);
+    assert.deepEqual(Object.keys(patch), ["shareButtons"]);
+    assert.equal(patch.shareButtons, false);
+    const after = formFrom(patchSettings(patch as Record<string, unknown>));
+    assert.equal(after.share, "off");
+    for (const key of ["ambient", "externalVideo", "languageToggle", "speakPublic", "emptyPropsCard", "wmAccept", "wmSend", "fediEnabled", "feedsFetch", "voiceKeepAudio", "publicFoldersOn", "publicFoldersHome", "publicFoldersNav", "libraryOn", "libraryNav", "libraryHome", "syncPullFirst"] as const) {
+      const flipped = { ...initial, [key]: initial[key] === "on" ? "off" : "on" };
+      assert.ok(Object.keys(buildPatch(initial, flipped)).length > 0, `${key} switched alone saves nothing`);
+    }
+  });
+
   it("a field the rules refuse is named, and a refused form is not clean", () => {
     const initial = formFrom(settingsResponse());
     const bad = { ...initial, blogLocale: "not a locale!!" };

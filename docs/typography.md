@@ -6,7 +6,7 @@
 
 ---
 
-You can change the app's fonts by writing CSS (see [the `custom.css` route](theming.md#bring-your-own-fonts-the-css-route)). The font catalog is the way to do it without CSS, and the reason it exists is **Arabic**. Open **Settings → Appearance → Typography** and you get four pickers, one per slot:
+You can change the app's fonts by writing CSS (see [the `custom.css` route](theming.md#bring-your-own-fonts-the-css-route)). The font catalog is the way to do it without CSS, and the reason it exists is **Arabic**. Open **Settings → Layout & type** and you get four pickers, one per slot:
 
 | Slot | Drives | Offers |
 | --- | --- | --- |
@@ -41,7 +41,7 @@ Picking the right font is only half of setting text correctly. The other half is
 
 ## Your own fonts
 
-A catalog of twenty-seven Google families cannot be the whole answer for typography, and for Arabic it is not even close: the font a serious instance wants is usually one its owner bought a licence for, and it is on nobody's CDN. So **Settings → Appearance → Typography → Your own fonts** accepts an upload.
+A catalog of twenty-seven Google families cannot be the whole answer for typography, and for Arabic it is not even close: the font a serious instance wants is usually one its owner bought a licence for, and it is on nobody's CDN. So **Settings → Layout & type→ Your own fonts** accepts an upload.
 
 | | |
 | --- | --- |

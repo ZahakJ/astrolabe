@@ -113,7 +113,9 @@
 .s-smodal__body > section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  /* No gap: a row carries its own 12px either side and a hairline between
+     (the second settings pass); a gap on top doubled the rhythm. */
+  gap: 0;
   scroll-margin-top: 4px;
 }
 
@@ -233,7 +235,7 @@
 
 /* The master switch is off — said once, plainly, above the inert controls. */
 .s-smodal__offnote {
-  margin: 0;
+  margin: 8px 0;
   font-size: 0.786rem;
   color: var(--text-muted);
   border-inline-start: 2px solid var(--border);
@@ -409,7 +411,10 @@
    cursor is the same class of bug as a mode that says nothing. So the panel
    holds still and the tall tabs scroll (which they already did). */
 .s-smodal {
-  width: min(940px, calc(100vw - 32px));
+  /* 70rem (1,085px in English): the second pass widened it from 940px so the
+     label column holds a ninety-character hint on one line beside the
+     16rem control column (contracts/settings-design.md). */
+  width: min(70rem, calc(100vw - 32px));
   height: min(740px, calc(100dvh - 40px));
   max-height: calc(100dvh - 40px);
 }
@@ -428,7 +433,7 @@
      names wrapped to two lines, the rail grew taller than the body it labels,
      and the panel's whole left column drifted out of rhythm. Expressed in rem
      the rail grows WITH its own type and holds exactly what it held before. */
-  width: 12.25rem;
+  width: 13rem;
   position: sticky;
   top: 0;
   align-self: flex-start;
@@ -537,64 +542,85 @@
   background: var(--bg-hover);
 }
 
-/* ── Rows ────────────────────────────────────────────────────────────────── */
+/* ── Rows: one anatomy, one control column (contracts/settings-design.md) ───
 
-/* One measure for the label column and one for the control column, down the
-   whole panel. Before this the control column was 1fr — every select stretched
-   to ~500px, every hint wrapped against a different edge, and no two rows in
-   the panel shared a rhythm. */
+   The 3.38.0 screenshots showed controls of five widths in one column —
+   segments hugging their words, a full-width select, a slider with its value
+   at the far edge, a path field with a detached Pick… — and hints wrapping to
+   two lines beside a 19rem label column. The second pass fixes the column:
+   the label column takes what is left (≈ 540px in a 1280 window, so a
+   90-character hint is one line), the control column is 16rem for EVERY
+   row, and each control either fills it or hugs its end edge. So every row's
+   control touches the same end edge, and every field starts at the same
+   start edge. */
 .s-smodal__row {
-  /* Same reason as the rail: a fixed-px label column is a column that holds
-     less Arabic than English. minmax(0, …) so it can still give way rather
-     than push the control out of the panel.
-     19rem, up from 14.45: measured on This device at 1440, the hints under
-     a 224px label wrapped to two, three, four and five lines while ~365px of
-     the control column sat empty beside a 34px toggle — the panel's rhythm
-     was set by its help text. At 19rem (294px) every hint fits in two lines
-     and the control column keeps the 378px the four-way Writing column
-     segment needs on one line; at the brief's 22rem it wrapped "Custom"
-     onto a second row, which reads as a broken control. */
-  grid-template-columns: minmax(0, 19rem) minmax(0, 1fr);
-  gap: 10px 18px;
-  min-height: 46px;
-  padding-block: 2px;
+  grid-template-columns: minmax(0, 1fr) 16rem;
+  column-gap: 1.5rem;
+  row-gap: 6px;
+  min-height: 0;
+  padding-block: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+/* The first row after a page's head, a note or an Advanced summary carries
+   no rule: a hairline under a sentence reads as an underline. */
+.s-smodal__body > section > .s-smodal__row:first-child,
+.s-smodal__advbody > .s-smodal__row:first-child,
+.s-smodal__note + .s-smodal__row,
+.s-smodal__offnote + .s-smodal__row,
+.s-smodal__devnote + section > .s-smodal__row:first-child {
+  border-top: none;
 }
 
 .s-smodal__control {
-  max-width: 24.5rem;
+  max-width: none;
+  align-items: stretch;
+  gap: 6px;
 }
 
-/* …except the ones that ARE the width: the type specimen and the sync status
-   block are content, not fields. The single-column restatement is required —
-   the two-column rule above is later in the cascade than the base's
-   `--wide { grid-template-columns: 1fr }` and would otherwise squeeze the
-   specimen back into a control cell. */
+/* A TABLE takes the row's full width under its label and hint — the editor
+   tables and the composite blocks (read aloud's voices, your own voices). */
 .s-smodal__row--wide {
   grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
+  row-gap: 8px;
   max-width: none;
 }
 
 .s-smodal__row--wide .s-smodal__control {
-  max-width: none;
+  max-width: 44rem;
 }
 
+/* The label's first line centres on the 34px control line. */
 .s-smodal__label {
   padding-top: 7px;
+  font-size: 0.857rem;
+  line-height: 20px;
+}
+
+.s-smodal__row--wide .s-smodal__label {
+  padding-top: 0;
+}
+
+/* A slider's value, in the label: "Screen warmth · 30%". */
+.s-smodal__labelvalue {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-smodal__labelvalue::before {
+  content: "· ";
 }
 
 /* THE HINT IS READ, SO IT IS --text-muted. app.css set it in --text-faint,
-   which DESIGN.md holds to the 3:1 NON-TEXT bar — measured 3.77:1 on the
-   raised ground in GitHub Dark — for a sentence the reader has to finish to
-   learn what the row does. Muted clears 4.5:1 in every room at the same
-   0.75rem. `check-settings` holds this rule and its three siblings
-   (`.s-smodal__dirty`, `.s-about__countlabel`, `.s-smodal__fontmeta`) to the
-   muted token. 46ch, up from 30: with the 22rem label column the sentence
-   has the room, and a hint at 30ch broke every fourteen-word sentence into
-   three or four lines. */
+   which DESIGN.md holds to the 3:1 NON-TEXT bar, for a sentence the reader
+   has to finish to learn what the row does. `check-settings` holds this rule
+   and its three siblings (`.s-smodal__dirty`, `.s-about__countlabel`,
+   `.s-smodal__fontmeta`) to the muted token, and every hint to one line —
+   ninety characters and fourteen English words. */
 .s-smodal__hint {
-  line-height: 1.45;
-  max-width: 46ch;
+  font-size: 0.75rem;
+  line-height: 17px;
+  max-width: none;
   color: var(--text-muted);
 }
 
@@ -602,29 +628,192 @@
   color: var(--text-muted);
 }
 
-/* The control column is a column of CONTROLS, and they all start at its
-   inline start. Without this the segmented controls and toggles (which are
-   inline-flex and size to their content) centred themselves in an RTL panel
-   under `align-items` inherited from the row, so a three-segment row and a
-   toggle row began at two different places down the same column. */
-.s-smodal__control > * {
+/* ── The catalogue's widths ──────────────────────────────────────────────── */
+
+/* FILL: select, text, path, slider, chips, segmented, status — the whole
+   control column. */
+.s-smodal__control > *,
+.s-smodal__parts > *,
+.s-smodal__part > * {
   align-self: stretch;
 }
 
-.s-smodal__control > .s-ctl-seg,
-.s-smodal__control > .s-ctl-num,
-.s-smodal__control > .s-ctl-toggle {
-  align-self: flex-start;
+/* A segmented control fills the column in equal segments, one storey: the
+   note under a segment ("Default / English") is visually hidden here — it is
+   still the segment's tooltip and in its accessible name — and the row's hint
+   says what the default follows. */
+.s-smodal__control .s-ctl-seg {
+  display: flex;
+  width: 100%;
+  max-width: none;
 }
 
-/* The image rows are a field plus its buttons on one line: the field takes
-   the room the buttons do not. (app.css said this in terms of the old
-   .s-bmodal__input class the row no longer uses.) */
-.s-smodal__imgfield .s-ctl-input {
-  flex: 1;
+.s-smodal__control .s-ctl-seg__btn {
+  flex: 1 1 0;
+  justify-content: center;
+  min-width: 0;
+  min-height: 34px;
+  padding-inline: 6px;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
 }
 
-/* The sync status block reads as a paragraph, not as a field value. */
+.s-smodal__control .s-ctl-seg__note {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.s-smodal__control .s-ctl-select,
+.s-smodal__control .s-ctl-input,
+.s-smodal__control .s-ctl-num {
+  width: 100%;
+  min-height: 34px;
+}
+
+/* The slider: the track across the column, no word at its far end. */
+.s-smodal__control .s-ctl-level {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* HUG THE END EDGE: a switch and an action. A switch is its track, no word
+   beside it — the label says what ON means — centred on the control line. */
+.s-smodal__control > .s-ctl-toggle,
+.s-smodal__parts > .s-ctl-toggle,
+.s-smodal__control > .s-btn,
+.s-smodal__parts > .s-btn,
+.s-smodal__part > .s-btn {
+  align-self: flex-end;
+}
+
+.s-ctl-toggle--bare {
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+/* An action row's control (the clipper, the launcher, the icon): its buttons
+   at the end edge. */
+.s-smodal__row[data-kind="action"] .s-smodal__control {
+  align-items: flex-end;
+}
+
+/* ── Parts: a folded control under its host ──────────────────────────────── */
+
+/* A switch part reads as a line of its own: its caption and hint at the start,
+   the switch at the end edge — webmentions in and out, relative lines. */
+.s-smodal__part[data-kind="toggle"],
+.s-smodal__part[data-kind="action"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "label ctl" "hint ctl";
+  column-gap: 12px;
+  align-items: center;
+}
+
+.s-smodal__part[data-kind="toggle"] > .s-smodal__partlabel,
+.s-smodal__part[data-kind="action"] > .s-smodal__partlabel {
+  grid-area: label;
+}
+
+.s-smodal__part[data-kind="toggle"] > .s-smodal__parthint,
+.s-smodal__part[data-kind="action"] > .s-smodal__parthint {
+  grid-area: hint;
+}
+
+.s-smodal__part[data-kind="toggle"] > .s-ctl-toggle,
+.s-smodal__part[data-kind="action"] > .s-btn {
+  grid-area: ctl;
+  align-self: center;
+}
+
+/* ── Path fields: Pick… inside the field's trailing edge ────────────────────
+   One box, one edge: the field keeps its frame and its focus ring, and the
+   verb sits inside it at the end, quiet, instead of a button of its own beside
+   a shortened field. */
+.s-ctl-path__field--pick,
+.s-smodal__imgfield {
+  position: relative;
+}
+
+.s-ctl-path__field--pick > .s-ctl-input {
+  padding-inline-end: 4.6rem;
+}
+
+.s-ctl-path__pick,
+.s-smodal__imgpick {
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-end: 4px;
+  padding-inline: 8px;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.s-ctl-path__pick:hover:not(:disabled),
+.s-smodal__imgpick:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.s-ctl-path__pick:focus-visible,
+.s-smodal__imgpick:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* The image field: a small thumbnail inside the start of the box, the clear
+   × and Pick… inside its end. */
+.s-smodal__imgfield > .s-ctl-input {
+  width: 100%;
+  padding-inline-end: 6.4rem;
+}
+
+.s-smodal__imgfield--thumb > .s-ctl-input {
+  padding-inline-start: 38px;
+}
+
+.s-smodal__imgfield > .s-smodal__imgthumb {
+  position: absolute;
+  inset-inline-start: 5px;
+  top: 50%;
+  translate: 0 -50%;
+  width: 26px;
+  height: 22px;
+}
+
+.s-smodal__imgclear {
+  position: absolute;
+  inset-block: 4px;
+  inset-inline-end: 4.4rem;
+  width: 24px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.s-smodal__imgclear:hover {
+  color: var(--text);
+}
+
 .s-smodal__sync {
   max-width: none;
 }
@@ -642,22 +831,23 @@
   --fade-top: 0px;
 }
 
-/* ── This device: the reader's own theme ─────────────────────────────────── */
+/* ── Appearance: the reader's own theme ──────────────────────────────────── */
 
 /* "Your theme" is a Select-shaped trigger that opens the browsing panel — see
-   the comment on the row in SettingsModal. It only needs the swatch's air and
-   the taller line the miniature forces; everything else is `.s-ctl-select`. */
+   the comment on the row in AppearanceTab. It is sized LIKE a Select (the
+   catalogue): one control line, 34px, the whole column; the miniature is
+   shrunk to fit the line rather than the line grown to fit the miniature,
+   which stood 52px tall in 3.38.0 — the tallest control in its column. */
 .s-smodal__themebtn {
-  min-height: 52px;
-  gap: 10px;
-  padding-block: 5px;
+  min-height: 34px;
+  gap: 8px;
+  padding-block: 3px;
 }
 
 .s-smodal__themebtn .s-tpick__card {
-  width: 52px;
-  height: 36px;
+  width: 34px;
+  height: 24px;
 }
-
 
 .s-smodal__themename {
   flex: 0 1 auto;
@@ -882,6 +1072,14 @@
   .s-about__doc {
     grid-template-columns: minmax(0, 1fr);
     gap: 4px;
+  }
+
+  /* One column — except a plain switch, which stays on its label's line at
+     the end edge, where a thumb expects it (contracts/settings-design.md,
+     Phone). */
+  .s-smodal__row[data-kind="toggle"]:not(:has(.s-smodal__parts)) {
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 12px;
   }
 
   /* One column has no label to align with a control beside it: no 46px row
@@ -1278,7 +1476,7 @@
      column, so it shares the rail's measure), and the input follows the wrap
      instead of the wrap following the input. */
   flex: none;
-  width: 12.25rem;
+  width: 13rem;
 }
 
 /* The fixed measure is for the side-by-side layout only: once the cols stack
@@ -1435,27 +1633,18 @@
   outline-offset: -1px;
 }
 
-/* A control and its neighbour on one line — the offline row's switch and
-   its "clear" button. Wraps at phone width rather than overflowing. */
+/* A switch and the verb that serves it on one line — offline reading's
+   switch and its Clear. The switch holds the column's END edge like every
+   switch (row-reverse puts the first child there); the verb sits at the
+   other end, apart from it — a destructive action pressed up against a
+   toggle is a misclick waiting to happen. */
 .s-settings__inline {
   display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-/* The row's verb sits at the TRAILING edge of the control column, apart
-   from the switch it acts beside — a destructive action pressed up against
-   a toggle is a misclick waiting to happen. */
-.s-settings__inline > .s-btn {
-  margin-inline-start: auto;
-}
-
-/* Browser dictionaries: four small toggles in a row that wraps on a phone. */
-.s-smodal__dicts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 14px;
 }
 
 /* ── Periodic notes: one row, a table inside it ────────────────────────────
@@ -1871,9 +2060,11 @@
   min-width: 0;
 }
 
-.s-smodal__parts > .s-ctl-seg,
-.s-smodal__parts > .s-ctl-toggle {
-  align-self: flex-start;
+/* A part's control follows the catalogue like a row's: fill the column, or —
+   a switch, an action — hug its end edge (see "The catalogue's widths"). */
+.s-smodal__parts > .s-ctl-toggle,
+.s-smodal__parts > .s-btn {
+  align-self: flex-end;
 }
 
 /* No rule of its own: a part sits in the control column under its host's
@@ -1888,10 +2079,8 @@
   border-radius: var(--radius);
 }
 
-.s-smodal__part > .s-ctl-seg,
-.s-smodal__part > .s-ctl-toggle,
 .s-smodal__part > .s-btn {
-  align-self: flex-start;
+  align-self: flex-end;
 }
 
 .s-smodal__partlabel {
@@ -1993,5 +2182,132 @@
 @media (prefers-reduced-motion: reduce) {
   .s-smodal__advsum::before {
     transition: none;
+  }
+}
+
+/* ── Round 2: the two-level rail (contracts/settings-design.md) ─────────────
+   Four group headings with their pages under them, the open page lit. The
+   heading is a quiet label — sentence case, muted, a little weight — because
+   it is a way-mark over buttons, not a thing to press. */
+.s-smodal__railgroup {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.s-smodal__railgroup + .s-smodal__railgroup {
+  margin-top: 12px;
+}
+
+.s-smodal__railhead {
+  padding: 2px 10px 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-muted);
+}
+
+/* The page's own name is an <h2> now (the body is a region it names). */
+h2.s-smodal__tabhead {
+  font-weight: normal;
+}
+
+/* A page whose every row is kept in this browser says so once, here, under
+   its sentence — instead of a mark beside every row. */
+.s-smodal__devnote {
+  margin: -8px 0 12px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 700px) {
+  /* As a scrolling strip the rail is one row of pages; the group headings
+     would be four more stops in it, so the groups dissolve into it. */
+  .s-smodal__railgroup {
+    display: contents;
+  }
+  .s-smodal__railhead {
+    display: none;
+  }
+}
+
+/* Eighteen pages and four headings have to fit the rail's height at 800px
+   tall: a page is 30px, not 36. */
+.s-smodal__railbtn {
+  padding-block: 6px;
+}
+
+/* A STATUS LINE (contracts/settings-design.md, the catalogue's Status): what
+   is true now, in the control column, where a control would be — the
+   repository's state, the spellchecker's languages when there is nothing to
+   choose. Read, so muted; never a control. */
+.s-smodal__status {
+  margin: 0;
+  padding-top: 7px;
+  font-size: 0.786rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* ── Round 2: subheads in sentence case, actions that look like actions ──── */
+
+/* The few subheads a page still has (About's, "Your own fonts", What
+   visitors see) are sentence case: the 3.38.0 pages ran long mixed lists
+   under ALL-CAPS subheads, and the owner read them as noise. */
+.s-smodal__sub {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  font-size: 0.821rem;
+  color: var(--text);
+}
+
+/* ACTION (the catalogue): a secondary button — a frame, the ground, the
+   reader's type size — at the control column's end edge. `.s-btn` alone is a
+   borderless word at 0.929rem, which in a column of framed fields read as
+   stray text ("Clear offline copy", "Design your site"). */
+.s-smodal__body .s-btn:not(.s-btn--accent, .s-btn--danger),
+.s-ph-settings .s-btn:not(.s-btn--accent, .s-btn--danger) {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.821rem;
+  padding: 3px 12px;
+}
+
+.s-smodal__body .s-btn:not(.s-btn--accent, .s-btn--danger) {
+  min-height: 30px;
+}
+
+.s-smodal__body .s-btn:not(.s-btn--accent, .s-btn--danger):hover:not(:disabled),
+.s-ph-settings .s-btn:not(.s-btn--accent, .s-btn--danger):hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--bg-hover);
+}
+
+/* An image field with nothing in it has no × to make room for. */
+.s-smodal__imgfield:not(.s-smodal__imgfield--thumb) > .s-ctl-input {
+  padding-inline-end: 4.6rem;
+}
+
+/* ── A finger's size (contracts/settings-design.md, Phone) ──────────────────
+   The control column's 34px line above is a mouse's; under a coarse pointer
+   or at a phone's width every field, list, segment and switch is 44px — the
+   same bar controls.css sets for the whole control set, restated here because
+   the column's own rules are more specific than that block's. A bare switch
+   keeps its 32px track and gains a 44px box around it. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-smodal__control .s-ctl-input,
+  .s-smodal__control .s-ctl-select,
+  .s-smodal__control .s-ctl-num,
+  .s-smodal__control .s-ctl-seg__btn,
+  .s-smodal__control .s-ctl-level {
+    min-height: 44px;
+  }
+
+  .s-ctl-toggle--bare {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
   }
 }

@@ -435,7 +435,10 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // links (inlineRuns 0.8 kB, inlineLinks 1.5 kB: Today's rows and the render
 // path both hold them now) and the Notes bar's painted switch track and the
 // task row's focus ring. 894 → 897.
-const PHONE_BUDGET = 897 * 1024;
+// SETTINGS, DESIGNED: 892.9 → 904.8 kB, +11.9 against the 3.38.0 build
+// (c40e86c2) — the entry's +10.3 below and the phone's Settings screen
+// drawing the four groups as headed lists. 894 → 906.
+const PHONE_BUDGET = 906 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1105,7 +1108,17 @@ const AUDIENCES = [
   // and its triangle, the ⓘ region across the row, net of the seven dead
   // rules it removed); the entry's JS and the dictionary are within a few
   // bytes of main (keys added and removed about even). 771 → 773.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 773 * 1024 },
+  // SETTINGS, DESIGNED: 771.9 → 782.2 kB, +10.3, measured file by file against
+  // the 3.38.0 build (c40e86c2): the entry stylesheet +5.2 (settings.css and
+  // controls.css load with it — the one control column and the catalogue's
+  // widths, the two-level rail's group headings, the chips, Pick… inside the
+  // path and image fields, the framed secondary action, the device line); the
+  // Arabic dictionary +4.6 (eighteen page names and sentences, four group
+  // names, the spellcheck sentences, and the ⓘ paragraphs' new opening lines
+  // saying why a reader would change each row); the entry's JS +0.8
+  // (spellDicts.ts' offer — which dictionaries this device can check — and
+  // the named chip labels). 773 → 784.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 784 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1496,7 +1509,9 @@ const AUDIENCES = [
   // +0.8 — the tracker parser now reads a `~` estimated sitting and the card's
   // reading speed skips it (shared/tracker.ts), which the visitor's tracker
   // card carries; the two rounds' overages against 3.38.0 add. 1079 → 1080.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1080 * 1024 },
+  // SETTINGS, DESIGNED: 1076.4 → 1086.8 kB, +10.4 — the entry's, nothing
+  // else. 1078 → 1088.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1088 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1798,7 +1813,9 @@ const AUDIENCES = [
   // entry's, nothing else. 1032 → 1034.
   // THE SETTINGS PURGE: 1033.4 → 1034.8 kB, +1.4 — the entry's stylesheet,
   // nothing else. 1034 → 1036.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1036 * 1024 },
+  // SETTINGS, DESIGNED: 1034.8 → 1045.1 kB, +10.3 — the entry's, nothing
+  // else (the pages and the walk's kinds ride the settings chunk). 1036 → 1047.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1047 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The

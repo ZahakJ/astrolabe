@@ -37,10 +37,13 @@ interface ToggleProps extends ControlIdentity {
   onChange: (value: boolean) => void;
   disabled?: boolean;
   label: string;
-  /** The words beside the switch ("On" / "Off"), so the state is readable and
-   *  not only visible: a lit track is a convention, a word is not. */
-  onLabel: string;
-  offLabel: string;
+  /** Words beside the switch, where the switch stands alone (a table's row
+   *  toggle, the graph's options). A SETTINGS row passes none: its label says
+   *  what ON means ("Formatting toolbar", "Accept webmentions"), the switch
+   *  sits at the control column's end edge, and "Off" beside it was a second
+   *  label that said less than the first (contracts/settings-design.md). */
+  onLabel?: string;
+  offLabel?: string;
 }
 
 export function Toggle({
@@ -62,13 +65,13 @@ export function Toggle({
       aria-label={label}
       aria-describedby={describedBy}
       disabled={disabled}
-      className={`s-ctl s-ctl-toggle${value ? " s-ctl-toggle--on" : ""}`}
+      className={`s-ctl s-ctl-toggle${value ? " s-ctl-toggle--on" : ""}${onLabel === undefined ? " s-ctl-toggle--bare" : ""}`}
       onClick={() => onChange(!value)}
     >
       <span className="s-ctl-toggle__track" aria-hidden="true">
         <span className="s-ctl-toggle__knob" />
       </span>
-      <span className="s-ctl-toggle__label">{value ? onLabel : offLabel}</span>
+      {onLabel !== undefined && offLabel !== undefined && <span className="s-ctl-toggle__label">{value ? onLabel : offLabel}</span>}
     </button>
   );
 }
@@ -78,7 +81,8 @@ export function Toggle({
 export interface Segment {
   value: string;
   label: string;
-  /** Muted second line inside the segment — "(on)" under "Default". */
+  /** What the segment resolves to — "English" under "Default": a muted
+   *  second line (hidden in the settings panel) and the tooltip. */
   note?: string;
 }
 
@@ -120,6 +124,7 @@ export function SegmentedControl({
             key={segment.value}
             type="button"
             role="radio"
+            title={segment.note ? `${segment.label} — ${segment.note}` : undefined}
             aria-checked={on}
             disabled={disabled}
             tabIndex={on || (value === "" && segment.value === "") ? 0 : -1}
@@ -150,7 +155,61 @@ export function SegmentedControl({
             }}
           >
             <span className="s-ctl-seg__label">{segment.label}</span>
+            {/* In the settings panel this line is visually hidden (settings.css,
+                "one storey"): the note ("Default / English", "Auto / Left") made
+                every such row twice as tall as its neighbours. It stays in the
+                accessible name there, and in the tooltip everywhere; the
+                designer's glyph segments still show theirs. */}
             {segment.note && <span className="s-ctl-seg__note">{segment.note}</span>}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ------------------------------------------------------------------ Chips
+
+export interface Chip {
+  value: string;
+  /** The chip's words — a language's name in the chrome's language, never a
+   *  code and never "on/off". */
+  label: string;
+}
+
+interface ChipsProps extends ControlIdentity {
+  value: readonly string[];
+  onChange: (value: string[]) => void;
+  chips: Chip[];
+  disabled?: boolean;
+  label: string;
+}
+
+/** SEVERAL OF A SMALL SET, CHOSEN IN ONE CONTROL (contracts/settings-design.md,
+ *  the catalogue's Chips). The dictionaries row was four On/Off switches
+ *  reading "French: off · Arabic: off · Hebrew: off · Persian: off" — four
+ *  controls for one question, and the word each one led with was the state
+ *  rather than the thing. Here the row's label asks the question
+ *  ("Spellcheck in") and each chip is only a name, filled when chosen: a
+ *  group of toggle buttons (`aria-pressed`), each reachable by Tab, each
+ *  spoken as "French, toggle button, pressed". */
+export function Chips({ value, onChange, chips, disabled, label, id, "aria-describedby": describedBy }: ChipsProps) {
+  return (
+    <div className="s-ctl-chips" role="group" id={id} aria-label={label} aria-describedby={describedBy}>
+      {chips.map((chip) => {
+        const on = value.includes(chip.value);
+        return (
+          <button
+            key={chip.value}
+            type="button"
+            aria-pressed={on}
+            disabled={disabled}
+            data-chip={chip.value}
+            className={`s-ctl s-ctl-chip${on ? " s-ctl-chip--on" : ""}`}
+            onClick={() => onChange(on ? value.filter((v) => v !== chip.value) : [...value, chip.value])}
+          >
+            <span className="s-ctl-chip__mark" aria-hidden="true" />
+            <span className="s-ctl-chip__label">{chip.label}</span>
           </button>
         );
       })}

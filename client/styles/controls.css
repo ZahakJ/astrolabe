@@ -462,6 +462,67 @@
   color: var(--text);
 }
 
+/* ── Chips: several of a small set (Fields.tsx `Chips`) ───────────────────────
+   One control for one question: each chip is a NAME, filled when chosen, the
+   same accent-on-soft pair a chosen segment wears. They share the column's
+   width between them and wrap when they cannot, so the run touches both edges
+   of the control column like every other fill control. The mark is a ring
+   that fills — a second cue beside colour, for a reader who cannot tell
+   accent from border. */
+.s-ctl-chips {
+  /* A grid, so a run that wraps wraps into even columns — never three chips
+     and a fourth stretched across the whole width under them. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
+  gap: 6px;
+}
+
+.s-ctl-chip {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+  font-size: 0.821rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.s-ctl-chip:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--text);
+}
+
+.s-ctl-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.s-ctl-chip__mark {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.s-ctl-chip--on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.s-ctl-chip--on .s-ctl-chip__mark {
+  background: var(--accent);
+  box-shadow: none;
+}
+
 /* ── Segmented control ────────────────────────────────────────────────────── */
 
 /* A RUN TOO WIDE FOR ITS COLUMN WRAPS; IT DOES NOT GET CUT OFF. This is

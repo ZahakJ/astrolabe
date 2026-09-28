@@ -6,9 +6,18 @@
 // shape, wired once, is the only reason a label in one tab and a label in the
 // next can be trusted to name their control the same way.
 
-import { Children, cloneElement, isValidElement, useId, useState } from "react";
+import { Children, cloneElement, createContext, isValidElement, useContext, useId, useState } from "react";
 import type { ReactElement, ReactNode } from "react";
 import { t } from "../../i18n.ts";
+import type { ControlKind } from "./catalogue.ts";
+
+/** THIS PAGE KEEPS EVERYTHING HERE. Provided by TabBody from `Tab.device`
+ *  (tabs.ts): on such a page (Appearance, This device) the page says it once
+ *  under its intro, and a mark beside every row would only repeat it — the
+ *  3.38.0 screenshots had one on nearly every row of Appearance. A row still
+ *  SAYS it is per-device (`device`), and the index records it; it just draws
+ *  no mark where the page has said so. */
+export const DevicePage = createContext(false);
 
 /** `SITE_LANG=en`, ready to paste into a .env file or a shell.
  *
@@ -141,11 +150,20 @@ function EnvPanel({
  *  Hijri dates use Umm al-Qura, the calendar printed on the calendars people
  *  own." A reader who must finish a paragraph to learn what a switch does is
  *  doing the label's work for it. */
+/** THE CONTROL CATALOGUE (contracts/settings-design.md): every row and every
+ *  part is exactly one of these, says which, and is drawn by that kind's one
+ *  component at that kind's one width. The kind is stamped on the row
+ *  (`data-kind`) for the sheet and the browser walk, and read out of the
+ *  source into the settings index by scripts/settings-index.mjs — so keep
+ *  `kind="…"` on the same line as the row's `label={t("…")}`. */
+export type { ControlKind } from "./catalogue.ts";
+
 export function Row({
+  kind,
   label,
+  value,
   hint,
   error,
-  wide,
   off,
   locked,
   env,
@@ -154,13 +172,17 @@ export function Row({
   device,
   children,
 }: {
+  /** Which control of the catalogue this row is. A `table` takes the row's
+   *  full width under its label (the editor tables and composite blocks);
+   *  every other kind sits in the one control column, at one width. */
+  kind: ControlKind;
   label: string;
+  /** A slider's value, spoken IN the label — "Screen warmth · 30%" — rather
+   *  than flung to the far edge of the control column where the 3.38.0
+   *  screenshots had it. */
+  value?: string;
   hint?: string;
   error?: string;
-  /** The control is the widest, most typographic thing in the panel (the type
-   *  specimen) — it spans both columns with the label above it, instead of
-   *  being squeezed into the control column beside the word "Preview". */
-  wide?: boolean;
   /** The row is inert because a master switch above it is off. */
   off?: boolean;
   /** THIS VAULT CANNOT KEEP THIS SETTING AT ALL. Not a master switch that can
@@ -201,9 +223,10 @@ export function Row({
   after?: ReactNode;
   children: ReactNode;
 }) {
+  const onDevicePage = useContext(DevicePage);
   const cls = [
     "s-smodal__row",
-    wide ? "s-smodal__row--wide" : "",
+    kind === "table" ? "s-smodal__row--wide" : "",
     off || locked ? "s-smodal__row--off" : "",
     error ? "s-smodal__row--invalid" : "",
   ]
@@ -253,10 +276,18 @@ export function Row({
     // same key through `t()`, and the two meet here. Deriving it from the label
     // the row already has means no call site had to learn about the index —
     // eighty-eight of them would have had to grow an id otherwise.
-    <div className={cls} data-setting={label}>
+    <div className={cls} data-setting={label} data-kind={kind} data-device={device ? "" : undefined}>
       <label className="s-smodal__label" htmlFor={id}>
         <span className="s-smodal__labeltext">
           <span id={labelTextId}>{label}</span>
+          {value !== undefined && (
+            // Not inside the named span: the control speaks its own value
+            // (a range's aria-valuetext), and a name that changed as it was
+            // dragged would be re-announced on every step.
+            <span className="s-smodal__labelvalue" aria-hidden="true">
+              <bdi>{value}</bdi>
+            </span>
+          )}
           {/* The ⓘ sits in the label's own text line, where a footnote mark
               sits — and inside the <label> on purpose: a click on interactive
               content inside a label does NOT forward to the labelled control
@@ -264,7 +295,7 @@ export function Row({
               focus into the field it annotates. Only the BUTTON is in here;
               the region it opens is a block, and a block inside a <label> is
               neither valid nor readable beside a 14rem label column. */}
-          {device && (
+          {device && !onDevicePage && (
             <span className="s-smodal__device" title={t("deviceRowTitle")}>
               {t("deviceRowMark")}
             </span>
@@ -332,7 +363,7 @@ export function Parts({ children, id, ...aria }: { children: ReactNode; id?: str
  *  `openSettingsAt("rowFediverseHandle")` lands on the part itself, not on
  *  the row around it. `scripts/settings-index.mjs` reads a `<Part label=…>`
  *  line as an entry that belongs to the row above it; keep it on one line. */
-export function Part({ label, hint, children }: { label: string; hint?: string; children: ReactElement }) {
+export function Part({ kind, label, hint, children }: { kind: ControlKind; label: string; hint?: string; children: ReactElement }) {
   const id = useId();
   const kid = Children.only(children);
   const control = isValidElement(kid)
@@ -343,7 +374,7 @@ export function Part({ label, hint, children }: { label: string; hint?: string; 
       })
     : kid;
   return (
-    <div className="s-smodal__part" data-setting={label}>
+    <div className="s-smodal__part" data-setting={label} data-kind={kind}>
       <label className="s-smodal__partlabel" id={`${id}-label`} htmlFor={`${id}-ctl`}>
         {label}
       </label>
