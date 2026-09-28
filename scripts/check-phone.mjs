@@ -51,12 +51,22 @@
 //     switch keeps 8px of air above its bar's hairline.
 //
 // THE MATRIX. Every screen and sheet is measured and photographed in both
-// languages on four shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
+// languages on six shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
 // DPR 1.5 with a STYLUS — primary pointer coarse, `any-pointer: fine`, the
 // posture that was once served the desktop shell (a blink setting on its own
-// browser: `hasTouch` would override the pointer media); and a touch tablet in
-// both orientations (820×1180 and 1180×820), where the shell draws two columns
-// and the note sheet slides over from the trailing edge.
+// browser: `hasTouch` would override the pointer media); the Galaxy Z Fold's
+// two screens; and a touch tablet in both orientations (820×1180 and
+// 1180×820). Only the landscape tablet is past 1000px, where the shell draws
+// two columns and the note sheet slides over from the trailing edge; every
+// other shape gets the phone's one column (client/shellQuery.ts SPLIT_QUERY).
+//
+// THE NOTE TAKES THE PAGE (3.39.1, the owner from a Fold: "the note only
+// shows on half a page"). A last pass, after the matrix: on each width under
+// 1000 an open note is ≥ 90% of the viewport; on each above it the list is a
+// list's measure (≤ 360) and the rail's ⟨ makes the note ≥ 90%, remembered;
+// crossing 1000 with a note open keeps it open; and where the note keeps
+// tabs (the open Fold, a tablet) a second note opened from the list ADDS a
+// tab — the first still one tap away, × closes one, a reload keeps them.
 //
 // THE MEASUREMENTS (DESIGN.md, "Below 700px, or on ANY coarse pointer";
 // CONTRACTS.md, "The phone shell"):
@@ -220,9 +230,9 @@ const SHAPES = [
   {
     name: "stylus",
     touch: false,
-    // Since 3.34 two columns: 720×820 is the open Fold's shape, and the
-    // shape decides (client/shellQuery.ts TABLET_QUERY).
-    tablet: true,
+    // One column since 3.39.1: 720 is under the 1000 two columns need
+    // (client/shellQuery.ts SPLIT_QUERY) — the open Fold's width, and its
+    // one note across the page.
     args: ["--blink-settings=availablePointerTypes=6,primaryPointerType=2,availableHoverTypes=3,primaryHoverType=1"],
     context: { viewport: { width: 720, height: 820 }, deviceScaleFactor: 1.5, isMobile: false, hasTouch: false },
   },
@@ -230,13 +240,13 @@ const SHAPES = [
   // on the device reports them at its DPR of 2.625: the cover screen (904 ×
   // 2316 device px, 6.2") is 344×882 CSS px, a narrow phone; the inner screen
   // opened (1812 × 2176, 7.6") is 690×829 — under 768 wide, which is why it
-  // used to get the phone's one column stretched across a book-sized glass.
-  // Its shape, not its width, is what makes it a tablet (client/shellQuery.ts
-  // TABLET_QUERY): nearly square, so two columns.
+  // got two columns from 3.34 to 3.39.0 by its shape — a list and a note of
+  // 358px, "half a page" — and since 3.39.1 the phone's one column, the note
+  // across the page (client/shellQuery.ts SPLIT_QUERY), with its tabs.
   { name: "fold-cover", touch: true, args: [], context: { viewport: { width: 344, height: 882 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
-  { name: "fold-open", touch: true, tablet: true, args: [], context: { viewport: { width: 690, height: 829 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
-  { name: "tablet", touch: true, tablet: true, args: [], context: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
-  { name: "tablet-land", touch: true, tablet: true, args: [], context: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
+  { name: "fold-open", touch: true, args: [], context: { viewport: { width: 690, height: 829 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true } },
+  { name: "tablet", touch: true, args: [], context: { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
+  { name: "tablet-land", touch: true, split: true, args: [], context: { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } },
 ];
 
 // `CHECK_PHONE_SHAPES=phone,fold-open` runs those shapes only (a quick pass
@@ -491,16 +501,16 @@ try {
       await settle(1600);
 
       // ── the shell is the phone's ──────────────────────────────────────────
-      const chrome = await page.evaluate((tablet) => ({
+      const chrome = await page.evaluate((split) => ({
         phone: document.querySelector(".s-ph") !== null,
         desktop: [".s-app", ".s-tabs", ".s-statusbar", ".s-pane-grip", ".s-sidebar", ".s-drawer-btn"].filter((s) => document.querySelector(s) !== null),
-        tablet: document.querySelector(".s-ph--tablet") !== null,
-        tabbar: document.querySelector(tablet ? ".s-ph-rail" : ".s-ph-tabs") !== null,
-      }), !!shape.tablet);
+        split: document.querySelector(".s-ph--split") !== null,
+        tabbar: document.querySelector(split ? ".s-ph-rail" : ".s-ph-tabs") !== null,
+      }), !!shape.split);
       check(chrome.phone, tag("the phone shell is mounted"));
       check(chrome.desktop.length === 0, tag("no desktop chrome in the document"), chrome.desktop.join(", "));
-      check(chrome.tablet === !!shape.tablet, tag(shape.tablet ? "two columns on a tablet" : "one column on a phone"));
-      check(chrome.tabbar, tag(shape.tablet ? "the navigation rail is there" : "the tab bar is there"));
+      check(chrome.split === !!shape.split, tag(shape.split ? "two columns from 1000px" : "one column under 1000px"));
+      check(chrome.tabbar, tag(shape.split ? "the navigation rail is there" : "the tab bar is there"));
       await measure("today");
 
       // ── Today's rows (3.28): a task due ticks into its note ───────────────
@@ -531,7 +541,7 @@ try {
       await settle();
       // Tree where there are two columns, Folders where there is one — until
       // the reader chooses (client/phone/notesView.ts).
-      check((await page.locator('[data-screen="notes"][data-view="tree"]').count() > 0) === !!shape.tablet, tag(shape.tablet ? "the Notes tab starts on the Tree on two columns" : "the Notes tab starts on Folders on one column"));
+      check((await page.locator('[data-screen="notes"][data-view="tree"]').count() > 0) === !!shape.split, tag(shape.split ? "the Notes tab starts on the Tree on two columns" : "the Notes tab starts on Folders on one column"));
       await measure("notes");
       // THE SWITCH HAS AIR. Its buttons are 44px for the thumb; what the eye
       // reads as the switch is the track painted inside them (phone.css,
@@ -559,7 +569,7 @@ try {
       check(onNote.path === notePermalink, tag("a tree tap changes the URL"), `${inFolder.path} → ${onNote.path}, wanted ${notePermalink}`);
       check(onNote.title !== inFolder.title && onNote.title.length > 0, tag("a tree tap changes the title"), `${inFolder.title} → ${onNote.title}`);
       check(onNote.screens.includes("note"), tag("the note screen is up"));
-      if (!shape.tablet) {
+      if (!shape.split) {
         check((await page.locator(".s-ph-tabs").count()) === 0, tag("the note screen has no tab bar"));
       }
       await measure("note");
@@ -736,7 +746,7 @@ try {
       await page.goBack();
       await settle(900);
       const popped = await state();
-      if (shape.tablet) {
+      if (shape.split) {
         check(!popped.screens.includes("note") && popped.screens.includes("notes"), tag("back pops the note off the column"), JSON.stringify(popped));
       } else {
         check(popped.screens.includes("notes") && !popped.screens.includes("note"), tag("back pops the note screen to its folder"), JSON.stringify(popped));
@@ -762,7 +772,7 @@ try {
       // The chevron is UP: to the parent folder, whatever history holds.
       if (deepPair) {
         const [d1, d2] = deepPair;
-        const listSel = shape.tablet ? ".s-ph-cols__list" : ".s-ph-stage";
+        const listSel = shape.split ? ".s-ph-cols__list" : ".s-ph-stage";
         const onFolder = async (p) => (await page.locator(`${listSel} [data-screen="notes"][data-folder="${p}"]`).count()) > 0;
         const chevron = () => press(page.locator(`${listSel} [data-screen="notes"] .s-ph-top__back`));
         await tab("notes");
@@ -858,7 +868,7 @@ try {
       // files are one folded row; an empty folder says so; a long press is
       // the row's menu.
       {
-        const rootSel = shape.tablet ? ".s-ph-cols__list" : ".s-ph-stage";
+        const rootSel = shape.split ? ".s-ph-cols__list" : ".s-ph-stage";
         const atRoot = async () => (await page.locator(`${rootSel} [data-screen="notes"][data-folder=""]`).count()) > 0;
         if (!(await atRoot())) {
           await tab("notes");
@@ -927,7 +937,7 @@ try {
 
         // ── TWO COLUMNS: the list keeps its place while the note changes, a
         // grip trades their widths, the note's sheet slides over its column.
-        if (shape.tablet) {
+        if (shape.split) {
           const notesIn = page.locator(`.s-ph-cols__list .s-ph-tree .s-ph-trow[data-path$=".md"]`);
           if ((await notesIn.count()) >= 2) {
             const first = await notesIn.nth(0).getAttribute("data-path");
@@ -1093,7 +1103,7 @@ try {
           await settle(900);
           const s = await state();
           check(studying && s.screens.includes("session") && /^\/orbits\/./.test(decodeURIComponent(s.path)), tag("Study starts the session, full screen"), JSON.stringify(s));
-          if (shape.tablet) check((await page.locator(".s-ph-cols--full").count()) > 0, tag("the session takes both columns"));
+          if (shape.split) check((await page.locator(".s-ph-cols--full").count()) > 0, tag("the session takes both columns"));
           await measure("session");
           await back();
           check((await state()).screens.includes("deck"), tag("back from the session lands on the deck"));
@@ -1500,7 +1510,7 @@ try {
       if (busiest) {
         await press(page.locator(`.s-ph-row[data-path="${busiest}"]`));
         await settle(900);
-        const scroller = shape.tablet ? ".s-ph-cols__list .s-ph-scroll" : ".s-ph-stage .s-ph-scroll";
+        const scroller = shape.split ? ".s-ph-cols__list .s-ph-scroll" : ".s-ph-stage .s-ph-scroll";
         const y = await page.evaluate((sel) => {
           const el = document.querySelector(sel);
           if (!el) return 0;
@@ -1508,7 +1518,7 @@ try {
           return el.scrollTop;
         }, scroller);
         await settle(300);
-        if (y > 40 && !shape.tablet) {
+        if (y > 40 && !shape.split) {
           const target = await page.evaluate((sel) => {
             const el = document.querySelector(sel);
             const r = el.getBoundingClientRect();
@@ -1790,6 +1800,198 @@ try {
     } finally {
       await adminApi([[`/api/note?path=${encodeURIComponent(LONG_NOTE)}&permanent=1`, { method: "DELETE" }]]).catch(() => {});
       await ctx.close();
+    }
+  }
+
+  // ── the note takes the page (3.39.1: "only shows on half a page") ────────
+  // Under 1000px the shell is one column whatever the shape, so an open note
+  // is the page; from 1000 two columns, the list a list's measure and able to
+  // step aside; crossing 1000 with a note open keeps it open. Where the glass
+  // keeps tabs (600 wide and up), a second note opened from the list is a
+  // second tab: the first stays one tap away, × closes one, a reload keeps
+  // them (client/phone/noteTabs.ts).
+  {
+    const TAB_A = "check-phone-tab-a.md";
+    const TAB_B = "check-phone-tab-b.md";
+    const body = (h) => `# ${h}\n\n${"A line of prose to read across the page, in a note opened beside another one. ".repeat(12)}\n`;
+    await adminApi([
+      [`/api/note?path=${encodeURIComponent(TAB_A)}`, J("PUT", { content: body("Tab A") })],
+      [`/api/note?path=${encodeURIComponent(TAB_B)}`, J("PUT", { content: body("Tab B") })],
+    ]);
+    // [name, width, height, two columns?, tabs?]
+    const WIDTHS = [
+      ["fold-cover", 344, 882, false, false],
+      ["fold-open", 690, 829, false, true],
+      ["fold-open-land", 829, 690, false, true],
+      ["ipad-portrait", 768, 1024, false, true],
+      ["tablet", 820, 1180, false, true],
+      ["ipad-land", 1024, 768, true, true],
+      ["tablet-land", 1180, 820, true, true],
+    ];
+    try {
+      for (const [name, w, h, split, tabs] of WIDTHS) {
+        if (ONLY.length > 0 && !ONLY.includes(name)) continue;
+        for (const lang of ["en", "ar"]) {
+          const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+          await ctx.addCookies(cookies);
+          await ctx.addInitScript((l) => {
+            try {
+              localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+              localStorage.setItem("astrolabe.prefs-sync-off", "1");
+              localStorage.setItem("astrolabe.editorLang", l);
+              localStorage.setItem("astrolabe.tourSeen", "1");
+              localStorage.setItem("astrolabe.phone-notes-view", "folders");
+            } catch {
+              /* private window */
+            }
+          }, lang);
+          const page = await ctx.newPage();
+          const tag = (what) => `page ${name} ${lang}: ${what}`;
+          const shot = (what) => page.screenshot({ path: `${out}/page-${name}-${lang}-${what}.png` });
+          const widths = () =>
+            page.evaluate(() => {
+              const note = document.querySelector('[data-screen="note"]');
+              const list = document.querySelector(".s-ph-cols__list:not([hidden])");
+              return {
+                vw: document.documentElement.clientWidth,
+                note: Math.round(note?.getBoundingClientRect().width ?? 0),
+                path: note?.getAttribute("data-path") ?? null,
+                list: Math.round(list?.getBoundingClientRect().width ?? 0),
+                split: document.querySelector(".s-ph--split") !== null,
+                tabs: [...document.querySelectorAll(".s-ph-ntab")].map((t) => [t.getAttribute("data-path"), t.classList.contains("s-ph-ntab--on")]),
+              };
+            });
+          const openFromList = async (p) => {
+            // On one column the note screen sits over the list: Back to it.
+            if ((await page.locator('.s-ph-stage [data-screen="note"]').count()) > 0) {
+              await page.goBack();
+              await page.waitForTimeout(700);
+            }
+            await page.locator(`.s-ph-row[data-path="${p}"]`).first().tap();
+            await page.waitForSelector(`[data-screen="note"][data-path="${p}"] .s-view .cm-content, [data-screen="note"][data-path="${p}"] .s-reading`, { timeout: 8000 }).catch(() => {});
+            await page.waitForTimeout(500);
+          };
+          try {
+            await page.goto(url + "/", { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(1500);
+            await page.locator('.s-ph-tab[data-tab="notes"]').first().tap();
+            await page.waitForTimeout(800);
+            await openFromList(TAB_A);
+            let m = await widths();
+            await shot("note");
+            check(m.path === TAB_A && m.split === split, tag(split ? "two columns" : "one column"), JSON.stringify(m));
+            if (!split) {
+              check(m.note >= 0.9 * m.vw, tag("an open note is ≥ 90% of the page"), JSON.stringify(m));
+            } else {
+              check(m.list > 0 && m.list <= 360, tag("the list is a list's measure (≤ 360px)"), JSON.stringify(m));
+              const toggle = page.locator('[data-action="list-toggle"]');
+              check((await toggle.count()) === 1, tag("the rail has the list's ⟨"));
+              await toggle.first().tap();
+              await page.waitForTimeout(500);
+              m = await widths();
+              await shot("list-hidden");
+              check(m.list === 0 && m.note >= 0.9 * m.vw, tag("⟨ steps the list aside: the note is ≥ 90% of the page"), JSON.stringify(m));
+              await page.reload({ waitUntil: "domcontentloaded" });
+              await page.waitForTimeout(1800);
+              m = await widths();
+              check(m.path === TAB_A && m.list === 0, tag("…remembered across a reload"), JSON.stringify(m));
+              await page.locator('[data-action="list-toggle"]').first().tap();
+              await page.waitForTimeout(500);
+              m = await widths();
+              check(m.list > 0 && m.list <= 360, tag("⟩ brings the list back"), JSON.stringify(m));
+            }
+            if (tabs) {
+              await openFromList(TAB_B);
+              m = await widths();
+              await shot("tabs");
+              const on = m.tabs.find((t) => t[1])?.[0];
+              check(m.path === TAB_B && m.tabs.length === 2 && m.tabs.some((t) => t[0] === TAB_A) && on === TAB_B, tag("a second note opened from the list is a second tab; the first stays open"), JSON.stringify(m));
+              await page.reload({ waitUntil: "domcontentloaded" });
+              await page.waitForTimeout(1800);
+              m = await widths();
+              check(m.path === TAB_B && m.tabs.length === 2, tag("a reload keeps both tabs"), JSON.stringify(m));
+              await page.locator(`.s-ph-ntab[data-path="${TAB_A}"] .s-ph-ntab__open`).first().tap();
+              await page.waitForTimeout(900);
+              m = await widths();
+              check(m.path === TAB_A && m.tabs.length === 2, tag("a tap on the first tab shows the first note"), JSON.stringify(m));
+              await page.locator(`.s-ph-ntab[data-path="${TAB_A}"] [data-action="close-tab"]`).first().tap();
+              await page.waitForTimeout(900);
+              m = await widths();
+              check(m.path === TAB_B && m.tabs.length === 0, tag("× closes it and shows its neighbour"), JSON.stringify(m));
+              // Back from the note is the list, whatever tabs were opened.
+              await page.goBack();
+              await page.waitForTimeout(800);
+              const st = await page.evaluate(() => ({
+                note: document.querySelector('[data-screen="note"]') !== null,
+                list: document.querySelector('[data-screen="notes"]') !== null,
+              }));
+              check(split ? st.list : st.list && !st.note, tag("Back from a note comes to the list"), JSON.stringify(st));
+            } else {
+              await openFromList(TAB_B);
+              m = await widths();
+              check(m.tabs.length === 0 && m.path === TAB_B, tag("no tabs on a phone's glass"), JSON.stringify(m));
+            }
+          } finally {
+            await ctx.close();
+          }
+        }
+      }
+
+      // CROSSING 1000 WITH A NOTE OPEN: the Fold unfolded to a tablet's
+      // landscape and back — the note stays open, the list comes and goes.
+      if (ONLY.length === 0 || ONLY.includes("crossing")) {
+        for (const lang of ["en", "ar"]) {
+          const ctx = await browser.newContext({ viewport: { width: 690, height: 829 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+          await ctx.addCookies(cookies);
+          await ctx.addInitScript((l) => {
+            try {
+              localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+              localStorage.setItem("astrolabe.prefs-sync-off", "1");
+              localStorage.setItem("astrolabe.editorLang", l);
+              localStorage.setItem("astrolabe.tourSeen", "1");
+              localStorage.setItem("astrolabe.phone-notes-view", "folders");
+            } catch {
+              /* private window */
+            }
+          }, lang);
+          const page = await ctx.newPage();
+          const tag = (what) => `crossing ${lang}: ${what}`;
+          const look = () =>
+            page.evaluate(() => ({
+              path: document.querySelector('[data-screen="note"]')?.getAttribute("data-path") ?? null,
+              list: document.querySelector(".s-ph-cols__list:not([hidden]) [data-screen]") !== null,
+              split: document.querySelector(".s-ph--split") !== null,
+            }));
+          try {
+            await page.goto(url + "/", { waitUntil: "domcontentloaded" });
+            await page.waitForTimeout(1500);
+            await page.locator('.s-ph-tab[data-tab="notes"]').first().tap();
+            await page.waitForTimeout(800);
+            await page.locator(`.s-ph-row[data-path="${TAB_A}"]`).first().tap();
+            await page.waitForTimeout(1200);
+            await page.setViewportSize({ width: 1180, height: 820 });
+            await page.waitForTimeout(900);
+            let m = await look();
+            await page.screenshot({ path: `${out}/page-crossing-${lang}-wide.png` });
+            check(m.split && m.path === TAB_A && m.list, tag("past 1000 the note stays open and the list comes beside it"), JSON.stringify(m));
+            await page.setViewportSize({ width: 690, height: 829 });
+            await page.waitForTimeout(900);
+            m = await look();
+            check(!m.split && m.path === TAB_A && !m.list, tag("back under 1000 the note stays open across the page"), JSON.stringify(m));
+            await page.goBack();
+            await page.waitForTimeout(800);
+            const home = await page.evaluate(() => document.querySelector('[data-screen="notes"]') !== null && document.querySelector('[data-screen="note"]') === null);
+            check(home, tag("…and Back still comes to the list"));
+          } finally {
+            await ctx.close();
+          }
+        }
+      }
+    } finally {
+      await adminApi([
+        [`/api/note?path=${encodeURIComponent(TAB_A)}&permanent=1`, { method: "DELETE" }],
+        [`/api/note?path=${encodeURIComponent(TAB_B)}&permanent=1`, { method: "DELETE" }],
+      ]).catch(() => {});
     }
   }
 
