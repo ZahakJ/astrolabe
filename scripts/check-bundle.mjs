@@ -1492,7 +1492,11 @@ const AUDIENCES = [
   // build of 3.38.0 (c40e86c2) — render.ts's link click now goes through the
   // one door every line outside a note uses (inlineLinks 1.5 kB, inlineRuns
   // 0.8 kB), and nothing else. 1078 → 1079.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1079 * 1024 },
+  // SITTINGS FROM PROGRESS, merged over the link round: 1078.7 → 1079.5 kB,
+  // +0.8 — the tracker parser now reads a `~` estimated sitting and the card's
+  // reading speed skips it (shared/tracker.ts), which the visitor's tracker
+  // card carries; the two rounds' overages against 3.38.0 add. 1079 → 1080.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1080 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
