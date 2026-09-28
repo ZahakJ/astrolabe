@@ -279,17 +279,27 @@ app being brought back from the background, or a sync: the same screen, the same
 the list scrolled where it was. (A sheet that was open is not brought back — you land on the screen
 under it.)
 
-**On a tablet, and on a foldable opened.** A screen that is wide for its height gets two columns:
-every tablet either way up, and anything at least 640 pixels wide and nearly square or wider — a
-Galaxy Z Fold opened, a small tablet, a phone on its side. The same doors stand in a rail down the
-side, the list you are browsing stays in a column beside it and the note fills the rest; here
-**Notes starts on the Tree**, which reads like a book's contents beside its page. Picking another
-note replaces the one beside the list, and the list keeps its place — its scroll, its open folders,
-the note you are reading lit. Drag the grip between the two columns to give the list or the note
-more room (double-tap it to put it back); the width is remembered. The list's own **‹** goes up a
-folder while a note is open. The note's sheet slides in from the side over the note's column, never
-over the list. A study session and a book take the whole screen. A tablet with a keyboard and a
-trackpad gets the desktop layout instead.
+**On a foldable opened, and on a tablet.** A note takes the page. Below 1000 pixels wide — a Galaxy
+Z Fold opened either way up, an iPad or any tablet held upright, a phone on its side — the layout is
+the phone's: a list opens the note across the whole screen, and **‹** comes back to the list. Where
+the screen is a page rather than a palm (600 pixels wide and up: the Fold opened, every tablet), the
+note keeps **tabs**: open a note, go back to the list, open another, and the first is still there — a
+row of tabs under the note's bar, the one you are reading underlined. Tap a tab to go to it, tap its
+**×** to close it (the next one shows); going back to the list closes nothing, and the tabs are there
+when you open a note again, after a reload, and when the app comes back. Up to eight stay open; past
+that the one you looked at longest ago gives way.
+
+From 1000 pixels wide — a tablet in landscape — there are two columns: the same doors in a rail down
+the side, the list you are browsing in a column a list's width, and the note filling the rest; here
+**Notes starts on the Tree**, which reads like a book's contents beside its page. Picking another note
+opens it beside the list (and adds its tab), and the list keeps its place — its scroll, its open
+folders, the note you are reading lit. Drag the grip between the two columns to give the list a
+little more or less room (double-tap it to put it back). **Hide list** at the foot of the rail puts
+the list away so the note takes the page, and **Show list** brings it back; the choice is kept on
+the device. The list's own **‹** goes up a folder while a note is open. The note's sheet slides in
+from the side over the note's column, never over the list. A study session and a book take the whole
+screen. Turn the tablet or open the Fold with a note open and the note stays open; the list comes or
+goes beside it. A tablet with a keyboard and a trackpad gets the desktop layout instead.
 
 **With a keyboard.** A bluetooth keyboard is noticed the first time you type on it, and from then on
 the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette — and More gains a
@@ -307,8 +317,8 @@ opened, a window with a pen and a tablet both ways up
 finger that cannot hover — which includes a tablet held in the hands, at any width. A laptop with a
 touchscreen *and* a mouse keeps the desktop's panes, and so does a desktop window wider than 700px.
 Turn a tablet, open a foldable or narrow a window past the line and the layout follows at once,
-with the same note open. A Galaxy Z Fold is both: its cover screen (about 344 by 882) is a phone
-with one column, and its inner screen opened (about 690 by 829) is two. The phone never changes the tabs and panes your desktop keeps: it does not
+with the same note open. A Galaxy Z Fold is a phone either way: its cover screen (about 344 by 882)
+and its inner screen opened (about 690 by 829) both have one column, and the inner screen keeps tabs. The phone never changes the tabs and panes your desktop keeps: it does not
 save its one open note over them.
 
 ## Pages that are tabs

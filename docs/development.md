@@ -469,13 +469,18 @@ never passes over an empty pane.
 
 **The six shapes.** `phone` is a Pixel 7 at 412×915 with a finger. `fold-cover` and `fold-open`
 are a Galaxy Z Fold's two screens as Chrome reports them at its DPR of 2.625 — the cover screen at
-344×882 (one column) and the inner screen opened at 690×829 (two: its shape, not its width, makes
-it a tablet). `stylus` is 720×820 at DPR 1.5 with a pen — `availablePointerTypes=6,
+344×882 and the inner screen opened at 690×829, both one column (two columns start at 1000px), the
+inner one with the note's tabs. `stylus` is 720×820 at DPR 1.5 with a pen — `availablePointerTypes=6,
 primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`, a blink setting on its own
 browser, because `hasTouch` makes Chromium report a coarse-only device whatever the pointer flags
-say; it is the posture that was once served the desktop shell, and since 3.34 it draws two columns,
-being the open Fold's shape. `tablet` and `tablet-land` are a touch tablet at 820×1180 and 1180×820, where the
-shell draws its rail, its list column and the note, and the note sheet slides over from the side.
+say; it is the posture that was once served the desktop shell, and it draws one column, the open
+Fold's width. `tablet` and `tablet-land` are a touch tablet at 820×1180 (one column, with tabs) and
+1180×820, where the shell draws its rail, its list column and the note, and the note sheet slides
+over from the side. After the matrix, **a note takes the page**: at 344, 690, 829×690, 768, 820, 1024
+and 1180, in both languages, an open note is at least 90% of the viewport under 1000px; above it the
+list is at most 360px and **Hide list** makes the note at least 90%, remembered across a reload; a
+690 window widened to 1180 and back keeps its note open; and from 600px a second note opened from the
+list is a second tab, the first one tap away, **×** showing its neighbour and a reload keeping both.
 
 ### `npm run check-shell-seam` — two shells, no shared chrome
 

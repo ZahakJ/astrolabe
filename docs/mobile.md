@@ -41,7 +41,7 @@ Opening the app pulls; coming back to it pulls again; and pulling a list in **No
 
 A sync never moves you. The notes that changed are read again under you, and the folder you were in, the folders behind it and the note you were reading stay where they were; so does your place when Android brings the app back from the background. The folder's **‹** goes up to the folder above it, never to Today ([back means up](workspace.md#on-a-phone)).
 
-**On a Galaxy Z Fold.** Closed, the cover screen is a phone: one column, the bar of five doors. Opened, the inner screen is two columns — the doors in a rail, your notes as a tree beside the note you are reading — and it switches as you open and close it, with the same note open ([on a tablet, and on a foldable opened](workspace.md#on-a-phone)).
+**On a Galaxy Z Fold, and on a tablet.** A note takes the page. Closed, the Fold's cover screen is a phone: one column, the bar of five doors. Opened, the inner screen is one column too — a note opened from the list fills the whole screen, **‹** comes back to the list — and it keeps **tabs**: open a second note and the first stays one tap away in a row under the note's bar, **×** closes one, and the tabs survive going back to the list, a reload and the app coming back. A tablet held upright is the same. A tablet on its side (1000 pixels wide and up) has two columns — the doors in a rail, your notes beside the note in a column a list's width — and **Hide list** at the foot of the rail lets the note take the page there too. Open or close the Fold, or turn the tablet, and the note you were reading stays open ([on a foldable opened, and on a tablet](workspace.md#on-a-phone)).
 
 ### Settings, and the tab that belongs to the phone
 
