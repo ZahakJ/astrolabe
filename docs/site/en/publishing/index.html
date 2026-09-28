@@ -138,7 +138,7 @@ and a much smaller 64 KB on the two things anonymous visitors can send (comments
 attempts). Anything bigger is refused with HTTP 413 (&quot;request too large&quot;) rather than held in memory. A matching cap
 at the proxy is a sensible extra layer — in nginx, <code>client_max_body_size 10m;</code>.</p>
 <h2 id="comments"><a class="anchor" href="#comments">Comments</a></h2>
-<p>Set <code>COMMENTS=on</code> (or flip the switch in Settings → Your site → Comments) and every
+<p>Set <code>COMMENTS=on</code> (or flip the switch in Settings → Comments &amp; mentions → Comments) and every
 <strong>published</strong> note grows a quiet <strong>Marginalia</strong> section under its reading view, where visitors
 can leave a plain-text note. A name is optional; without one the comment says &quot;Anonymous&quot;. While
 comments are off (the default) the feature is completely absent: no interface, and its API routes
@@ -160,7 +160,7 @@ read or written on notes with <code>publish: true</code>; for any other path the
 missing note would, so unpublished paths stay unguessable. With <code>PUBLIC=false</code> (a fully private
 vault), visitors can neither read nor post comments at all.</p>
 <p>Other sites can join the conversation too. With <strong>Accept webmentions</strong> or <strong>Fediverse</strong> on
-(Settings → Your site → Conversation), replies, likes and mentions written elsewhere arrive in the
+(Settings → Comments &amp; mentions), replies, likes and mentions written elsewhere arrive in the
 same moderation panel, marked with where they came from, and the ones you approve appear under
 the comments in a small <strong>Mentions</strong> section. See <a href="../webmentions/">Webmentions &amp; the fediverse</a>.</p>
 <h2 id="the-three-public-shells"><a class="anchor" href="#the-three-public-shells">The three public shells</a></h2>

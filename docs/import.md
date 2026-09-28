@@ -14,7 +14,7 @@ The import wizard turns another app's export into notes in this vault. It shows 
 - A folder's **⋯** (or right-click) in the sidebar: **Import notes here…**, which fills in that folder as the target.
 - On a phone: **More → Import notes**.
 
-It is not a row in Settings: Settings → Writing → Capture names these doors instead, in one line above the capture inbox.
+It is not a row in Settings: Settings → New notes & templates → Capture inbox names these doors instead, in one line above the capture inbox.
 
 ## The three sources
 

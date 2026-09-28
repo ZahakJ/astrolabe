@@ -438,7 +438,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // SETTINGS, DESIGNED: 892.9 → 904.8 kB, +11.9 against the 3.38.0 build
 // (c40e86c2) — the entry's +10.3 below and the phone's Settings screen
 // drawing the four groups as headed lists. 894 → 906.
-const PHONE_BUDGET = 906 * 1024;
+// 3.39.0 MERGED: the link round's +3.2 and the settings round's +11.9, each
+// measured against 3.38.0, add: 908.6 kB measured after the merge. 906 → 909.
+const PHONE_BUDGET = 909 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1511,7 +1513,9 @@ const AUDIENCES = [
   // card carries; the two rounds' overages against 3.38.0 add. 1079 → 1080.
   // SETTINGS, DESIGNED: 1076.4 → 1086.8 kB, +10.4 — the entry's, nothing
   // else. 1078 → 1088.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1088 * 1024 },
+  // 3.39.0 MERGED: the three rounds' overages against 3.38.0 add (+2.2 links,
+  // +0.8 sittings, +10.4 settings): 1090.2 kB measured after the merge. 1088 → 1091.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1091 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,

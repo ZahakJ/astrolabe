@@ -29,7 +29,7 @@
 <p>Feeds is the reading side of RSS. You keep a list of the blogs, journals and newsletters you follow; the server asks them for new articles on a schedule; the <strong>Feeds</strong> page lists what is unread, grouped by feed, with a reader beside it; and <strong>Keep</strong> turns an article you want into a note of your own.</p>
 <p>It is <strong>not</strong> the blog&#39;s RSS. The feed your own site publishes (<code>/feed.xml</code>, see <a href="../blog-mode/">Blog mode</a>) is the site speaking outward; Feeds is you listening. The two share nothing but a file format.</p>
 <h2 id="the-list-is-a-note"><a class="anchor" href="#the-list-is-a-note">The list is a note</a></h2>
-<p>The feeds you follow live in a note, <code>Feeds.md</code> at the vault root unless Settings → Reading &amp; speech → Feeds names another. Inside it, a <code>feeds</code> code block holds one address per line:</p>
+<p>The feeds you follow live in a note, <code>Feeds.md</code> at the vault root unless Settings → Reading → Feeds names another. Inside it, a <code>feeds</code> code block holds one address per line:</p>
 <pre><code class="language-markdown"># Feeds
 
 ```feeds
@@ -49,7 +49,7 @@ https://a-blog.example/
 </ul>
 <p>Because the list is a note, it syncs, keeps its history and can be annotated like any note: write around the block as much as you like; only the block is read. If the note does not exist yet, the Feeds page offers to start it with an empty block.</p>
 <h2 id="fetching-is-yours-to-switch-on"><a class="anchor" href="#fetching-is-yours-to-switch-on">Fetching is yours to switch on</a></h2>
-<p>A new instance fetches <strong>nothing</strong>. Turn on <strong>Fetch feeds</strong> in Settings → Reading &amp; speech → Feeds, and the server starts asking. Turned off, no feed is asked for anything: the Feeds page still lists what was already fetched, and says why nothing new arrives.</p>
+<p>A new instance fetches <strong>nothing</strong>. Turn on <strong>Fetch feeds</strong> in Settings → Reading → Feeds, and the server starts asking. Turned off, no feed is asked for anything: the Feeds page still lists what was already fetched, and says why nothing new arrives.</p>
 <p>With fetching on, the server asks every feed in the list:</p>
 <ul>
 <li><strong>on git sync&#39;s schedule</strong> when <a href="../backup-and-sync/">Backup &amp; sync</a> runs on a timer (one interval for everything this instance does over the network), and <strong>every hour</strong> when it does not;</li>
