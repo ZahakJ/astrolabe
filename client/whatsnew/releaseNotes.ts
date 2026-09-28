@@ -370,6 +370,72 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.39.0",
+    title: { en: "Reading, from the bar", ar: "القراءة من الشريط" },
+    slides: [
+      {
+        // ── Sittings from progress: a moved tracker is a sitting on that day ─
+        title: { en: "Reading, from the bar", ar: "القراءة من الشريط" },
+        body: {
+          en: "Press + on a book, or type its new page, and the day remembers you read. Astrolabe writes the sitting into the tracker with a ~ before its minutes, estimated from your own pace when it has one and from a stated default when it has not. Four books moved today are four books under today in the calendar, the Timeline and the week. A line you edit is yours; `sittings: manual` keeps a book out of it.",
+          ar: "اضغط + على كتاب، أو اكتب صفحته الجديدة، فيتذكّر اليوم أنك قرأت. يكتب أسطرلاب الجلسة في المتتبِّع وقبل دقائقها ~، مقدَّرةً من وتيرتك أنت إن عرفها، ومن قيمة معلنة إن لم يعرفها. وأربعة كتب تقدّمت اليوم أربعة كتب تحت اليوم في التقويم والخط الزمني والأسبوع. والسطر الذي تعدّله سطرك أنت؛ و`sittings: manual` يُبقي كتابًا خارج ذلك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="36" y="40" width="220" height="70" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <rect x="48" y="52" width="28" height="40" rx="3" fill="var(--bg-hover)" stroke="var(--border)"/>
+  <text x="88" y="64" fill="var(--text)" font-size="12" font-weight="700">${L(lang, "Muqaddimah", "المقدّمة")}</text>
+  <rect x="88" y="74" width="120" height="6" rx="3" fill="var(--bg-hover)"/>
+  <rect x="88" y="74" width="60" height="6" rx="3" fill="var(--accent)"/>
+  <rect class="wa-draw" x="88" y="74" width="24" height="6" rx="3" fill="var(--accent)" opacity="0.5" transform="translate(60 0)"/>
+  <text x="88" y="98" fill="var(--text-muted)" font-size="10">139 → 160</text>
+  <g class="wa-pulse"><rect x="218" y="66" width="26" height="22" rx="4" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/><text x="231" y="82" text-anchor="middle" fill="var(--text)" font-size="14" font-weight="700">+</text></g>
+  <g class="wa-late" style="--i:1"><rect x="36" y="128" width="220" height="20" rx="4" fill="var(--bg)" stroke="var(--border)"/><text x="46" y="142" fill="var(--text-muted)" font-size="10" font-family="ui-monospace, monospace">139–160 · 21 ${L(lang, "pages", "صفحة")} · ~32 ${L(lang, "min", "د")}</text></g>
+  <path class="wa-draw" d="M262 138 C 300 138, 310 100, 350 100" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:2"><rect x="356" y="40" width="160" height="150" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+  <circle cx="376" cy="58" r="11" fill="none" stroke="var(--accent)"/><text x="376" y="62" text-anchor="middle" fill="var(--text)" font-size="10" font-weight="700">27</text>
+  <g fill="var(--text-muted)" font-size="11">${[["Muqaddimah","المقدّمة"],["Middlemarch","ميدلمارتش"],["Kalila wa Dimna","كليلة ودمنة"],["Dune","كثيب"]].map(([en,ar],i) => `<text x="372" y="${88 + i*20}">${L(lang, en, ar)}</text>`).join("")}</g>
+  <text x="372" y="172" fill="var(--text-faint)" font-size="10">~32 · ~38 · ~13 · ~60 ${L(lang, "min", "د")}</text></g>
+  <text x="146" y="180" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "one press, one sitting", "ضغطة واحدة، جلسة واحدة")}</text>
+  <text x="436" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "four books, under today", "أربعة كتب تحت اليوم")}</text>
+</svg>`,
+        },
+        docs: "trackers",
+      },
+      {
+        // ── A wikilink outside a note is a link; the phone's switch breathes ─
+        title: { en: "Links that go somewhere", ar: "روابط تفتح" },
+        body: {
+          en: "A [[link]] in a sigil's slot or a task on Today is now a link: its name, not its brackets, and a tap opens the note without ticking the slot. A link to a note that isn't there yet is dashed, as in the reader. The Timeline, search and backlinks show the name too. On the phone, a slot with an Orbits chip no longer folds into one letter per line, and the Notes tab's Tree | Folders switch gets room to breathe.",
+          ar: "الرابط [[…]] في خانة من خانات السِّجِلّ أو في مهمّة على شاشة اليوم صار رابطًا: يظهر اسمه لا أقواسه، ولمسة عليه تفتح الملاحظة من غير أن تؤشّر الخانة. والرابط إلى ملاحظة لم تُكتب بعد يظهر متقطّعًا كما في القارئ. والخطّ الزمني والبحث والروابط الخلفية تُظهر الاسم كذلك. وعلى الهاتف لم تعد الخانة التي تحمل شارة مدار تنطوي حرفًا في كل سطر، وصار لمبدّل «شجرة | مجلدات» في تبويب الملاحظات متّسع.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="36" y="44" width="250" height="120" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="52" y="68" fill="var(--text)" font-size="12" font-weight="700">${L(lang, "Japanese", "اليابانية")}</text>
+  <rect x="52" y="84" width="12" height="12" rx="3" fill="none" stroke="var(--border)"/>
+  <text x="72" y="95" fill="var(--text-faint)" font-size="12" font-family="ui-monospace, monospace" class="wa-fade">${L(lang, "review [[orbits/japanese/kana]]", "راجع [[orbits/japanese/kana]]")}</text>
+  <rect x="52" y="116" width="12" height="12" rx="3" fill="none" stroke="var(--border)"/>
+  <g class="wa-late" style="--i:1"><text x="72" y="127" fill="var(--text)" font-size="12">${L(lang, "review", "راجع")} <tspan fill="var(--accent)" text-decoration="underline">${L(lang, "kana", "كانا")}</tspan> <tspan fill="var(--text-muted)" font-size="10">· 12 ${L(lang, "due", "مستحقّة")}</tspan></text></g>
+  <g class="wa-late" style="--i:2"><circle cx="118" cy="140" r="7" fill="var(--accent-soft)" stroke="var(--accent)"/><path d="M118 147 v14" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></g>
+  <path class="wa-draw" d="M292 124 C 320 124, 330 96, 356 96" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:3"><rect x="360" y="40" width="160" height="150" rx="8" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+  <text x="376" y="66" fill="var(--text)" font-size="13" font-weight="700">${L(lang, "Kana", "كانا")}</text>
+  <g fill="var(--text-faint)"><rect x="376" y="80" width="120" height="4" rx="2"/><rect x="376" y="92" width="100" height="4" rx="2"/><rect x="376" y="104" width="128" height="4" rx="2"/><rect x="376" y="116" width="90" height="4" rx="2"/></g>
+  <text x="376" y="142" fill="var(--text-muted)" font-size="11">あ い う え お</text></g>
+  <text x="161" y="184" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the name, not the brackets", "الاسم لا الأقواس")}</text>
+  <text x="440" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "a tap opens the note", "لمسة تفتح الملاحظة")}</text>
+</svg>`,
+        },
+        docs: "sigils",
+      },
+    ],
+  },
+  {
     version: "3.38.0",
     title: { en: "Settings, sorted", ar: "إعدادات مرتّبة" },
     slides: [
