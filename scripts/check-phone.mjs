@@ -1347,6 +1347,7 @@ try {
             page,
             lang,
             host: "phone",
+            chromePinned: true,
             check,
             tag,
             press,

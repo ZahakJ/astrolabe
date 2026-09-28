@@ -102,9 +102,11 @@ const esc = (s) => s.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
  * @param {() => Promise<void>} o.openSettings — lands on the dialog / the list
  * @param {() => Promise<void>} [o.back] — the phone's Back
  * @param {string} [o.shots] — a directory to photograph each page into
+ * @param {boolean} [o.chromePinned] — the gate writes the chrome language
+ *   into this browser on every load (check-phone does)
  * @returns {Promise<{ set: number, readBack: number, skipped: string[] }>}
  */
-export async function walkSettings({ page, lang, host, check, tag, press, openSettings, back, shots }) {
+export async function walkSettings({ page, lang, host, check, tag, press, openSettings, back, shots, chromePinned = false }) {
   const d = DICT[lang];
   const settle = (ms = 600) => page.waitForTimeout(ms);
   // The stored settings: the response minus what is derived from them.
@@ -307,6 +309,60 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
     await settle(200);
     if (shots) await page.screenshot({ path: `${shots}/settings-${host}-${lang}-${String(i + 1).padStart(2, "0")}-${s.id}.png` });
 
+    // THE LIBRARY'S LISTS, WITH LONG TITLES (the owner's screenshot: a long
+    // title, the folder and "6 of 6 notes published" ran on over the ↑
+    // button). Three paths with titles longer than any row has room for are
+    // put on the shelf through the API, the page is drawn, every piece of text
+    // in a path's summary and in the vault's own list is held to its box and
+    // off every control, and the library is put back as it was.
+    if (s.id === "library") {
+      const original = await page.evaluate(async () => (await (await fetch("/api/settings")).json()).library ?? null);
+      const long = lang === "ar" ? "محاضرات فاينمان في الفيزياء — المجلد الأول: الميكانيكا والإشعاع والحرارة" : "The Feynman Lectures on Physics, Volume I: Mechanics, Radiation and Heat";
+      const seeded = await page.evaluate(
+        async ([title]) => {
+          const paths = [
+            { id: "walk-a", slug: "walk-feynman", folder: "Library/Feynman Lectures on Physics Volume One", kind: "book", title },
+            { id: "walk-b", slug: "walk-software", folder: "Library/A Philosophy of Software Design 2nd Edition", kind: "book", title: `${title} (2)` },
+            { id: "walk-c", slug: "walk-ml", folder: "guides", kind: "course", title: `${title} (3)` },
+          ];
+          const r = await fetch("/api/settings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ library: { enabled: true, nav: true, home: false, title: null, roots: null, paths } }) });
+          return r.status;
+        },
+        [long],
+      );
+      check(seeded === 200, tag("library: three long-titled paths go on the shelf for the overlap check"), String(seeded));
+      await reload(s);
+      await page.evaluate((sel) => document.querySelectorAll(`${sel} details.s-libpaths__card`).forEach((x) => (x.open = false)), scope);
+      await settle(300);
+      const clash = await page.evaluate((sel) => {
+        const out = [];
+        const lists = [...document.querySelectorAll(`${sel} .s-libpaths__summary, ${sel} .s-libpaths__vaultrow, ${sel} .s-libroots__row`)];
+        for (const r of lists) {
+          const texts = [...r.querySelectorAll(".s-libpaths__sumtitle, .s-libpaths__sumfolder, .s-libpaths__count, .s-libpaths__url, .s-libpaths__vaulttitle")];
+          const ctrls = [...r.querySelectorAll("button, [role=switch]")].filter((c) => !texts.some((t) => c.contains(t) || t.contains(c)));
+          for (const t of texts) {
+            const tr = t.getBoundingClientRect();
+            if (tr.width === 0) continue;
+            const cs = getComputedStyle(t);
+            if (cs.overflowX !== "hidden" && t.scrollWidth > t.clientWidth + 1) out.push(`"${(t.textContent ?? "").slice(0, 24)}" runs past its box`);
+            for (const c of ctrls) {
+              const cr = c.getBoundingClientRect();
+              const w = Math.min(tr.right, cr.right) - Math.max(tr.left, cr.left);
+              const h = Math.min(tr.bottom, cr.bottom) - Math.max(tr.top, cr.top);
+              if (w > 1 && h > 1) out.push(`"${(t.textContent ?? "").slice(0, 24)}" over ${c.getAttribute("aria-label") ?? c.textContent?.trim()}`);
+            }
+          }
+        }
+        return { n: lists.length, out };
+      }, scope);
+      check(clash.n >= 3 && clash.out.length === 0, tag(`library: no text in ${clash.n} path rows runs over a control or out of its box`), clash.out.join(" | "));
+      if (shots) await page.screenshot({ path: `${shots}/settings-${host}-${lang}-library-long.png` });
+      await page.evaluate(async (lib) => {
+        await fetch("/api/settings", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ library: lib }) });
+      }, original);
+      await reload(s);
+    }
+
     // Every control named; one control column edge; one-line hints.
     const audit = await page.evaluate(
       ([sel, isDesktop]) => {
@@ -378,7 +434,7 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
         const key = keyOf.get(x.label) ?? "";
         const why = !SETTABLE_KINDS.has(x.kind)
           ? `a ${x.kind}: shown, not set`
-          : (SKIP[key] ?? (key === "rowEditorLanguage" && lang !== "en" ? "would switch this walk's own chrome language" : null));
+          : (SKIP[key] ?? (key === "rowEditorLanguage" && chromePinned ? "the gate pins this walk's chrome language on every load, so no reload can keep another choice" : key === "rowEditorLanguage" && lang !== "en" ? "would switch this walk's own chrome language" : null));
         if (why) {
           tally.skipped.push(`${s.id}/${x.label}: ${why}`);
           continue;
