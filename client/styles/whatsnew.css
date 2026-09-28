@@ -216,6 +216,9 @@
      box's edge (the owner saw it touch the border after ~30 releases). */
   min-inline-size: 0;
   flex: 0 1 auto;
+  /* The row is the offset parent of its groups: WhatsNew.tsx measures a
+     group's offsetLeft against it to keep the current one in view. */
+  position: relative;
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
