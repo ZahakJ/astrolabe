@@ -399,10 +399,10 @@ const en = {
   cmdCoolScreen: "Cool the screen",
   cmdWarmScreenHint: "Night light: an amber sheet over the page, per device",
   rowEditorWidth: "Writing column",
-  hintEditorWidth: "The width of the editor's and the reading view's text.",
-  editorWidthMeasure: "Reading measure",
+  hintEditorWidth: "Narrow keeps lines at a comfortable reading length; Custom takes any width.",
+  editorWidthMeasure: "Narrow",
   editorWidthWide: "Wide",
-  editorWidthFull: "Full width",
+  editorWidthFull: "Full",
   editorWidthCustom: "Custom",
   editorWidthCustomPlaceholder: "900px or 70%",
   editorWidthCustomHint: "Pixels (320–2400) or a share of the pane (30–100%). It applies as you type.",
@@ -686,10 +686,7 @@ const en = {
   uploadFailed: "Upload failed",
 
   // ── Settings panel ──────────────────────────────────────────────────────
-  groupHome: "Home page",
   // ── Public folders: one option, its list, and two placement sub-options ──
-  groupPublicFolders: "Custom public folders",
-  publicFoldersNote: "Your own collections on the public site, beside the topics your notes tag themselves with.",
   rowPublicFolders: "Collections",
   hintPublicFolders: "Hand-made topics beside the tag topics. Off hides them; nothing is deleted.",
   publicFoldersOffNotice: "Custom folders are off, so none of them reaches a visitor.",
@@ -721,7 +718,7 @@ const en = {
   publicFolderFolderNone: "No folder: notes join by frontmatter",
   publicFolderFolderClear: "Unlink the folder",
   rowTopicsMode: "Categories come from",
-  hintTopicsMode: "What the navigation offers readers, and what a post is filed under.",
+  hintTopicsMode: "Tags give a topic per tag; folders follow the vault's own order.",
   topicsModeTags: "Tags",
   topicsModeTagsNote: "a topic per tag",
   topicsModeFolders: "Folders",
@@ -810,8 +807,7 @@ const en = {
   libraryUnitWeek: "Week {n}",
   libraryUnitPart: "Part {n}",
   // Settings → Publishing → The library
-  groupLibrary: "The library",
-  libraryNote: "Books, courses and lecture series as paths a reader walks in order. A path is a folder of your vault: its subfolders are the chapters or lectures, the published notes inside are the lessons.",
+  libraryNote: "Turn it on when your vault holds books or courses meant to be read in order. Books, courses and lecture series as paths a reader walks in order. A path is a folder of your vault: its subfolders are the chapters or lectures, the published notes inside are the lessons.",
   rowLibrary: "Library",
   hintLibrary: "The master switch. Off, no visitor can reach a path.",
   libraryOffNotice: "The library is off: the paths below are kept but reach no one.",
@@ -888,19 +884,19 @@ const en = {
   // ── Settings tabs ────────────────────────────────────────────────────────
   // One name and one sentence each: a rail of eight category nouns tells a
   // reader where things are, never what they decide.
-  tabSite: "Your site",
-  introSite: "What visitors see — the site's name and look, its home page — and who may answer.",
+  tabSite: "Site identity",
+  introSite: "The site's name and marks, and the theme a visitor arrives on.",
   tabCollections: "Collections",
-  introCollections: "How the public site groups notes — topics, your own collections, and the library shelf.",
+  introCollections: "How the public site groups notes: by tags or by folders, and your own collections.",
   tabAbout: "About",
-  introAbout: "This app and this instance: what's new, the version, where files live, and the manual.",
+  introAbout: "This app and this instance: the version, where files live, how much is in it, and the manual.",
 
   // ── Appearance ───────────────────────────────────────────────────────────
   rowYourTheme: "Your theme",
   hintYourTheme: "Light or dark mode, for you; visitors get the site's default theme.",
 
   // ── The visitor language switch, said out loud ───────────────────────────
-  visitorSwitchNote: "A reader who flips it changes their own interface, never the notes.",
+  visitorSwitchNote: "Turn it on when your site publishes in both languages and readers of either should feel at home. A reader who flips it changes their own interface, never the notes.",
   visitorSwitchOn: "The switch is on: visitors see EN/ع in the public chrome.",
 
   // ── About ────────────────────────────────────────────────────────────────
@@ -947,7 +943,7 @@ const en = {
   rowDefaultTheme: "Default theme",
   hintDefaultTheme: "The theme a visitor with no stored choice arrives on.",
   rowPublicLayout: "Public layout",
-  hintPublicLayout: "Which shell a visitor lands in at the site root.",
+  hintPublicLayout: "The shell a visitor lands in; Default follows the server's PUBLIC_LAYOUT.",
   rowOpenDesigner: "Design the site",
   hintOpenDesigner: "Open the designer: presets, sections, navigation and type for the designed layout.",
   // TWO LANGUAGE ROWS, AND THE HINTS ARE WHERE THEY STOP BEING CONFUSABLE.
@@ -956,9 +952,9 @@ const en = {
   // now names WHOSE language it is: the site's row speaks for the readers, the
   // editor's row for the one person looking at it.
   rowLanguage: "Site language",
-  hintLanguage: "The language visitors read the site and its chrome in.",
+  hintLanguage: "What visitors read the site in; Default follows the server's SITE_LANG.",
   rowEditorLanguage: "Your language",
-  hintEditorLanguage: "The app's own words on this device; visitors read the site language.",
+  hintEditorLanguage: "The app's own words on this device; Follow site uses the site's language.",
   editorLangFollow: "Follow site",
   // The notes sidebar's edge. The segment labels name a PHYSICAL edge in both
   // languages, exactly as the palette commands do — an Arabic reader pinning
@@ -1010,7 +1006,7 @@ const en = {
   excludeTagsNoop: "No published note carries any of these — nothing is being hidden.",
   excludeTagsNone: "All {total} topics on your published notes are public.",
   rowComments: "Comments",
-  hintComments: "Notes a reader can leave under a published note.",
+  hintComments: "Readers may leave a note under a published note; Default follows COMMENTS.",
   // The home note is the front door of a blog-mode site, and it can point at
   // a note visitors cannot see — which renders a blank homepage and says
   // nothing. Now it says something.
@@ -1549,9 +1545,8 @@ const en = {
   // The type SPECIMENS are not here: a Latin sample must stay Latin in an
   // Arabic UI (and the Arabic one Arabic in an English UI) or the preview
   // stops previewing what it claims to. They live in SettingsModal.tsx.
-  groupTypography: "Typography",
   // Sub-heads inside the merged Appearance & language tab.
-  typographyNote: "Faces are fetched once when you save, then served from this machine.",
+  typographyNote: "Change a face when the default reads poorly in your language or on your screen. Faces are fetched once when you save, then served from this machine.",
   rowFontProse: "Reading text",
   hintFontProse: "The font for reading text and the editor's prose.",
   rowFontUi: "Interface",
@@ -2147,7 +2142,7 @@ const en = {
   drawingsFolderHint: "Where the sidebar's pencil starts a new drawing. Empty means the vault root.",
   defaultTemplateLabel: "Template for new notes",
   defaultTemplateHint: "Applied to every note made from here; off by default.",
-  templatePlaceholdersHint: "Placeholders: {{date}}, {{time}}, {{title}}, {{Title}}, {{date:FORMAT}}, {{hdate}}. Anything else is left as written.",
+  templatePlaceholdersHint: "Set it when every note should start from the same skeleton. Placeholders: {{date}}, {{time}}, {{title}}, {{Title}}, {{date:FORMAT}}, {{hdate}}. Anything else is left as written.",
 
   // ── Localization: calendar, note layout, tag labels ───────────────────────
   // Three features, one section, because they answer one question: what does
@@ -2172,7 +2167,6 @@ const en = {
   layoutSegmentLabel: "Text layout",
 
   // Settings → Appearance & language: the calendar.
-  groupCalendar: "Calendar",
   rowDateCalendar: "Date calendar",
   hintDateCalendar: "The calendar every date on the site is printed in.",
   calGregorian: "Gregorian",
@@ -2190,17 +2184,16 @@ const en = {
   calArabicSuggest: "Many Arabic sites date their writing by the Hijri calendar.",
 
   // Settings → Appearance & language: note direction and alignment.
-  groupNoteLayout: "Note layout",
   rowTextDirection: "Text direction",
   hintTextDirection: "Base direction (LTR or RTL) for note prose; Auto lets each paragraph decide.",
   rowTextAlign: "Text alignment",
   rowEmptyPropsCard: "Properties card on empty notes",
   hintEmptyPropsCard: "A one-line card on notes that have no properties yet.",
   hintTextAlign: "Where lines sit in the column; code and tables never move.",
-  noteLayoutOverride: "A note's own frontmatter — dir, align — overrides both.",
+  noteLayoutOverride: "Change it when most of your notes are in one script — RTL for an Arabic vault — so paragraphs stop guessing. A note's own frontmatter — dir, align — overrides both.",
 
   // Settings → Appearance & language: localised tag labels.
-  tagLabelsNote: "Display only: links, search and the vault keep the real tag.",
+  tagLabelsNote: "Give a tag a label when its spelling in the vault is not how readers should see it — an English slug on an Arabic site. Display only: links, search and the vault keep the real tag.",
   rowTagsFolder: "Tags folder",
   hintTagsFolder: "Where a tag's own page lives; that page names the tag.",
   /** The table's own row label. NOT the group heading it sits under — a row
@@ -3043,7 +3036,6 @@ const en = {
   shellChangeServer: "Change server or vault…",
   // The desktop-only group: rows that exist because there is an app around
   // the page — its name, its icon, its launcher entry, its updates.
-  groupThisApp: "This app",
   rowUpdates: "Software updates",
   hintUpdates: "It only tells you; nothing is downloaded or installed until you ask.",
   updatesNotify: "Tell me",
@@ -3082,22 +3074,21 @@ const en = {
   // person needs before trusting a thing that edits their words — that a
   // single undo takes each correction back.
   rowFrenchAutocorrect: "Auto-correct French",
-  rowSpellDicts: "Browser dictionaries",
-  hintSpellDicts: "Which languages this browser spellchecks; an unticked language is left alone.",
-  moreSpellDicts: "A French or Arabic line is checked only in a language you tick here — otherwise it is left alone rather than underlined against English. Chrome: Settings → Languages → Spell check.",
+  rowSpellDicts: "Spellcheck in",
+  hintSpellDicts: "Lines in a chosen language are spellchecked; lines in the others are left alone.",
+  moreSpellDicts: "Choose the languages you write whole lines in, so their misspellings are underlined and their correct words are not. A browser does not tell a page which dictionaries it has: a language chosen here is handed to its spellchecker, which underlines only where that dictionary is installed (Chrome: Settings → Languages → Spell check). The desktop app lists the dictionaries this computer really has, and checks them all until you untick one.",
   spellDict_fr: "French",
   spellDict_ar: "Arabic",
   spellDict_he: "Hebrew",
   spellDict_fa: "Persian",
   /** A dictionary toggle's visible words: WHICH language, then its state.
    *  Four toggles reading only "Off" were four identical controls. */
-  spellDictToggle: "{lang}: {state}",
   hintFrenchAutocorrect: "Fixes missing accents and French spacing as you type; one undo takes it back.",
-  moreFrenchAutocorrect: "On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
+  moreFrenchAutocorrect: "Turn it off if your keyboard already places French accents, or if you quote French that must stay exactly as written. On lines written in French: missing accents (tres → très, coeur → cœur), the space before ; : ! ? and inside « », and … for three dots. Ctrl/Cmd Z undoes one correction.",
 
   // ── Settings → tab names that had none ──────────────────────────────────
-  tabLanguage: "Language & dates",
-  introLanguage: "The language you read the app in, the one your site speaks, and how dates print.",
+  tabLanguage: "Language",
+  introLanguage: "The language you read the app in, the one your site speaks, and which notes visitors see.",
 
   // ── Settings → the ⓘ disclosure (replaces the badge and the env line) ────
   // `envDecidedBy` and `envOverridden` are SPLIT on {env}, not interpolated by
@@ -3860,7 +3851,7 @@ const en = {
   // ── Periodic notes (shared/periodic.ts, client/daily.ts) ──
   periodicRowLabel: "Daily, weekly, monthly and yearly notes",
   periodicRowHint: "The folder they share, and a name and a template for each.",
-  periodicFormatNote: "Names take YYYY, MM, DD, ww (the ISO week), [literals] and / for subfolders — always Gregorian, because a file name is an address. Type off to turn a kind off. A template is applied when that period's note is created; empty means the template for new notes.",
+  periodicFormatNote: "Change a name when your daily notes already follow another pattern, so the calendar finds them. Names take YYYY, MM, DD, ww (the ISO week), [literals] and / for subfolders — always Gregorian, because a file name is an address. Type off to turn a kind off. A template is applied when that period's note is created; empty means the template for new notes.",
   periodicColName: "Name",
   periodicColTemplate: "Template",
   periodKindDay: "Day",
@@ -3926,7 +3917,7 @@ const en = {
   uniqueFolderLabel: "Unique notes folder",
   uniqueFolderHint: "Where “New unique note” files a note named by the minute.",
   uniqueFormatLabel: "Unique note name",
-  uniqueFormatHint: "The daily tokens plus HH, mm and ss; must be finer than a day.",
+  uniqueFormatHint: "Change it to match a naming your notes already use. The daily tokens plus HH, mm and ss; must be finer than a day.",
   cmdNewUniqueNote: "New unique note",
   cmdYesterdayNote: "Yesterday's note",
   cmdTomorrowNote: "Tomorrow's note",
@@ -4037,7 +4028,7 @@ const en = {
   historyNoRepoBeside: "Backup is off — versions stay on this machine; turn it on for history that travels.",
   rowNoteVersions: "Keep note versions",
   hintNoteVersions: "Keeps a history of what each note said before a save. Needs no git.",
-  moreNoteVersions: "Forty per note, one per five minutes, in the data directory.",
+  moreNoteVersions: "Turn it off only if another tool already keeps every revision. Forty per note, one per five minutes, in the data directory.",
   // ── PDF search ──
   searchOpIn: "only the shelf's books, or only notes (in:notes)",
   searchKindBook: "Book page",
@@ -4146,7 +4137,7 @@ const en = {
   hadithOpenSource: "Open the source note",
   hadithFolderLabel: "Hadith corpus folder",
   hadithFolderHint: "Notes here answer > [!hadith] callouts. Empty means the folder is detected.",
-  moreHadithFolder: "Each note carries collection: and number: in its frontmatter. Detected names: \"hadith\", \"Corpus/hadith\", \"أحاديث\".",
+  moreHadithFolder: "Set it only when your corpus lives under a name that is not detected. Each note carries collection: and number: in its frontmatter. Detected names: \"hadith\", \"Corpus/hadith\", \"أحاديث\".",
 
   // ── Vault views: the properties shelf, graph groups by query, Nearby ──
   propsShelf: "Properties",
@@ -4227,24 +4218,14 @@ const en = {
 
   // ── The settings purge: sections by intent, the device mark, Advanced ──
   tabAppearance: "Appearance",
-  introAppearance: "How the app looks to you, and the type every reader sees.",
+  introAppearance: "How the app looks on this screen: the theme, the light over it, the sidebar and the column.",
   tabWriting: "Writing",
-  introWriting: "How the editor behaves, and where new notes, captures and files go.",
-  tabReading: "Reading & speech",
-  introReading: "The reading view, your books and feeds, the voices that read to you, and voice notes.",
+  introWriting: "How the editor opens and behaves, and where uploaded files and tag pages go.",
+  tabReading: "Reading",
+  introReading: "The reading view, what search reads inside your books, and the feeds you follow.",
   deviceRowMark: "This device",
   deviceRowTitle: "Saved at once, on this device only — the Save bar is not about it.",
   settingsAdvanced: "Advanced",
-  groupForVisitors: "For visitors",
-  groupNewNotes: "New notes",
-  groupFilesTags: "Files & tags",
-  groupListening: "Listening",
-  groupVoiceNotes: "Voice notes",
-  groupPublishing: "Publishing",
-  groupConversation: "Conversation",
-  groupVersions: "Versions",
-  groupTravels: "Across machines",
-  groupThisInstance: "This instance",
   rowWebmentions: "Webmentions",
   hintWebmentions: "Other sites tell yours they linked to a post, and yours tells them.",
   pocketReadingNotice: "The greyed rows need a server: books searched on disk, feeds fetched, voices run on a computer.",
@@ -4313,7 +4294,7 @@ const en = {
   captureTypeInstead: "Type instead",
   rowVoiceModel: "Voice transcription",
   hintVoiceModel: "The model that turns voice notes into words, and where it runs.",
-  moreVoiceModel: "Auto uses the GPU when one works, else the processor, silently; Processor only never touches the GPU. Beside each model: its download and, on the processor, what a minute of speech takes on two cores. Models download into the data directory, never the vault. Off keeps recordings without words.",
+  moreVoiceModel: "Choose a larger model when transcripts come back wrong, a smaller one when they come back slowly. Auto uses the GPU when one works, else the processor, silently; Processor only never touches the GPU. Beside each model: its download and, on the processor, what a minute of speech takes on two cores. Models download into the data directory, never the vault. Off keeps recordings without words.",
   voiceModelBase: "Base, compact (fastest)",
   voiceModelSmall: "Small, compact (the default)",
   voiceModelTurbo: "Large turbo, compact (best for Arabic)",
@@ -4377,7 +4358,7 @@ const en = {
   // Settings → Language → Read aloud.
   rowReadAloud: "Read aloud",
   hintReadAloud: "Voices on this machine's processor read a selection; no graphics card needed.",
-  moreReadAloud: "Light (Piper) is quick on any computer: English, French, Arabic. Natural (Kokoro) sounds closer to a person and wants a recent processor: English, French, Japanese, Spanish, Italian, Portuguese. Both run on the CPU by design. With nothing installed, this device's own voices read instead, and the player says so.",
+  moreReadAloud: "Install a voice when you want your notes read to you well, without a network. Light (Piper) is quick on any computer: English, French, Arabic. Natural (Kokoro) sounds closer to a person and wants a recent processor: English, French, Japanese, Spanish, Italian, Portuguese. Both run on the CPU by design. With nothing installed, this device's own voices read instead, and the player says so.",
   speakEngineLight: "Light",
   speakEngineLightNote: "any computer",
   speakEngineNatural: "Natural",
@@ -4425,7 +4406,7 @@ const en = {
   // ── Settings → Language & dates → Your own voices (docs/read-aloud.md) ──
   rowOwnVoices: "Your own voices",
   hintOwnVoices: "Piper or Kokoro voices already on this computer, in every voice picker.",
-  moreOwnVoices: "The server looks through the folder and every folder inside it. A Piper voice is two files side by side: name.onnx and name.onnx.json (the catalogue's own layout, such as fr/fr_FR/upmc/medium/, is read as it is). A model with several speakers is one voice per speaker. The folder must be a full path on the machine the server runs on, outside the vault. The external speaker is offered only where the server's operator set SPEAK_EXTERNAL=on in .env; it runs with that server's own user and permissions, so whatever that user may do, the command may do. Only name a program you trust.",
+  moreOwnVoices: "Point it at a folder when you already have Piper or Kokoro voices, or want one this app does not offer. The server looks through the folder and every folder inside it. A Piper voice is two files side by side: name.onnx and name.onnx.json (the catalogue's own layout, such as fr/fr_FR/upmc/medium/, is read as it is). A model with several speakers is one voice per speaker. The folder must be a full path on the machine the server runs on, outside the vault. The external speaker is offered only where the server's operator set SPEAK_EXTERNAL=on in .env; it runs with that server's own user and permissions, so whatever that user may do, the command may do. Only name a program you trust.",
   ownBrowse: "Browse…",
   ownRescan: "Rescan",
   ownScanning: "Scanning…",
@@ -4465,13 +4446,12 @@ const en = {
   // Settings → Publishing.
   rowReadersListen: "Readers may listen",
   hintReadersListen: "Visitors can have a post read aloud; each new sentence costs this machine's processor.",
-  captureSection: "Capture",
   captureInboxLabel: "Capture inbox",
   captureInboxHint: "A note the quick-capture sheet can drop lines into instead of today's note.",
-  moreCaptureInbox: "Ctrl/Cmd Shift D opens the sheet. A vault-relative note path; empty means today's note only.",
+  moreCaptureInbox: "Set it when quick captures should collect in one inbox instead of spreading over the days. Ctrl/Cmd Shift D opens the sheet. A vault-relative note path; empty means today's note only.",
   clipperLabel: "Clipper",
   clipperHint: "Drag the button to your bookmarks bar; it saves any page as a note.",
-  moreClipper: "On any page, click it to save the page — or just what you have selected — as a note under Clips/. The token inside it lives in the data directory, never in the vault; Renew replaces it and retires every copy handed out.",
+  moreClipper: "Drag it to your bookmarks bar when you want to keep pages from the web. On any page, click it to save the page — or just what you have selected — as a note under Clips/. The token inside it lives in the data directory, never in the vault; Renew replaces it and retires every copy handed out.",
   clipperLink: "Clip to {site}",
   clipperDragTitle: "Drag me to the bookmarks bar",
   clipperRenew: "Renew token",
@@ -4649,8 +4629,7 @@ const en = {
   feedsFeedFailed: "{feed} could not be fetched: {error}",
   rowFeeds: "Feeds",
   hintFeeds: "Fetch the feeds your list note names; off, nothing is fetched.",
-  moreFeeds: "Network access is opt-in. On, this server asks every feed in the list on git sync's cadence (hourly when sync is off) and keeps what it fetched in its data directory, never in the vault. Keep writes an article into the vault as a private note. The list lives in the note named here, Feeds.md by default. This is not the blog's own RSS.",
-  feedsFetchToggle: "Fetch feeds",
+  moreFeeds: "Turn it on when you want to read other people's feeds inside your vault. Network access is opt-in. On, this server asks every feed in the list on git sync's cadence (hourly when sync is off) and keeps what it fetched in its data directory, never in the vault. Keep writes an article into the vault as a private note. The list lives in the note named here, Feeds.md by default. This is not the blog's own RSS.",
   feedsNoteField: "The list's note",
   uniqueRowLabel: "Unique notes",
   // The import wizard (3.28, docs/import.md).
@@ -4776,13 +4755,13 @@ const en = {
   // Webmentions and the fediverse (docs/webmentions.md).
   rowWebmentionsAccept: "Accept webmentions",
   hintWebmentionsAccept: "Other sites can tell yours they linked to a post; each awaits your approval.",
-  moreWebmentionsAccept: "On, every public page advertises an endpoint at /webmention. A site that links to one of your posts can POST its address there; this server fetches that page (public addresses only, a megabyte, ten seconds), checks it really links to your post, and files it in moderation as a like, a repost, a reply or a mention. Nothing appears on the post until you approve it. A page that stops linking is withdrawn when it is verified again.",
+  moreWebmentionsAccept: "Turn it on to see which sites write about your posts. On, every public page advertises an endpoint at /webmention. A site that links to one of your posts can POST its address there; this server fetches that page (public addresses only, a megabyte, ten seconds), checks it really links to your post, and files it in moderation as a like, a repost, a reply or a mention. Nothing appears on the post until you approve it. A page that stops linking is withdrawn when it is verified again.",
   rowWebmentionsSend: "Send webmentions",
   hintWebmentionsSend: "When you publish, tell the sites a post links to.",
-  moreWebmentionsSend: "On, publishing a post, or republishing one that changed, sends a webmention to every other site its text links to that advertises an endpoint. A page that did not change sends nothing again. Only public posts send: never a draft, a template, a library lesson or a post the language filter hides.",
+  moreWebmentionsSend: "Turn it on to let the sites you cite know that you did. On, publishing a post, or republishing one that changed, sends a webmention to every other site its text links to that advertises an endpoint. A page that did not change sends nothing again. Only public posts send: never a draft, a template, a library lesson or a post the language filter hides.",
   rowFediverse: "Fediverse",
   hintFediverse: "Let Mastodon and its neighbours follow the blog, like, boost and reply.",
-  moreFediverse: "On, the blog is one ActivityPub account that people find by its address. Followers are accepted at once; each new post is delivered to them, an edited one is updated, and an unpublished one is deleted from their timelines. Likes and boosts appear under the post; replies wait in moderation. Set SITE_URL so the address never changes.",
+  moreFediverse: "Turn it on when people on Mastodon and its neighbours should be able to follow the blog. On, the blog is one ActivityPub account that people find by its address. Followers are accepted at once; each new post is delivered to them, an edited one is updated, and an unpublished one is deleted from their timelines. Likes and boosts appear under the post; replies wait in moderation. Set SITE_URL so the address never changes.",
   rowFediverseHandle: "Fediverse name",
   hintFediverseHandle: "The name before the @ that people search for.",
   errFediHandle: "Letters, digits and underscores only, at most 30.",
@@ -4867,7 +4846,33 @@ const en = {
   // who is reading, so turning it on is the owner's decision.
   rowExternalVideo: "Embed external video",
   hintExternalVideo: "YouTube, Vimeo and PeerTube links on their own line become players.",
-  moreExternalVideo: "Off by default, because another site's player tells that site who is reading. When on, YouTube plays from youtube-nocookie.com, Vimeo is asked not to track, and every frame loads only when it scrolls near. Off, the address stays a link.",
+  moreExternalVideo: "Turn it on when readers should watch in the article rather than follow a link — at the cost below. Off by default, because another site's player tells that site who is reading. When on, YouTube plays from youtube-nocookie.com, Vimeo is asked not to track, and every frame loads only when it scrolls near. Off, the address stays a link.",
+  settingsGroupYou: "You",
+  settingsGroupSite: "Your site",
+  settingsGroupData: "Data",
+  settingsGroupApp: "App",
+  tabType: "Layout & type",
+  introType: "How note prose is set — its direction, its alignment, its faces — for you and every reader.",
+  tabDates: "Dates & calendar",
+  introDates: "Which calendar every date on the site is printed in, and how two calendars sit together.",
+  tabNotes: "New notes & templates",
+  introNotes: "Where new notes start: templates, the calendar's notes, minute notes, and the two capture doors.",
+  tabSpeech: "Read aloud & voice notes",
+  introSpeech: "The voices that read to you, and the words you speak into notes.",
+  tabPublishing: "Publishing",
+  introPublishing: "Which shell visitors land in, what the home page shows, and what an article carries.",
+  tabConversation: "Comments & mentions",
+  introConversation: "Who may answer a published note: comments, webmentions and the fediverse — each off until you say.",
+  tabLibrary: "Library",
+  introLibrary: "The public shelf of your books: whether it shows, its name, and which folders fill it.",
+  tabVersions: "Versions & travel",
+  introVersions: "A copy of each note before every save, and what the vault carries to the next machine.",
+  tabDevice: "This device",
+  introDevice: "The app itself, here: an offline copy, Vim keys, what's new, and on the desktop its name and updates.",
+  settingsDevicePage: "Everything here is kept on this device and saves as you change it.",
+  spellDictsSystem: "This Mac checks spelling in its own languages (System Settings → Keyboard → Text Input).",
+  spellDictsOff: "Spelling is off in this app: Edit → Spelling → Check spelling while typing.",
+  spellDictsNone: "This computer has no dictionary for French, Arabic, Hebrew or Persian.",
 } satisfies Record<string, string>;
 
 /** Every dictionary key — the one list both languages must cover. */

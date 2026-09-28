@@ -57,6 +57,21 @@ function nestedFiles(file, seen = new Set()) {
   return out;
 }
 
+/** The pages as client/components/settings/tabs.ts lists them — id, label key
+ *  and rail group, in rail order — read as text like everything here. */
+export function pages() {
+  const src = /export const TABS: Tab\[\] = \[([\s\S]*?)\n\];/.exec(read(SETTINGS_DIR + "tabs.ts"))?.[1] ?? "";
+  const out = [...src.matchAll(/\{ id: "(\w+)", key: "(\w+)", intro: "(\w+)", group: "(\w+)"(, device: true)? \}/g)].map((m) => ({
+    id: m[1],
+    key: m[2],
+    intro: m[3],
+    group: m[4],
+    device: m[5] !== undefined,
+  }));
+  if (out.length < 10) throw new Error(`settings-index: only ${out.length} pages read out of tabs.ts — the parser is broken`);
+  return out;
+}
+
 /** Every tab body the switch renders: its tab, its mode and its files. */
 export function tabSources() {
   const out = [];
@@ -82,6 +97,8 @@ function parseFile(file, ctx, rows, groups, seen) {
   const lines = read(file).split("\n");
   const last = () => rows.at(-1);
   const lastRow = () => [...rows].reverse().find((r) => r.row === undefined);
+  /** The Row/Part tag being read, until its label line. */
+  let pending = null;
   for (const line of lines) {
     // A tag named in a comment ("`<InstanceOnly>` inside a section") is prose
     // about the wrapper, not the wrapper: only a line of code opens one.
@@ -106,6 +123,16 @@ function parseFile(file, ctx, rows, groups, seen) {
       continue;
     }
 
+    // A `<Row …>` / `<Part …>` tag may span lines; what it says about itself
+    // before its label — its catalogue `kind`, whether it is kept on this
+    // `device` — is gathered from the tag's first line to its label line.
+    if (code && /<(?:Row|Part)\b/.test(line)) pending = { kind: null, device: false, part: /<Part\b/.test(line) };
+    if (pending && code) {
+      const kind = /\bkind="(\w+)"/.exec(line);
+      if (kind) pending.kind = kind[1];
+      if (/\sdevice(?=[\s>]|$)/.test(line)) pending.device = true;
+    }
+
     const label = /label=\{t\("([A-Za-z0-9_]+)"\)\}/.exec(line);
     if (label) {
       // A row's own label and the CONTROL inside it usually carry the same key
@@ -115,13 +142,15 @@ function parseFile(file, ctx, rows, groups, seen) {
       // already collecting is that control, not a new row. The same holds for
       // a part and the control inside it, and for a host row's own control
       // that follows one of its parts.
-      const part = /<Part\b/.test(line);
+      const part = pending?.part === true;
       const host = part ? lastRow() : undefined;
       const repeat = label[1] === last()?.label || (!part && label[1] === lastRow()?.label && last()?.row === lastRow()?.label);
-      if (!repeat) {
+      if (!repeat && pending) {
         rows.push({
           tab: ctx.tab,
           label: label[1],
+          kind: pending.kind,
+          device: pending.device,
           hint: null,
           more: [],
           env: null,
@@ -130,6 +159,7 @@ function parseFile(file, ctx, rows, groups, seen) {
           adv: adv > 0,
         });
       }
+      pending = null;
     }
     const entry = last();
     if (!entry || entry.tab !== ctx.tab) continue;
@@ -150,6 +180,8 @@ export function parseSettings() {
   for (const { tab, mode, files } of tabSources()) {
     parseFile(files[0], { tab, mode, adv: false }, rows, groups, new Set());
   }
+  const groupOf = new Map(pages().map((p) => [p.id, p.group]));
+  for (const r of rows) r.group = groupOf.get(r.tab) ?? "";
   return { rows, groups };
 }
 
@@ -162,7 +194,8 @@ export function settingsRows() {
  *  exactly this and `check-settings` compares exactly this. */
 export function entryLine(r) {
   return (
-    `  { tab: "${r.tab}", label: "${r.label}"` +
+    `  { tab: "${r.tab}", group: "${r.group}", label: "${r.label}", kind: "${r.kind}"` +
+    (r.device ? ", device: true" : "") +
     (r.hint ? `, hint: "${r.hint}"` : "") +
     (r.more && r.more.length > 0 ? `, more: [${r.more.map((k) => `"${k}"`).join(", ")}]` : "") +
     (r.env ? `, env: "${r.env}"` : "") +

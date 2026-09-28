@@ -1311,6 +1311,32 @@
   padding-top: 0;
 }
 
+/* The control goes full-width under its label on a phone
+   (contracts/settings-design.md) — except a plain switch, which stays at the
+   end of its label's line, where a thumb looks for it. */
+.s-ph-settings .s-smodal__row[data-kind="toggle"]:not(:has(.s-smodal__parts)) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 12px;
+  align-items: center;
+}
+
+/* The row rule and its rhythm: a hairline between rows, 14px either side. */
+.s-ph-settings .s-smodal__row + .s-smodal__row {
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+}
+
+/* Chips and Pick… at a finger's size. */
+.s-ph-settings .s-ctl-chip,
+.s-ph-settings .s-ctl-path__pick,
+.s-ph-settings .s-smodal__imgpick {
+  min-block-size: 44px;
+}
+
+.s-ph-settings .s-ctl-path__pick,
+.s-ph-settings .s-smodal__imgpick {
+  inset-block: 0;
+}
+
 .s-ph-settings .s-smodal__hint,
 .s-ph-settings .s-smodal__control {
   max-width: none;

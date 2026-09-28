@@ -27,10 +27,15 @@
   background: var(--bg-raised);
 }
 
+/* A GRID: the glyph, the text cell (which may shrink to nothing), the tools
+   (which never shrink). As a flex line of six things, a long title, the mono
+   folder and the count ran past the text and drew "6 of 6 notes published"
+   over the ↑ button — text over a control (the owner's screenshot). */
 .s-libpaths__summary {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  column-gap: 10px;
   min-block-size: 44px;
   padding: 4px 10px;
   border-radius: calc(var(--radius) + 2px);
@@ -57,10 +62,25 @@
   color: var(--accent);
 }
 
-/* The title takes the room; the rest state their size and keep it. */
+/* The text cell: the title on the first line, the folder and the count under
+   it. Every piece truncates inside the cell; nothing leaves it. */
+.s-libpaths__sumtext {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.s-libpaths__sumline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
 .s-libpaths__sumtitle {
-  flex: 1 1 auto;
-  min-inline-size: 4em;
+  display: block;
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -290,11 +310,18 @@
   color: var(--danger);
 }
 
-/* On the summary it is one of six things sharing a line, so it states its
-   size rather than claiming what is left. */
+/* On the summary it sits at the END of the text cell's second line, after the
+   folder, and truncates there before it would ever reach the tools. */
 .s-libpaths__summary .s-libpaths__count {
-  flex: 0 1 auto;
+  /* The folder gives way first: the count is the one number a path can be
+     wrong about. */
+  flex: 0 0 auto;
+  max-inline-size: 100%;
+  margin-inline-start: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.75rem;
 }
 
 .s-libpaths__actions {
@@ -344,31 +371,19 @@
     min-block-size: 44px;
   }
 
-  /* At panel width the summary's own line runs out of room before the tools
-     do. The count steps aside first — it is the one thing the open card also
-     says — and the folder next. */
+  /* At panel width the tools — four 44px targets and a switch — cannot share
+     a line with the text and leave it room to be read: they take the second
+     row, under the text, at the end edge. The text cell keeps its two lines. */
   .s-libpaths__summary {
-    flex-wrap: wrap;
+    grid-template-columns: auto minmax(0, 1fr);
+    row-gap: 6px;
     padding-block: 8px;
   }
 
-  /* The count and the folder share the last line; only the tools, which are
-     44px targets, get a line of their own. Six things do not fit on one 390px
-     row beside a 44px switch, and a summary that hides the published count is
-     a summary that hides the one number a path can be wrong about. */
-  .s-libpaths__summary .s-libpaths__count {
-    order: 5;
-  }
-
-  .s-libpaths__sumfolder {
-    order: 4;
-  }
-
   .s-libpaths__tools {
-    order: 3;
-    margin-inline-start: auto;
+    grid-column: 2;
+    justify-self: end;
   }
-
 }
 
 /* A keyboard legend on a device with no keyboard is a taunt (DESIGN.md). */
@@ -422,17 +437,50 @@
   border-radius: calc(var(--radius) + 2px);
 }
 
+/* Two lines an entry: the title and where it came from; then its address and
+   the one thing to do with it. Each line truncates inside the row. */
 .s-libpaths__vaultrow {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  min-block-size: 32px;
+  flex-direction: column;
+  gap: 1px;
+  padding-block: 4px;
   font-size: 0.857rem;
 }
 
+.s-libpaths__vaultline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-inline-size: 0;
+}
+
+.s-libpaths__vaultline > * {
+  min-inline-size: 0;
+}
+
 .s-libpaths__vaulttitle {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-weight: 600;
+}
+
+.s-libpaths__vaultline .s-libpaths__count {
+  flex: 0 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.s-libpaths__vaultline .s-libpaths__url {
+  flex: 1 1 auto;
+}
+
+.s-libpaths__vaultline .s-pfolders__unlink {
+  flex: none;
+  margin-block-start: 0;
 }
 
 .s-libpaths__caption--bad {

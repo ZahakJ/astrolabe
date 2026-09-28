@@ -436,23 +436,30 @@ export function LibraryPathEditor({
             >
               <summary className="s-libpaths__summary" title={t("libraryCardOpen")}>
                 {kindGlyph(row.kind)}
-                <bdi className="s-libpaths__sumtitle" dir="auto">
-                  {row.title.trim() === "" ? t("libraryPathNoFolder") : row.title}
-                </bdi>
-                {/* The folder, ONLY when it is not the title again. A row
-                    whose title is the folder's own name printed it twice on
-                    one line and spent the width it took truncating the half
-                    that was already there. */}
-                {row.folder !== "" && leafOf(row.folder) !== row.title.trim() && (
-                  <span className="s-libpaths__sumfolder" dir="ltr">
-                    {leafOf(row.folder)}
+                {/* THE TEXT CELL: two lines, and it can shrink (its grid track
+                    is minmax(0, 1fr)); the tools beside it cannot. The title
+                    has the first line to itself; under it, muted, the folder —
+                    only when it is not the title again — and the published
+                    count at the line's end. On one line, a long title, the
+                    mono folder and the count ran on past the cell and drew
+                    "6 of 6 notes published" over the ↑ button. */}
+                <span className="s-libpaths__sumtext">
+                  <bdi className="s-libpaths__sumtitle" dir="auto">
+                    {row.title.trim() === "" ? t("libraryPathNoFolder") : row.title}
+                  </bdi>
+                  <span className="s-libpaths__sumline">
+                    {row.folder !== "" && leafOf(row.folder) !== row.title.trim() && (
+                      <span className="s-libpaths__sumfolder" dir="ltr">
+                        {leafOf(row.folder)}
+                      </span>
+                    )}
+                    {counts && (
+                      <span className={`s-libpaths__count${counts.notes > 0 && counts.published === 0 ? " s-libpaths__count--none" : ""}`}>
+                        {tf("libraryPathLessons", { published: localeNum(counts.published), notes: localeNum(counts.notes) })}
+                      </span>
+                    )}
                   </span>
-                )}
-                {counts && (
-                  <span className={`s-libpaths__count${counts.notes > 0 && counts.published === 0 ? " s-libpaths__count--none" : ""}`}>
-                    {tf("libraryPathLessons", { published: localeNum(counts.published), notes: localeNum(counts.notes) })}
-                  </span>
-                )}
+                </span>
                 <span className="s-libpaths__tools">
                   <button
                     type="button"
@@ -638,30 +645,33 @@ export function LibraryPathEditor({
               {fromVault.map((p) => {
                 const via = rootOf(p.folder, roots);
                 return (
+                  // TWO LINES AN ENTRY: the title and where it came from, then
+                  // its address and the one thing to do with it. On one wrapping
+                  // line an Arabic title, "Declared by its folder note", the
+                  // /library/… address and "Customise here" ran together.
                   <div key={p.id} className="s-libpaths__vaultrow">
-                    {kindGlyph(p.kind)}
-                    <bdi className="s-libpaths__vaulttitle" dir="auto">
-                      {p.title}
-                    </bdi>
-                    {leafOf(p.folder) !== p.title && (
-                      <span className="s-libpaths__sumfolder" dir="ltr">
-                        {leafOf(p.folder)}
+                    <span className="s-libpaths__vaultline">
+                      {kindGlyph(p.kind)}
+                      <bdi className="s-libpaths__vaulttitle" dir="auto">
+                        {p.title}
+                      </bdi>
+                      <span className="s-libpaths__count">
+                        {via ? tf("libraryViaRoot", { root: leafOf(via.folder) }) : t("libraryFromFolderNote")}
                       </span>
-                    )}
-                    <span className="s-libpaths__count">
-                      {via ? tf("libraryViaRoot", { root: leafOf(via.folder) }) : t("libraryFromFolderNote")}
                     </span>
-                    <span className="s-libpaths__url" dir="ltr">
-                      {libraryUrl(p.slug)}
+                    <span className="s-libpaths__vaultline">
+                      <span className="s-libpaths__url" dir="ltr">
+                        {libraryUrl(p.slug)}
+                      </span>
+                      <button
+                        type="button"
+                        className="s-pfolders__unlink"
+                        disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
+                        onClick={() => customise(p)}
+                      >
+                        {t("libraryCustomise")}
+                      </button>
                     </span>
-                    <button
-                      type="button"
-                      className="s-pfolders__unlink"
-                      disabled={disabled || rows.length >= LIBRARY_PATHS_MAX}
-                      onClick={() => customise(p)}
-                    >
-                      {t("libraryCustomise")}
-                    </button>
                   </div>
                 );
               })}
@@ -672,17 +682,18 @@ export function LibraryPathEditor({
               <span className="s-libpaths__caption s-libpaths__caption--bad">{t("libraryNeedsAddress")}</span>
               {needsAddress.map(({ folder, problem: why }) => (
                 <div key={folder} className="s-libpaths__vaultrow">
-                  <bdi className="s-libpaths__vaulttitle" dir="auto">
-                    {libraryTitleOf(folder) || folder}
-                  </bdi>
-                  {leafOf(folder) !== (libraryTitleOf(folder) || folder) && (
-                    <span className="s-libpaths__sumfolder" dir="ltr">
-                      {leafOf(folder)}
+                  <span className="s-libpaths__vaultline">
+                    <bdi className="s-libpaths__vaulttitle" dir="auto">
+                      {libraryTitleOf(folder) || folder}
+                    </bdi>
+                    <span className="s-libpaths__count s-libpaths__count--none" dir="auto">
+                      {why?.kind === "taken" ? tf("libraryNeedsAddressTaken", { title: why.by }) : t("libraryNeedsAddressArabic")}
                     </span>
-                  )}
-                  <span className="s-libpaths__count s-libpaths__count--none" dir="auto">
-                    {why?.kind === "taken" ? tf("libraryNeedsAddressTaken", { title: why.by }) : t("libraryNeedsAddressArabic")}
                   </span>
+                  <span className="s-libpaths__vaultline">
+                    <span className="s-libpaths__url" dir="ltr">
+                      {folder}
+                    </span>
                   <button
                     type="button"
                     className="s-pfolders__unlink"
@@ -699,6 +710,7 @@ export function LibraryPathEditor({
                   >
                     {t("libraryCustomise")}
                   </button>
+                  </span>
                 </div>
               ))}
             </>

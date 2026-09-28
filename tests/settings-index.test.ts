@@ -14,12 +14,13 @@ import { describe, it } from "node:test";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
 import { DESKTOP_ONLY_ROWS, searchSettings } from "../client/components/settings/searchSettings.ts";
 import { setLang, t } from "../client/i18n.ts";
+import { TABS } from "../client/components/settings/tabs.ts";
 
 describe("the settings index", () => {
-  it("covers every tab the panel has", () => {
+  it("covers every page the panel has but About, which holds facts and no rows", () => {
     const tabs = new Set(SETTINGS_INDEX.map((e) => e.tab));
-    for (const id of ["appearance", "language", "writing", "reading", "site", "collections", "sync", "ask", "about"]) {
-      assert.ok(tabs.has(id), `no rows indexed for the ${id} tab`);
+    for (const id of TABS.map((s) => s.id).filter((id) => id !== "about")) {
+      assert.ok(tabs.has(id), `no rows indexed for the ${id} page`);
     }
   });
 
@@ -40,7 +41,7 @@ describe("the settings index", () => {
     }
   });
 
-  it("spreads the rows evenly — no section carries more than a screen and a half", () => {
+  it("keeps every page short — ten rows in sight at most, and none a lone row", () => {
     // The 3.15 re-cut exists because Publishing ran to twenty-one rows while
     // Identity and Typography held five each. A section nobody scrolls to the
     // end of is a section whose rows may as well not exist; this pins the shape.
@@ -56,9 +57,11 @@ describe("the settings index", () => {
       const view = (pocket: boolean, desktopApp: boolean) =>
         rows.filter((e) => (e.mode === undefined || e.mode === (pocket ? "pocket" : "instance")) && (desktopApp || !DESKTOP_APP.has(e.label))).length;
       const n = Math.max(view(false, true), view(true, true));
+      const inSight = rows.filter((e) => e.adv !== true && (e.mode === undefined || e.mode === "instance") && !DESKTOP_APP.has(e.label)).length;
+      assert.ok(inSight <= 10, `${tab} shows ${inSight} rows before its Advanced line`);
       assert.ok(n <= 18, `${tab} carries ${n} rows`);
       // About is facts first; its rows are the app's own (one in a browser).
-      if (tab !== "about") assert.ok(view(false, false) >= 5, `${tab} carries only ${view(false, false)} rows`);
+      assert.ok(view(false, false) >= 2, `${tab} carries only ${view(false, false)} rows`);
     }
   });
 
@@ -91,7 +94,7 @@ describe("the settings index", () => {
   it("puts the desktop's update switch where a search for it lands — on the desktop", () => {
     const row = SETTINGS_INDEX.find((e) => e.label === "rowUpdates");
     assert.ok(row, "the Software updates row is not indexed");
-    assert.equal(row.tab, "about");
+    assert.equal(row.tab, "device");
     setLang("en");
     assert.ok(searchSettings("software updates", true).some((h) => h.entry.label === "rowUpdates"));
     assert.ok(searchSettings("installed", true).some((h) => h.entry.label === "rowUpdates"), "the hint's promise is not searchable");

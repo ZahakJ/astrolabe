@@ -1692,52 +1692,84 @@ inline, bottom unpinned, max-height in the box) and the position is remembered i
 
 ## Settings panel (SettingsModal)
 
-**THE SETTINGS PURGE — NINE SECTIONS BY INTENT (after 3.37).** The owner: "make settings as clean
-and as intuitive as possible." The audit (`contracts/settings-audit.md`, read by
-`tests/settings-purge.test.ts`) gave each of the 110 rows then indexed a verdict — 38 KEEP, 50 MOVE,
-10 MERGE, 12 DEMOTE, 0 ENV-ONLY, 0 REMOVE — and the rail became, in order: **Appearance**
-(`appearance`: your theme, warmth, dim, sidebar edge, writing column; note layout; typography) ·
-**Language & dates** (`language`: your language, site language, dictionaries, calendar; for
-visitors; Advanced: date locale) · **Writing** (`writing`: open on launch, toolbar, French,
-properties card; new notes; capture; files & tags; Advanced: Vim, drawings) · **Reading & speech**
-(`reading`: numbering, offline, book search, feeds; listening; voice notes; Advanced: own voices,
-hadith folder) · **Your site** (`site`: identity, ambient; publishing; home page; conversation;
-Advanced: footer, excluded tags, other sites) · **Collections** · **Backup & sync** (`sync`, ONE
-body for both kinds of vault: an instance's repository rows or a pocket's, then versions and what
-travels; Advanced: branch, pull-first) · **Ask** (Advanced: embedding model, passages) · **About**
-(This app: what's new and the desktop's name, icon, launcher, updates; then the facts). Rows
-101 + 10 parts: 12 · 8 · 15 · 11 · 18 · 11 · 11 instance / 6 pocket · 7 · 4. No stored key moved,
-was renamed or migrated; only rows' homes did. Former ids map forward (`sectionId`: device →
-appearance, vault → writing, publishing → site) for a remembered tab, a restored phone entry or
-an old `{kind: "settings", section}`. A pocket vault draws seven (Collections and Ask are
-`!pocket` in `TabBody`).
-- **"This device" is not a section.** It was named after a storage mechanism; its rows now sit
-  where their questions are, and `Row`'s `device` prop draws a small *This device* mark beside
-  the label of each row that saves itself on this device (title: saved at once, here only; the
-  Save bar is not about it).
-- **One row anatomy** (`settings/Row.tsx`): label (+ mark, + ⓘ) · one-line hint · control at the
-  control column's start, or across the row when `wide`; the ⓘ's region (env line, `more`
-  paragraphs — `more` may be an array) opens UNDER the whole row (`grid-column: 1 / -1`). A
-  MERGED control is a `<Part label hint>` inside `<Parts>` under its host's control: its own
-  caption, hint and `data-setting`, so a search or `openSettingsAt` lands on the part itself;
-  when the part is not drawn right now (the launch note while no note is chosen) `revealRow`
-  falls back to the host (`entry.row`). Toggles: every two-state row is a switch (the properties
-  card was the last On/Off segment).
-- **Advanced** (`settings/Fold.tsx`): a native `<details>` at a section's foot, its summary
-  naming the rows it holds from the index (filtered by mode and desktop, like the search); a
-  reveal opens it before scrolling. `<InstanceOnly>` / `<PocketOnly>` wrap rows one kind of vault
+**EIGHTEEN PAGES IN FOUR GROUPS, ONE CATALOGUE (settings, round 2).** The purge (3.38.0,
+below) sorted the rows by intent into nine sections, and the owner still read them as bad: "You
+should feel free to break stuff out in more categories. Also wth is this browser dictionaries
+with like so many on off toggles. Please make sure things are legit." The shape is now written
+down in [`settings-design.md`](settings-design.md) — the row anatomy with its measurements, the
+control catalogue, the page list — and held by tests and the browser walk; the row-by-row ledger
+is [`settings-audit.md`](settings-audit.md), whose *Page (round 2)* column
+`tests/settings-purge.test.ts` reads.
+- **A two-level rail.** `GROUPS` (You · Your site · Data · App) over `TABS`, each page carrying
+  its `group` and — for Appearance and This device — `device: true`. The dialog draws each group
+  as a heading over its page buttons (a `<nav>` of buttons with `aria-current="page"`, not a
+  tablist: a tablist may own nothing but tabs), the body a region named by the page's `<h2>`; ↑/↓
+  walk every page across the groups. The phone's Settings screen draws the same groups as
+  headed lists (More's idiom). Pages: Appearance · Layout & type · Language · Dates & calendar ·
+  Writing · New notes & templates · Reading · Read aloud & voice notes · Site identity ·
+  Publishing · Comments & mentions · Collections · Library · Backup & sync · Versions & travel ·
+  Ask · This device · About. `check-settings` caps a page at **ten rows in sight** (Advanced
+  excluded, the larger of the instance and pocket views) and checks every `TABS` page has a
+  `TabBody` line and back. A pocket vault hides five (`POCKET_HIDDEN_TABS`: publishing,
+  conversation, collections, library, ask). `sectionId` maps every old id forward (the purge's
+  nine are still pages; `vault` → `notes`).
+- **The catalogue.** Every `<Row>` and `<Part>` says `kind="…"` — toggle · segmented · select ·
+  chips · slider · path · text · table · action · status (`settings/catalogue.ts`) — and draws
+  that kind's one component at its one width in ONE control column (`16rem`; the dialog is
+  `70rem` so the label column holds a ninety-character hint on one line). Fill kinds span the
+  column; a switch and an action hug its end edge. A switch carries no "On/Off" words (the label
+  says what on means); segments are one storey (a note is the tooltip and the accessible
+  description, visually hidden in the panel), and a fifth option makes a Select (the language
+  filter); a slider's value is in the label (Row's `value`); note and folder fields are
+  `PathInput` with a *Pick…* inside the field (`kind: "folder"` added); an image field is one
+  box; the dictionaries are one `Chips` multi-select (`client/spellDicts.ts` offers what the
+  device can check: the four line languages in a browser, Electron's dictionaries in the
+  desktop app, a sentence where nothing can be chosen). The index carries `kind` and `device`
+  (read from the tag's lines before its label), and `tests/settings-design.test.ts` holds the
+  source to it: a row that says `chips` and draws toggles fails by name.
+- **"This device", said once.** `TabBody` provides `DevicePage`; on a device page the page says
+  *Everything here is kept on this device…* under its intro and `Row` draws no mark; elsewhere
+  the six per-device rows keep the mark. `check-settings` fails a device page holding a saved
+  row.
+- **Hints and the ⓘ.** A hint is one line: ≤ 14 English words and ≤ 90 characters in both
+  languages (`check-settings`), measured one line tall at 1280 by the walk. An ⓘ paragraph opens
+  with why a reader would change the row.
+- **Legitimacy** (`scripts/settings-walk.mjs`, run by check-fidelity and check-phone in both
+  languages): every page's rows are SET by kind, the app reloaded and every row read back, the
+  stored settings moved, then everything put back, saved, reloaded and read back; the device
+  rows must not raise the Save bar and the saved rows must; Discard restores; every control has
+  an accessible name and ends at the one column edge (mirrored in Arabic). It found one dead row
+  on its first run: *Share buttons* saved only when Comments changed in the same Save
+  (`buildPatch` nested its key under the comments' condition).
+
+**THE SETTINGS PURGE — NINE SECTIONS BY INTENT (after 3.37; re-cut into pages above).** The
+owner: "make settings as clean and as intuitive as possible." The audit
+(`contracts/settings-audit.md`) gave each of the 110 rows then indexed a verdict — 38 KEEP, 50
+MOVE, 10 MERGE, 12 DEMOTE, 0 ENV-ONLY, 0 REMOVE — into nine sections (Appearance, Language &
+dates, Writing, Reading & speech, Your site, Collections, Backup & sync, Ask, About). No stored
+key moved, was renamed or migrated; only rows' homes did, and round 2 kept that rule.
+- **One row anatomy** (`settings/Row.tsx`): label (+ mark, + ⓘ) · one-line hint · control; the
+  ⓘ's region (env line, `more` paragraphs — `more` may be an array) opens UNDER the whole row
+  (`grid-column: 1 / -1`). A MERGED control is a `<Part kind label hint>` inside `<Parts>` under
+  its host's control: its own caption, hint and `data-setting`, so a search or `openSettingsAt`
+  lands on the part itself; when the part is not drawn right now (the launch note while no note
+  is chosen) `revealRow` falls back to the host (`entry.row`).
+- **Advanced** (`settings/Fold.tsx`): a native `<details>` at a page's foot, its summary naming
+  the rows it holds from the index (filtered by mode and desktop, like the search); a reveal
+  opens it before scrolling. `<InstanceOnly>` / `<PocketOnly>` wrap rows one kind of vault
   draws. The index parser reads all four tags — each on a line of its own, comment lines
-  ignored — plus `<XRows />`/`<XRow />` lines naming a file under settings/, whose rows it reads in
-  place with the surrounding mode and Advanced flag. Entries gain `more` (keys), `row` (host of a
-  part) and `adv`; `check-settings` compares the checked-in file to the generator's output byte
-  for byte, caps a section at 18 rows (parts excluded, the larger of the instance and pocket
-  views), and scans every parsed file's hints. `check-docs` takes group headings (and
-  *Advanced*) from the same parser.
-- **The Save bar appears only when something changed**, on every section and in both hosts: the
+  ignored — plus `<XRows />`/`<XRow />` lines naming a file under settings/, whose rows it reads
+  in place with the surrounding mode and Advanced flag. Entries carry `group`, `kind`, `device`,
+  `more` (keys), `row` (host of a part) and `adv`; `check-settings` compares the checked-in file
+  to the generator's output byte for byte and scans every parsed file's hints. `check-docs`
+  takes group headings (and *Advanced*) from the same parser, and fails a "Settings → …" path
+  that runs on past a longer page name ("Settings → Language & dates → …" once passed as the
+  page "Language").
+- **The Save bar appears only when something changed**, on every page and in both hosts: the
   dialog's footer renders while `dirty || saving`, with Discard and Save (the header's × and Esc
-  close); a phone section always registers its guard and its bar rises on the first edit.
+  close); a phone page always registers its guard and its bar rises on the first edit.
 - **Search** matches the ⓘ paragraphs too (rank: label, env, hint, ⓘ), and a result's second line
-  names the section and, for a part, its host row or, behind the line, *Advanced*.
+  names the page and, for a part, its host row or, behind the line, *Advanced*.
 
 **ONE FORM, TWO HOSTS (3.27.0).** `SettingsModal.tsx` is the DIALOG only — the rail, the search above
 it, the footer, the image picker, the exits that ask — and nothing it draws is a row. The form and
@@ -1768,9 +1800,9 @@ discarded." / Discard)` over a dirty one — the designer's own twelve lines
 same question. The Esc listener stands down while the question is on screen,
 so Esc there means Cancel. (The footer rendered only when `tab !== "device"`
 until the purge; it now renders only while the form is dirty or saving.)
-**Row anatomy:** the label column is `minmax(0, 19rem)` and the hint wraps at
-`46ch` (they were 14.45rem and 30ch, and every fourteen-word hint ran to three
-or four lines beside an empty control column); the hint, the footer status,
+**Row anatomy:** the label column takes what the 16rem control column leaves
+(round 2, above — it was a fixed 19rem, and 14.45rem before that, and every
+fourteen-word hint ran to two, three or four lines); the hint, the footer status,
 About's count labels and the font rows' metadata are `--text-muted`, never
 `--text-faint`, because they are READ (DESIGN.md's rule) — `check-settings`
 holds those four selectors to the muted token, holds every `hint=` key to
