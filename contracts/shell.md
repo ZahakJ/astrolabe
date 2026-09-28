@@ -65,7 +65,7 @@ a deep link starts at Today's base with the linked screen pushed above it.
 **BACK MEANS UP (3.34, a reader on a Galaxy Z Fold whose folder ‹ opened Today).** A switch to a
 tab whose stack is deep pushes ONE ENTRY PER LEVEL (`pushRun`; also `pushOn`), so the back gesture
 walks up the tab before it leaves it — before, the whole stack sat in one entry straight on the
-other tab's. A FOLDER's ‹ (and its crumbs, and the tablet list column's ‹ over a folder) is not the
+other tab's. A FOLDER's ‹ (and its crumbs, and the two columns' list column's ‹ over a folder) is not the
 browser's back: it is `nav.upTo(target)` with the target stack computed by path
 (`client/phone/up.ts` `upChain`/`chainTo`: what the reader came by, cut at the deepest root or
 folder on the way, plus the folders between). `upTo` pops to the entry that already shows the
@@ -170,16 +170,48 @@ one pushes an entry, its own close retracts it, and Back dispatches Escape to it
 itself (Settings keeps its unsaved-changes guard; a layer that stays takes its entry back).
 Ladder: sheets at `--z-panel`, questions at `--z-confirm`.
 
-**TWO COLUMNS** (the phone shell at `TABLET_QUERY` — by SHAPE since 3.34:
-`(min-width: 768px), ((min-width: 640px) and (min-aspect-ratio: 3/4))`, so the open Galaxy Z Fold,
-690×829 at DPR 2.625, gets two columns and its 344×882 cover screen one): a 72px rail, a list column
-(the deepest list of the tab's stack) of `clamp(240px, var(--ph-list-w, min(40%, 340px)), 100% −
-320px)`, a GRIP between them (`ColumnGrip.tsx`, role separator, drag or arrows, double tap resets,
-the width in localStorage `astrolabe.phone-list-width`), the note beside it; a note picked in the list
-REPLACES the one beside it and the list is the same element throughout (its scroll, open folders and
-the lit `aria-current` row stay); the note sheet is a slide-over from the trailing edge no wider than
-the note's column (`--ph-detail-w`, set from the column's ResizeObserver) with its scrim over that
-column only; the Calendar root takes both columns.
+**TWO COLUMNS FROM 1000px, ONE BELOW (3.39.1).** The one layout question inside the shell is
+`SPLIT_QUERY` = `(min-width: 1000px)` in `client/shellQuery.ts`, read once by `PhoneShell` and handed
+to every screen as `phone.split` (Notes, Search, Tag, Sigils, Orbits, Media, the Library, Settings,
+Today: none carries a width of its own). 1000 is a note at its reading measure (~640–680px) beside a
+list at a list's (320). Below it the shell is the phone's, whatever the shape — the open Galaxy Z
+Fold (690×829 at DPR 2.625; the Fold 6's 707×823) either way up, an iPad in portrait (768/810/820), a
+phone on its side, the Fold's cover (344×882): a list pushes the note across the whole glass and Back
+comes home to the list. 3.34 to 3.39.0 gave two columns by SHAPE (`(min-width: 768px), ((min-width:
+640px) and (min-aspect-ratio: 3/4))`), and the open Fold got a rail, a list and a note of 358px —
+the owner: "the note only shows on half a page". From 1000 (a tablet in landscape, 1024/1080/1180): a
+72px rail, a list column (the deepest list of the tab's stack) of `clamp(240px, var(--ph-list-w,
+320px), 360px)` — a list's measure, never a share of the page — a GRIP between them
+(`ColumnGrip.tsx`, role separator, 240–360, drag or arrows, double tap resets, the width in
+localStorage `astrolabe.phone-list-width`), the note beside it; a note picked in the list REPLACES
+the one beside it and the list is the same element throughout (its scroll, open folders and the lit
+`aria-current` row stay); the note sheet is a slide-over from the trailing edge no wider than the
+note's column (`--ph-detail-w`, set from the column's ResizeObserver) with its scrim over that
+column only; the Calendar root takes both columns. **THE LIST STEPS ASIDE:** while a detail (not a
+full one) is open, the rail's foot carries a sixth button (`data-action="list-toggle"`, ⟨ *Hide list* /
+⟩ *Show list*, mirrored in Arabic, `aria-expanded`) that hides the list column (`hidden`, still
+mounted, so its scroll and open folders survive) and the grip, so the note takes the page; the
+choice is localStorage `astrolabe.phone-list-hidden`, and with nothing open beside it the list is
+always shown. **CROSSING 1000** (a Fold opened into a tablet's landscape, a tablet turned) only
+redraws: the stack is one stack in both layouts, so the note open stays open, the list comes or goes
+beside it, and Back from the note still comes to the list.
+
+**THE NOTE'S TABS (3.39.1)**, where the glass is a page and not a palm — `NOTE_TABS_QUERY` =
+`(min-width: 600px) and (min-height: 480px)`, `phone.noteTabs`: the open Fold, every tablet either
+way up; never a phone, the Fold's cover or a phone on its side. A reader on the Fold: "I'm in a note,
+go back to the tree, open a note next to it, and it closes the first one immediately." The store
+keeps its one pane and one tab (`setPhoneShellMode`, never persisted into the vault's workspace);
+the open notes are a list beside it, `client/phone/noteTabs.ts`, in localStorage
+`astrolabe.phone-note-tabs` (not in prefsSync's list, so never in the vault) so a reload or an app
+resume keeps them. Every note screen shown there puts its note in the set (after the one shown
+before it) — from the tree, Search, a link, Today alike; eight at most, the one touched longest ago
+dropped; a rename or move (`lastRemap`) carries them; a note gone from the tree leaves. While two or
+more are open the note screen draws `NoteTabStrip.tsx` under its 48px bar: a 44px row of tabs (the
+name, and a 44px × labelled *Close "…"*), the one on screen `aria-current="page"`, scrolling
+sideways in the chrome's direction and sliding away with the bar. A tab is opened with `open(…,
+"swap")`, which REPLACES the detail on either layout — switching notes is not a step Back retraces;
+× closes one and shows its neighbour (the last closed is Back to the list). Back from a note leaves
+the set alone.
 
 **HARDWARE KEYBOARD** (`client/phone/hardwareKeyboard.ts`): proven by a chord, a navigation key,
 or a printable key with the visual viewport at its resting height; remembered per device. It
@@ -187,9 +219,9 @@ enables the global keys (Ctrl/Cmd+K opens Search), hides the accessory bar and a
 Keyboard group.
 
 **EVERY SURFACE HAS A SCREEN (3.27.0).** `kinds.ts` sorts screens: a LIST keeps the tab bar and is
-what a tablet's list column shows (the roots, a folder, a tag, Settings, the decks, the sigils, the
+what the list column shows on two columns (the roots, a folder, a tag, Settings, the decks, the sigils, the
 media shelves, the bookshelf); a DETAIL hides the tab bar and takes the column beside the list; a
-FULL detail (a study session, a book) takes the whole glass on a tablet too. `SurfaceScreen` — the
+FULL detail (a study session, a book) takes the whole glass on two columns too. `SurfaceScreen` — the
 pane's switch under a top bar — is left for the graph and a drawing only.
 - **Feeds** (3.28): `FeedsScreen` (a LIST: unread articles as rows under their feed) →
   `FeedItemScreen`, the screen kind `{ kind: "feed-item", feed, guid }` (a DETAIL whose
@@ -255,14 +287,20 @@ Files row, the empty folder, only-what-shows walked; the expansion memory, a mov
 `tests/settingsForm.test.ts` (the split form's round trip), `tests/pocketServer.test.ts` (capture),
 `tests/drawerQuery.test.ts` (one phone question, no drawer left). `npm run check-phone` drives the
 shell in both languages on a phone, a Galaxy Z Fold's cover (344×882) and inner screen opened
-(690×829), a 720×820 window with a pen and a tablet both ways up — tree tap changes the URL and the
+(690×829), a 720×820 window with a pen and a tablet both ways up (only its landscape, 1180, on two
+columns) — tree tap changes the URL and the
 title, back pops a screen, back closes a sheet, publish asks, a long press is a menu; two folders
 down a reload keeps the folder and the ‹ lands on the parent, and so it does after a trip to Today,
 with the OS back going up from there; the crumbs end in the folder's own name and go up (through
 "…" where they fold); the Tree opens a folder in place, remembers it across a reload, folds a
 folder's files into one row that opens in place, says an empty folder is empty, and a long press is
 the row's menu; on two columns the list keeps its scroll and lit row while the note changes, the
-grip widens the list and is remembered, the note's sheet stays over the note's column; Study starts the session full screen, a sigil tick persists, a book wears one bar and
+grip widens the list and is remembered, the note's sheet stays over the note's column; THE NOTE
+TAKES THE PAGE (a last pass at 344, 690, 829×690, 768, 820, 1024 and 1180 in both languages): under
+1000 an open note is ≥ 90% of the viewport, above it the list is ≤ 360px and its ⟨ makes the note
+≥ 90% and is remembered across a reload, a Fold's 690 widened to 1180 and back keeps the note open
+with the list coming and going, and from 600 a second note opened from the list is a second tab —
+the first one tap away, × showing the neighbour, a reload keeping both; Study starts the session full screen, a sigil tick persists, a book wears one bar and
 its scrubber moves the page, the theme picker takes an entry Back closes, a Settings section asks
 before Back discards and saves, the tag picker writes the tag, a list comes back scrolled; every
 target 44px and every field 16px. `check-windows-layout` runs its ladder on the desktop's own
