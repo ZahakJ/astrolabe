@@ -95,10 +95,18 @@ failure), course and book tasks as rows to the Sigils page, a row per deck with 
 its session), the tasks due and overdue ticked through `POST /api/task`, on this day with excerpts,
 and the last eight notes. Since 3.28 the screen owns none of that: it draws `client/today/`'s
 model and hooks, the same data layer the desktop's `~today` page draws (see the 3.28 addendum).
+A tick-in-place row is a `<label>` round a visually hidden checkbox, so that a `[[…]]` in its words
+is a link of its own (`<InlineText>`, `client/inlineLinks.tsx`): the alias or the note's name,
+dashed when missing, a tap opening the note and not ticking the box. Every line of note-derived words
+outside a note reads its links through that one helper and `client/inlineRuns.ts` — the sigil card's
+slots and steps (`appendInline`, links), and, as the name alone because the row is itself one button,
+the Timeline's excerpts, the search hits, the backlinks sheet's lines and on this day; a note's own
+link click (`onRootClick`) goes through the same `followWikilink`.
 `~today` in the store is the Today TAB here (`screenOfWorkspace` answers `"today"`), as `~calendar`
 is the Calendar tab; `~timeline` is a pushed screen (More, and the Calendar's `⋯`). **Notes** has two views, switched by a
 Tree | Folders control in the root's top bar (`client/phone/notesView.ts`, localStorage
-`astrolabe.phone-notes-view`; unchosen, Tree on two columns and Folders on one). FOLDERS: one folder
+`astrolabe.phone-notes-view`; unchosen, Tree on two columns and Folders on one) — 44px targets
+with the track painted 30px tall inside them, 8px clear of the bar's hairline (check-phone measures it). FOLDERS: one folder
 per screen, 52px rows with count and chevron; the folder's top bar is its path as CRUMBS
 (`Crumbs.tsx` draws, `crumbs.ts` `collapseCrumbs` plans from canvas-measured widths: everything, else
 the root + "…" + the nearest folders, else "…" + the current folder — the current folder never
