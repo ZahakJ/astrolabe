@@ -39,7 +39,8 @@ notes: |
 | `due` | a date | The day you mean to be done by. With a total and no pace, the card says the pace that gets there. |
 | `folder` | a vault folder | Where your own notes on this work live (`1 - Source Material/Books/The Linux Memory Manager`). The rendered card names it; the Media page counts the notes in it and opens it. A [library path](library.md) on the same folder wears this tracker's cover. |
 | `file` | the PDF this work is — `Books/Muqaddimah.pdf`, or just `Muqaddimah.pdf`; `[[…]]` is fine | How the [reader](books.md#reading-sessions) finds this tracker when a sitting ends. Without it the reader matches on the title, so this line is for when two editions share one, or the fence's title and the file's differ. |
-| `sessions` | a value over several lines, one sitting per line — see [Reading sessions](#reading-sessions) | Written by the reader; readable and editable by you. |
+| `sessions` | a value over several lines, one sitting per line — see [Reading sessions](#reading-sessions) | Written by the reader, and by Astrolabe when a book [moves with no sitting](#sittings-from-progress); readable and editable by you. |
+| `sittings` | `manual` | Turns off the [estimated sittings](#sittings-from-progress) for this book. Left out, they are on. |
 | `unit` | any word | Yours, printed as you wrote it, except that a unit the chrome already knows, in either language (`chapters`, `صفحات`, `hours`, `episodes`…), is agreed and translated like a default one. Leave it out and the kind's own unit is used (pages, hours, minutes, episodes, lessons, tasks, days) — localized and correctly pluralised. |
 | `status` | `planned` `active` `done` `paused` `dropped` | Plus the words people actually type: `reading`, `playing`, `watching`, `in-progress`, `started`, `finished`, `on hold`, `dnf`, `backlog`… Left out, it is derived from the progress. |
 | `rating` | `8/10`, `4/5`, `★★★★`, `4` | A bare number is out of five up to five, out of ten above it. |
@@ -77,6 +78,53 @@ at the same time.
 From the last five timed sittings the card reads the book's own speed and says *about 1.6 pages a
 minute here — 4 h 20 left*, under the pace projection when there is one. The [weekly
 review](sigils.md#the-weekly-review) adds the lines up by book.
+
+### Sittings from progress
+
+Not every book passes through the reader. When a book's `progress:` moves forward (a press of
+**+** on the Media page or on the card, a new number typed into the fence, a note that arrives
+from a sync) and nothing in the same save accounts for the move, Astrolabe writes the sitting
+itself, dated the day it saw the move:
+
+```
+  2026-09-27 | 139–160 | 21 pages | ~32 min
+  2026-09-27 | 3–5 | 2 chapters | ~60 min | default pace
+```
+
+The `~` says the minutes are estimated, not timed. They come from your own pace first: the minutes
+a page (or a chapter, or whatever the book counts) over this book's last five timed sittings; when
+it has none, over every timed book sitting in the vault in the same unit; when there are none
+either, the defaults, which are **1.5 minutes a page**, 30 a chapter, 10 a section, 120 a part or
+volume, an hour an hour, and 10 minutes for any other unit. A book kept in chapters whose PDF the
+reader has opened spreads its pages over its chapters instead: 300 pages in 12 chapters is 25 pages
+a chapter, at your page pace or the default one. A line whose estimate rests on the defaults ends
+`| default pace`, and the calendar's day pane says *estimated* under it; one from your own pace says
+*estimated from your pace*.
+
+The rules, so that a line is never a surprise:
+
+- Only books count: a tracker of `kind: book` (or a word that folds into it, such as `novel`), or a
+  fence with no kind that counts pages. A game's hours are not a sitting.
+- A tracker met for the first time gets nothing. Astrolabe remembers the progress it last saw for
+  each one in `trackers-progress.json` in the data folder, so a restart counts nothing twice; lose
+  that file and every book is simply met again.
+- Several moves on one day are one line: the range grows, the pages add up, and the time is
+  estimated again for the whole.
+- A move back writes nothing new; it takes back what that day's line had counted, and the line goes
+  when nothing is left of it. A number typed on its way (`62`, then `6`, then `70`) counts from 62.
+- A save that brings its own sitting, the reader's or a line you typed with the new number, is left
+  alone.
+- A timed sitting is never touched, and a line you have edited or deleted is yours: Astrolabe only
+  ever rewrites the line it wrote, word for word, and never puts back one you removed.
+- `sittings: manual` in the fence turns all of this off for that book.
+- The day is the instance's own. A move made in the phone app's offline pocket is written when it
+  reaches this instance, on the day it arrives.
+
+An estimated sitting is a sitting everywhere else too. The [calendar](calendar.md) lists the book
+under that day (in the month's cell in muted ink, when the bar is all the day knows of it), the
+[Timeline](timeline.md) and the weekly review print its time with the `~`, and the year in review
+counts it and says how many sittings and minutes were estimated. Only the card's reading speed
+leaves it out, because it is that speed read back.
 
 ## Nudging the bar
 
