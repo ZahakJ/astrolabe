@@ -658,8 +658,17 @@ export function adoptExternal(path: string, note: NoteData): boolean {
   // Annotated as EXTERNAL: dispatchFrom mirrors it into the other views but
   // must not dirty the buffer — dirtying schedules an autosave that writes the
   // adopted text straight back at the file it just came from.
+  // Only the span that differs is replaced: an estimated sitting written
+  // under the fence (server/sittings.ts) is one new line, and replacing the
+  // whole document for it threw the caret to the note's start.
+  const old = buf.state.doc.toString();
+  const next = note.content;
+  let head = 0;
+  while (head < old.length && head < next.length && old.charCodeAt(head) === next.charCodeAt(head)) head++;
+  let tail = 0;
+  while (tail < old.length - head && tail < next.length - head && old.charCodeAt(old.length - 1 - tail) === next.charCodeAt(next.length - 1 - tail)) tail++;
   const tr = {
-    changes: { from: 0, to: buf.state.doc.length, insert: note.content },
+    changes: { from: head, to: old.length - tail, insert: next.slice(head, next.length - tail) },
     annotations: external.of(true),
   };
   if (view) view.dispatch(tr);
