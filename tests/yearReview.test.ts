@@ -32,6 +32,7 @@ const WORDS: YearReviewWords = {
   sigilTicks: (n) => plural(n, "sigil tick", "sigil ticks"),
   cardsReviewed: (n) => `${plural(n, "card", "cards")} reviewed on this device`,
   pagesRead: (pages, sittings) => `${plural(pages, "page", "pages")} read in ${plural(sittings, "sitting", "sittings")}`,
+  estimatedSittings: (sittings, minutes) => `${plural(sittings, "sitting", "sittings")} estimated, ~${minutes} min`,
   booksFinished: (n) => `${plural(n, "book", "books")} finished`,
   months: "Months",
   monthColumns: ["Month", "Notes", "Daily notes", "Sigil ticks", "Cards", "Pages"],

@@ -506,6 +506,15 @@ export async function save(path: string, explicit = false): Promise<void> {
     announceWrite(path, written.mtimeMs);
     // Only clean if nothing was typed while the request was in flight.
     if (buf.state.doc.toString() === content) setDirty(buf, false);
+    // THE SAVE MOVED A BOOK FORWARD and the server wrote the day's estimated
+    // sitting into the note (server/sittings.ts). A clean buffer takes the
+    // new text as an external change — undoable, not dirtying. A buffer typed
+    // into meanwhile keeps its old precondition, so its next save meets the
+    // conflict strip with both texts rather than deleting the line unseen.
+    if (written.sitting && !buf.dirty) {
+      adoptExternal(path, { path, content: written.sitting.content, mtimeMs: written.sitting.mtimeMs });
+      announceWrite(path, written.sitting.mtimeMs);
+    }
     // The write that a dirty last-release was waiting on: nothing holds the
     // buffer any more and it is clean, so it goes now — lease included.
     if (buf.refs <= 0 && !buf.dirty) dispose(path, buf);
@@ -649,8 +658,17 @@ export function adoptExternal(path: string, note: NoteData): boolean {
   // Annotated as EXTERNAL: dispatchFrom mirrors it into the other views but
   // must not dirty the buffer — dirtying schedules an autosave that writes the
   // adopted text straight back at the file it just came from.
+  // Only the span that differs is replaced: an estimated sitting written
+  // under the fence (server/sittings.ts) is one new line, and replacing the
+  // whole document for it threw the caret to the note's start.
+  const old = buf.state.doc.toString();
+  const next = note.content;
+  let head = 0;
+  while (head < old.length && head < next.length && old.charCodeAt(head) === next.charCodeAt(head)) head++;
+  let tail = 0;
+  while (tail < old.length - head && tail < next.length - head && old.charCodeAt(old.length - 1 - tail) === next.charCodeAt(next.length - 1 - tail)) tail++;
   const tr = {
-    changes: { from: 0, to: buf.state.doc.length, insert: note.content },
+    changes: { from: head, to: old.length - tail, insert: next.slice(head, next.length - tail) },
     annotations: external.of(true),
   };
   if (view) view.dispatch(tr);

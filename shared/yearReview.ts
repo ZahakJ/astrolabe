@@ -49,6 +49,9 @@ export interface YearReviewWords {
   sigilTicks: (n: number) => string;
   cardsReviewed: (n: number) => string;
   pagesRead: (pages: number, sittings: number) => string;
+  /** Said under the pages when some sittings were estimated from a move of
+   *  the progress bar (shared/sittings.ts): how many, and their minutes. */
+  estimatedSittings: (sittings: number, minutes: number) => string;
   booksFinished: (n: number) => string;
   months: string;
   /** The table's header cells, in order: month, notes, daily notes, sigil
@@ -115,6 +118,10 @@ export interface YearNumbers {
   cards: number;
   pages: number;
   sittings: number;
+  /** Of `sittings`, those known only from the progress bar, and the minutes
+   *  estimated for them. */
+  estimatedSittings: number;
+  estimatedMinutes: number;
   months: MonthRow[];
   sigils: SigilYear[];
   books: { path: string; title: string; finished: string; rating: TrackerRating | null }[];
@@ -167,6 +174,8 @@ export function yearNumbers(input: YearReviewInput): YearNumbers {
   const months: MonthRow[] = Array.from({ length: 12 }, (_, i) => ({ month: i + 1, notes: 0, daily: 0, ticks: 0, cards: 0, pages: 0 }));
   const ticksBySigil = new Map<string, number>();
   let sittings = 0;
+  let estimatedSittings = 0;
+  let estimatedMinutes = 0;
   for (const iso of days) {
     const day = agenda.get(iso);
     if (day === undefined) continue;
@@ -182,6 +191,8 @@ export function yearNumbers(input: YearReviewInput): YearNumbers {
     for (const t of day.trackers) {
       row.pages += t.pages;
       sittings += t.sessions;
+      estimatedSittings += t.sessions - t.measured;
+      estimatedMinutes += t.estimated;
     }
   }
   const inYear = (iso: string | null): boolean => iso !== null && iso.startsWith(`${input.year}-`) && iso <= input.today;
@@ -233,6 +244,8 @@ export function yearNumbers(input: YearReviewInput): YearNumbers {
     cards: months.reduce((n, m) => n + m.cards, 0),
     pages: months.reduce((n, m) => n + m.pages, 0),
     sittings,
+    estimatedSittings,
+    estimatedMinutes,
     months,
     sigils,
     books,
@@ -262,6 +275,7 @@ export function yearReviewBlock(numbers: YearNumbers, words: YearReviewWords): s
   lines.push(`- ${words.sigilTicks(numbers.ticks)}`);
   lines.push(`- ${words.cardsReviewed(numbers.cards)}`);
   lines.push(`- ${words.pagesRead(numbers.pages, numbers.sittings)}`);
+  if (numbers.estimatedSittings > 0) lines.push(`  - ${words.estimatedSittings(numbers.estimatedSittings, numbers.estimatedMinutes)}`);
   lines.push(`- ${words.booksFinished(numbers.books.length)}`);
   lines.push("", `## ${words.months}`, "");
   lines.push(`| ${words.monthColumns.join(" | ")} |`);

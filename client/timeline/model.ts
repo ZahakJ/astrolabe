@@ -26,7 +26,7 @@ export const TIMELINE_KINDS: readonly TimelineKind[] = ["note", "daily", "sigil"
 export type ItemDetail =
   | { kind: "excerpt"; text: string }
   | { kind: "sigil"; done: number; of: number; note: string | null }
-  | { kind: "session"; pages: number; minutes: number; sessions: number }
+  | { kind: "session"; pages: number; minutes: number; sessions: number; estimated: number; units: { unit: string; count: number }[] }
   | { kind: "catch"; lines: number; voice: number };
 
 export interface TimelineItem {
@@ -66,7 +66,7 @@ export function itemsOf(days: readonly string[], agenda: ReadonlyMap<string, Day
       else push("voice", c.path, c.title, { kind: "catch", lines: 0, voice: c.voice }, null, ":catch");
     }
     for (const s of day.sigils) push("sigil", s.path, s.title, { kind: "sigil", done: s.done, of: s.of, note: s.note }, s.index);
-    for (const tr of day.trackers) push("session", tr.path, tr.title, { kind: "session", pages: tr.pages, minutes: tr.minutes, sessions: tr.sessions }, tr.index);
+    for (const tr of day.trackers) push("session", tr.path, tr.title, { kind: "session", pages: tr.pages, minutes: tr.minutes, sessions: tr.sessions, estimated: tr.estimated, units: tr.units }, tr.index);
   }
   return out;
 }

@@ -62,6 +62,10 @@
 // under "Your voices"; with ASTROLABE_SPEAK_FAKE=1 the player's ▾ switches a
 // passage to a found voice. The owner's folder and voices are put back.
 //
+// And sittings from progress (docs/trackers.md#reading-sessions): a book
+// pressed forward twice through the Media page's route carries one `~` line
+// for today, and the calendar lists it under today with the mark, en + ar.
+//
 // And Read aloud (docs/read-aloud.md): a word selected in the editor and read with
 // Ctrl/Cmd ⇧ ., then a word selected in the reading view and read with its
 // chip — an answer from `POST /api/speak` arrives and the floating player
@@ -90,6 +94,7 @@ const [url = "http://localhost:6801", out = "shots"] = process.argv.slice(2);
 const NOTE_PATH = "fidelity-gate.md";
 const EMBED_NOTE = "fidelity-embeds.md";
 const VIDEO_NOTE = "fidelity-video.md";
+const SITTINGS_NOTE = "fidelity-sittings.md";
 // A 40-second, 64×36 WebM (11 kB) — made with ffmpeg once and kept, so the
 // gate needs no encoder: tests/fixtures/video/film.webm.
 const FILM = readFileSync(new URL("../tests/fixtures/video/film.webm", import.meta.url));
@@ -321,6 +326,7 @@ const cleanup = async () => {
   await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (pngPath) await api(`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   await api(`/api/note?path=${encodeURIComponent(VIDEO_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
+  await api(`/api/note?path=${encodeURIComponent(SITTINGS_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (filmPath) await api(`/api/attachment?path=${encodeURIComponent(filmPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
 };
 
@@ -1145,6 +1151,50 @@ try {
       }
     } finally {
       await restore();
+    }
+  }
+
+  // ── Sittings from progress (shared/sittings.ts, server/sittings.ts) ────
+  // A book pressed forward twice on the Media page's route is ONE estimated
+  // line for today, `~` before its minutes; the calendar's day pane lists the
+  // book under today as reading with that mark and says the time is an
+  // estimate, in both languages. The book's first sighting writes nothing.
+  {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    const book = "```tracker\ntitle: Fidelity sittings\nkind: book\nprogress: 20/300\n```\n";
+    await api(`/api/note?path=${encodeURIComponent(SITTINGS_NOTE)}`, json("PUT", { content: book }));
+    const first = (await api(`/api/note?path=${encodeURIComponent(SITTINGS_NOTE)}`)).body?.content ?? "";
+    check(!first.includes("sessions:"), "sittings: a book met for the first time gets no line");
+    for (let i = 0; i < 2; i++) await api("/api/tracker", json("POST", { path: SITTINGS_NOTE, index: 0, delta: 10 }));
+    const after = (await api(`/api/note?path=${encodeURIComponent(SITTINGS_NOTE)}`)).body?.content ?? "";
+    const lines = after.split("\n").filter((l) => l.trim().startsWith(today));
+    check(lines.length === 1 && /^\s*\S+ \| 20–40 \| 20 pages \| ~\d+ min/.test(lines[0]), "sittings: two presses fold into one estimated line for today", lines.join(" / ") || after);
+    for (const lang of ["en", "ar"]) {
+      const ctx = await newContext({ viewport: { width: 1280, height: 800 } });
+      await ctx.addCookies(cookies);
+      const page = await ctx.newPage();
+      await page.goto(url, { waitUntil: "load" });
+      await page.evaluate((l) => {
+        localStorage.setItem("astrolabe.whatsnewSeen", "9.9.9");
+        localStorage.setItem("astrolabe.prefs-sync-off", "1");
+        localStorage.setItem("astrolabe.tourSeen", "1");
+        localStorage.setItem("astrolabe.editorLang", l);
+      }, lang);
+      await page.reload({ waitUntil: "load" });
+      await page.waitForSelector('[data-testid="calendar-door"]', { timeout: 15000 });
+      await page.click('[data-testid="calendar-door"]');
+      await page.waitForSelector('[data-testid="calendar-page"] .s-calpage__day.is-today', { timeout: 15000 });
+      await page.click(".s-calpage__day.is-today");
+      const row = page.locator('[data-testid="calendar-day"] .s-calpage__panerow--est', { hasText: "Fidelity sittings" });
+      await row.waitFor({ timeout: 10000 }).catch(() => {});
+      const text = (await row.count()) > 0 ? await row.innerText() : "";
+      const dict = lang === "ar" ? arDict : enDict;
+      check(text.includes("~") && (text.includes(dict.sittingEstimated) || text.includes(dict.sittingEstimatedPace)), `sittings ${lang}: the day pane lists the book as reading, ~ and "estimated"`, text || "no estimated row");
+      const cell = (await page.locator(".s-calpage__day.is-today .s-calpage__line--est", { hasText: "Fidelity sittings" }).count()) > 0;
+      check(cell, `sittings ${lang}: today's cell lists the book in muted ink`);
+      await page.screenshot({ path: `${out}/sittings-calendar-${lang}.png` });
+      await ctx.close();
     }
   }
 

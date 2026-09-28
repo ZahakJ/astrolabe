@@ -23,7 +23,7 @@ Every row has an icon for its kind, a title and one line under it:
 | **Notes** | A note, on the day it belongs to | its opening sentence |
 | **Daily notes** | The day's own [daily note](templates-and-notes.md#periodic-notes) | its opening sentence |
 | **Sigils** | A [sigil](sigils.md) that logged that day | the day's note in the log, or *2 of 3* |
-| **Reading** | Sittings with a book, from its [tracker](trackers.md)'s `sessions:` | pages and time |
+| **Reading** | Sittings with a book, from its [tracker](trackers.md)'s `sessions:` | pages and time, the time with `~` when it was [estimated](trackers.md#sittings-from-progress) |
 | **Voice** | A long [voice note](capture.md#voice) (its own note), or recordings linked from the day's inbox | its opening, or how many recordings |
 | **Captured** | Lines [captured](capture.md) into the day's note or inbox | how many lines |
 | **Published** | A published note whose `published:` names a later day than the one it was written | its opening sentence |
@@ -58,7 +58,8 @@ writes `Reviews/<year>.md`:
 
 - **At a glance**: notes begun that year, and the words written in them and in the daily notes;
   days with a daily note; sigil ticks; cards reviewed (from [Orbits](orbits.md)' log on this device);
-  pages read and in how many sittings; books finished.
+  pages read and in how many sittings, and how many of those sittings (and their minutes) were
+  [estimated from the progress bar](trackers.md#sittings-from-progress); books finished.
 - **Months**: a table of the twelve months — notes, daily notes, sigil ticks, cards, pages.
 - **Sigils**: each sigil's ticks and its best streak that year, counted the way its card counts a
   streak (days it asks nothing of do not break it).
