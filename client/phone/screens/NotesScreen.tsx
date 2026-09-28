@@ -11,7 +11,7 @@
 // TREE (3.34): the same reader, "I can no longer browse folders and notes as
 // easily as before". A tree is a reader's way through a vault they know, so
 // the Notes tab offers it beside Folders — a switch in the tab's top bar,
-// remembered — and on a two-column screen (the open Fold, a tablet) it is
+// remembered — and on two columns (a tablet in landscape) it is
 // where the tab starts. Folders open in place under a disclosure chevron, in
 // ONE list with the notes (../treeRows.ts computes the rows; this draws them),
 // and the device remembers which folders are open.
@@ -280,10 +280,10 @@ function EmptyFolder({ path, depth }: { path: string; depth?: number }) {
 }
 
 /** The key the list the reader is on reports its selection by: the note open
- *  beside it on a tablet. */
+ *  beside it on two columns. */
 function useCurrentPath(): string | null {
   const phone = usePhone();
-  if (!phone.tablet) return null;
+  if (!phone.split) return null;
   const top = topOf(phone.state);
   return top.kind === "note" ? top.path : top.kind === "surface" ? top.tab : null;
 }
@@ -412,7 +412,7 @@ export default function NotesScreen({ path, onBack, onUp }: { path: string; onBa
   useStore((s) => s.publishedPaths);
   const [prefs, setPrefs] = usePrefs();
   const actions = useActionSheet();
-  const view = useSyncExternalStore(subscribeNotesView, () => notesView(phone.tablet), () => notesView(phone.tablet));
+  const view = useSyncExternalStore(subscribeNotesView, () => notesView(phone.split), () => notesView(phone.split));
   const treeView = path === "" && view === "tree";
   const node = path === "" ? tree : findNode(tree, path);
   const rows = useMemo(() => (node?.children ? orderChildren(node.children, node.path, prefs).filter(listed) : []), [node, prefs]);

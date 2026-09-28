@@ -36,7 +36,7 @@ export default function SettingsScreen({ onBack }: { onBack?: () => void }) {
   const sections = useMemo(() => visiblePages(pocket), [pocket]);
   const hits = useMemo(() => (query.trim() === "" ? [] : searchSettings(query, undefined, pocket)), [query, pocket]);
   const open = (section: string): void => phone.open({ kind: "settings", section });
-  // On a tablet the section open beside this list is lit in it.
+  // On two columns the section open beside this list is lit in it.
   const top = phone.state.stacks[phone.state.tab].at(-1);
   const current = top?.kind === "settings" && top.section !== "" ? top.section : null;
 

@@ -8,8 +8,8 @@
 // store and of the DOM so a node test can hold it.
 //
 // ONE QUESTION, ONE CONSTANT. "≤700px, or a coarse primary pointer that
-// cannot hover": a phone, a tablet with no mouse in either orientation (the
-// two-column tablet layout exists for exactly that device), or a window
+// cannot hover": a phone, a tablet with no mouse in either orientation (in
+// landscape it gets the shell's two columns, SPLIT_QUERY below), or a window
 // dragged narrow. It began as the desktop's drawer breakpoint with its 999px
 // ceiling lifted for a finger; since 3.27.0 the drawer is gone and this is the
 // only copy of the question in the client (tests/drawerQuery.test.ts holds
@@ -22,25 +22,39 @@
  *  switches shells cleanly. */
 export const PHONE_SHELL_QUERY = "(max-width: 700px), ((pointer: coarse) and (hover: none))";
 
-/** Inside the phone shell: two columns — the navigation rail, a list column
- *  and the note beside it.
+/** Inside the phone shell, the one question the layout asks: TWO COLUMNS
+ *  (the navigation rail, a list column and the note beside it) or ONE (the
+ *  phone's stack: a list pushes the note across the whole glass, Back comes
+ *  home to the list). Every screen that can stand beside a list — Notes,
+ *  Search, Sigils, Orbits, Media, the Library, Today — reads this through
+ *  PhoneShell's `split`, and nothing else in the client asks.
  *
- *  THE SHAPE, NOT ONE WIDTH (3.34). It was `(min-width: 768px)` alone, and a
- *  reader opened a Galaxy Z Fold: its inner screen is 690×829 CSS px at DPR
- *  2.625 (1812×2176 device px), under 768, so it got the phone's one column
- *  stretched across a page the size of a paperback — a folder of files as one
- *  row per line from edge to edge. What makes a screen a tablet is that it is
- *  WIDE FOR ITS HEIGHT: a phone held upright is about 0.45 as wide as it is
- *  tall, a Fold opened 0.83, a tablet in portrait 0.7–0.75. So two columns
- *  wherever the screen is 768 wide (every tablet, either way up), or at least
- *  640 wide and no taller than 4:3 — the open Fold (690×829; the Fold 6's
- *  707×823), a small tablet, a phone held sideways (915×412 is past 768
- *  anyway). The rail (72) and a list column that shrinks to 240 leave the
- *  note 378px at 690: a phone's measure, beside its list. A phone upright
- *  never qualifies (412×915 is 0.45), nor a Fold's cover screen (344×882).
- *  A 720×820 window with a pen (check-phone's stylus posture) does now: it is
- *  the same shape as the open Fold, and gets the same two columns. */
-export const TABLET_QUERY = "(min-width: 768px), ((min-width: 640px) and (min-aspect-ratio: 3/4))";
+ *  THE NOTE'S MEASURE DECIDES (3.39.1). Two columns only where both are
+ *  useful: a note read at its measure (the reading view's ~640–680px of text)
+ *  beside a list at a list's (320px) needs about 1000px. 3.34 gave two
+ *  columns by SHAPE — 768 wide, or 640 wide and nearly square — so that a
+ *  Galaxy Z Fold opened (690×829 CSS px at DPR 2.625; the Fold 6's 707×823)
+ *  would not get a phone's column stretched edge to edge. What it got
+ *  instead was a rail, a list and a note of 358px: a phone's measure in a
+ *  third of a book-sized page. The owner, from that Fold: "when opening a
+ *  note on tablet/galaxy fold formfactor the note only shows on half a
+ *  page." So below 1000 the shell is the phone's, whatever the shape: the
+ *  open Fold either way up, an iPad in portrait (768/810/820), a small
+ *  tablet, a phone held sideways, the Fold's cover (344×882). From 1000 up —
+ *  a tablet in landscape (1024/1080/1180), a desktop-class width with a
+ *  finger — two columns, the list a fixed 320 and able to step aside
+ *  (PhoneShell's hide control) so a note can take the page there too. */
+export const SPLIT_MIN_PX = 1000;
+export const SPLIT_QUERY = `(min-width: ${SPLIT_MIN_PX}px)`;
+
+/** THE NOTE'S TABS (3.39.1): where the glass is a page and not a palm — the
+ *  open Fold, every tablet either way up — the note screen carries a strip of
+ *  the notes opened on this device, so opening a second note does not close
+ *  the first (client/phone/noteTabs.ts). 600 wide lets the open Fold in and
+ *  keeps every phone out (the Fold's cover is 344, a Pixel 412); 480 tall
+ *  keeps a phone held sideways (915×412) on the one-note shell, where a
+ *  second row of chrome would cost a tenth of the height. */
+export const NOTE_TABS_QUERY = "(min-width: 600px) and (min-height: 480px)";
 
 export type Shell = "phone" | "desktop";
 

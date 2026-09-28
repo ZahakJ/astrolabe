@@ -3,7 +3,7 @@
    Loaded with the shell's own chunk and NOWHERE ELSE: a desktop never
    downloads it, and nothing in it asks how wide the window is. There is no
    `@media (max-width…)` in this file on purpose — being MOUNTED is the
-   condition (client/shellQuery.ts decides), and the tablet's two columns are
+   condition (client/shellQuery.ts decides), and the two columns are
    a class the shell sets, not a breakpoint the stylesheet guesses. The
    desktop's phone overrides in app.css (the drawer, the 44px pass) keep
    styling the Classic shell and the surfaces this one reuses; this file
@@ -38,7 +38,7 @@
   position: relative;
 }
 
-.s-ph--tablet .s-ph__app {
+.s-ph--split .s-ph__app {
   flex-direction: row;
 }
 
@@ -247,7 +247,17 @@
   min-height: 64px;
 }
 
-/* ── the tablet's two columns ────────────────────────────────────────────── */
+/* The list's ⟨ / ⟩ stands at the rail's foot, apart from the five doors. */
+.s-ph-rail .s-ph-rail__list {
+  margin-top: auto;
+  margin-bottom: 8px;
+}
+
+.s-ph[dir="rtl"] .s-ph-rail__list svg {
+  transform: scaleX(-1);
+}
+
+/* ── two columns, from 1000px ────────────────────────────────────────────── */
 
 .s-ph-cols {
   flex: 1;
@@ -929,7 +939,7 @@
   transform: translate3d(0, 100%, 0);
 }
 
-/* The tablet's slide-over from the trailing edge: 360px that never narrow
+/* The two columns' slide-over from the trailing edge: 360px that never narrow
    the note. */
 .s-ph-sheet--side .s-ph-sheet__panel {
   inset-block: 0;
@@ -1244,7 +1254,7 @@
 
 /* ── Round 2 (3.27.0): every surface's own phone shape ─────────────────────── */
 
-/* A tablet's full screen (a session, a book): the list column steps aside. */
+/* A full screen on two columns (a session, a book): the list column steps aside. */
 .s-ph-cols--full .s-ph-cols__detail {
   flex: 1;
 }
@@ -1288,7 +1298,7 @@
 
 /* A section's rows are ONE column whatever the glass: the label, the
    control under it, the hint under that. The dialog's two columns are a
-   desk's; on a tablet the section sits in a 480px column beside the list,
+   desk's; on two columns the section sits in a 480px column beside the list,
    and the viewport's width is not the column's. */
 .s-ph-settings__body {
   padding: 4px 16px 120px;
@@ -1567,7 +1577,7 @@
   margin-block: -11px;
 }
 
-/* The row whose detail is open beside the list (a tablet's two columns). */
+/* The row whose detail is open beside the list (two columns). */
 .s-ph-row--on {
   background: var(--bg-hover);
 }
@@ -1907,14 +1917,19 @@
   color: var(--accent);
 }
 
-/* TWO COLUMNS BY SHAPE (shellQuery.ts TABLET_QUERY): the list column is a
-   share of the room, remembered by the grip (ColumnGrip.tsx) and clamped so
-   the note keeps a phone's measure on the open Fold (690 wide). */
-.s-ph--tablet .s-ph-cols__list {
-  width: clamp(240px, var(--ph-list-w, min(40%, 340px)), max(240px, calc(100% - 320px)));
+/* TWO COLUMNS FROM 1000px (shellQuery.ts SPLIT_QUERY): the list column is a
+   list's measure, 320, not a share of the room — the note takes the rest.
+   The grip (ColumnGrip.tsx) trades 240–360 of it; the rail's ⟨ takes it away
+   (`--solo`, below). */
+.s-ph--split .s-ph-cols__list {
+  width: clamp(240px, var(--ph-list-w, 320px), 360px);
 }
 
-.s-ph--tablet .s-ph-cols--wide .s-ph-cols__list {
+.s-ph-cols__list[hidden] {
+  display: none;
+}
+
+.s-ph--split .s-ph-cols--wide .s-ph-cols__list {
   width: auto;
 }
 
@@ -1955,14 +1970,109 @@
 
 /* A side sheet (the note's ⋯) anchors to the NOTE's column: no wider than
    it, and the dimming over it alone — the list beside stays readable. */
-.s-ph--tablet .s-ph-sheet--side .s-ph-sheet__panel {
+.s-ph--split .s-ph-sheet--side .s-ph-sheet__panel {
   width: min(360px, var(--ph-detail-w, 360px));
 }
 
-.s-ph--tablet .s-ph-sheet--side .s-ph-sheet__scrim {
+.s-ph--split .s-ph-sheet--side .s-ph-sheet__scrim {
   background: linear-gradient(to left, rgb(0 0 0 / 0.45) var(--ph-detail-w, 100%), transparent var(--ph-detail-w, 100%));
 }
 
-.s-ph--tablet[dir="rtl"] .s-ph-sheet--side .s-ph-sheet__scrim {
+.s-ph--split[dir="rtl"] .s-ph-sheet--side .s-ph-sheet__scrim {
   background: linear-gradient(to right, rgb(0 0 0 / 0.45) var(--ph-detail-w, 100%), transparent var(--ph-detail-w, 100%));
+}
+
+/* THE NOTE'S TABS (NoteTabStrip.tsx), under the note's bar where the glass
+   keeps more than one note open. The row floats with the bar — both slide
+   away reading down, by transform — over a note that keeps room for both.
+   Each tab is a 44px name and a 44px ×; the row scrolls sideways, in the
+   chrome's direction. */
+.s-ph-ntabs {
+  position: absolute;
+  top: calc(48px + env(safe-area-inset-top));
+  inset-inline: 0;
+  z-index: 3;
+  box-sizing: border-box;
+  height: 45px;
+  display: flex;
+  gap: 2px;
+  padding-inline: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.s-ph-ntabs--hidden {
+  transform: translate3d(0, calc(-100% - 48px - env(safe-area-inset-top)), 0);
+}
+
+.s-ph-ntab {
+  flex: none;
+  max-width: 240px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+}
+
+.s-ph-ntab--on {
+  border-bottom-color: var(--accent);
+  color: var(--text);
+}
+
+.s-ph-ntab__open {
+  min-width: 0;
+  min-height: 44px;
+  padding-inline: 12px 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: 500 15px/1.2 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.s-ph-ntab__close {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 22px;
+  background: none;
+  color: var(--text-faint);
+  cursor: pointer;
+}
+
+.s-ph-ntab__close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.s-ph-ntab__open:active,
+.s-ph-ntab__close:active {
+  background: var(--bg-hover);
+}
+
+.s-ph-note--tabbed .s-ph-view {
+  padding-top: calc(93px + env(safe-area-inset-top));
+}
+
+.s-ph--zen .s-ph-ntabs {
+  transform: translate3d(0, calc(-100% - 48px - env(safe-area-inset-top)), 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-ph-ntabs {
+    transition: none;
+  }
 }

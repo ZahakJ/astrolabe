@@ -10,11 +10,16 @@
 // scroll up, by `transform`, over a note that keeps its own top padding for
 // it — so the note never reflows when the chrome moves.
 //
+// Where the glass is a page (the open Fold, a tablet: client/shellQuery.ts
+// NOTE_TABS_QUERY) the bar has a second row under it while two notes or more
+// are open: their tabs (../NoteTabStrip.tsx), and this screen is what puts
+// its note among them.
+//
 // The editor, the reading view and every other surface come from the same
 // switch the desktop pane uses (components/PaneSurface.tsx): nothing about a
 // note renders differently because it is on a phone, except the chrome.
 
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { noteLabelOf } from "../../../shared/noteFormat.ts";
 import PaneSurface from "../../components/PaneSurface.tsx";
 import { t } from "../../i18n.ts";
@@ -25,6 +30,8 @@ import type { ActionRow } from "../ActionSheet.tsx";
 import { usePhone } from "../context.ts";
 import { IconDots, IconPencil, IconReader } from "../icons.tsx";
 import { ACTION_SHEET, NOTE_SHEET } from "../sheetIds.ts";
+import NoteTabStrip from "../NoteTabStrip.tsx";
+import { noteTabs, showNoteTab, subscribeNoteTabs } from "../noteTabs.ts";
 import TopBar from "../TopBar.tsx";
 import { isHeadingLine } from "../../../shared/headings.ts";
 
@@ -76,6 +83,12 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
   const [barHidden, setBarHidden] = useState(false);
   const [typing, setTyping] = useState(false);
   const reading = surface === "reading" || !admin;
+  // The note on screen is one of the open notes, on a glass that keeps tabs.
+  useEffect(() => {
+    if (phone.noteTabs) showNoteTab(path);
+  }, [path, phone.noteTabs]);
+  const tabCount = useSyncExternalStore(subscribeNoteTabs, () => noteTabs().length, () => 0);
+  const tabbed = phone.noteTabs && tabCount > 1;
   const editing = surface === "edit" && admin;
 
   // ── the bar that gets out of the way ─────────────────────────────────────
@@ -281,7 +294,7 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
   const canEdit = admin && (surface === "edit" || surface === "reading");
 
   return (
-    <div className={`s-ph-screen s-ph-note${barHidden ? " s-ph-note--bare" : ""}`} data-screen="note" data-path={path}>
+    <div className={`s-ph-screen s-ph-note${barHidden ? " s-ph-note--bare" : ""}${tabbed ? " s-ph-note--tabbed" : ""}`} data-screen="note" data-path={path}>
       <TopBar
         title={title}
         userTitle
@@ -310,6 +323,7 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
           </>
         }
       />
+      {tabbed && <NoteTabStrip path={path} hidden={barHidden} onLast={onBack} />}
       <section ref={rootRef} className="s-view s-ph-view" data-pane={paneId} onClickCapture={onClickCapture}>
         {here ? <PaneSurface id={paneId} /> : <div className="s-ph-loading" aria-hidden="true" />}
       </section>

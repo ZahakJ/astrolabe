@@ -24,7 +24,7 @@ export default function ListSheet({ leaving }: { leaving: boolean }) {
     <Sheet
       label={title}
       detent="half"
-      side={phone.tablet}
+      side={phone.split}
       leaving={leaving}
       onDismiss={() => phone.closeSheet(LIST_SHEET)}
       header={title ? <h2 className="s-ph-sheet__title" dir="auto">{title}</h2> : undefined}

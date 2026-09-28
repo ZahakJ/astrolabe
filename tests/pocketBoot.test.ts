@@ -177,7 +177,7 @@ describe("the sync line's place on the phone (3.34)", () => {
   });
   it("it stands clear of the phone shell's tab bar and rail", () => {
     assert.match(src, /\.s-ph-doc:has\(\.s-ph--tabs\) #pocket-sync \{ inset-block-end: calc\(env\(safe-area-inset-bottom, 0px\) \+ 68px\); \}/);
-    assert.match(src, /\.s-ph-doc:has\(\.s-ph--tablet\) #pocket-sync \{ inset-inline-start: calc\(72px \+ 0\.5rem\); \}/);
+    assert.match(src, /\.s-ph-doc:has\(\.s-ph--split\) #pocket-sync \{ inset-inline-start: calc\(72px \+ 0\.5rem\); \}/);
   });
   it("pulling a list down asks the pocket for a pull", () => {
     assert.match(src, /addEventListener\("astrolabe:refresh", \(\) => void session\.pull\(\)\)/);

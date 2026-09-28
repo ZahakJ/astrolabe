@@ -296,7 +296,7 @@ function makeSyncNode(): HTMLElement {
    past the rail on two columns. */
 .s-ph-doc #pocket-sync { inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 12px); }
 .s-ph-doc:has(.s-ph--tabs) #pocket-sync { inset-block-end: calc(env(safe-area-inset-bottom, 0px) + 68px); }
-.s-ph-doc:has(.s-ph--tablet) #pocket-sync { inset-inline-start: calc(72px + 0.5rem); }
+.s-ph-doc:has(.s-ph--split) #pocket-sync { inset-inline-start: calc(72px + 0.5rem); }
 `;
   document.head.append(style);
   return node;

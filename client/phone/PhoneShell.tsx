@@ -14,8 +14,9 @@
 // THE PARTS:
 //   · a navigation stack per bottom tab, synced to history (./nav.ts), so the
 //     OS back gesture pops a screen and closes a sheet before it pops one;
-//   · the bottom tab bar — Today, Notes, Search, Calendar, More — or, on a
-//     tablet, the same five as a rail beside a list column and the note;
+//   · the bottom tab bar — Today, Notes, Search, Calendar, More — or, from
+//     1000px up (shellQuery.ts SPLIT_QUERY: a tablet in landscape), the same
+//     five as a rail beside a list column and the note;
 //   · sheets for everything that was a dialog (./Sheet.tsx), each with a
 //     history entry and the page under it inert;
 //   · the store collapsed to one pane holding one tab while this is mounted,
@@ -53,7 +54,7 @@ import { overlaysUp, subscribeOverlays, type Overlay } from "../overlays.ts";
 import { applyUrl, notePathToUrl, orbitsUrl } from "../router.ts";
 import { urlForBooksRoute } from "../books/door.ts";
 import { useShellRuntime } from "../shellRuntime.ts";
-import { TABLET_QUERY } from "../shellQuery.ts";
+import { NOTE_TABS_QUERY, SPLIT_QUERY } from "../shellQuery.ts";
 import { useStore, type State } from "../state.ts";
 import {
   activeTabOf,
@@ -83,6 +84,7 @@ import { hardwareKeyboardSeen, installHardwareKeyboardWatch, subscribeHardwareKe
 import { createNav, sameScreen, screenKey, topOf, type Nav, type NavCause, type NavState, type Screen, type TabId } from "./nav.ts";
 import { chainTo, upChain } from "./up.ts";
 import ColumnGrip from "./ColumnGrip.tsx";
+import { remapNoteTabs } from "./noteTabs.ts";
 import TabBar from "./TabBar.tsx";
 import { screenTitle } from "./titles.ts";
 import { tagOfSearch } from "./tagTap.ts";
@@ -327,6 +329,26 @@ function useMatch(query: string): boolean {
   return useSyncExternalStore(subscribe, () => window.matchMedia(query).matches, () => false);
 }
 
+/** Whether the reader stepped the list column aside, on this device. */
+const LIST_HIDDEN_KEY = "astrolabe.phone-list-hidden";
+
+function readListHidden(): boolean {
+  try {
+    return localStorage.getItem(LIST_HIDDEN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveListHidden(hidden: boolean): void {
+  try {
+    if (hidden) localStorage.setItem(LIST_HIDDEN_KEY, "1");
+    else localStorage.removeItem(LIST_HIDDEN_KEY);
+  } catch {
+    /* kept for the session */
+  }
+}
+
 /** Warm the editor's chunks while the reader is still choosing a note, so the
  *  first open is not also the first download. The audit measured 351–995ms
  *  of long tasks on the first note switch and 560–1,317ms on the first scroll
@@ -391,7 +413,14 @@ export default function PhoneShell() {
     moderation: useStore((s) => s.moderationOpen),
     unused: useStore((s) => s.unusedOpen),
   };
-  const tablet = useMatch(TABLET_QUERY);
+  // THE ONE LAYOUT QUESTION (client/shellQuery.ts): two columns or one. Every
+  // screen reads it here, through `phone.split`; none carries a width of its
+  // own. Crossing it with a note open (a Fold unfolded, a tablet turned) only
+  // redraws: the stack is the same stack, so the note stays open and the list
+  // comes or goes beside it.
+  const split = useMatch(SPLIT_QUERY);
+  const noteTabs = useMatch(NOTE_TABS_QUERY);
+  const [listHidden, setListHidden] = useState(readListHidden);
   const keyboard = useSyncExternalStore(subscribeHardwareKeyboard, hardwareKeyboardSeen, () => false);
 
   const [navState, setNavState] = useState<NavState | null>(null);
@@ -431,7 +460,7 @@ export default function PhoneShell() {
         }
       },
       // The list a push leaves: the stage's scroller on a phone, the list
-      // column's on a tablet (where the list stays mounted anyway).
+      // column's on two columns (where the list stays mounted anyway).
       scrollOf: () => document.querySelector<HTMLElement>(".s-ph-stage .s-ph-scroll")?.scrollTop ?? null,
       canLeave: (from, to) => {
         const g = guardRef.current;
@@ -527,16 +556,19 @@ export default function PhoneShell() {
         return;
       }
       const top = topOf(st);
-      // On a tablet a detail picked from the list REPLACES the detail beside
-      // it — unless it is a step deeper into it (a deck's session, a
-      // section's row), which is asked for with `push`.
-      if (how === "auto" && tablet && isDetail(screen) && isDetail(top) && !isFull(screen)) nav.replaceTop(screen);
+      // On two columns a detail picked from the list REPLACES the detail
+      // beside it — unless it is a step deeper into it (a deck's session, a
+      // section's row), which is asked for with `push`. A `swap` (a note's
+      // tab) replaces the detail on one column too: a tab is not a step.
+      if (how === "swap" && isDetail(top)) nav.replaceTop(screen);
+      else if (how === "auto" && split && isDetail(screen) && isDetail(top) && !isFull(screen)) nav.replaceTop(screen);
       else nav.push(screen);
     };
     return {
       nav,
       state: navState ?? nav.state(),
-      tablet,
+      split,
+      noteTabs,
       keyboard,
       open,
       openOn: (tab, screen) => nav.pushOn(tab, screen),
@@ -554,7 +586,7 @@ export default function PhoneShell() {
         guardRef.current = { ...guard, key, released: false };
       },
     };
-  }, [nav, navState, tablet, keyboard]);
+  }, [nav, navState, split, noteTabs, keyboard]);
   const apiRef = useRef(api);
   apiRef.current = api;
 
@@ -604,6 +636,7 @@ export default function PhoneShell() {
     if (navState === null) return;
     return useStore.subscribe((s, prev) => {
       if (s.lastRemap !== prev.lastRemap && s.lastRemap !== null) {
+        remapNoteTabs(s.lastRemap.from, s.lastRemap.to);
         nav.remap(s.lastRemap.from, s.lastRemap.to);
         return;
       }
@@ -733,7 +766,7 @@ export default function PhoneShell() {
   useEffect(() => {
     const col = detailColRef.current;
     const shell = shellRef.current;
-    if (!tablet || !col || !shell) {
+    if (!split || !col || !shell) {
       shell?.style.removeProperty("--ph-detail-w");
       return;
     }
@@ -833,7 +866,7 @@ export default function PhoneShell() {
     );
   } else if (!st || !top) {
     body = <Loading />;
-  } else if (tablet) {
+  } else if (split) {
     // Two columns: the deepest list of this tab's stack, and what it opened.
     // A full screen (a session, a book) takes both.
     let listAt = stack.length - 1;
@@ -842,6 +875,11 @@ export default function PhoneShell() {
     const detail = isDetail(top) ? top : null;
     const full = detail !== null && isFull(detail);
     const wide = full || (list.kind === "root" && list.tab === "calendar" && detail === null);
+    // THE LIST STEPS ASIDE on the reader's word (the rail's ⟨ / ⟩, remembered
+    // on this device) — only while something is open beside it, so the list
+    // is never hidden with nothing in its place. It stays mounted: its
+    // scroll, its open folders and its lit row are there when it comes back.
+    const solo = listHidden && detail !== null && !wide;
     // The list keeps its ‹ while a note is open beside it: the way back up
     // the tree is the list's, not the note's (the note's own ‹ closes the
     // note). Its Back pops to the list's parent, whatever is open beside it.
@@ -851,17 +889,17 @@ export default function PhoneShell() {
     // the same element whatever is open (its scroll, its open folders and its
     // lit row stay), and a grip between the two trades their widths.
     body = (
-      <div ref={colsRef} className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}`}>
+      <div ref={colsRef} className={`s-ph-cols${wide ? " s-ph-cols--wide" : ""}${full ? " s-ph-cols--full" : ""}${solo ? " s-ph-cols--solo" : ""}`}>
         {full ? (
           <div className="s-ph-cols__detail" ref={detailColRef}>
             <Suspense fallback={<Loading />}>{render(detail, true)}</Suspense>
           </div>
         ) : (
-          <div className="s-ph-cols__list" ref={listColRef}>
+          <div className="s-ph-cols__list" ref={listColRef} hidden={solo}>
             <Suspense fallback={<Loading />}>{render(list, false, listBack, listAt)}</Suspense>
           </div>
         )}
-        {!wide && <ColumnGrip cols={colsRef} list={listColRef} />}
+        {!wide && !solo && <ColumnGrip cols={colsRef} list={listColRef} />}
         {!wide && (
           <div className="s-ph-cols__detail" ref={detailColRef}>
             {detail ? (
@@ -885,7 +923,18 @@ export default function PhoneShell() {
     );
   }
 
-  const barShown = !tablet && !!top && isList(top) && !zen && !locked;
+  const barShown = !split && !!top && isList(top) && !zen && !locked;
+  // The rail's ⟨ / ⟩: drawn while a list stands beside something open.
+  const listToggle =
+    split && !!top && isDetail(top) && !isFull(top)
+      ? {
+          hidden: listHidden,
+          toggle: () => {
+            saveListHidden(!listHidden);
+            setListHidden(!listHidden);
+          },
+        }
+      : undefined;
   const sheetIds = [...(st?.sheets ?? []), ...leaving.filter((id) => !(st?.sheets ?? []).includes(id))];
   const layerUp = (id: keyof typeof flags): boolean => flags[id];
 
@@ -893,14 +942,14 @@ export default function PhoneShell() {
     <PhoneContext.Provider value={api}>
       <div
         ref={shellRef}
-        className={["s-ph", tablet ? "s-ph--tablet" : "s-ph--phone", zen ? "s-ph--zen" : "", barShown ? "s-ph--tabs" : "", previewVisitor || offline ? "s-ph--notice" : ""].filter(Boolean).join(" ")}
+        className={["s-ph", split ? "s-ph--split" : "s-ph--phone", zen ? "s-ph--zen" : "", barShown ? "s-ph--tabs" : "", previewVisitor || offline ? "s-ph--notice" : ""].filter(Boolean).join(" ")}
         dir={lang === "ar" ? "rtl" : "ltr"}
         data-tab={st?.tab}
       >
         <PreviewBanner />
         <OfflineStrip />
         <div className="s-ph__app" ref={appRef}>
-          {tablet && !locked && !zen && <TabBar rail />}
+          {split && !locked && !zen && <TabBar rail list={listToggle} />}
           <main className="s-ph__main" id="s-main" aria-label={t("mainContent")}>
             {body}
           </main>
