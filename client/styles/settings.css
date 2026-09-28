@@ -2289,3 +2289,25 @@ h2.s-smodal__tabhead {
 .s-smodal__imgfield:not(.s-smodal__imgfield--thumb) > .s-ctl-input {
   padding-inline-end: 4.6rem;
 }
+
+/* ── A finger's size (contracts/settings-design.md, Phone) ──────────────────
+   The control column's 34px line above is a mouse's; under a coarse pointer
+   or at a phone's width every field, list, segment and switch is 44px — the
+   same bar controls.css sets for the whole control set, restated here because
+   the column's own rules are more specific than that block's. A bare switch
+   keeps its 32px track and gains a 44px box around it. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-smodal__control .s-ctl-input,
+  .s-smodal__control .s-ctl-select,
+  .s-smodal__control .s-ctl-num,
+  .s-smodal__control .s-ctl-seg__btn,
+  .s-smodal__control .s-ctl-level {
+    min-height: 44px;
+  }
+
+  .s-ctl-toggle--bare {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+}
