@@ -38,7 +38,7 @@ import {
 } from "./routine.ts";
 import { inboxDayOf, isVoiceNotePath } from "./noteDays.ts";
 import type { TrackerSession } from "./tracker.ts";
-import { localDay, type ReviewGrade } from "./weekReview.ts";
+import { localDay, unitCounts, type ReviewGrade } from "./weekReview.ts";
 
 /** The slice of a `RoutineMeta` the page needs. */
 export interface AgendaSigilSource {
@@ -291,12 +291,7 @@ export function agendaByDay(days: readonly string[], sources: AgendaSources, tod
       if (session.estimate === undefined) row.measured += 1;
       else row.estimated += session.minutes;
       if (session.estimate === "default") row.defaultPace = true;
-      if (session.unit !== undefined && session.count !== undefined) {
-        const unit = session.unit;
-        const known = row.units.find((u) => u.unit === unit);
-        if (known) known.count += session.count;
-        else row.units.push({ unit, count: session.count });
-      }
+      if (session.unit !== undefined) row.units = unitCounts([...row.units, session]);
       byDay.set(session.date, row);
     }
     for (const [iso, row] of byDay) out.get(iso)?.trackers.push(row);

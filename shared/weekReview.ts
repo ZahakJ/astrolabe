@@ -80,8 +80,23 @@ export interface BookWeek {
   /** How many of `minutes` were estimated from a move of the progress bar
    *  (shared/sittings.ts) — the review draws the time with a `~`. */
   estimated: number;
+  /** Counts kept in units other than pages (`2 chapters`), per word. */
+  units: { unit: string; count: number }[];
   /** Pages a minute over the book's last sessions, or null. */
   speed: number | null;
+}
+
+/** The sittings' counts in units other than pages, summed per word as
+ *  written — `2 chapters` and `1 chapters` are three. */
+export function unitCounts(sessions: readonly Pick<TrackerSession, "unit" | "count">[]): { unit: string; count: number }[] {
+  const out: { unit: string; count: number }[] = [];
+  for (const s of sessions) {
+    if (s.unit === undefined || s.count === undefined) continue;
+    const known = out.find((u) => u.unit === s.unit);
+    if (known) known.count += s.count;
+    else out.push({ unit: s.unit, count: s.count });
+  }
+  return out;
 }
 
 /** Every tracker with at least one session this week, most read first. */
@@ -98,6 +113,7 @@ export function booksThisWeek(trackers: readonly ReviewTracker[], week: WeekRang
       minutes: inside.reduce((n, s) => n + s.minutes, 0),
       sessions: inside.length,
       estimated: inside.reduce((n, s) => n + (s.estimate !== undefined ? s.minutes : 0), 0),
+      units: unitCounts(inside),
       speed: readingSpeed(t.sessions),
     });
   }
