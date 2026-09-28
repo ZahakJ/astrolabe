@@ -371,8 +371,33 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
 export const RELEASES: Release[] = [
   {
     version: "3.39.0",
-    title: { en: "Reading, from the bar", ar: "القراءة من الشريط" },
+    title: { en: "Settings, designed", ar: "إعدادات مصمَّمة" },
     slides: [
+      {
+        // ── Eighteen pages under four headings; one control column; chips ──
+        title: { en: "Settings, designed", ar: "إعدادات مصمَّمة" },
+        body: {
+          en: "Settings now live on eighteen short pages under four headings — You, Your site, Data and App — and each page answers one question. Every row has the same shape: a label, one line of help, and one control in one column. Spellcheck is a single row of language chips, offering only what this device can actually check. Every setting has been set, reloaded and read back in the browser, so what you choose is what stays.",
+          ar: "صارت الإعدادات ثماني عشرة صفحة قصيرة تحت أربعة عناوين — أنت، وموقعك، والبيانات، والتطبيق — وكل صفحة تجيب عن سؤال واحد. ولكل صف الشكل نفسه: عنوان، وسطر مساعدة واحد، وأداة واحدة في عمود واحد. والتدقيق الإملائي صفّ واحد من شرائح اللغات، لا يعرض إلا ما يستطيع هذا الجهاز تدقيقه فعلًا. وقد ضُبط كل إعداد وأُعيد تحميله وقُرئ في المتصفح، فما تختاره هو ما يبقى.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa-late" style="--i:1" font-size="10">${([["You","أنت",["Appearance","Writing","Reading"],["المظهر","الكتابة","القراءة"]],["Your site","موقعك",["Identity","Publishing","Library"],["الهوية","النشر","المكتبة"]],["Data","البيانات",["Backup","Ask"],["النسخ","اسأل"]],["App","التطبيق",["This device","About"],["هذا الجهاز","حول"]]] as [string, string, string[], string[]][]).map(([h,ha,en,ar],g) => `<text x="40" y="${40 + g*42}" fill="var(--text-faint)" font-size="8" letter-spacing="0.08em">${L(lang, h, ha)}</text>${(lang === "ar" ? (ar as string[]) : (en as string[])).map((n: string, i: number) => `<text x="46" y="${54 + g*42 + i*11}" fill="${g===0&&i===0?"var(--accent)":"var(--text-muted)"}" font-size="9">${n}</text>`).join("")}`).join("")}</g>
+  <rect x="170" y="36" width="350" height="150" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="186" y="60" fill="var(--text)" font-size="13" font-weight="700">${L(lang, "Appearance", "المظهر")}</text>
+  <g fill="var(--text)" font-size="11"><text x="186" y="88">${L(lang, "Theme", "السمة")}</text><text x="186" y="120">${L(lang, "Spellcheck in", "التدقيق في")}</text><text x="186" y="152">${L(lang, "Text size", "حجم النص")}</text></g>
+  <g fill="var(--text-faint)" font-size="9"><text x="186" y="100">${L(lang, "Follows the system", "يتبع النظام")}</text><text x="186" y="132">${L(lang, "What this device can check", "ما يدقّقه هذا الجهاز")}</text><text x="186" y="164">${L(lang, "One notch is one step", "الدرجة خطوة واحدة")}</text></g>
+  <path class="wa-draw" d="M376 46 v132" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:2"><rect x="384" y="78" width="120" height="20" rx="4" fill="var(--bg-hover)" stroke="var(--border)"/><text x="394" y="92" fill="var(--text)" font-size="10">${L(lang, "Nord dark", "نورد داكن")} ▾</text></g>
+  <g class="wa-late" style="--i:3">${[["en",true],["ar",true],["fr",false],["ja",true]].map(([c,on],i) => `<rect x="${384 + i*30}" y="110" width="26" height="18" rx="9" fill="${on?"var(--accent-soft)":"var(--bg)"}" stroke="${on?"var(--accent)":"var(--border)"}"/><text x="${397 + i*30}" y="122" text-anchor="middle" fill="var(--text)" font-size="9">${c}</text>`).join("")}</g>
+  <g class="wa-late" style="--i:4"><rect x="384" y="150" width="120" height="4" rx="2" fill="var(--bg-hover)"/><rect x="384" y="150" width="70" height="4" rx="2" fill="var(--accent)"/><circle cx="454" cy="152" r="6" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/></g>
+  <text x="345" y="196" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "one column, one control per row", "عمود واحد، أداة لكل صف")}</text>
+</svg>`,
+        },
+        docs: "configuration",
+      },
       {
         // ── Sittings from progress: a moved tracker is a sitting on that day ─
         title: { en: "Reading, from the bar", ar: "القراءة من الشريط" },

@@ -214,7 +214,7 @@ retried until its bytes change. Per book the store keeps at most 2,000 pages, 8,
 page and 1.5 million characters in all; the store as a whole stops at 40 million characters, and the
 server's start-up line says how many books it holds. A scanned book with no text layer has nothing to find,
 exactly as in the reader's own `/`. The [**Search inside books**](configuration.md#settings-keys)
-row in Settings → Reading & speech (or `PDF_SEARCH=off`) turns the whole thing off, and stops a pass in
+row in Settings → Reading → Search inside books (or `PDF_SEARCH=off`) turns the whole thing off, and stops a pass in
 progress.
 
 ## EPUB
