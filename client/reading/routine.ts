@@ -48,6 +48,8 @@ import { KIND_UNIT, unitKey } from "../trackerUnits.ts";
 import { autoDir, countPhrase, getLang, localeNum, t, tf, type I18nKey } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { el } from "./dom.ts";
+import { appendInline } from "../inlineLinks.tsx";
+import { inlinePlain } from "../inlineRuns.ts";
 
 export interface RoutineHooks {
   notePath: string;
@@ -165,6 +167,19 @@ function kindLabel(plan: RoutinePlan): string {
 function run(cls: string, text: string): HTMLElement {
   const span = el("span", cls, text);
   span.dir = autoDir(text);
+  return span;
+}
+
+/** A run the author wrote that may link: a task's key and text, a course
+ *  step. `[[Orbits/Japanese/Kana]]` is drawn as the link it is, by the one
+ *  helper every line outside a note uses (client/inlineLinks.tsx) — the card
+ *  used to print the brackets. `s-inl` tells the phone's gate the link is a
+ *  word in a line, not a control of its own. */
+function authored(cls: string, text: string): HTMLElement {
+  if (!text.includes("[[")) return run(cls, text);
+  const span = el("span", `${cls} s-inl`);
+  span.dir = autoDir(inlinePlain(text));
+  appendInline(span, text, useStore.getState().tree);
   return span;
 }
 
@@ -322,7 +337,7 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
       const box2 = el("input", "s-rv-routine__check");
       box2.type = "checkbox";
       box2.disabled = !interactive;
-      box2.setAttribute("aria-label", `${task.key}: ${task.text ?? ""} (${dayLabel(from, locale)})`);
+      box2.setAttribute("aria-label", inlinePlain(`${task.key}: ${task.text ?? ""} (${dayLabel(from, locale)})`));
       const onLog = interactive ? hooks.onLog : undefined;
       if (onLog) {
         box2.addEventListener("change", () => {
@@ -333,9 +348,9 @@ export function renderRoutineCard(plan: RoutinePlan, entries: RoutineEntry[], ho
       }
       label.appendChild(box2);
       const words = el("span", "s-rv-routine__taskwords");
-      words.appendChild(run("s-rv-routine__taskkey", task.key));
+      words.appendChild(authored("s-rv-routine__taskkey", task.key));
       words.appendChild(el("span", "s-rv-routine__carriedfrom", tf("routineCarriedFrom", { day: dayLabel(from, locale) })));
-      if (task.text) words.appendChild(run("s-rv-routine__tasktext", task.text));
+      if (task.text) words.appendChild(authored("s-rv-routine__tasktext", task.text));
       label.appendChild(words);
       li.appendChild(label);
       if (onLog) {
@@ -533,7 +548,7 @@ function renderDay(
       box2.type = "checkbox";
       box2.checked = isDone;
       box2.disabled = !onLog;
-      box2.setAttribute("aria-label", task.text ? `${task.key}: ${task.text}` : task.key);
+      box2.setAttribute("aria-label", inlinePlain(task.text ? `${task.key}: ${task.text}` : task.key));
       if (onLog) {
         box2.addEventListener("change", () => {
           const next = box2.checked ? [...done.filter((d) => !sameKey(d, task.key)), task.key] : done.filter((d) => !sameKey(d, task.key));
@@ -542,8 +557,8 @@ function renderDay(
       }
       label.appendChild(box2);
       const words = el("span", "s-rv-routine__taskwords");
-      words.appendChild(task.book ? el("span", "s-rv-routine__taskkey", t("routineReadKey")) : run("s-rv-routine__taskkey", task.key));
-      const textEl = run("s-rv-routine__tasktext", task.text ?? "");
+      words.appendChild(task.book ? el("span", "s-rv-routine__taskkey", t("routineReadKey")) : authored("s-rv-routine__taskkey", task.key));
+      const textEl = authored("s-rv-routine__tasktext", task.text ?? "");
       if (task.text) words.appendChild(textEl);
       label.appendChild(words);
       if (task.book && task.text) {
@@ -675,7 +690,7 @@ function renderStep(
   check.type = "checkbox";
   check.checked = isDone;
   check.disabled = !onLog;
-  check.setAttribute("aria-label", step.unit === "" ? step.text : tf("sigilCourseStepAria", { unit: step.unit, text: step.text }));
+  check.setAttribute("aria-label", inlinePlain(step.unit === "" ? step.text : tf("sigilCourseStepAria", { unit: step.unit, text: step.text })));
   if (onLog) {
     check.addEventListener("change", () => {
       const next = check.checked ? [...done.filter((d) => !sameKey(d, step.key)), step.key] : done.filter((d) => !sameKey(d, step.key));
@@ -687,7 +702,7 @@ function renderStep(
   // The unit is an eyebrow over the first step that belongs to it, not over
   // every one: a day inside one unit would otherwise say its name four times.
   if (unit !== null && unit !== "") words.appendChild(run("s-rv-routine__stepunit", unit));
-  words.appendChild(run("s-rv-routine__tasktext", step.text));
+  words.appendChild(authored("s-rv-routine__tasktext", step.text));
   label.appendChild(words);
   li.appendChild(label);
   if (step.minutes !== null) li.appendChild(el("span", "s-rv-routine__stepmin", tf("sigilCourseMinutes", { n: localeNum(step.minutes) })));

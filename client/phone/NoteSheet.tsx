@@ -20,6 +20,7 @@ import { localeNum, t, tf } from "../i18n.ts";
 import { lazySurface } from "../lazySurface.tsx";
 import { notePathToUrl } from "../router.ts";
 import { copyNoteLink, noteContent } from "../sectionActions.ts";
+import { inlinePlain } from "../inlineRuns.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { chromeLangSwitch } from "../chromeLangSwitch.ts";
@@ -53,14 +54,6 @@ function group(backlinks: Backlink[]): Group[] {
   return [...by.values()];
 }
 
-/** Context lines read as prose: the link's label, never its brackets. */
-function plain(text: string): string {
-  return text
-    .replace(/!?\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]*))?\]\]/g, (_m, target: string, label?: string) => (label ?? target).trim())
-    .replace(/\*\*|__|~~|`/g, "")
-    .replace(/^#{1,6}\s+/, "");
-}
-
 function Backlinks({ path }: { path: string }) {
   const backlinks = useStore((s) => s.backlinks);
   const groups = useMemo(() => group(backlinks), [backlinks]);
@@ -78,7 +71,9 @@ function Backlinks({ path }: { path: string }) {
           </button>
           {g.lines.map((l) => (
             <button key={l.line} type="button" className="s-ph-backlink__line" dir="auto" onClick={() => land(g.path, l.line)}>
-              {plain(l.text)}
+              {/* Context lines read as prose: the link's label, never its
+                  brackets (client/inlineRuns.ts). */}
+              {inlinePlain(l.text)}
             </button>
           ))}
         </li>

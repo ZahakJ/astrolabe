@@ -31,6 +31,7 @@ import { useStore } from "../state.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { useCaptureLine, useToday, useVoiceReady } from "./hooks.ts";
 import { sigilRowKey, taskRowKey, type DueTaskRow, type SigilTaskRow } from "./model.ts";
+import { InlineText } from "../inlineLinks.tsx";
 import "../reading/reading.css";
 import "../styles/today.css";
 
@@ -107,7 +108,9 @@ function SigilItem({ row, onToggle }: { row: SigilTaskRow; onToggle: (row: Sigil
       <li className="s-today__row">
         <span className="s-today__glyph" aria-hidden="true">{meta.plan.emoji ?? "·"}</span>
         <button type="button" className="s-today__link" onClick={() => setView("sigils")}>
-          <bdi dir="auto">{label}</bdi>
+          <bdi dir="auto">
+            <InlineText text={label} links={false} />
+          </bdi>
         </button>
         <bdi className="s-today__meta" dir="auto">{meta.plan.title}</bdi>
       </li>
@@ -117,7 +120,9 @@ function SigilItem({ row, onToggle }: { row: SigilTaskRow; onToggle: (row: Sigil
     <li className={`s-today__row${row.done ? " s-today__row--done" : ""}`}>
       <label className="s-today__check">
         <input type="checkbox" checked={row.done} onChange={() => onToggle(row)} />
-        <bdi dir="auto">{label}</bdi>
+        <bdi dir="auto">
+          <InlineText text={label} />
+        </bdi>
       </label>
       <bdi className="s-today__meta" dir="auto">{meta.plan.title}</bdi>
     </li>
@@ -131,7 +136,9 @@ function TaskItem({ row, onToggle, locale }: { row: DueTaskRow; onToggle: (row: 
     <li className={`s-today__row${row.task.done ? " s-today__row--done" : ""}`}>
       <label className="s-today__check">
         <input type="checkbox" checked={row.task.done} onChange={() => onToggle(row)} />
-        <bdi dir="auto">{row.task.text}</bdi>
+        <bdi dir="auto">
+          <InlineText text={row.task.text} />
+        </bdi>
       </label>
       <span className="s-today__meta">
         {row.overdue && <span className="s-today__overdue">{tf("todayOverdue", { date: siteDate(`${due}T12:00:00`, locale, { day: "numeric", month: "short" }) || due })}</span>}

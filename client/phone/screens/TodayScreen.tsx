@@ -21,6 +21,7 @@ import { noteTitleOf } from "../../../shared/noteFormat.ts";
 import { dailyNoteLabel, openDailyNote } from "../../daily.ts";
 import { siteDate } from "../../dates.ts";
 import { countPhrase, localeNum, t, tf } from "../../i18n.ts";
+import { InlineText } from "../../inlineLinks.tsx";
 import { useStore } from "../../state.ts";
 import { useCaptureLine, useToday, useVoiceReady } from "../../today/hooks.ts";
 import { sigilRowKey, taskRowKey, type DueTaskRow, type ReflectionState, type SigilTaskRow } from "../../today/model.ts";
@@ -80,7 +81,9 @@ const SigilRow = memo(function SigilRow({ row, onToggle, onOpen }: { row: SigilT
         <button type="button" className="s-ph-row s-ph-task" onClick={() => onOpen(row)}>
           <span className="s-ph-task__sigil" dir="auto">{meta.plan.emoji ?? "·"}</span>
           <span className="s-ph-hit__text">
-            <bdi className="s-ph-row__name" dir="auto">{label}</bdi>
+            <bdi className="s-ph-row__name" dir="auto">
+              <InlineText text={label} links={false} />
+            </bdi>
             <bdi className="s-ph-hit__snippet" dir="auto">{meta.plan.title}</bdi>
           </span>
           <span className="s-ph-row__chev" aria-hidden="true">
@@ -92,15 +95,18 @@ const SigilRow = memo(function SigilRow({ row, onToggle, onOpen }: { row: SigilT
   }
   return (
     <li>
-      <button type="button" role="checkbox" aria-checked={done} className={`s-ph-row s-ph-task${done ? " s-ph-task--done" : ""}`} onClick={() => onToggle(row)}>
+      <label className={`s-ph-row s-ph-task${done ? " s-ph-task--done" : ""}`}>
+        <input type="checkbox" className="s-sr-only" checked={done} onChange={() => onToggle(row)} />
         <span className="s-ph-task__box" aria-hidden="true">
           {done && <IconCheck />}
         </span>
         <span className="s-ph-hit__text">
-          <bdi className="s-ph-row__name" dir="auto">{label}</bdi>
+          <bdi className="s-ph-row__name s-inl" dir="auto">
+            <InlineText text={label} />
+          </bdi>
           <bdi className="s-ph-hit__snippet" dir="auto">{meta.plan.title}</bdi>
         </span>
-      </button>
+      </label>
     </li>
   );
 });
@@ -111,18 +117,21 @@ const TaskRow = memo(function TaskRow({ row, onToggle, locale }: { row: DueTaskR
   const when = row.overdue ? tf("todayOverdue", { date: siteDate(`${due}T12:00:00`, locale, { day: "numeric", month: "short" }) || due }) : null;
   return (
     <li>
-      <button type="button" role="checkbox" aria-checked={done} className={`s-ph-row s-ph-task${done ? " s-ph-task--done" : ""}`} onClick={() => onToggle(row)} data-task={`${row.path}#${row.task.line}`}>
+      <label className={`s-ph-row s-ph-task${done ? " s-ph-task--done" : ""}`} data-task={`${row.path}#${row.task.line}`}>
+        <input type="checkbox" className="s-sr-only" checked={done} onChange={() => onToggle(row)} />
         <span className="s-ph-task__box" aria-hidden="true">
           {done && <IconCheck />}
         </span>
         <span className="s-ph-hit__text">
-          <bdi className="s-ph-row__name" dir="auto">{row.task.text}</bdi>
+          <bdi className="s-ph-row__name s-inl" dir="auto">
+            <InlineText text={row.task.text} />
+          </bdi>
           <span className="s-ph-hit__snippet">
             {when !== null && <span className="s-ph-today__overdue">{when} · </span>}
             <bdi dir="auto">{row.title}</bdi>
           </span>
         </span>
-      </button>
+      </label>
     </li>
   );
 });
@@ -252,8 +261,12 @@ export default function TodayScreen() {
                   <button type="button" className="s-ph-row s-ph-hit" onClick={() => phone.open({ kind: "note", path: hit.path })}>
                     <span className="s-ph-today__ago">{tf("onThisDayAgo", { n: localeNum(thisYear - hit.year) })}</span>
                     <span className="s-ph-hit__text">
-                      <bdi className="s-ph-row__name" dir="auto">{hit.kind === "finished" ? tf("onThisDayFinished", { title: hit.what }) : hit.what}</bdi>
-                      {hit.excerpt !== "" && <bdi className="s-ph-hit__snippet" dir="auto">{hit.excerpt}</bdi>}
+                      <bdi className="s-ph-row__name" dir="auto"><InlineText text={hit.kind === "finished" ? tf("onThisDayFinished", { title: hit.what }) : hit.what} links={false} /></bdi>
+                      {hit.excerpt !== "" && (
+                        <bdi className="s-ph-hit__snippet" dir="auto">
+                          <InlineText text={hit.excerpt} links={false} />
+                        </bdi>
+                      )}
                     </span>
                   </button>
                 </li>

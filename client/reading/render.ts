@@ -20,6 +20,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { parseWikilink, resolveLink } from "../editor/links.ts";
 import { twinSwapFor } from "../twinSwap.ts";
+import { followWikilink } from "../inlineLinks.tsx";
 import { parseBookAnchor } from "../../shared/bookAnchor.ts";
 import { parseEpubAnchor } from "../../shared/epubAnchor.ts";
 import { blockAlignOf, parseAlignMarker, stripAlignMarker } from "../../shared/blockAlign.ts";
@@ -119,7 +120,7 @@ import { htmlBlockStart, sanitizeHtml, sanitizeInlineTag } from "./rawHtml.ts";
 import { Slugger, stripInline } from "./toc.ts";
 import { HEADING_RE } from "../../shared/headings.ts";
 import { splitFrontmatter } from "../../shared/noteParse.ts";
-import { isNotePath, isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
+import { isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
 import { findAnchor, noteAnchors } from "../../shared/anchors.ts";
 import { renderNoteContent, renderNoteSlice } from "./renderNote.ts";
 
@@ -2052,32 +2053,9 @@ export function onRootClick(ev: MouseEvent): void {
       );
       return;
     }
-    const store = useStore.getState();
-    // The same fallback the RENDERER applied when it decided this link was not
-    // broken (the link-time swap, shared/twins.ts). The anchor carries the
-    // author's raw target, so resolution happens twice — and the two had
-    // better agree: a link drawn as live that then reported "not published"
-    // would be the worst of both answers.
-    const path = resolveLink(name, store.tree) ?? twinSwapFor(name);
-    if (path) {
-      if (heading) store.setPendingHeading(heading);
-      store.openNote(path);
-    } else if (!store.admin) {
-      // Visitors can't create the missing note — and on a curated published
-      // site the target usually exists but is private, so say that (with the
-      // display label, never a raw internal vault path).
-      const rendered = wl.textContent?.trim();
-      const display =
-        rendered && !rendered.includes("/")
-          ? rendered
-          : noteTitleOf(name);
-      toast(tf("linkNotPublished", { name: display }));
-    } else {
-      // Unresolved link: clicking it creates the note (Obsidian behavior).
-      const notePath = isNotePath(name) ? name : `${name}.md`;
-      toast(tf("creatingNote", { name }));
-      void store.createNote(notePath);
-    }
+    // The note, the visitor's word or a new note: the one door every
+    // wikilink outside a note goes through too (client/inlineLinks.tsx).
+    followWikilink(name, heading ?? null, wl.textContent ?? "");
     return;
   }
 

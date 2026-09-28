@@ -135,11 +135,14 @@
 
 /* ── A slot that names a deck (client/routines/orbits.ts) ───────
    The chip row wraps under the slot's text: the task row is the reading
-   renderer's flex line, and a row that grows a chip is allowed to wrap here,
-   on this page only. The chip is a small pill — the count in the accent,
-   quiet once nothing is due — and the whole pill is the Study link. */
+   renderer's flex line, and a row that grows a chip is allowed to wrap —
+   on the desktop's page and the phone's sigil screen alike, the two places
+   that grow chips. Scoped to the desktop's page alone, the phone's row kept
+   one line and the chip squeezed the slot's words to a letter a line. The
+   chip is a small pill — the count in the accent, quiet once nothing is
+   due — and the whole pill is the Study link. */
 
-.s-routines .s-rv-routine__task:has(.s-orbits-chips) {
+.s-rv-routine__task:has(> .s-orbits-chips) {
   flex-wrap: wrap;
 }
 
