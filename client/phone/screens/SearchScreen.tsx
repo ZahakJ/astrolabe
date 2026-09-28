@@ -17,6 +17,7 @@ import { collectNotes } from "../../editor/links.ts";
 import { localeNum, t } from "../../i18n.ts";
 import { rankCommands } from "../../paletteRank.ts";
 import { recentNotes } from "../../recents.ts";
+import { inlinePlain } from "../../inlineRuns.ts";
 import { useStore } from "../../state.ts";
 import { isBookPath } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
@@ -54,12 +55,16 @@ const KEYBOARD_ONLY = new Set(["toggle-vim", "zen-mode", "shortcuts"]);
 /** The server's snippet carries its match in <mark>…</mark>; everything else
  *  in it is text. Rendered as text with the marks as elements — never as HTML. */
 function Snippet({ html }: { html: string }) {
-  const parts = html.split(/(<mark>|<\/mark>)/);
+  // A link in the matched line reads as its name (client/inlineRuns.ts).
+  // The marks may sit inside it, `[[<mark>Kana</mark>]]`: they are swapped
+  // for two control characters while the link is read — the `/` of
+  // `</mark>` would otherwise be taken for a folder in the link's path.
+  const parts = inlinePlain(html.replace(/<mark>/g, "\u0001").replace(/<\/mark>/g, "\u0002")).split(/([\u0001\u0002])/);
   let on = false;
   const out: React.ReactNode[] = [];
   parts.forEach((part, i) => {
-    if (part === "<mark>") on = true;
-    else if (part === "</mark>") on = false;
+    if (part === "\u0001") on = true;
+    else if (part === "\u0002") on = false;
     else if (part) {
       const text = part.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
       out.push(on ? <mark key={i}>{text}</mark> : <Fragment key={i}>{text}</Fragment>);

@@ -44,6 +44,11 @@
 //     is written into its note; on this day opens its note; the Timeline is
 //     a screen under More whose rows open notes, whose months are a sheet
 //     with an entry that Back closes; the Calendar's ⋯ offers the Timeline.
+//   · A WIKILINK OUTSIDE A NOTE IS A LINK (the owner: "I see
+//     [[orbits/japanese/kana]] on phone"): a sigil whose slot links a note
+//     draws the link as an anchor, not its brackets, and a tap on it opens
+//     the note without ticking the box. And the Notes tab's Tree | Folders
+//     switch keeps 8px of air above its bar's hairline.
 //
 // THE MATRIX. Every screen and sheet is measured and photographed in both
 // languages on four shapes: a Pixel 7 (412×915, a finger); a 720×820 phone at
@@ -99,7 +104,10 @@ const MEASURE = String.raw`((scope) => {
   };
   const PROSE =
     ".cm-content, .s-rv-prose, .s-rv p, .s-rv li, .s-rv-p, .s-rv-list, .s-rv-quote," +
-    " .s-blog-article, .s-marginalia__list, .s-feeds__prose";
+    " .s-blog-article, .s-marginalia__list, .s-feeds__prose," +
+    // A link that is a word in a line of the reader's own (a sigil's slot, a
+    // task on Today — client/inlineLinks.tsx): prose, like a link in a note.
+    " .s-inl";
   const CHART = ".s-rv-routine__heat, .s-graph__nav, .s-tracker";
   const root = scope ? document.querySelector(scope) : document.body;
   if (!root) return out;
@@ -421,6 +429,11 @@ await adminApi([
   ["/api/settings", J("PATCH", { feeds: { fetch: true, note: FEED_NOTE } })],
   [`/api/note?path=${encodeURIComponent(FEED_NOTE)}`, J("PUT", { content: `# check-phone\n\n\`\`\`feeds\n${FEED_URL} → check-phone-kept\n\`\`\`\n` })],
 ]);
+// A sigil whose every-day item links the walked-to note, for the phone's
+// "a wikilink in a sigil is a link" pass. Its own note, removed at the end.
+const LINK_SIGIL = "check-phone-sigil-link.md";
+const LINK_TARGET = note.replace(/\.md$/, "");
+await adminApi([[`/api/note?path=${encodeURIComponent(LINK_SIGIL)}`, J("PUT", { content: `# check-phone\n\n\`\`\`sigil\ntitle: check-phone links\nitems: read [[${LINK_TARGET}]]\n\`\`\`\n` })]]);
 const [round] = await adminApi([["/api/feeds/refresh", J("POST", {})]]);
 check(round.status === 200 && (round.body.items ?? []).length > 0, "a round of feeds reads the local fixture feed", JSON.stringify(round.body).slice(0, 200));
 
@@ -520,6 +533,19 @@ try {
       // the reader chooses (client/phone/notesView.ts).
       check((await page.locator('[data-screen="notes"][data-view="tree"]').count() > 0) === !!shape.tablet, tag(shape.tablet ? "the Notes tab starts on the Tree on two columns" : "the Notes tab starts on Folders on one column"));
       await measure("notes");
+      // THE SWITCH HAS AIR. Its buttons are 44px for the thumb; what the eye
+      // reads as the switch is the track painted inside them (phone.css,
+      // `.s-ph-seg--bar::before`), and that must stand ≥ 8px clear of the
+      // hairline under the bar — it once sat on it.
+      const air = await page.evaluate(() => {
+        const seg = document.querySelector(".s-ph-top .s-ph-seg--bar");
+        const bar = seg?.closest(".s-ph-top");
+        if (!seg || !bar) return null;
+        const hairline = bar.getBoundingClientRect().bottom - parseFloat(getComputedStyle(bar).borderBottomWidth);
+        const track = seg.getBoundingClientRect().bottom - parseFloat(getComputedStyle(seg, "::before").bottom);
+        return +(hairline - track).toFixed(1);
+      });
+      check(air !== null && air >= 8, tag("the Tree | Folders switch stands ≥ 8px above the bar's hairline"), `${air}px`);
       await press(page.locator('[data-notes-view="folders"]'));
       await settle(400);
       await press(page.locator(`.s-ph-row[data-path="${folder}"]`));
@@ -1104,6 +1130,38 @@ try {
           }
           await back();
         }
+        // THE LINK IN A SLOT: an anchor with the note's name, no brackets,
+        // and a tap on it opens the note — and leaves the box alone.
+        const linkRow = page.locator(`.s-ph-row[data-sigil="${LINK_SIGIL}"]`);
+        if ((await linkRow.count()) > 0) {
+          await press(linkRow);
+          await settle(1400);
+          const card = page.locator(".s-ph-sigil__card");
+          const link = card.locator(`a.s-rv-wikilink[data-target="${LINK_TARGET}"]`);
+          const words = (await card.locator(".s-rv-routine__today").textContent()) ?? "";
+          check((await link.count()) > 0 && !words.includes("[["), tag("a wikilink in a sigil's slot is drawn as a link, not its brackets"), words.slice(0, 120));
+          if ((await link.count()) > 0) {
+            // What the server holds for today, not the box: on two columns
+            // the note opens beside the card and Back walks another road.
+            const ticks = () =>
+              page.evaluate(async (p) => {
+                const list = await (await fetch("/api/routines")).json();
+                const d = new Date();
+                const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                return JSON.stringify(list.find((m) => m.path === p)?.entries.find((e) => e.date === today)?.done ?? []);
+              }, LINK_SIGIL);
+            const was = await ticks();
+            await press(link);
+            await settle(1400);
+            const went = await state();
+            check(went.screens.includes("note") && decodeURIComponent(went.path) === "/" + LINK_TARGET, tag("a tap on a sigil's link opens its note"), JSON.stringify(went));
+            const still = await ticks();
+            check(still === was, tag("…and does not tick the slot"), `${was} → ${still}`);
+            await back();
+            await settle(1000);
+          }
+          await back();
+        } else check(false, tag("the run's linking sigil is listed"), LINK_SIGIL);
         await back();
       }
 
@@ -1739,6 +1797,7 @@ try {
   await adminApi([
     ["/api/settings", J("PATCH", { feeds: feedsBefore ? { fetch: feedsBefore.fetch ?? null, note: feedsBefore.note ?? null } : null })],
     [`/api/note?path=${encodeURIComponent(FEED_NOTE)}&permanent=1`, { method: "DELETE" }],
+    [`/api/note?path=${encodeURIComponent(LINK_SIGIL)}&permanent=1`, { method: "DELETE" }],
     // The folder the run's keeps went into (each kept note was removed as it
     // was checked, so it is empty by now).
     ["/api/folder?path=check-phone-kept&permanent=1", { method: "DELETE" }],

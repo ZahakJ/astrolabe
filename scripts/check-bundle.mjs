@@ -430,7 +430,12 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // THE SETTINGS PURGE: 891.1 → 892.9 kB, +1.8 against a build of 3.37.0
 // (3017666) — the entry's +1.4 below and the phone's sections' guard and
 // section-id map. 892 → 894.
-const PHONE_BUDGET = 894 * 1024;
+// A WIKILINK OUTSIDE A NOTE IS A LINK: 892.9 → 896.1 kB, +3.2 against a build
+// of 3.38.0 (c40e86c2) — the two small chunks that read and draw a line's
+// links (inlineRuns 0.8 kB, inlineLinks 1.5 kB: Today's rows and the render
+// path both hold them now) and the Notes bar's painted switch track and the
+// task row's focus ring. 894 → 897.
+const PHONE_BUDGET = 897 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1483,7 +1488,11 @@ const AUDIENCES = [
   // entry's, nothing else. 1074 → 1076.
   // THE SETTINGS PURGE: 1075.1 → 1076.4 kB, +1.3 — the entry's stylesheet,
   // nothing else. 1076 → 1078.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1078 * 1024 },
+  // A WIKILINK OUTSIDE A NOTE IS A LINK: 1076.5 → 1078.7 kB, +2.2 against a
+  // build of 3.38.0 (c40e86c2) — render.ts's link click now goes through the
+  // one door every line outside a note uses (inlineLinks 1.5 kB, inlineRuns
+  // 0.8 kB), and nothing else. 1078 → 1079.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1079 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
