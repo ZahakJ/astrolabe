@@ -17,6 +17,7 @@ import { siteDate } from "../dates.ts";
 import { localeNum, t } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { ROW_HEIGHT, monthAt, visibleRange, type Layout, type TimelineItem, type TimelineRow } from "./model.ts";
+import { InlineText } from "../inlineLinks.tsx";
 import { detailText, KindIcon, kindLabel, monthLabel } from "./words.tsx";
 
 export { monthLabel };
@@ -38,7 +39,11 @@ const Item = memo(function Item({ item, top, onOpen }: { item: TimelineItem; top
               own, so an English excerpt in an Arabic list still starts at the
               leading edge beside its title. */}
           <span className="s-tl__excerpt">
-            <bdi dir="auto">{detailText(item.detail)}</bdi>
+            <bdi dir="auto">
+              {/* The row is one button: a link in the excerpt reads as its
+                  name, not its brackets (client/inlineLinks.tsx). */}
+              <InlineText text={detailText(item.detail)} links={false} />
+            </bdi>
           </span>
         </span>
       </button>
