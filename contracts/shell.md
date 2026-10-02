@@ -1742,7 +1742,11 @@ is [`settings-audit.md`](settings-audit.md), whose *Page (round 2)* column
   its `group` and — for Appearance and This device — `device: true`. The dialog draws each group
   as a heading over its page buttons (a `<nav>` of buttons with `aria-current="page"`, not a
   tablist: a tablist may own nothing but tabs), the body a region named by the page's `<h2>`; ↑/↓
-  walk every page across the groups. The phone's Settings screen draws the same groups as
+  walk every page across the groups. The rail is the height the search field leaves it and
+  scrolls on its own under the body's scroll-edge fade (3.39.2: measured against the whole
+  column it ran past the dialog's foot and *About* was cut, unreachable by wheel); the settings
+  walk asserts in both languages that the nav, not its wrap, is what overflows and that the last
+  page sits inside the wrap once scrolled. The phone's Settings screen draws the same groups as
   headed lists (More's idiom). Pages: Appearance · Layout & type · Language · Dates & calendar ·
   Writing · New notes & templates · Reading · Read aloud & voice notes · Site identity ·
   Publishing · Comments & mentions · Collections · Library · Backup & sync · Versions & travel ·

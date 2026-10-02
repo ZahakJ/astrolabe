@@ -155,6 +155,35 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
     check(JSON.stringify(rail) === JSON.stringify(visible.map((s) => d[s.key])), tag("the rail names the pages in order"), rail.join(" · "));
     const heads = await page.locator(".s-smodal__railhead").allTextContents();
     check(heads.length === 4, tag("the rail is two levels: four group headings over the pages"), heads.join(" · "));
+    // THE LAST PAGE CAN BE REACHED WITH A WHEEL. 3.39.1 let the nav grow to
+    // its content inside a column that had already spent 46px on the search
+    // field, so in English it ran past the dialog's foot and "About" was cut
+    // in half with nothing to scroll (the wrap overflowed, not the nav, and
+    // the wrap does not scroll). The rule: whatever overflows is the nav
+    // itself, and once it is scrolled to its end the last name sits inside
+    // the wrap. Asked in both languages, since the Arabic rail is shorter and
+    // used to fit by luck.
+    const reach = await page.evaluate(() => {
+      const wrap = document.querySelector(".s-smodal__railwrap");
+      const nav = document.querySelector(".s-smodal__rail");
+      const buttons = document.querySelectorAll(".s-smodal__railbtn");
+      const last = buttons[buttons.length - 1];
+      nav.scrollTop = nav.scrollHeight;
+      const r = {
+        wrapOverflows: wrap.scrollHeight > wrap.clientHeight + 1,
+        navScrolls: nav.scrollHeight > nav.clientHeight + 1,
+        lastBottom: Math.round(last.getBoundingClientRect().bottom),
+        wrapBottom: Math.round(wrap.getBoundingClientRect().bottom),
+        wheelable: getComputedStyle(nav).overflowY === "auto",
+      };
+      nav.scrollTop = 0;
+      return r;
+    });
+    check(
+      !reach.wrapOverflows && reach.wheelable && reach.lastBottom <= reach.wrapBottom + 1,
+      tag("the last page is reachable: the rail scrolls itself instead of running past the dialog"),
+      JSON.stringify(reach),
+    );
   }
 
   /** Land on one page, from wherever the app is (after a reload too). */

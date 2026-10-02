@@ -126,6 +126,10 @@ export default function SettingsModal() {
    *  scrolling, resizing, tab changes and rows appearing (the size-adjust row
    *  comes and goes), which the old handler needed three dependencies to do. */
   useEffect(() => attachScrollFade(bodyRef.current), []);
+  /** The rail is a scroller of its own since 3.39.2 — eighteen English names
+   *  outgrow the column the search field leaves them — and a cut list must
+   *  fade, not guillotine, like the body beside it. */
+  useEffect(() => attachScrollFade(railRef.current), []);
 
   /** A new tab starts at ITS top — carrying the previous tab's scroll offset
    *  into a shorter tab lands the reader in the middle of it (or past its
@@ -264,8 +268,9 @@ export default function SettingsModal() {
           <SettingsContext.Provider value={ctx}>
           <div className="s-smodal__cols">
             {/* Sections, not anchors: the rail switches what the panel is
-                showing, and it is sticky so the whole map stays on screen
-                while a section scrolls. */}
+                showing. The body scrolls on its own, and so does the rail
+                when its names outgrow the column (settings.css explains the
+                cut-off "About" that forced it). */}
             <div className="s-smodal__railwrap">
             {/* SEARCH SITS ABOVE THE RAIL, not inside the body: it searches
                 every tab, so putting it in one of them would say it searched
@@ -289,7 +294,7 @@ export default function SettingsModal() {
                 one showing, and the body is a region named by the page's own
                 heading. ↑/↓ still walk every page across the groups, and
                 Home/End jump to the ends. */}
-            <nav className="s-smodal__rail" ref={railRef} aria-label={t("settingsSections")} onKeyDown={onRailKey}>
+            <nav className="s-smodal__rail s-scrollfade" ref={railRef} aria-label={t("settingsSections")} onKeyDown={onRailKey}>
               {GROUPS.map((g) => {
                 const pages = visibleTabs.filter((s) => s.group === g.id);
                 if (pages.length === 0) return null;

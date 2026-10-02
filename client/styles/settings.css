@@ -434,10 +434,23 @@
      and the panel's whole left column drifted out of rhythm. Expressed in rem
      the rail grows WITH its own type and holds exactly what it held before. */
   width: 13rem;
-  position: sticky;
-  top: 0;
-  align-self: flex-start;
-  max-height: 100%;
+  /* THE RAIL TAKES THE HEIGHT THE SEARCH FIELD LEAVES IT, AND SCROLLS INSIDE
+     THAT. It used to be sticky with `max-height: 100%` — a limit measured
+     against the whole wrap, as if the search field above it took no room. So
+     with eighteen English names and four group heads the nav stood 657px tall
+     in a 665px column that had already spent 46px on the search field and its
+     gap, ran 36px past the dialog's foot, and the dialog's own
+     `overflow: hidden` cut "About" in half; its `overflow-y: auto` never
+     engaged because it was never shorter than its content. The wheel over the
+     rail then scrolled nothing (the owner: "doesn't work with mouse, would
+     have to use arrow keys" — ↓ moves focus, and focus can reach what a wheel
+     cannot), and the Arabic rail, a few lines shorter, happened to fit, which
+     is why it looked like a language bug. As a flex child that may shrink,
+     the nav is exactly the column's remainder and scrolls on its own; the
+     mask in `.s-scrollfade` says there is more below instead of guillotining
+     the last name. */
+  flex: 1 1 auto;
+  min-height: 0;
   padding-block: 2px;
   padding-inline-end: 14px;
 }
