@@ -101,6 +101,14 @@ export function setFoldersUnder(tree: TreeNode | null, path: string, open: boole
   persistExpanded();
 }
 
+/** Open one folder, so a reveal that names a FOLDER shows what is in it: a
+ *  directory revealed closed is a name with nothing behind it. */
+export function expandFolder(path: string): void {
+  if (path === "") return;
+  expandedMap.set(path, true);
+  persistExpanded();
+}
+
 /** Open every ancestor of `path`, so a reveal can scroll to a row that is
  *  actually on screen. */
 export function expandAncestors(path: string): void {

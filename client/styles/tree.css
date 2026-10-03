@@ -35,6 +35,38 @@
   transition: background 0.15s ease, color 0.15s ease;
 }
 
+/* A ROW JUST REVEALED FROM ANOTHER SURFACE (the Media card's folder chip, an
+   embed's "Reveal in Files", the palette's reveal). The cursor ring in
+   a11y.css draws only while the tree is the focused element, and a reveal
+   leaves focus where the reader clicked — so the row was expanded to,
+   scrolled to and shown in no way at all; from the Media page the owner saw
+   nothing happen. The row breathes three times in the accent, like a cited
+   passage in the book reader (books.css `.s-book__pulse`), and stops: a mark
+   of arrival, never a highlight. useTreeCursor takes the class off after the
+   third beat. */
+.s-tree__item--revealed {
+  background: var(--accent-soft);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  color: var(--text);
+  animation: s-tree-revealed 720ms ease-in-out 3;
+}
+@keyframes s-tree-revealed {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Held still rather than removed: the row still has to be FOUND. */
+  .s-tree__item--revealed {
+    animation: none;
+  }
+}
+
 .s-tree__item:hover {
   background: var(--sidebar-hover-bg);
   color: var(--sidebar-text);

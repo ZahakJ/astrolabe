@@ -214,8 +214,9 @@ and the card counts hours and draws no bar. Turn it back on later and the bar re
 
 **A folder of your own notes.** *Notes in the vault* on the form (or `folder:` in the fence) points
 a work at a folder, the one you already keep your chapter notes or episode notes in. The card grows
-a chip that counts the notes there and opens them: the folder's own note when it has one (a note
-named like the folder, or `index.md`), otherwise the folder revealed in the sidebar; under the chip,
+a chip that counts the notes there and opens them: the sidebar opens, the folder unfolds in the
+tree and pulses three times so you can see where it is, and a folder that has its own note (a note
+named like the folder, or `index.md`) opens that note as well; under the chip,
 the one note you touched last, a door back to where you left off. The right panel keeps the same
 link from either end: on a note inside the folder, **Tracked in** names the work, draws its bar and
 nudges it; on the tracker note itself, **Notes of this work** counts the notes, shows the last one
