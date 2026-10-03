@@ -538,6 +538,16 @@ letter — not a frame counter, and the caret is put at line ~1,500 first, becau
 overage, with the cause written beside them, or **down** when a round earns it. `PERF_ROUNDS=1`
 is the quick form; `PERF_KEEP=1` leaves the generated vault behind to look at.
 
+### `npm run check-media` — the folder chip
+
+In a browser, against a running instance (`node scripts/check-media.mjs http://localhost:6801`,
+`ASTROLABE_PASSWORD` when the instance has one). Writes two trackers through the API, one over a
+plain folder of two notes and one over a folder that has its own note, opens the Media page and
+presses each folder chip: the folder's row must be in the tree, unfolded, scrolled on screen and
+painted — without the tree holding keyboard focus, which a click on the Media page never gives
+it — and the folder with its own note must open that note as well. The fixtures are deleted,
+permanently, however the run ends.
+
 ### `npm run check-books` — the reader
 
 After `npm run build`. Ten properties of the book reader — both surfaces, the PDF one and the EPUB one — that are invisible in review and

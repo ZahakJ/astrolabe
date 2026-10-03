@@ -1823,7 +1823,12 @@ const AUDIENCES = [
   // nothing else. 1034 → 1036.
   // SETTINGS, DESIGNED: 1034.8 → 1045.1 kB, +10.3 — the entry's, nothing
   // else (the pages and the walk's kinds ride the settings chunk). 1036 → 1047.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1047 * 1024 },
+  // THE FOLDER CHIP SHOWS THE FOLDER (3.39.3): 1045.1 → 1047.4 kB, +2.3 — the
+  // tree's revealed-row rule and keyframes in tree.css (first paint by
+  // construction: the sidebar is the admin shell) and the reveal's unfold and
+  // pulse in useTreeCursor; nothing can be split off a row's own paint.
+  // 1047 → 1049.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1049 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The

@@ -5,7 +5,11 @@
 // exactly where the block stood.
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import { TREE_ALL_EVENT, TREE_REVEAL_EVENT, expandAncestors, findNode, parentOf, setAllFolders } from "./expansion.ts";
+import { TREE_ALL_EVENT, TREE_REVEAL_EVENT, expandAncestors, expandFolder, findNode, parentOf, setAllFolders } from "./expansion.ts";
+
+/** How long a revealed row wears its pulse: three beats of 720ms, the book
+ *  reader's own rhythm for a cited passage (books.css `s-book-pulse`). */
+const REVEAL_MS = 3 * 720;
 import type { TreeNode } from "../../../shared/types.ts";
 import { confirmDeleteAttachment, confirmDeleteFolder, confirmDeleteNote } from "../deleteFlow.ts";
 import { useStore } from "../../state.ts";
@@ -46,6 +50,9 @@ export function useTreeCursor({
   // per-chevron toggles, so a bulk write is followed by a keyed remount and
   // every row re-seeds from the map.
   const [treeEpoch, setTreeEpoch] = useState(0);
+  /** The pulse's own clock, cleared when a second reveal lands inside the first. */
+  const revealTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(revealTimer.current), []);
   useEffect(() => {
     const onAll = (e: Event): void => {
       const open = (e as CustomEvent<{ open: boolean }>).detail?.open === true;
@@ -56,13 +63,29 @@ export function useTreeCursor({
       const path = (e as CustomEvent<{ path: string }>).detail?.path;
       if (typeof path !== "string" || path === "") return;
       expandAncestors(path);
+      // A FOLDER IS REVEALED OPEN. The tracker's folder chip named a directory
+      // and the tree answered with a closed row the reader had to find and
+      // click; a directory revealed closed is a name with nothing behind it.
+      if (findNode(useStore.getState().tree, path)?.type === "folder") expandFolder(path);
       setTreeEpoch((n) => n + 1);
       setCursor(path);
       // After the remount has painted the now-visible row.
       requestAnimationFrame(() => {
-        treeScrollRef.current
-          ?.querySelector<HTMLElement>(`[data-tree-path="${CSS.escape(path)}"]`)
-          ?.scrollIntoView({ block: "center" });
+        const row = treeScrollRef.current?.querySelector<HTMLElement>(`[data-tree-path="${CSS.escape(path)}"]`);
+        if (!row) return;
+        row.scrollIntoView({ block: "center" });
+        // THE REVEAL IS PAINTED, WHETHER OR NOT THE TREE HAS FOCUS. The cursor
+        // ring (a11y.css) draws only while the tree is the focused element,
+        // and a reveal from the Media page, an embed's menu or the palette
+        // leaves focus where the reader clicked — so the row was found,
+        // scrolled to and shown in no way at all. The row pulses three times
+        // like a cited passage in the book reader, then stops; it is a mark
+        // of arrival, not a highlight (tree.css `.s-tree__item--revealed`).
+        row.classList.remove("s-tree__item--revealed");
+        void row.offsetWidth; // restart the animation when the same row is revealed twice
+        row.classList.add("s-tree__item--revealed");
+        window.clearTimeout(revealTimer.current);
+        revealTimer.current = window.setTimeout(() => row.classList.remove("s-tree__item--revealed"), REVEAL_MS);
       });
     };
     window.addEventListener(TREE_ALL_EVENT, onAll);

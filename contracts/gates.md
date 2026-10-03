@@ -7,7 +7,7 @@ Every `scripts/check-*` gate and what it asserts, then the test suite. Part of t
 All green before a release (the list the briefs name as common ground): `npm run typecheck` ·
 `node scripts/check-i18n.mjs` · `npm test` · `npm run build` (never bare vite) then
 `node scripts/check-bundle.mjs` · check-a11y · check-contrast · check-settings · check-keymap ·
-check-names · check-docs · check-books · check-whatsnew · check-desktop · check-shell-seam ·
+check-names · check-docs · check-books · check-media · check-whatsnew · check-desktop · check-shell-seam ·
 check-cascade · `npm run build-docs` · and the browser gates against a scratch server (check-phone,
 check-fidelity, check-windows-layout, check-deck, check-french). check-perf runs on a quiet machine
 after a build. Each script's own header says why it exists; the line below is what it asserts.
@@ -19,6 +19,7 @@ after a build. Each script's own header says why it exists; the line below is wh
 | `check-books.mjs` | Ten source properties of the book reader, after a build: the pdf.js worker is a real same-origin asset (no `blob:` under the CSP), the engine has one door, and the rest listed in its header. |
 | `check-bundle.mjs` | What each audience downloads, read from `dist/.vite/manifest.json`: a visitor's first request carries no admin surface, every lazy surface stays lazy (the two dictionaries among them), and per-audience byte budgets hold — each audience measured with ONE language, the larger, since a page fetches the one it speaks; `sw.js` names both dictionaries; a budget moves only by a measured overage (or saving) with its cause beside it. |
 | `check-caret.mjs` | Pointer → document accuracy in the live-preview editor, in a browser: caret placement, hover, mod-click, selection and the double-click word land on the character under the pointer. |
+| `check-media.mjs` | The Media page's folder chip, in a browser: pressing it reveals the tracker's folder in the tree — unfolded, scrolled on screen and painted without the tree holding focus — and a folder with its own note opens that note as well; fixtures written through the API and deleted permanently. |
 | `check-cascade.mjs` | No phone or touch declaration (an `@media` asking `pointer: coarse`, `hover: none` or a `max-width` ≤ 1000px) is undone by a later unconditional rule for the same selector and property, across every stylesheet in load order. |
 | `check-contrast.mjs` | WCAG ratios for every theme's tokens (text 4.5:1, muted and faint 3:1, accent, focus ring); every theme id has a block and every block an id; `:root` carries `THEMES[0]`'s values; every block declares every token. |
 | `check-deck.mjs` | Every what's-new slide, in English and Arabic, measured in a browser: nothing runs off its frame. |

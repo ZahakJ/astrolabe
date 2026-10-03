@@ -208,9 +208,14 @@ panel's "Notes of this work" walked the tree and listed every note under the fol
 book folders hold dozens of atomic notes and the section was the height of the panel ("a long
 list of all the notes taken"). Both surfaces now show the last note only — the Media card's
 "Last note" door and the panel's, with the count in the panel header and an "Open the folder"
-door — and both doors go through one function, `openTrackerFolder()` (`client/trackerFolder.ts`):
-the folder's own note when it has one, else the folder revealed in the tree with the sidebar
-open. The wire shape stayed a list so an older client still reads it. The banner picker and the
+door — and both doors (and the phone's tracker screen) go through one function,
+`openTrackerFolder()` (`client/trackerFolder.ts`). Since 3.39.3 the folder is ALWAYS shown in the
+tree — the sidebar opened, the folder unfolded (`expandFolder`) and pulsed three times
+(`.s-tree__item--revealed`, painted by `useTreeCursor`'s reveal whether or not the tree holds
+focus, since the cursor ring draws only while it does) — and a folder with its own note opens that
+note as well; it used to open the note INSTEAD, and a reveal moved an invisible cursor to a
+closed row (the owner, from the Media page: "just highlight it on the left bar"). `check-media`
+holds both doors. The wire shape stayed a list so an older client still reads it. The banner picker and the
 Media form's cover upload send the note's folder as the upload CONTEXT (`uploadAttachment(file,
 admin, dir)`), as an editor paste does: they sent none, so under the "same folder" and
 "subfolder" attachment modes a banner landed at the vault root while a pasted image landed
