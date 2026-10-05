@@ -26,7 +26,7 @@ import { PocketIndex, isNote } from "../mobile/src/pocket/index.ts";
 import { createPocketServer, isoToday, type PocketGit, type PocketRequest, type PocketResponse } from "../mobile/src/pocket/server.ts";
 import { createVaultIo, isHiddenPath, safeVaultPath } from "../mobile/src/pocket/vaultIo.ts";
 import { makeMemoryFs, type MemoryFs } from "./helpers/memoryFs.ts";
-import type { Backlink, NoteData, PocketSyncStatus, SearchHit, SettingsResponse, TagCount, TreeNode } from "../shared/types.ts";
+import type { Backlink, MeData, NoteData, PocketSyncStatus, SearchHit, SettingsResponse, TagCount, TreeNode } from "../shared/types.ts";
 
 const ROOT = "/vault";
 
@@ -714,6 +714,19 @@ describe("the pocket server — settings that travel with the vault", () => {
     const after = (await server.json("PATCH", "/api/settings", { tagline: null })) as SettingsResponse;
     assert.equal(after.effective.siteName, "The Canopy");
     assert.equal(after.effective.tagline, null);
+  });
+
+  it("carries the properties card's switches on /api/me, so a hidden card stays hidden on the phone (3.40.0)", async () => {
+    const server = await loaded();
+    const before = (await server.json("GET", "/api/me")) as MeData;
+    assert.equal(before.propsCard, undefined, "a default vault says nothing");
+    await server.json("PATCH", "/api/settings", { propsCard: false, emptyPropsCard: false });
+    const me = (await reopened(server.fs).json("GET", "/api/me")) as MeData;
+    assert.equal(me.propsCard, false);
+    assert.equal(me.emptyPropsCard, false);
+    const back = (await server.json("PATCH", "/api/settings", { propsCard: null })) as SettingsResponse;
+    assert.equal(back.effective.propsCard, true);
+    assert.equal(((await server.json("GET", "/api/me")) as MeData).propsCard, undefined);
   });
 
   it("never shows the settings file as part of the vault", async () => {

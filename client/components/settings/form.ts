@@ -149,6 +149,7 @@ export interface Form {
   textDirection: string; // "auto" | "ltr" | "rtl"
   textAlign: string;     // "start" | "left" | "right" | "center" | "justify"
   emptyPropsCard: string; // "on" | "off"
+  propsCard: string;      // "on" | "off"
   tagsFolder: string;
   /** The tag-label table, as ROWS rather than as the wire map — the editor is
    *  a list the reader adds to and deletes from, and a map cannot hold a row
@@ -301,6 +302,7 @@ export function formFrom(s: SettingsResponse): Form {
     textDirection: s.effective.textDirection ?? "auto",
     textAlign: s.effective.textAlign ?? "start",
     emptyPropsCard: s.effective.emptyPropsCard === false ? "off" : "on",
+    propsCard: s.effective.propsCard === false ? "off" : "on",
     tagsFolder: s.tagsFolder ?? "",
     // The STORED map only. The tag pages' own labels are merged in by the
     // server at read time and deliberately never prefill this editor: a
@@ -921,6 +923,9 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
   }
   if (f.emptyPropsCard !== initial.emptyPropsCard) {
     patch.emptyPropsCard = f.emptyPropsCard === "off" ? false : null;
+  }
+  if (f.propsCard !== initial.propsCard) {
+    patch.propsCard = f.propsCard === "off" ? false : null;
   }
   if (f.textAlign !== initial.textAlign) {
     patch.textAlign =

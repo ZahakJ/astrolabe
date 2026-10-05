@@ -86,7 +86,7 @@ settings KEY changes (only the rows' homes move), so nothing stored migrates.
 | 37 | language | `rowDateSeparator` | With both calendars: the mark between them | once | — | MERGE | `rowDateOrder` | `dates`, part of `rowDateOrder` |
 | 38 | language | `rowTextDirection` | Base direction of note prose | once | — | MOVE | Appearance › Text | `type` |
 | 39 | language | `rowTextAlign` | Alignment of note prose | once | — | MOVE | Appearance › Text | `type` |
-| 40 | language | `rowEmptyPropsCard` | The properties card on a bare note | once | — | MOVE | Writing | `writing` |
+| 40 | language | `rowEmptyPropsCard` | The properties card on a bare note | once | — | MOVE | Writing | `writing`, part of `rowPropsCard` |
 | 41 | language | `rowVoiceLanguage` | Which language voice notes are transcribed in | once | yes (it does not steer Read aloud) | MOVE | Reading & speech › Voice notes | `speech` |
 | 42 | language | `rowReadAloud` | Engines, install, voices and speed for Read aloud | monthly | yes (which engine speaks what) | MOVE | Reading & speech › Read aloud | `speech` |
 | 43 | language | `rowOwnVoices` | A folder of Piper/Kokoro voices and an external speaker | never | yes (file layout, the operator switch) | DEMOTE | Reading & speech › Advanced | `speech` › Advanced |
@@ -161,13 +161,15 @@ settings KEY changes (only the rows' homes move), so nothing stored migrates.
 ## Round 2 additions
 
 Entries the index holds that no row of 3.37.0 was. The purge added one host row;
-the second pass added one part. `tests/settings-purge.test.ts` holds the index to
-this list: an entry that is in neither table is a row nobody accounted for.
+the second pass added one part; 3.40.0 added one host. `tests/settings-purge.test.ts`
+holds the index to this list: an entry that is in neither table is a row nobody
+accounted for.
 
 | Entry | Page (round 2) | Why |
 | ----- | -------------- | --- |
 | `rowWebmentions` | `conversation` | The purge's one new host: webmentions in and out are one row with two parts (rows 49 and 50). |
 | `feedsNoteField` | `reading`, part of `rowFeeds` | The note that lists the feeds was a field beside the Feeds switch, the one row drawn as a side-by-side pair; it is a part under the switch now, and a search lands on it by name. |
+| `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the owner's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
 
 ## The verdicts, counted
 

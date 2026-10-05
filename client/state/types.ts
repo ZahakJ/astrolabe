@@ -326,6 +326,9 @@ export interface State {
   textAlign: TextAlign;
   /** The properties card on notes without frontmatter (settings.emptyPropsCard). */
   emptyPropsCard: boolean;
+  /** The properties card at all (settings.propsCard; client/propsCard.ts).
+   *  Only an admin session reads it false — a visitor's card is always drawn. */
+  propsCard: boolean;
   /** settings.folderIcons — vault-relative FOLDER path → one glyph from the
    *  closed set. Read per row by the sidebar tree, which is why the identity
    *  of this object matters: TreeRow is memoized over 1.4k rows and reads

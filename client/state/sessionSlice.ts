@@ -285,6 +285,7 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
           textDirection: noteDir,
           textAlign: noteAlign,
           emptyPropsCard: me.emptyPropsCard !== false,
+          propsCard: me.propsCard !== false,
           folderIcons: icons,
           attachmentFolder: me.attachmentFolder ?? null,
           drawingsFolder: me.drawingsFolder ?? "",

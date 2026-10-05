@@ -30,6 +30,7 @@ import { openWhatsNew } from "../../whatsnew/door.ts";
 import { panesInOrder, serializeWorkspace } from "../../workspace.ts";
 import { popOutNote } from "../../windows/coherence.ts";
 import { promptNewDrawing, promptNewFolder } from "../../prompts.ts";
+import { hideProperties, setPropsCard } from "../../propsActions.ts";
 import { putLayout } from "../../api.ts";
 import { readWarmth, toggleWarmth } from "../../eyeComfort.ts";
 import { runSnapshotNow, runSyncNow, syncSnapshot } from "../../sync.ts";
@@ -523,6 +524,17 @@ export const COMMANDS: Command[] = [
     id: "toggle-selection-toolbar",
     label: () => t("cmdSelectionToolbar"),
     hint: () => t("cmdSelectionToolbarHint"),
+    available: () => useStore.getState().admin,
+  },
+  // THE PROPERTIES CARD'S WAY BACK, and its way out for a keyboard. The label
+  // is the STATE's verb, as the warm-screen row's is: a reader who hid the
+  // card by a stray right-click types "properties" and finds "Show
+  // properties" — the one row that undoes it, named for what it will do.
+  // Admin only: the card is hidden only in the owner's own views.
+  {
+    id: "toggle-properties",
+    label: () => t(useStore.getState().propsCard ? "cmdHideProperties" : "cmdShowProperties"),
+    hint: () => t("cmdPropertiesHint"),
     available: () => useStore.getState().admin,
   },
   // Three commands, not one toggle. The old single command named the edge you
@@ -1196,6 +1208,10 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "toggle-selection-toolbar":
       setSelectionToolbarEnabled(!selectionToolbarEnabled());
+      break;
+    case "toggle-properties":
+      if (store.propsCard) hideProperties();
+      else void setPropsCard(true);
       break;
     case "sidebar-side-auto":
       store.setSidebarSidePref("auto");

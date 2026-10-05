@@ -39,6 +39,7 @@ import {
   resolveAttachment,
 } from "../editor/embeds.ts";
 import { buildBannerEl, buildPropsCard } from "../editor/noteMeta.ts";
+import { propsCardHidden } from "../propsCard.ts";
 import { bannerFromYaml } from "../banner.ts";
 import { markTransclusionOverflow, onRootClick, type RenderOptions } from "./render.ts";
 import "./tex.css";
@@ -892,7 +893,8 @@ export function renderTex(src: string, opts: RenderOptions): HTMLElement {
         }),
       );
     }
-    const card = buildPropsCard(doc.frontmatter, {
+    // Left out of the owner's own view when they hid it (client/propsCard.ts).
+    const card = propsCardHidden() ? null : buildPropsCard(doc.frontmatter, {
       prefix: "s-rv-props",
       makeTag: (value) => {
         const pill = document.createElement("button");

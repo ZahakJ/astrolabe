@@ -53,6 +53,8 @@ import {
 import { attachVimStatus, detachVimStatus } from "../editor/vimStatus.ts";
 import { languageChanged } from "../editor/langEffect.ts";
 import { noteLayoutChanged } from "../editor/noteLayout.ts";
+import { propsCardChanged } from "../editor/propsEffect.ts";
+import { installPropsMenu } from "../propsCard.ts";
 import { findHeadingLine } from "../../shared/headings.ts";
 import { anchorLine } from "../../shared/anchors.ts";
 import { footnotesOf } from "../../shared/footnotes.ts";
@@ -81,6 +83,11 @@ import { stripTashkeelNote } from "../editor/harakat.ts";
 import { autoFuriganaSelection, openFuriganaPopover } from "../editor/furigana.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
 import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
+
+// The properties card answers a right-click with "Hide properties"
+// (client/propsCard.ts). Delegated on the document, installed once; the
+// reading view installs the same listener, whichever mounts first.
+installPropsMenu();
 
 /** The caret each note was last seen at, so a REMOUNT does not throw it away.
  *
@@ -226,6 +233,7 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   // alignment resolve to (the note's own frontmatter is the other half).
   const siteTextDirection = useStore((s) => s.textDirection);
   const siteTextAlign = useStore((s) => s.textAlign);
+  const propsCard = useStore((s) => s.propsCard);
 
   useEffect(() => {
     let disposed = false;
@@ -428,6 +436,12 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   useEffect(() => {
     viewRef.current?.dispatch({ effects: noteLayoutChanged.of(null) });
   }, [siteTextDirection, siteTextAlign]);
+
+  // The properties card hidden or brought back (client/propsCard.ts): the
+  // same repaint-without-rebuild, so the flip costs nobody their undo history.
+  useEffect(() => {
+    viewRef.current?.dispatch({ effects: propsCardChanged.of(null) });
+  }, [propsCard]);
 
   // THE KEYBOARD CASE. On a phone the on-screen keyboard shrinks the visual
   // viewport, and the caret's line was left under the status bar until the

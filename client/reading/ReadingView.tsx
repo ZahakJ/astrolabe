@@ -28,10 +28,14 @@ import "../print.ts";
 import "./reading.css";
 import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
 import { focusableEmbeds, installEmbedPickup } from "../embedPickup.ts";
+import { installPropsMenu } from "../propsCard.ts";
 
 // Pictures, cards and pages in a reading view drag and answer a right-click
 // (client/embedPickup.ts). Delegated on the document, installed once.
 installEmbedPickup();
+// …and the properties card answers one with "Hide properties", for the owner
+// (client/propsCard.ts). The editor installs the same listener; once is once.
+installPropsMenu();
 
 /** Scroll positions survive tab switches; module-level so remounts keep them.
  *  Bounded because "every note read this session" is the whole vault on a
@@ -116,6 +120,8 @@ export default function ReadingView({ path }: { path: string }) {
   const language = useStore((s) => s.language);
   const siteTextDirection = useStore((s) => s.textDirection);
   const siteTextAlign = useStore((s) => s.textAlign);
+  // The owner hid or brought back the properties card (client/propsCard.ts).
+  const propsCard = useStore((s) => s.propsCard);
   // Auto-numbered headings: a reading affordance, off by default, overridden
   // per note by frontmatter `numbered:`. The tick repaints when the outline
   // panel's "1." toggle flips the device preference (reading/headingNumbers.ts).
@@ -245,8 +251,8 @@ export default function ReadingView({ path }: { path: string }) {
     // The site's note-layout defaults are dependencies for the same reason
     // `language` is: they are half of what `applyNoteLayoutTo` resolves, and a
     // settings save has to repaint the open note rather than waiting for it to
-    // be reopened.
-  }, [path, tree, isDirty, language, numberTick, siteTextDirection, siteTextAlign]);
+    // be reopened. `propsCard` likewise: the card is drawn into this body.
+  }, [path, tree, isDirty, language, numberTick, siteTextDirection, siteTextAlign, propsCard]);
 
   // Active-heading tracking while scrolling.
   useEffect(() => {

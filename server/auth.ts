@@ -24,7 +24,7 @@ import { libraryFor } from "./library.ts";
 import { currentVisibility, isReducingReach } from "./visibility.ts";
 import { commentsEnabled } from "./comments.ts";
 import { siteFontsSignature } from "./fonts.ts";
-import { VERSION, dateCalendar, dateOrder, dateSeparator, drawingsFolder, emptyPropsCard, fontSlots, getSettings, textAlign, textDirection } from "./settings.ts";
+import { VERSION, dateCalendar, dateOrder, dateSeparator, drawingsFolder, emptyPropsCard, fontSlots, getSettings, propsCard, textAlign, textDirection } from "./settings.ts";
 import { FOLLOW_THEME } from "../shared/themes.ts";
 import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
@@ -748,6 +748,9 @@ authRoutes.get("/me", (c) => {
   const noteAlign = textAlign();
   if (noteAlign !== "start") me.textAlign = noteAlign;
   if (!emptyPropsCard()) me.emptyPropsCard = false;
+  // Admin only: the switch is how the owner reads their own notes, and a
+  // visitor's card is drawn whatever it says (shared/types.ts MeData).
+  if (admin && !propsCard()) me.propsCard = false;
   // What the shell opens on top of the restored session (shared/launch.ts).
   // Admin only — it may be a vault path — and only when it is not the
   // default, so a default instance's payload is byte-for-byte what it was.

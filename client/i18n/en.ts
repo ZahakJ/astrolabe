@@ -1970,6 +1970,9 @@ const en = {
   selToolbarLabel: "Formatting toolbar",
   cmdSelectionToolbar: "Floating formatting toolbar",
   cmdSelectionToolbarHint: "Appears over a selection",
+  cmdHideProperties: "Hide properties",
+  cmdShowProperties: "Show properties",
+  cmdPropertiesHint: "The card above every note",
 
   // ── LaTeX notes (.tex / .latex) ──────────────────────────────────────────
   // A `.tex` note is a note like any other, so its chrome is localized like
@@ -2189,6 +2192,10 @@ const en = {
   rowTextAlign: "Text alignment",
   rowEmptyPropsCard: "Properties card on empty notes",
   hintEmptyPropsCard: "A one-line card on notes that have no properties yet.",
+  rowPropsCard: "Properties card",
+  hintPropsCard: "Each note's properties, above its first line. Off hides them for you, not visitors.",
+  hidePropertiesMenu: "Hide properties",
+  propsHiddenToast: "Properties hidden. Show them again in Settings → Writing.",
   hintTextAlign: "Where lines sit in the column; code and tables never move.",
   noteLayoutOverride: "Change it when most of your notes are in one script — RTL for an Arabic vault — so paragraphs stop guessing. A note's own frontmatter — dir, align — overrides both.",
 
@@ -4533,6 +4540,7 @@ const en = {
   phTwinSwap: "Switch to the other face ({there})",
   phTwinCreate: "Create a twin",
   phNoProps: "No properties yet.",
+  phPropsCardShow: "Show the card above notes",
   phPropKey: "Name of the property",
   phPropClear: "Saving an empty value removes this property.",
   phSave: "Save",

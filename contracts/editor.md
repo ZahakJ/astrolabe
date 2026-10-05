@@ -808,7 +808,7 @@ is for pictures only (`embedMenuActions`: image, drawing, drawn page).
 **The properties card on a note with no frontmatter** (`EmptyPropsWidget`, block, side −1 at
 0): the head and the add line, "Set banner…" beside it; both write through `POST /api/frontmatter`,
 which creates the block. Off by `settings.emptyPropsCard` (default on; `MeData.emptyPropsCard`
-travels only as `false`). **The add form lists the keys the app understands** (`KNOWN_KEYS` in
+travels only as `false`), and with every other card by `settings.propsCard` (below). **The add form lists the keys the app understands** (`KNOWN_KEYS` in
 propsEdit.ts, with a hint each): all of them when the name box is empty, filtered as typed, ↑/↓
 and Enter; `tags`, `aliases`, `cssclasses` are written as lists (`valueFor`), `publish` and
 `numbered` as booleans when the value reads as one. The card's head prints the word alone, no
@@ -879,6 +879,31 @@ keys nobody touched. Astrolabe's writer is textual. `shared/frontmatterEdit.ts` 
 - **44px on any coarse pointer**, for the row ×, the chip ×, the `+`, the value button, the add
   form and the checkbox — and the row × drops its hover fade there, because an invisible control on
   a touch device is not a quiet control.
+- **HIDDEN BY ITS OWN RIGHT-CLICK, NEVER BY A BUTTON** (3.40.0; the owner: "make it possible to
+  disable the properties block … but ya shouldn't add extra clutter"). `settings.propsCard`
+  (default on; `MeData.propsCard` travels only as `false` and ONLY TO ADMIN SESSIONS) is a vault
+  setting beside `emptyPropsCard`, so hiding on the laptop hides on the phone; Settings → Writing →
+  *Properties card* is its row and the empty-note card is that row's part. `client/propsCard.ts`
+  (first paint: the predicate and the listener) and `client/propsActions.ts` (lazy: the menu, the
+  optimistic `PATCH /api/settings`, the toasts) own it: `propsCardHidden()` (admin && off) is the
+  ONE question all four card builders ask
+  (livePreview's `FrontmatterWidget`/`EmptyPropsWidget`, the LaTeX preview, `render.ts`,
+  `texRender.ts`), so a visitor — and the owner previewing as one — always gets the card, because a
+  writer's display preference is not an editorial decision. Hidden, the editor folds the
+  frontmatter to its banner or to nothing, and the caret still opens it as source (the reveal rule
+  every construct keeps), so Ctrl+Home never lands a keystroke above an unseen `---`. Repainted
+  live: Editor.tsx dispatches `propsCardChanged` (editor/propsEffect.ts), `FrontmatterWidget`
+  carries `card` in its `eq()`, ReadingView re-renders on `propsCard`. The door in is ONE
+  document-level `contextmenu` listener (`installPropsMenu`, the embedPickup shape: two of the
+  builders are CodeMirror widgets whose events the editor never sees) opening the one ContextMenu
+  through `menuPortal` with one row, *Hide properties*; Shift+F10 on the card's trigger opens it
+  with focus inside. A text field inside the card, a selection reaching into it and a visitor's
+  right-click keep the platform's menu. The phone's note screen answers a hold on the
+  "N properties" line with the same row as an action sheet and stops the event there. The ways
+  back: the action toast's Undo (which also names the setting), the palette's state-named
+  *Show properties* (`toggle-properties`, admin only), the phone sheet's Properties segment
+  (*Show the card above notes*, drawn only while hidden) and the setting itself. Nothing is drawn
+  for a reader who never hides it.
 
 ## Coloured text (shared/textColors.ts, client/styles/textcolor.css)
 

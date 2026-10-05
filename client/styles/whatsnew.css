@@ -858,3 +858,92 @@
     min-block-size: 44px;
   }
 }
+
+/* 3.40.0 — the properties card hidden from its own right-click. The card is
+   the reading view's (reading.css); this sheet only stages it: a page, the
+   menu where the pointer was, the toast under the page. `data-state` walks
+   "" → is-menu → is-pick → is-hidden and back (releaseNotes.ts). */
+.s-wn-props {
+  inline-size: min(460px, 100%);
+  /* The full state's height, held while the card folds away, so the page
+     does not jump toward the middle under the reader's eye. */
+  min-block-size: 330px;
+  margin-inline: auto;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+  justify-items: center;
+  align-self: center;
+}
+.s-wn-props__page {
+  position: relative;
+  inline-size: 100%;
+  padding: 18px 20px 22px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+/* A picture of the card, not the card: a click here must not write this
+   reader's own expand/collapse preference. */
+.s-wn-props__card {
+  pointer-events: none;
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.35s ease, opacity 0.3s ease;
+}
+/* The fold's inner box clips, and holds the card's own margin inside it:
+   a margin on a grid item would keep the 0fr track open by its size. */
+.s-wn-props__fold {
+  min-block-size: 0;
+  overflow: hidden;
+}
+.s-wn-props[data-state="is-hidden"] .s-wn-props__card {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+.s-wn-props__h {
+  margin-block-start: 10px;
+  font-family: var(--font-serif);
+  font-size: 1.286rem;
+  color: var(--text);
+}
+.s-wn-props__line {
+  block-size: 6px;
+  margin-block-start: 12px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+}
+.s-wn-props__line--short {
+  inline-size: 62%;
+}
+.s-wn-props__menu {
+  position: absolute;
+  inset-block-start: 40px;
+  inset-inline-start: 38%;
+  visibility: hidden;
+}
+.s-wn-props[data-state="is-menu"] .s-wn-props__menu,
+.s-wn-props[data-state="is-pick"] .s-wn-props__menu {
+  visibility: visible;
+}
+.s-wn-props[data-state="is-pick"] .s-wn-props__menu .s-menu__item {
+  background: var(--menu-hover-bg);
+}
+.s-wn-props__toast {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+  visibility: hidden;
+}
+.s-wn-props[data-state="is-hidden"] .s-wn-props__toast {
+  visibility: visible;
+}
+.s-wn-props__undo {
+  color: var(--accent);
+  font-weight: 600;
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-wn-props__card {
+    transition: none;
+  }
+}

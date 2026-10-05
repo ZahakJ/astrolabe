@@ -236,9 +236,10 @@ tap writes the note at once.
 **Holding means "more".** Hold a row in Notes to rename it, move it, pin it, publish it or delete
 it. Hold a heading while editing to fold it, fold what is under it, copy a link to it, select it,
 focus on it or move it into a note of its own; hold a heading while reading for the rows that make
-sense without the editor — copy a link, copy its Markdown, move it into a note of its own. (On a
-phone the fold arrow and the heading's **⋯** are gone from the margins, so the text has the whole
-width.)
+sense without the editor — copy a link, copy its Markdown, move it into a note of its own. Hold
+the "N properties" line at the top of a note for **Hide properties** (see
+[the editor](editor.md#writing)). (On a phone the fold arrow and the heading's **⋯** are gone from
+the margins, so the text has the whole width.)
 
 **Orbits, Sigils and Media are lists.** **Orbits** lists your decks with what each has due; a deck
 opens its own screen — due, new and total, one **Study** button, and its sections if you want to

@@ -13,7 +13,10 @@
 // prose and demos cost the entry nothing.
 
 import { isoDate, mergeEntry, parseRoutine, parseRoutineLog, shiftDate, type EntryPatch, type RoutineEntry } from "../../shared/routine.ts";
+import { buildPropsCard } from "../editor/noteMeta.ts";
 import { t } from "../i18n.ts";
+// The 3.40.0 demo draws the reading view's own properties card.
+import "../reading/reading.css";
 
 export type Lang = "en" | "ar";
 export type Text = Record<Lang, string>;
@@ -366,9 +369,82 @@ function furiganaDemo(host: HTMLElement, lang: Lang): void {
   host.replaceChildren(wrap);
 }
 
+// ── 3.40.0: Properties, out of the way ──────────────────────────────────────
+
+const PROPS_SAMPLE: Text = {
+  en: "title: On the Muqaddimah\ntags: [history, ibn-khaldun]\nstatus: reading\nstarted: 2026-09-12",
+  ar: "title: عن المقدّمة\ntags: [تاريخ, ابن-خلدون]\nstatus: قيد القراءة\nstarted: 2026-09-12",
+};
+
+/** The product's own card (buildPropsCard, the reading view's flavour), the
+ *  one-row menu a right-click opens, and the toast with its Undo — played as
+ *  a loop: menu, pick, the card leaves, the toast says where it comes back. */
+function propsHideDemo(host: HTMLElement, lang: Lang): () => void {
+  const wrap = el("div", "s-wn-props");
+  const page = el("div", "s-wn-props__page");
+  const card = buildPropsCard(PROPS_SAMPLE[lang], {
+    prefix: "s-rv-props",
+    makeTag: (value) => {
+      const pill = el("span", "s-rv-tag", `#${value}`);
+      pill.dataset.tag = value;
+      pill.dir = "auto";
+      return pill;
+    },
+  });
+  const cardBox = el("div", "s-wn-props__card");
+  const fold = el("div", "s-wn-props__fold");
+  cardBox.appendChild(fold);
+  if (card) {
+    // Open whatever this reader's own preference is, so the rows show.
+    card.classList.remove("s-rv-props--collapsed");
+    fold.appendChild(card);
+  }
+  page.appendChild(cardBox);
+  page.appendChild(el("div", "s-wn-props__h", L(lang, "On the Muqaddimah", "عن المقدّمة")));
+  page.appendChild(el("div", "s-wn-props__line"));
+  page.appendChild(el("div", "s-wn-props__line s-wn-props__line--short"));
+  const menu = el("div", "s-menu s-wn-props__menu");
+  menu.appendChild(el("div", "s-menu__item", L(lang, "Hide properties", "إخفاء الخصائص")));
+  page.appendChild(menu);
+  const toastEl = el("div", "s-toast s-wn-props__toast");
+  toastEl.appendChild(el("span", "", L(lang, "Properties hidden. Show them again in Settings → Writing.", "أُخفيت الخصائص. أظهِرها من جديد من الإعدادات ← الكتابة.")));
+  toastEl.appendChild(el("span", "s-wn-props__undo", L(lang, "Undo", "تراجع")));
+  wrap.append(page, toastEl);
+  host.replaceChildren(wrap);
+
+  // One state class at a time on the wrapper; the stylesheet does the rest.
+  const steps: [string, number][] = [["", 900], ["is-menu", 1000], ["is-pick", 500], ["is-hidden", 3200]];
+  let timer = 0;
+  let i = 0;
+  const next = (): void => {
+    const [state, wait] = steps[i % steps.length];
+    wrap.dataset.state = state;
+    i += 1;
+    timer = window.setTimeout(next, wait);
+  };
+  next();
+  return () => window.clearTimeout(timer);
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.40.0",
+    title: { en: "Properties, out of the way", ar: "الخصائص، بعيدًا عن الطريق" },
+    slides: [
+      {
+        // ── Right-click the card → Hide properties; Undo, palette, setting ──
+        title: { en: "Properties, out of the way", ar: "الخصائص، بعيدًا عن الطريق" },
+        body: {
+          en: "Right-click the properties card and choose Hide properties (on the phone, hold its line): it leaves every note on every device, and Undo brings it back. Later, Show properties in the palette or Settings → Writing → Properties card returns it. Visitors still see every card.",
+          ar: "انقر بالزر الأيمن على بطاقة الخصائص واختر «إخفاء الخصائص» (وعلى الهاتف اضغط مطوّلًا على سطرها): فتغيب عن كل الملاحظات على كل أجهزتك، و«تراجع» يعيدها. ولاحقًا يعيدها «إظهار الخصائص» في لوحة الأوامر أو الإعدادات ← الكتابة ← بطاقة الخصائص. ويبقى الزوار يرون كل بطاقة.",
+        },
+        visual: { kind: "demo", mount: propsHideDemo },
+        docs: "editor",
+      },
+    ],
+  },
   {
     version: "3.39.0",
     title: { en: "Settings, designed", ar: "إعدادات مصمَّمة" },

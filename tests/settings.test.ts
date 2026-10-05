@@ -392,6 +392,19 @@ describe("per-key validators", () => {
 
   // OPEN ON LAUNCH: four doors or a note path; the default door is stored
   // as its absence so a default instance's file is byte-for-byte what it was.
+  it("stores the properties card's switch only when it is off (3.40.0)", () => {
+    assert.equal(effectiveSettings().propsCard, true, "absence is on");
+    patchSettings({ propsCard: false });
+    assert.equal(getSettings().propsCard, false);
+    assert.equal(effectiveSettings().propsCard, false);
+    patchSettings({ propsCard: true });
+    assert.equal(getSettings().propsCard, undefined, "the default is not written down");
+    assert.match(refuse({ propsCard: "off" }), /must be a boolean or null/);
+    patchSettings({ propsCard: false });
+    patchSettings({ propsCard: null });
+    assert.equal(effectiveSettings().propsCard, true);
+  });
+
   it("stores a launch door, a launch note, and nothing for the default", () => {
     patchSettings({ launch: "sigils" });
     assert.equal(getSettings().launch, "sigils");

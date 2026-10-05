@@ -85,6 +85,7 @@ function Backlinks({ path }: { path: string }) {
 function Properties({ path }: { path: string }) {
   const phone = usePhone();
   const admin = useStore((s) => s.admin);
+  const propsCard = useStore((s) => s.propsCard);
   const reload = useStore((s) => s.reloadTick);
   const [rows, setRows] = useState<PropRow[] | null>(null);
   const [tick, setTick] = useState(0);
@@ -157,6 +158,16 @@ function Properties({ path }: { path: string }) {
           <li>
             <button type="button" className="s-ph-row s-ph-row--add" onClick={() => void add()}>
               <span className="s-ph-row__name">{t("propAdd")}</span>
+            </button>
+          </li>
+        )}
+        {/* THE WAY BACK, where a reader who held the line and hid it comes
+            looking: here, and only while the card is hidden — a row that is
+            always there is the clutter the switch was asked for without. */}
+        {admin && !propsCard && (
+          <li>
+            <button type="button" className="s-ph-row s-ph-row--add" data-prop-card="show" onClick={() => void import("../propsActions.ts").then((m) => m.setPropsCard(true))}>
+              <span className="s-ph-row__name">{t("phPropsCardShow")}</span>
             </button>
           </li>
         )}
