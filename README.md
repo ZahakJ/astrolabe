@@ -143,6 +143,7 @@ The site's own name and logo are settings too, and they travel with the vault. S
 - **[Export](docs/export.md) and [printing](docs/printing.md)** — a note, a folder, a tag or the whole vault as a ZIP with wikilinks kept or converted, any note as a standalone HTML page, and a printed page whose PDF carries real bookmarks and working links
 - **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and updates that only tell you — nothing downloads until you click
 - **[An Android app](docs/mobile.md)** — a door onto your own server, or [your vault from a private GitHub repository](docs/mobile.md#a-vault-from-github) with no server anywhere, every save a commit: a connection screen, a share sheet that captures into the vault, and nothing of the web client shipped twice
+- **[In the terminal](docs/terminal.md)** — [Astrolabe CLI](https://github.com/ZahakJ/astrolabe-cli), a separate single static binary (`astrolabe`, or `ast`), opens the same vault as plain files with no server: a reader that typesets notes, a Vim-style editor, and shell verbs for capture and search, Arabic right to left included. `curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh`
 - **[Backup & sync](docs/backup-and-sync.md)** — commit the vault to a private git remote you own, manually or on a timer, fast-forward only; and the site's settings, layouts, book shelf and notes to self [travel with the vault](docs/backup-and-sync.md#settings-travel-with-the-vault), so a new machine pointed at the folder has everything
 - **[Note history](docs/backup-and-sync.md#note-history-reading-what-the-backup-kept)** — every commit that touched the open note, read any revision as it was, restore one with an Undo behind it, and take a local snapshot before anything you are unsure about
 - **A tour, for all of the above** — fifteen illustrated cards, each with a **Show me** that really opens the thing it describes. It is never shown at you: `Ctrl/Cmd P` → *Take the tour*, a quiet line on the empty vault, or the foot of the `Ctrl/Cmd /` sheet
@@ -163,7 +164,7 @@ The site's own name and logo are settings too, and they travel with the vault. S
 | [Trackers](docs/trackers.md) · [Sigils](docs/sigils.md) · [Orbits](docs/orbits.md) · [The book reader](docs/books.md) · [Ask the vault](docs/ask.md) | Reading, the days, study |
 | [Today](docs/today.md) · [The Calendar](docs/calendar.md) · [The Timeline](docs/timeline.md) | The day, the month, the years |
 | [Panes, tabs & windows](docs/workspace.md) · [Drawings](docs/drawing.md) · [Offline reading](docs/offline.md) | The workspace |
-| [The desktop app](docs/desktop.md) · [The Android app](docs/mobile.md) | On your own devices |
+| [The desktop app](docs/desktop.md) · [The Android app](docs/mobile.md) · [In the terminal](docs/terminal.md) | On your own devices |
 | [Backup & sync](docs/backup-and-sync.md) · [Keymap](docs/keymap.md) · [Development](docs/development.md) | Operating and hacking on it |
 
 Also in the repo: [`DESIGN.md`](DESIGN.md) (the rules a change is judged against),
