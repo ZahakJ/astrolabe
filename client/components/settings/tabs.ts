@@ -6,6 +6,7 @@
 // entry on one line, `id` then `key` first); the index reads the render switch
 // in ./TabBody.tsx for the rows.
 
+import { scrollBehavior } from "../../a11y.ts";
 import { localeNum, t, tf, type I18nKey } from "../../i18n.ts";
 
 /** THE PAGES, IN FOUR GROUPS — a two-level rail (settings, round 2).
@@ -183,7 +184,8 @@ export function revealRow(root: HTMLElement | null, label: string, fallback?: st
     for (let el = row.parentElement; el && el !== root; el = el.parentElement) {
       if (el instanceof HTMLDetailsElement) el.open = true;
     }
-    row.scrollIntoView({ block: "center", behavior: "smooth" });
+    // The reader who asked for reduced motion gets the jump, not the glide.
+    row.scrollIntoView({ block: "center", behavior: scrollBehavior() });
     row.classList.add("s-smodal__row--found");
     window.setTimeout(() => row.classList.remove("s-smodal__row--found"), 1600);
   };
