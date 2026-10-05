@@ -34,6 +34,7 @@ import NoteTabStrip from "../NoteTabStrip.tsx";
 import { noteTabs, showNoteTab, subscribeNoteTabs } from "../noteTabs.ts";
 import TopBar from "../TopBar.tsx";
 import { isHeadingLine } from "../../../shared/headings.ts";
+import { propsMenuTarget } from "../../propsCard.ts";
 
 const AccessoryBar = lazySurface(() => import("../AccessoryBar.tsx"));
 
@@ -270,12 +271,75 @@ export default function NoteScreen({ path, onBack }: { path: string; onBack: () 
     };
   }, [editing, surface, path, phone]);
 
+  // ── the properties line's menu, on a long press ──────────────────────────
+  // The desktop's right-click on the card (client/propsCard.ts), as a sheet:
+  // "Hide properties", for the owner. A tap still opens the Properties
+  // segment (below). A hold that fired swallows the click a platform may send
+  // after it, or the segment would open over the menu; the capture-phase
+  // `contextmenu` keeps the desktop's listener on the document out of it.
+  const heldProps = useRef(false);
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !admin || (surface !== "edit" && surface !== "reading")) return;
+    let timer = 0;
+    let start: { x: number; y: number } | null = null;
+    const cancel = (): void => {
+      window.clearTimeout(timer);
+      start = null;
+    };
+    const open = (): void => {
+      if (heldProps.current) return;
+      heldProps.current = true;
+      const hide = (): void => void import("../../propsActions.ts").then((m) => m.hideProperties());
+      phone.openSheet(ACTION_SHEET, { title: t("properties"), rows: [{ label: t("hidePropertiesMenu"), onSelect: hide }] });
+    };
+    const onDown = (e: PointerEvent): void => {
+      heldProps.current = false;
+      if (!propsMenuTarget(e.target)) return;
+      start = { x: e.clientX, y: e.clientY };
+      timer = window.setTimeout(() => {
+        start = null;
+        open();
+      }, HOLD_MS);
+    };
+    const onMove = (e: PointerEvent): void => {
+      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) cancel();
+    };
+    const onContext = (e: MouseEvent): void => {
+      if (!propsMenuTarget(e.target)) return;
+      e.preventDefault();
+      e.stopPropagation();
+      cancel();
+      open();
+    };
+    root.addEventListener("pointerdown", onDown);
+    root.addEventListener("pointermove", onMove);
+    root.addEventListener("pointerup", cancel);
+    root.addEventListener("pointercancel", cancel);
+    root.addEventListener("contextmenu", onContext, true);
+    return () => {
+      cancel();
+      root.removeEventListener("pointerdown", onDown);
+      root.removeEventListener("pointermove", onMove);
+      root.removeEventListener("pointerup", cancel);
+      root.removeEventListener("pointercancel", cancel);
+      root.removeEventListener("contextmenu", onContext, true);
+    };
+  }, [admin, surface, phone]);
+
   // ── PROPERTIES, one line ─────────────────────────────────────────────────
   // The card at the top of every note collapses to "N properties ›" here
   // (phone.css), and that line opens the sheet's Properties segment rather
   // than unfolding a form above the note.
   const onClickCapture = useCallback(
     (e: React.MouseEvent) => {
+      if (heldProps.current) {
+        // The click that ends a hold which already opened the menu.
+        heldProps.current = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       const head = e.target instanceof Element ? e.target.closest(".cm-s-props__head, .s-rv-props__head") : null;
       if (!head || (e.target as Element).closest("[data-tag], [data-action]")) return;
       e.preventDefault();

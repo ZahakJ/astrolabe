@@ -627,6 +627,7 @@ export function createPocketServer(deps: PocketDeps): {
         textDirection: held.textDirection ?? "auto",
         textAlign: held.textAlign ?? "start",
         emptyPropsCard: held.emptyPropsCard ?? true,
+        propsCard: held.propsCard ?? true,
         tagsFolder: held.tagsFolder ?? "tags",
         tagsFolderDetected: false,
         tagLabels: held.tagLabels ?? {},
@@ -782,6 +783,14 @@ export function createPocketServer(deps: PocketDeps): {
           // published collection, no visitors, no public layout.
           published: { notes: 0, total: index.notes.size },
         };
+        // The two properties-card switches are the vault's (its
+        // settings.json, which the panel writes here as on an instance), and
+        // they are the editor's to read: without them the phone kept drawing
+        // a card the owner had hidden on the laptop — or on this phone, after
+        // its next launch.
+        const held = await heldSettings();
+        if (held.emptyPropsCard === false) me.emptyPropsCard = false;
+        if (held.propsCard === false) me.propsCard = false;
         return json(me);
       }
       case "POST /api/login":

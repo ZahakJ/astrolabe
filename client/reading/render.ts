@@ -116,6 +116,7 @@ function rubyHtml(base: string, readings: string[]): string {
 }
 import { bannerFromYaml } from "../banner.ts";
 import { buildBannerEl, buildPropsCard, TAG_RE } from "../editor/noteMeta.ts";
+import { propsCardHidden } from "../propsCard.ts";
 import { htmlBlockStart, sanitizeHtml, sanitizeInlineTag } from "./rawHtml.ts";
 import { Slugger, stripInline } from "./toc.ts";
 import { HEADING_RE } from "../../shared/headings.ts";
@@ -1891,7 +1892,10 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
           }),
         );
       }
-      const card = propsCard(yaml);
+      // The owner's own reading view leaves it out when they hid it
+      // (client/propsCard.ts); a visitor's never does, and neither does the
+      // preview, where `admin` is false.
+      const card = propsCardHidden() ? null : propsCard(yaml);
       if (card) root.appendChild(card);
     }
     lines = front.body.split("\n");

@@ -137,8 +137,9 @@ you save.
   [Hijri dates](arabic-and-rtl.md#hijri-dates)); under *Advanced*, the date locale.
 - **Writing** — **Open on launch** (where the app opens — where you left off, the Sigils page,
   the Orbits shelf, today's note, or a note of your choosing — on top of the restored session,
-  and never over a pasted link), the formatting toolbar, **Auto-correct French** and the empty
-  properties card; **where new attachments are written** (see [Attachments](#attachments)), the
+  and never over a pasted link), the formatting toolbar, **Auto-correct French**, the
+  **properties card** (off hides it in your own views — visitors still see it; see
+  [the editor](editor.md#writing)) with the empty-note card under it; **where new attachments are written** (see [Attachments](#attachments)), the
   tags folder and the **tag labels** table — display names for canonical tags, for a front end
   that should read «برمجيات» over a vault that keeps `#software` (see
   [Localised tag labels](arabic-and-rtl.md#localised-tag-labels)); under *Advanced*, the
@@ -336,6 +337,7 @@ above.
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |
 | `emptyPropsCard` | `true` · `false` — the one-line properties card on notes that have no frontmatter | `true` |
+| `propsCard` | `true` · `false` — the properties card at all, in the owner's editor and reading view (visitors always see it) | `true` |
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | vault-relative folder holding tag pages | auto-detected, else `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`, ≤ 200 tags — **replaced whole, not merged** | empty |

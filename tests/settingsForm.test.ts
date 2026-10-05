@@ -67,7 +67,7 @@ describe("the settings form, as both hosts hold it", () => {
     assert.equal(patch.shareButtons, false);
     const after = formFrom(patchSettings(patch as Record<string, unknown>));
     assert.equal(after.share, "off");
-    for (const key of ["ambient", "externalVideo", "languageToggle", "speakPublic", "emptyPropsCard", "wmAccept", "wmSend", "fediEnabled", "feedsFetch", "voiceKeepAudio", "publicFoldersOn", "publicFoldersHome", "publicFoldersNav", "libraryOn", "libraryNav", "libraryHome", "syncPullFirst"] as const) {
+    for (const key of ["ambient", "externalVideo", "languageToggle", "speakPublic", "emptyPropsCard", "propsCard", "wmAccept", "wmSend", "fediEnabled", "feedsFetch", "voiceKeepAudio", "publicFoldersOn", "publicFoldersHome", "publicFoldersNav", "libraryOn", "libraryNav", "libraryHome", "syncPullFirst"] as const) {
       const flipped = { ...initial, [key]: initial[key] === "on" ? "off" : "on" };
       assert.ok(Object.keys(buildPatch(initial, flipped)).length > 0, `${key} switched alone saves nothing`);
     }

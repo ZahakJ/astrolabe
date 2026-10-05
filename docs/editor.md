@@ -52,6 +52,16 @@ those four words freely.
   programs write rather than people (`id`, `uuid`, `dg-*`) stay read-only, and `publish:` has its
   own switch in the status bar. It works the same on a `.tex` note, whose properties live in a
   `%---` comment block.
+- **Hide the card when you don't want it.** Right-click the card (or focus its head and press
+  Shift+F10) and choose **Hide properties**: the card leaves every note — the editor, the reading
+  view, and the empty-note card too — on every device, because it is saved with the vault. The
+  toast that says so carries **Undo**. To bring it back later, run **Show properties** from the
+  command palette or switch on Settings → Writing → *Properties card*. Hidden, a note's YAML is
+  still there: put the caret at the top of the note (Ctrl+Home) and it opens as source, the way
+  every other block in the editor does; a banner still shows. Only your own views change —
+  visitors, and *Preview as visitor*, still see every card. On the phone, hold the
+  "N properties" line; the ⋯ sheet's **Properties** tab still lists and edits them, and offers
+  *Show the card above notes* while it is hidden.
 - **Templates.** `{{date}}`, `{{time}}`, `{{title}}` and `{{date:FORMAT}}` in the syntax other tools
   share, plus `{{hdate}}` for the Hijri date, `{{cursor}}` for where the caret should land, and
   `{{prompt:Label}}` for a question the template asks before it is inserted. Insert a template at

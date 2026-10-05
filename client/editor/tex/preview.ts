@@ -31,6 +31,8 @@ import { toast } from "../../toast.ts";
 import { resolveLink } from "../links.ts";
 import { buildPropsCard } from "../noteMeta.ts";
 import { propsEditor } from "../propsEdit.ts";
+import { propsCardChanged } from "../propsEffect.ts";
+import { propsCardHidden } from "../../propsCard.ts";
 import {
   brokenEmbed,
   embedKnownBroken,
@@ -949,11 +951,14 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
         .sliceString(doc.line(region.first + 1).from, doc.line(region.last - 1).to)
         .replace(/^[ \t]*%[ \t]?/gm, "");
       if (yaml.trim() === "") continue;
+      // Hidden by the owner (client/propsCard.ts): the block folds to
+      // nothing, and the caret still opens the comment block as source.
       decos.push(
-        Decoration.replace({
-          widget: new FrontmatterWidget(yaml, first.from),
-          block: true,
-        }).range(first.from, last.to),
+        Decoration.replace(
+          propsCardHidden()
+            ? { block: true }
+            : { widget: new FrontmatterWidget(yaml, first.from), block: true },
+        ).range(first.from, last.to),
       );
       continue;
     }
@@ -1076,7 +1081,7 @@ const texBlocks = StateField.define<DecorationSet>({
     if (
       tr.docChanged ||
       tr.selection ||
-      tr.effects.some((e) => e.is(languageChanged)) ||
+      tr.effects.some((e) => e.is(languageChanged) || e.is(propsCardChanged)) ||
       tr.annotation(Transaction.userEvent) !== undefined
     ) {
       return buildBlockDecorations(tr.state);

@@ -199,6 +199,7 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
     textDirection: DEFAULT_TEXT_DIRECTION,
     textAlign: DEFAULT_TEXT_ALIGN,
     emptyPropsCard: true,
+    propsCard: true,
     folderIcons: NO_FOLDER_ICONS,
     attachmentFolder: null,
     drawingsFolder: "",

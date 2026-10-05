@@ -825,6 +825,10 @@ export interface MeData {
    *  grounds as folderIcons above: it is a vault path, and moving is admin. */
   /** settings.emptyPropsCard, sent only when the owner turned it OFF. */
   emptyPropsCard?: false;
+  /** settings.propsCard, sent only when the owner turned it OFF, and to ADMIN
+   *  SESSIONS ONLY: hiding the card is how the owner reads their own notes,
+   *  and a visitor's copy of a note always carries it. */
+  propsCard?: false;
   /** ADMIN SESSIONS ONLY, and only when it is not the default: what the
    *  shell opens on top of the restored session (shared/launch.ts). A note
    *  path is a vault path, which is why a visitor never receives it. */
@@ -1317,6 +1321,10 @@ export interface SettingsData {
   /** Show the properties card on notes that have no frontmatter yet — a
    *  one-line card with "Add property" and "Set banner…" (default on). */
   emptyPropsCard?: boolean;
+  /** Draw the properties card at all (default on). Off hides it, and the
+   *  empty-note card with it, in the owner's editor and reading view; a
+   *  visitor still sees every card. */
+  propsCard?: boolean;
   /** Where a tag's own page lives ("tags" by default). A note at
    *  `<tagsFolder>/<tag>.md` may carry `labels: { ar: … }`, which outranks
    *  the `tagLabels` map below. */
@@ -1515,6 +1523,7 @@ export interface EffectiveSettings {
   textDirection: TextDirectionSetting;
   textAlign: TextAlignSetting;
   emptyPropsCard: boolean;
+  propsCard: boolean;
   tagsFolder: string;
   /** True when `tagsFolder` was auto-detected rather than configured — the
    *  same fact `templatesFolderDetected` carries for the field above it, so
@@ -1686,6 +1695,8 @@ export interface SettingsPatch {
   textAlign?: TextAlignSetting | null;
   /** null clears back to the default (on). */
   emptyPropsCard?: boolean | null;
+  /** null clears back to the default (on). */
+  propsCard?: boolean | null;
   tagsFolder?: string | null;
   tagLabels?: Record<string, Record<string, string>> | null;
   /** Folder glyphs, replaced WHOLE like `tagLabels` above and for the same

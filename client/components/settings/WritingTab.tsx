@@ -71,15 +71,32 @@ export default function WritingTab() {
       <Row kind="toggle" device label={t("rowFrenchAutocorrect")} hint={t("hintFrenchAutocorrect")} more={t("moreFrenchAutocorrect")}>
         <Toggle label={t("rowFrenchAutocorrect")} value={french} onChange={setFrenchAutocorrectEnabled} />
       </Row>
-      {/* The card on a note with nothing in its frontmatter yet: shown by
-          default (the owner: "should prob show by default on all created
-          notes"), with the switch here for the reader who wants a bare page. */}
-      <Row kind="toggle" label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
-        <Toggle
-          label={t("rowEmptyPropsCard")}
-          value={form.emptyPropsCard !== "off"}
-          onChange={(on) => setForm((f) => (f ? { ...f, emptyPropsCard: on ? "on" : "off" } : f))}
-        />
+      {/* THE PROPERTIES CARD, and whether it is drawn at all: the owner's
+          "make it possible to disable the properties block". Off hides it in
+          the owner's editor and reading view and never a visitor's (client/
+          propsCard.ts); a right-click on the card says the same thing and
+          its toast names this row. The card on a note with nothing in its
+          frontmatter yet is a PART — it means something only while there is
+          a card to draw — shown by default (the owner: "should prob show by
+          default on all created notes") for the reader who wants a bare page
+          to switch off. */}
+      <Row kind="toggle" label={t("rowPropsCard")} hint={t("hintPropsCard")}>
+        <Parts>
+          <Toggle
+            label={t("rowPropsCard")}
+            value={form.propsCard !== "off"}
+            onChange={(on) => setForm((f) => (f ? { ...f, propsCard: on ? "on" : "off" } : f))}
+          />
+          {form.propsCard !== "off" && (
+            <Part kind="toggle" label={t("rowEmptyPropsCard")} hint={t("hintEmptyPropsCard")}>
+              <Toggle
+                label={t("rowEmptyPropsCard")}
+                value={form.emptyPropsCard !== "off"}
+                onChange={(on) => setForm((f) => (f ? { ...f, emptyPropsCard: on ? "on" : "off" } : f))}
+              />
+            </Part>
+          )}
+        </Parts>
       </Row>
 
       {/* Obsidian's "Default location for new attachments", named the same

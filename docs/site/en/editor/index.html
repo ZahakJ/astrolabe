@@ -70,6 +70,16 @@ property also removes the <code>---</code> fences instead of leaving an empty ru
 programs write rather than people (<code>id</code>, <code>uuid</code>, <code>dg-*</code>) stay read-only, and <code>publish:</code> has its
 own switch in the status bar. It works the same on a <code>.tex</code> note, whose properties live in a
 <code>%---</code> comment block.</li>
+<li><strong>Hide the card when you don&#39;t want it.</strong> Right-click the card (or focus its head and press
+Shift+F10) and choose <strong>Hide properties</strong>: the card leaves every note — the editor, the reading
+view, and the empty-note card too — on every device, because it is saved with the vault. The
+toast that says so carries <strong>Undo</strong>. To bring it back later, run <strong>Show properties</strong> from the
+command palette or switch on Settings → Writing → <em>Properties card</em>. Hidden, a note&#39;s YAML is
+still there: put the caret at the top of the note (Ctrl+Home) and it opens as source, the way
+every other block in the editor does; a banner still shows. Only your own views change —
+visitors, and <em>Preview as visitor</em>, still see every card. On the phone, hold the
+&quot;N properties&quot; line; the ⋯ sheet&#39;s <strong>Properties</strong> tab still lists and edits them, and offers
+<em>Show the card above notes</em> while it is hidden.</li>
 <li><strong>Templates.</strong> <code>{{date}}</code>, <code>{{time}}</code>, <code>{{title}}</code> and <code>{{date:FORMAT}}</code> in the syntax other tools
 share, plus <code>{{hdate}}</code> for the Hijri date, <code>{{cursor}}</code> for where the caret should land, and
 <code>{{prompt:Label}}</code> for a question the template asks before it is inserted. Insert a template at

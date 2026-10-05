@@ -40,6 +40,7 @@ import { getLang, t, tf } from "../i18n.ts";
 import { label as tagLabel } from "../tagLabels.ts";
 import { buildBannerEl, buildPropsCard, parseProps, TAG_RE } from "./noteMeta.ts";
 import { propsEditor } from "./propsEdit.ts";
+import { propsCardHidden } from "../propsCard.ts";
 import { parseAlignMarker } from "../../shared/blockAlign.ts";
 import { parseBlockId } from "../../shared/blockId.ts";
 import {
@@ -1155,13 +1156,41 @@ class FrontmatterWidget extends WidgetType {
     /** The note this frontmatter belongs to — a `banner: cover.png` resolves
      *  against its folder first (client/banner.ts). */
     readonly notePath: string,
+    /** False when the owner hid the card (client/propsCard.ts): the widget
+     *  then carries the banner alone. In the identity, so the flip replaces
+     *  the DOM instead of reusing a card that should be gone. */
+    readonly card: boolean,
   ) {
     super();
   }
   override eq(other: FrontmatterWidget): boolean {
-    return other.yaml === this.yaml && other.lang === this.lang && other.notePath === this.notePath;
+    return (
+      other.yaml === this.yaml &&
+      other.lang === this.lang &&
+      other.notePath === this.notePath &&
+      other.card === this.card
+    );
   }
   toDOM(view: EditorView): HTMLElement {
+    // ALWAYS wrapped, banner or not. CodeMirror sizes a block widget from its
+    // root's border box (getBoundingClientRect), which excludes margins — so a
+    // margin on the card itself is air the height map cannot see, and every
+    // position below it resolves one line too low (posAtCoords, and with it
+    // every mouse selection: click, double-click, triple-click, drag). The
+    // spacing lives on this wrapper as PADDING, which is inside the border box
+    // and therefore measured. See styles/app.css .cm-s-fmblock.
+    const wrap = document.createElement("div");
+    wrap.className = "cm-s-fmblock";
+    const banner = bannerFromYaml(this.yaml);
+    if (banner) wrap.appendChild(this.hero(view, banner));
+    if (this.card) {
+      // buildBlockDecorations only asks for a card when parseProps found rows.
+      const card = this.buildCard();
+      if (card) wrap.appendChild(card);
+    }
+    return wrap;
+  }
+  private buildCard(): HTMLElement | null {
     // Header action: opens the banner modal (handled in the shell via a
     // window event — the editor chunk stays UI-framework-free here).
     const action = document.createElement("button");
@@ -1178,7 +1207,7 @@ class FrontmatterWidget extends WidgetType {
       ev.stopPropagation();
       window.dispatchEvent(new CustomEvent("astrolabe:set-banner"));
     });
-    const card = buildPropsCard(this.yaml, {
+    return buildPropsCard(this.yaml, {
       prefix: "cm-s-props",
       action,
       // THE CARD IS EDITABLE HERE AND NOWHERE ELSE (v1.8 spec K). The reading
@@ -1215,49 +1244,35 @@ class FrontmatterWidget extends WidgetType {
         return pill;
       },
     });
-    // buildBlockDecorations only mounts the widget when parseProps found rows.
-    if (!card) return document.createElement("div");
-    // ALWAYS wrapped, banner or not. CodeMirror sizes a block widget from its
-    // root's border box (getBoundingClientRect), which excludes margins — so a
-    // margin on the card itself is air the height map cannot see, and every
-    // position below it resolves one line too low (posAtCoords, and with it
-    // every mouse selection: click, double-click, triple-click, drag). The
-    // spacing lives on this wrapper as PADDING, which is inside the border box
-    // and therefore measured. See styles/app.css .cm-s-fmblock.
-    const wrap = document.createElement("div");
-    wrap.className = "cm-s-fmblock";
-    // Banner hero above the card (subtle, rounded, capped height).
-    const banner = bannerFromYaml(this.yaml);
-    if (banner) {
-      // The editor is an admin-only surface by construction (a read-only
-      // session never mounts CodeMirror), so a banner that resolves to
-      // nothing shows the card that says so.
-      const hero = buildBannerEl(banner, "cm-s-banner", {
-        notePath: this.notePath,
-        admin: true,
-      });
-      // THE HERO IS NOT ITS FINAL HEIGHT WHEN CODEMIRROR MEASURES IT. It
-      // grows by up to 240px when the bitmap lands, and it DELETES ITSELF
-      // (buildBannerEl's error handler) when the file is gone. Ask for a
-      // re-measure the moment the size settles — the same lie an unmeasurable
-      // CSS margin tells, from a different cause.
-      //
-      // MEASURED, NOT ASSUMED: on @codemirror/view 6.43 this call does not
-      // reach a BLOCK widget's height map entry. A banner note still reports
-      // `contentHeight` 456 against a real 829, and `posAtCoords` answers
-      // with the last line of the note for every point in it. Selection is
-      // unaffected — selection.ts resolves the pointer from the DOM and never
-      // asks the height map — but `coordsAtPos` consumers (scrollIntoView,
-      // tooltip placement) are still wrong on banner notes, and that is a
-      // live bug this round did not fix. The call stays because it is the
-      // right request to make and costs nothing when it lands.
-      const img = hero.querySelector("img");
-      img?.addEventListener("load", () => view.requestMeasure(), { once: true });
-      img?.addEventListener("error", () => view.requestMeasure(), { once: true });
-      wrap.appendChild(hero);
-    }
-    wrap.appendChild(card);
-    return wrap;
+  }
+  /** Banner hero above the card (subtle, rounded, capped height). */
+  private hero(view: EditorView, banner: string): HTMLElement {
+    // The editor is an admin-only surface by construction (a read-only
+    // session never mounts CodeMirror), so a banner that resolves to
+    // nothing shows the card that says so.
+    const hero = buildBannerEl(banner, "cm-s-banner", {
+      notePath: this.notePath,
+      admin: true,
+    });
+    // THE HERO IS NOT ITS FINAL HEIGHT WHEN CODEMIRROR MEASURES IT. It
+    // grows by up to 240px when the bitmap lands, and it DELETES ITSELF
+    // (buildBannerEl's error handler) when the file is gone. Ask for a
+    // re-measure the moment the size settles — the same lie an unmeasurable
+    // CSS margin tells, from a different cause.
+    //
+    // MEASURED, NOT ASSUMED: on @codemirror/view 6.43 this call does not
+    // reach a BLOCK widget's height map entry. A banner note still reports
+    // `contentHeight` 456 against a real 829, and `posAtCoords` answers
+    // with the last line of the note for every point in it. Selection is
+    // unaffected — selection.ts resolves the pointer from the DOM and never
+    // asks the height map — but `coordsAtPos` consumers (scrollIntoView,
+    // tooltip placement) are still wrong on banner notes, and that is a
+    // live bug this round did not fix. The call stays because it is the
+    // right request to make and costs nothing when it lands.
+    const img = hero.querySelector("img");
+    img?.addEventListener("load", () => view.requestMeasure(), { once: true });
+    img?.addEventListener("error", () => view.requestMeasure(), { once: true });
+    return hero;
   }
 }
 
@@ -1335,12 +1350,16 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
   // prob show by default on all created notes"): one line, "Properties",
   // with Add property and Set banner… on it. Both write through the same
   // route as the full card, which creates the block. Off by the
-  // `emptyPropsCard` setting.
+  // `emptyPropsCard` setting, and with every other card by `propsCard`.
   const fmEnd = frontmatterEnd(doc);
-  if (fmEnd <= 0 && useStore.getState().emptyPropsCard && useStore.getState().admin) {
+  const hidden = propsCardHidden();
+  if (fmEnd <= 0 && !hidden && useStore.getState().emptyPropsCard && useStore.getState().admin) {
     decos.push(Decoration.widget({ widget: new EmptyPropsWidget(notePath), block: true, side: -1 }).range(0));
   }
-  // Frontmatter → properties card while the cursor is outside it.
+  // Frontmatter → properties card while the cursor is outside it. HIDDEN
+  // (client/propsCard.ts), the block folds to its banner, or to nothing — and
+  // the caret still opens the YAML as it opens every other construct here,
+  // so Ctrl+Home never lands a keystroke above an unseen `---`.
   if (fmEnd > 0) {
     const lastLine = doc.lineAt(fmEnd).number;
     if (!anyActiveBetween(1, lastLine)) {
@@ -1348,9 +1367,10 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
         lastLine > 2
           ? doc.sliceString(doc.line(2).from, doc.line(lastLine - 1).to)
           : "";
+      const card = !hidden && parseProps(yaml).length > 0;
       const spec =
-        parseProps(yaml).length > 0
-          ? { widget: new FrontmatterWidget(yaml, notePath), block: true }
+        card || bannerFromYaml(yaml) !== null
+          ? { widget: new FrontmatterWidget(yaml, notePath, card), block: true }
           : { block: true };
       decos.push(Decoration.replace(spec).range(doc.line(1).from, fmEnd));
     }

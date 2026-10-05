@@ -700,6 +700,7 @@ export function getSettings(): SettingsData {
   if (isTextDirection(raw.textDirection)) out.textDirection = raw.textDirection;
   if (isTextAlign(raw.textAlign)) out.textAlign = raw.textAlign;
   if (typeof raw.emptyPropsCard === "boolean") out.emptyPropsCard = raw.emptyPropsCard;
+  if (typeof raw.propsCard === "boolean") out.propsCard = raw.propsCard;
   if (typeof raw.tagsFolder === "string" && raw.tagsFolder.trim() !== "") {
     out.tagsFolder = raw.tagsFolder.trim();
   }
@@ -748,6 +749,11 @@ export function textAlign(): TextAlign {
 /** The properties card on a note with no frontmatter: on unless turned off. */
 export function emptyPropsCard(): boolean {
   return getSettings().emptyPropsCard ?? true;
+}
+
+/** The properties card at all, in the owner's own views: on unless turned off. */
+export function propsCard(): boolean {
+  return getSettings().propsCard ?? true;
 }
 
 /** The typography slots in effect (every slot present, "system" when unset).
@@ -872,6 +878,7 @@ export function effectiveSettings(): EffectiveSettings {
     textDirection: textDirection(),
     textAlign: textAlign(),
     emptyPropsCard: emptyPropsCard(),
+    propsCard: propsCard(),
     tagsFolder: tagsFolder(),
     tagsFolderDetected: s.tagsFolder === undefined && detectTagsFolder() !== null,
     tagLabels: s.tagLabels ?? {},
@@ -2145,6 +2152,11 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
     if (value === null || value === true) delete raw.emptyPropsCard;
     else if (value === false) raw.emptyPropsCard = false;
     else throw new VaultError(400, 'Settings key "emptyPropsCard" must be a boolean or null');
+  },
+  propsCard: (raw, value) => {
+    if (value === null || value === true) delete raw.propsCard;
+    else if (value === false) raw.propsCard = false;
+    else throw new VaultError(400, 'Settings key "propsCard" must be a boolean or null');
   },
   tagsFolder: stringKey("tagsFolder", (v) => {
     const clean = cleanValue(v, "tagsFolder", VALUE_MAX);

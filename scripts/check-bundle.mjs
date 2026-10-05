@@ -444,7 +444,13 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // (ad7a815a) — the note's tabs (client/phone/noteTabs.ts, which the shell
 // holds for a rename, and the strip's rules in phone.css), the rail's Hide
 // list and its remembered state, and four strings a language. 909 → 913.
-const PHONE_BUDGET = 913 * 1024;
+// PROPERTIES, OUT OF THE WAY: 913.0 → 913.9 kB, +0.9 against the 3.39.3 build
+// (7d9ec185) measured with this round's files alone — client/propsCard.ts (the
+// one predicate every card builder asks, and the right-click listener; the
+// menu, the settings write and the toasts are the lazy propsActions.ts) and
+// eight strings a language. 914.3 kB in the working tree with the settings
+// highlight round beside it. 913 → 915.
+const PHONE_BUDGET = 915 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1124,7 +1130,12 @@ const AUDIENCES = [
   // saying why a reader would change each row); the entry's JS +0.8
   // (spellDicts.ts' offer — which dictionaries this device can check — and
   // the named chip labels). 773 → 784.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 784 * 1024 },
+  // PROPERTIES, OUT OF THE WAY: 783.3 → 784.0 kB, +0.7 against the 3.39.3
+  // build (7d9ec185), this round's files alone: eight dictionary strings (the
+  // Properties card row and hint, the menu row, the toast, the palette's
+  // Hide/Show pair) and the store's one boolean; 784.4 kB in the working tree
+  // with the settings highlight round's stylesheet beside it. 784 → 785.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 785 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1519,7 +1530,13 @@ const AUDIENCES = [
   // else. 1078 → 1088.
   // 3.39.0 MERGED: the three rounds' overages against 3.38.0 add (+2.2 links,
   // +0.8 sittings, +10.4 settings): 1090.2 kB measured after the merge. 1088 → 1091.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1091 * 1024 },
+  // PROPERTIES, OUT OF THE WAY: 1090.6 → 1092.6 kB, +2.0 against the 3.39.3
+  // build (7d9ec185), this round's files alone — the entry's +0.7 and
+  // client/propsCard.ts as its own 1.2 kB chunk, because the reading renderer
+  // asks it whether the owner hid the card (a visitor's answer is always no,
+  // but the question is the same one on every surface). 1093.0 kB in the
+  // working tree with the settings highlight round beside it. 1091 → 1094.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1094 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,

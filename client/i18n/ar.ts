@@ -1503,6 +1503,9 @@ const ar = {
   selToolbarLabel: "شريط التنسيق",
   cmdSelectionToolbar: "شريط التنسيق العائم",
   cmdSelectionToolbarHint: "يظهر فوق النص المحدّد",
+  cmdHideProperties: "إخفاء الخصائص",
+  cmdShowProperties: "إظهار الخصائص",
+  cmdPropertiesHint: "البطاقة أعلى كل ملاحظة",
 
   // ── LaTeX notes (.tex / .latex) ──────────────────────────────────────────
   texAbstract: "الملخّص",
@@ -1687,6 +1690,10 @@ const ar = {
   rowTextAlign: "محاذاة النص",
   rowEmptyPropsCard: "بطاقة الخصائص في الملاحظات الفارغة",
   hintEmptyPropsCard: "بطاقة من سطر واحد على الملاحظات التي لا خصائص لها بعد.",
+  rowPropsCard: "بطاقة الخصائص",
+  hintPropsCard: "خصائص كل ملاحظة فوق سطرها الأول. إيقافها يخفيها عنك لا عن الزوار.",
+  hidePropertiesMenu: "إخفاء الخصائص",
+  propsHiddenToast: "أُخفيت الخصائص. أظهِرها من جديد من الإعدادات ← الكتابة.",
   hintTextAlign: "أين تستقر الأسطر في العمود؛ أما الشيفرة والجداول فلا تتزحزح.",
   noteLayoutOverride: "غيّره حين تكون أغلب ملاحظاتك بخط واحد — من اليمين لخزانة عربية — فلا يخمّن كل مقطع لنفسه. تتجاوزهما ترويسة الملاحظة نفسها — dir و align.",
 
@@ -3783,6 +3790,7 @@ const ar = {
   phTwinSwap: "انتقل إلى الوجه الآخر ({there})",
   phTwinCreate: "إنشاء وجه آخر",
   phNoProps: "لا خصائص بعد.",
+  phPropsCardShow: "إظهار البطاقة أعلى الملاحظات",
   phPropKey: "اسم الخاصية",
   phPropClear: "حفظ قيمة فارغة يحذف هذه الخاصية.",
   phSave: "حفظ",
