@@ -22,6 +22,7 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Export](export.md) | Download a note, a folder, a tag or the whole vault as a ZIP with the files it uses, with `[[wikilinks]]` kept or turned into ordinary links; or save any note as a standalone HTML page |
 | [The desktop app](desktop.md) | The app as a native program: the menu bar, several vaults, a zoom that survives a relaunch, the reference window, find in page, updates, and links that open straight into a note |
 | [The Android app](mobile.md) | A door onto your own server from a phone, or [a vault from a private GitHub repository](mobile.md#a-vault-from-github) with no server at all, every save a commit: connecting, the share sheet that captures into the vault, updates, and what it deliberately does not do |
+| [In the terminal](terminal.md) | Astrolabe CLI, a separate program: the same vault opened from a terminal as plain files, with no server — a reader, a Vim-style editor, and `astrolabe add` and `astrolabe find` from the shell; installing it and the first commands |
 | [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Writing
