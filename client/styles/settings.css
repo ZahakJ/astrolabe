@@ -474,11 +474,17 @@
 /* The 18px gap between body children was the spacing between five section
    blocks; a tab is a heading, a sentence and one section, and those three want
    their own margins. Padding restated logically — the shorthand app.css uses
-   is physical, so its 4px sat on the wrong side under dir="rtl". */
+   is physical, so its 4px sat on the wrong side under dir="rtl".
+   A found row's mark reaches `--found-pad` past the row's sides (see
+   `.s-smodal__row--found`), and a scroller clips at its padding edge, so
+   there is that much padding at BOTH sides: the start side paid for by an
+   equal negative margin, which leaves every row's start edge where it was;
+   at the end it replaces the 6px of air the scrollbar had, 2px wider. */
 .s-smodal__body {
   gap: 0;
   padding: 2px 0 22px;
-  padding-inline-end: 6px;
+  padding-inline: var(--found-pad);
+  margin-inline-start: calc(-1 * var(--found-pad));
 }
 
 /* The tab's own name. Serif and sentence case: this is a heading for a page,
@@ -571,7 +577,9 @@
   column-gap: 1.5rem;
   row-gap: 6px;
   min-height: 0;
-  padding-block: 12px;
+  /* Named because the found mark measures its top and bottom from it. */
+  --row-pad: 12px;
+  padding-block: var(--row-pad);
   border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
 }
 
@@ -1611,19 +1619,69 @@
 /* The row a result landed on, marked for a moment. Scrolling to a row without
    marking it leaves the reader looking at a list and guessing which one
    answered. It fades rather than blinking: this arrives under a pointer that
-   is already moving toward it. */
+   is already moving toward it.
+
+   THE MARK HUGS WHAT IS IN THE ROW, NOT THE ROW'S BOX. It used to be the
+   row's own background, and a row has 12px of padding above and below and
+   none at the sides — its label and its control run to the column's edges, so
+   every control meets the same end edge. So the tint sat flush against the
+   label's first letter and the control's end edge while leaving 12px over and
+   under them, and its rounded top corners cut across the row's hairline. A
+   pseudo-element can sit where the box cannot: `--found-pad` clear of the
+   content on all four sides — out into the gutter at the sides, inside the
+   padding above and below, so it stops short of both hairlines — and rounded
+   one pad wider than the controls inside it, so the two sets of corners are
+   concentric. A part is a row's second control and has no padding of its
+   own; the space around it is the control column's 6px gap, so its pad is
+   half a row's and its mark stays clear of the host control above. */
+.s-smodal__body,
+.s-ph-settings {
+  --found-pad: 8px;
+}
+
+.s-smodal__part {
+  --found-pad: 4px;
+  --row-pad: 0px;
+}
+
+/* Positioned always, not only while marked: an absolutely placed child
+   (a field's Pick…, its thumbnail) must not change containing block in the
+   middle of a mark. */
+.s-smodal__row,
+.s-smodal__part {
+  position: relative;
+}
+
+/* The stacking context is what lets the mark sit UNDER the row's text and
+   controls (z-index -1) without dropping under the panel's own ground — and
+   only while marked, so a path field's open list is never trapped beneath
+   the next row. */
 .s-smodal__row--found {
-  animation: s-setting-found 1.6s ease-out;
-  border-radius: var(--radius);
+  isolation: isolate;
+}
+
+.s-smodal__row--found::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset-block: calc(var(--row-pad) - var(--found-pad));
+  inset-inline: calc(-1 * var(--found-pad));
+  border-radius: calc(var(--radius) + var(--found-pad));
+  background: var(--accent-soft);
+  pointer-events: none;
+  /* In over ~150ms (the house transition), held while the scroll settles, then
+     out. Opacity only: nothing moves, nothing reflows. */
+  animation: s-setting-found 1.6s ease both;
 }
 
 @keyframes s-setting-found {
-  0%, 45% { background: var(--accent-soft); }
-  100% { background: transparent; }
+  0% { opacity: 0; }
+  9%, 45% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .s-smodal__row--found { animation: none; background: var(--accent-soft); }
+  .s-smodal__row--found::before { animation: none; }
   .s-smodal__results { scroll-behavior: auto; }
 }
 
@@ -2089,7 +2147,6 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
-  border-radius: var(--radius);
 }
 
 .s-smodal__part > .s-btn {
