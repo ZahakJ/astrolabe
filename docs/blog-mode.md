@@ -35,6 +35,42 @@ Notes in the [templates folder](templates-and-notes.md#templates) never appear i
 
 > **Set `EXCLUDE_TAGS` before you go live.** The topic row is built from the tags of your published notes, and that includes workflow tags: status markers like `#draft` or `#seedling`, note-maturity tags, todo states. Left alone, those become public categories. List them in `EXCLUDE_TAGS` and they disappear from the topic row, the topic pages and the tag chips on articles. Your vault and the admin view are not affected.
 
+## Series
+
+Some writing comes in parts: a dozen notes that tell one story in order. Published one by one as ordinary posts, they flood the home page. A **series** keeps them together. The blog lists the series once, and it rises to the top each time a new part is published.
+
+A series is an ordinary published note that names its parts, in order, in its frontmatter:
+
+```yaml
+---
+publish: true
+series:
+  - "[[Six ways to watch a program]]"
+  - "[[strace]]"
+  - "[[ftrace]]"
+  - tracing/perf stat.md
+---
+```
+
+Each entry is a wikilink, resolved exactly as a link in the body is (by name, alias or path), or a plain vault path. The note's own text is the series' introduction. Nothing else is needed: there is no setting and no button.
+
+What readers see:
+
+- **Lists show the series, not its parts.** On the home page (list and dashboard), topic pages, folder pages, and in the "related" and previous/next links of other articles, the parts are hidden and the series note appears as one card. The card says "Series · 4 parts". Its date is the newest of the note's own date and its parts' dates, so publishing a new part brings it back to the top. A topic page lists the series under its own tags and under every tag one of its parts carries.
+- **The series page** shows your introduction, then a **Parts** section the app draws for you: numbered, each with its title, excerpt, date and reading time. If your introduction already links to the parts, that is fine; nothing is removed.
+- **A part's page** has a small bar above the title ("Part 2 of 4 · Tracing"), and at the bottom it links to the previous and next part instead of the previous and next post. Its date, tags and comments are its own. Search and direct links still reach it.
+- **The feed, the sitemap and the fediverse** list every part as an item of its own, so a subscriber hears about each new part. The series note is an item too.
+
+Only **published** parts count. That is how you release a series gradually: list every part from the start, and set `publish: true` on each one when it is ready. Signed in, you see the whole plan on the series page: unpublished parts are greyed and marked "not published", and an entry that names nothing is marked "not found".
+
+The rules at the edges:
+
+- With the [language filter](arabic-and-rtl.md) on, a reader only sees the parts in their language, and the part count and the date follow what they can see. A series none of whose parts this reader can see is listed as an ordinary post.
+- A note listed in two series belongs to the first one, by path order. A series cannot be a part of another series; such an entry is ignored (and the server log says so once).
+- Renaming a part from the app updates its entry in `series:` like any other link.
+
+A series is not a [library path](library.md). A library path is a **folder** of lessons with its own shelf, outside the blog. A series is a **list in one note**, for posts that stay on the blog.
+
 ## The nav is always one line
 
 However many topics your tags add up to, the topic row stays on one line. It measures itself, keeps the topics that fit, and folds the rest into a "More ▾" menu beside them. It measures again on every resize, in both directions, so it never wraps into a ragged second line. Below about 840px of width the topics move into the usual collapsed menu (the ☰ button), which lists all of them at once.

@@ -1135,7 +1135,9 @@ const AUDIENCES = [
   // Properties card row and hint, the menu row, the toast, the palette's
   // Hide/Show pair) and the store's one boolean; 784.4 kB in the working tree
   // with the settings highlight round's stylesheet beside it. 784 → 785.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 785 * 1024 },
+  // SERIES (next: 3.41.0): 785.0 kB measured, a hair over — eleven dictionary
+  // strings and the "parts" count unit (en + ar ride the entry). 785 → 786.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 786 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1536,7 +1538,12 @@ const AUDIENCES = [
   // asks it whether the owner hid the card (a visitor's answer is always no,
   // but the question is the same one on every surface). 1093.0 kB in the
   // working tree with the settings highlight round beside it. 1091 → 1094.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1094 * 1024 },
+  // SERIES (next: 3.41.0): 1096.4 kB, +2.4 — the entry's strings plus
+  // client/blog/series.tsx (card line, series bar, Parts section) and its
+  // rules in blog.css, all on the article and list paint. 1094 → 1097.
+  // SERIES, the stylesheet: the parts list, the bar above a part and the
+  // series line on a card, 1097.5 kB actual. 1097 → 1098.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1098 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1845,7 +1852,9 @@ const AUDIENCES = [
   // construction: the sidebar is the admin shell) and the reveal's unfold and
   // pulse in useTreeCursor; nothing can be split off a row's own paint.
   // 1047 → 1049.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1049 * 1024 },
+  // SERIES (next: 3.41.0): 1049.2 kB — the entry's series strings, nothing
+  // else. 1049 → 1050.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1050 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The

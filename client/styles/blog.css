@@ -1116,6 +1116,92 @@
   color: var(--text-muted);
 }
 
+/* Series: the one card a series puts in a list, the bar above a part, and the
+   list of parts under a series note. The parts list is set like Related, with
+   a number in the margin, because it is the same kind of thing — other posts
+   of this site — and the reader should not meet a third typography for it. */
+
+.s-blog-meta__series {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.s-blog-series-bar {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin: 0 0 10px;
+  font-size: 0.893rem;
+  color: var(--text-muted);
+}
+
+.s-blog-series-bar a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.s-blog-series-bar a:hover {
+  text-decoration: underline;
+}
+
+.s-blog-series {
+  margin-top: 34px;
+}
+
+.s-blog-series__list {
+  margin: 0;
+  padding: 6px 0 0;
+  list-style: none;
+}
+
+.s-blog-series__item {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+}
+
+.s-blog-series__item:last-child {
+  border-bottom: none;
+}
+
+.s-blog-series__num {
+  flex: 0 0 1.6em;
+  font-family: var(--font-serif);
+  font-size: 1.107rem;
+  color: var(--text-muted);
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-blog-series__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.s-blog-series__excerpt {
+  margin: 0;
+  font-size: 0.929rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* A part the admin can see but visitors cannot: the plan, greyed. */
+.s-blog-series__item--off {
+  opacity: 0.55;
+}
+
+.s-blog-series__title {
+  font-family: var(--font-serif);
+  font-size: 1.107rem;
+  color: var(--text);
+}
+
 /* Marginalia inherits its own stylesheet; give it air — and the PAGE's column,
    not a second one inside it. comments.css centres the section at 760px with
    56px gutters because in the app it is the whole column; here `.s-blog-page`

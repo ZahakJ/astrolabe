@@ -216,6 +216,8 @@ export type CountUnit =
   | "marginNotes"
   | "foldedLines"
   | "readMinutes"
+  // The parts of a series (shared/series.ts): "Series · 7 parts".
+  | "seriesParts"
   | "changes"
   | "unsaved"
   // A tracker's default unit, one per kind (client/reading/tracker.ts). They
@@ -306,6 +308,7 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   // "min read" does not inflect in English; Arabic does, and the "قراءة" rides
   // along inside each form so the dual reads as a proper construct
   // ("دقيقتا قراءة"), not a number glued to a singular.
+  seriesParts: { en: ["part", "parts"], ar: { one: "جزء واحد", two: "جزآن", few: "أجزاء", many: "جزءًا" } },
   readMinutes: {
     en: ["min read", "min read"],
     ar: { one: "دقيقة قراءة", two: "دقيقتا قراءة", few: "دقائق قراءة", many: "دقيقة قراءة" },

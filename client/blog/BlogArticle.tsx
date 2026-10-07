@@ -22,6 +22,7 @@ import { toast } from "../toast.ts";
 import { FolderChips, TagChips } from "./PostList.tsx";
 import { formatDate, isRtlText, NavLink } from "./util.tsx";
 import { numberRendered } from "../reading/headingNumbers.ts";
+import { findPost, SeriesBar, seriesNeighbours, SeriesParts } from "./series.tsx";
 import "../reading/reading.css";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
 
@@ -87,7 +88,9 @@ export default function BlogArticle({
   // reorders the headline. Same normalization the server applies to the title
   // it puts in /api/posts, RSS and the og: tags.
   const title = stripBidiControls(noteTitleOf(path));
-  const meta = posts?.find((p) => p.path === path) ?? null;
+  // findPost: a PART of a series is not a top-level row of /api/posts (the
+  // series card carries it in `partList`), and its page still needs its meta.
+  const meta = findPost(posts, path);
 
   // The post's server-filtered tag list (EXCLUDE_TAGS already applied) is
   // the allowlist for inline #tag pills in the body — an excluded workflow
@@ -195,9 +198,12 @@ export default function BlogArticle({
   const otherFace = meta?.twin !== undefined && !meta.twin.differs ? meta.twin : null;
 
   // Prev/next by date (posts arrive newest first).
+  // A PART walks its series (previous/next part, in series order) instead of
+  // the chronological list, which no longer holds it.
+  const inSeries = seriesNeighbours(posts, meta);
   const index = posts?.findIndex((p) => p.path === path) ?? -1;
-  const newer = index > 0 ? posts![index - 1] : null;
-  const older = index >= 0 && index < posts!.length - 1 ? posts![index + 1] : null;
+  const newer = inSeries ? inSeries.next : index > 0 ? posts![index - 1] : null;
+  const older = inSeries ? inSeries.prev : index >= 0 && index < posts!.length - 1 ? posts![index + 1] : null;
 
   return (
     // <article>, not <div>: the piece is the page's one self-contained thing,
@@ -208,6 +214,7 @@ export default function BlogArticle({
       <header
         className={`s-blog-article__head${isRtlText(title) ? " s-blog-article__head--rtl" : ""}`}
       >
+        {meta?.series && <SeriesBar part={meta} />}
         <h1 className="s-blog-article__title" dir="auto">
           {title}
         </h1>
@@ -277,6 +284,11 @@ export default function BlogArticle({
           setAnnHost(el);
         }}
       />
+      {/* A series page's parts, rendered by the app after the author's own
+          introduction (shared/series.ts). */}
+      {meta && (meta.partList || (admin && meta.seriesPlan)) && (
+        <SeriesParts series={meta} locale={locale} admin={admin} />
+      )}
       {/* The author's notes on a passage, when they chose to show them; the
           owner reading their own site may write here too. */}
       <AnnotationsMount path={path} host={annHost} canEdit={admin} scope="p" />
@@ -314,14 +326,14 @@ export default function BlogArticle({
         )}
 
         {(newer || older) && (
-          <nav className="s-blog-pn" aria-label={t("blogMoreWritings")}>
+          <nav className="s-blog-pn" aria-label={t(inSeries ? "blogSeriesNav" : "blogMoreWritings")}>
             {older ? (
               <NavLink url={notePathToUrl(older.path)} className="s-blog-pn__card">
                 <span className="s-blog-pn__label">
                   <span className="s-blog-pn__arrow" aria-hidden="true">
                     ←
                   </span>
-                  {t("blogOlder")}
+                  {t(inSeries ? "blogSeriesPrevPart" : "blogOlder")}
                 </span>
                 <span className="s-blog-pn__title" dir="auto">
                   {older.title}
@@ -336,7 +348,7 @@ export default function BlogArticle({
                 className="s-blog-pn__card s-blog-pn__card--next"
               >
                 <span className="s-blog-pn__label">
-                  {t("blogNewer")}
+                  {t(inSeries ? "blogSeriesNextPart" : "blogNewer")}
                   <span className="s-blog-pn__arrow" aria-hidden="true">
                     →
                   </span>

@@ -12,6 +12,11 @@ over weeks, a piece at a time, and a reader wants to know where they are in the 
 library is the shell for them. It sits beside the blog and the designed home, behind one door in
 the navigation, and nothing about it reaches the blog unless you ask for it.
 
+**Library path or series?** A library path is a *folder* of lessons that gets its own shelf,
+off the blog. A [series](blog-mode.md#series) is a *list in one note's frontmatter* for posts
+that stay on the blog: the blog shows the series as one card and each part keeps its own page.
+Use the library for a book or a course; use a series for a run of blog posts on one subject.
+
 ## A path is a folder
 
 A *path* is one item in the library: one book, one course, one series. You do not build it by

@@ -20,6 +20,7 @@ import { resolveBanner, twinFaceOf } from "./resolve.ts";
 import { stripNoteExt } from "../../shared/noteFormat.ts";
 import { tagKey } from "../../shared/tagLabels.ts";
 import { templateMatcher } from "./folders.ts";
+import { seriesEntries, seriesOf, visibleParts } from "./series.ts";
 
 // --------------------------------------------------------------------- posts
 
@@ -579,11 +580,30 @@ export function libraryLessons(
   return out;
 }
 
+/** What posts() does with the PARTS of a series (shared/series.ts).
+ *
+ *  "hide" — a LIST: the blog home, topics, folders, search, related, prev/next,
+ *  GET /api/posts. Parts leave the list and the series note stands for them
+ *  as one card carrying `parts`, `partList`, `partTags` and the newest date.
+ *  "show" — an ENUMERATION of every page: the feed, the sitemap, ActivityPub.
+ *  A subscriber wants each new part and a crawler must see every page, so
+ *  parts are items (carrying `series`) and the series note is one too, dated
+ *  by its newest part. There is no default for the second kind: a caller that
+ *  enumerates must say so. */
+export interface PostsOptions {
+  parts: "hide" | "show";
+}
+
 /** Published notes as blog posts, newest first (visitor-safe: published only,
  *  EXCLUDE_TAGS filtered). Per-note fields are cached on the index record and
  *  refresh incrementally as notes reindex. `visitor` additionally applies the
  *  languageFilter (public lists only — admin surfaces are never filtered). */
-export function posts(visitor: boolean, lang: FilterLang, excludePages = false): PostMeta[] {
+export function posts(
+  visitor: boolean,
+  lang: FilterLang,
+  excludePages = false,
+  options: PostsOptions = { parts: "hide" },
+): PostMeta[] {
   const out: { dateMs: number; meta: PostMeta }[] = [];
   const isTemplate = templateMatcher(); // once for the loop — see templateMatcher()
   const hidden = excludedTags(); // likewise: one Set for the list, not one per post
@@ -610,11 +630,60 @@ export function posts(visitor: boolean, lang: FilterLang, excludePages = false):
     // stock blog calls this, so its lists are exactly what they always were;
     // designed mode passes staticPagesActive() (server/pages.ts).
     if (excludePages && record.page) continue;
-    out.push({ dateMs: record.dateMs, meta: postMeta(record, hidden, rows) });
+    const series = seriesOf(notePath, visitor, lang);
+    if (options.parts === "hide" && series !== null) continue;
+    const meta = postMeta(record, hidden, rows);
+    let dateMs = record.dateMs;
+    if (series !== null) meta.series = seriesRefFor(series, notePath, visitor, lang);
+    const parts = visibleParts(notePath, visitor, lang);
+    if (parts.length > 0) {
+      meta.parts = parts.length;
+      for (const part of parts) dateMs = Math.max(dateMs, notes.get(part)?.dateMs ?? 0);
+      meta.date = new Date(dateMs).toISOString();
+      if (options.parts === "hide") {
+        meta.partList = parts.flatMap((part, i) => {
+          const rec = notes.get(part);
+          if (!rec) return [];
+          const pm = postMeta(rec, hidden, rows);
+          pm.series = { title: record.title, path: notePath, index: i + 1, count: parts.length };
+          return [pm];
+        });
+        const own = new Set(meta.tags.map((t) => t.toLowerCase()));
+        const extra = new Map<string, string>();
+        for (const pm of meta.partList) {
+          for (const tag of pm.tags) if (!own.has(tag.toLowerCase())) extra.set(tag.toLowerCase(), tag);
+        }
+        if (extra.size > 0) meta.partTags = [...extra.values()];
+      }
+    }
+    // The owner's view of the plan: every entry, with why it is not a part.
+    // Never on a visitor's list.
+    if (!visitor && record.seriesRefs !== null) {
+      const entries = seriesEntries(notePath);
+      if (entries.length > 0) {
+        meta.seriesPlan = entries.map((e) => ({
+          ref: e.ref,
+          path: e.path,
+          title: e.path === null ? e.ref : (notes.get(e.path)?.title ?? e.ref),
+          status: e.status,
+        }));
+      }
+    }
+    out.push({ dateMs, meta });
   }
   return out
     .sort((a, b) => b.dateMs - a.dateMs || a.meta.path.localeCompare(b.meta.path))
     .map((entry) => entry.meta);
+}
+
+function seriesRefFor(series: string, part: string, visitor: boolean, lang: FilterLang): PostMeta["series"] {
+  const parts = visibleParts(series, visitor, lang);
+  return {
+    title: notes.get(series)?.title ?? series,
+    path: series,
+    index: parts.indexOf(part) + 1,
+    count: parts.length,
+  };
 }
 
 /** Published STATIC PAGES (frontmatter `page: true`), alphabetical by title —

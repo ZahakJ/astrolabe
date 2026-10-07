@@ -4,7 +4,7 @@
 
 import { Hono } from "hono";
 import type { NoteData } from "../shared/types.ts";
-import { backlinks, indexFile, notesAffectedByFolderMove, notesReferencing, resolveEmbed, whenIndexed, wikilinkRegex } from "./indexer.ts";
+import { backlinks, seriesDeclarersOf, indexFile, notesAffectedByFolderMove, notesReferencing, resolveEmbed, whenIndexed, wikilinkRegex } from "./indexer.ts";
 import { dirOf, rewriteAttachmentRename, rewriteDestinations, rewriteForMove } from "./moveLinks.ts";
 import { isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { jsonBody, requiredString } from "./requestBody.ts";
@@ -118,7 +118,14 @@ export async function renameWithLinkRewrite(from: string, to: string): Promise<v
   // Capture linkers before the rename, while links still resolve to the old
   // path. Path-form links ([[Folder/Note]]) break on ANY move, so linkers are
   // captured even when the basename is unchanged.
-  const linkers = [...new Set(backlinks(fromPath, false, null).map((b) => b.path))];
+  // …plus every SERIES note whose `series:` frontmatter names it: frontmatter
+  // wikilinks are not body links, so backlinks() does not see them, and a
+  // rename that left `- "[[old name]]"` behind would drop the part from its
+  // series (shared/series.ts). The rewrite below runs over the whole file, so
+  // the frontmatter entry is rewritten like any other wikilink.
+  const linkers = [
+    ...new Set([...backlinks(fromPath, false, null).map((b) => b.path), ...seriesDeclarersOf(fromPath)]),
+  ];
 
   await renameNote(fromPath, toPath);
 

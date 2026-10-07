@@ -100,6 +100,24 @@ What a visitor sees: the blog shell, publishing and topics, collections, and the
   the palette's `delete-current` alike) and the delete toast did not, so one file wore two names
   inside two seconds: a row reading "Welcome" opening a dialog about "Welcome.md". The dialog
   BODY still prints the full path, because that sentence is about what happens on disk.
+- **A SERIES IS ONE CARD IN EVERY LIST AND EVERY PART IN EVERY ENUMERATION.** Frontmatter
+  `series:` (a list of wikilinks or vault paths, `shared/series.ts`) on a published note makes
+  it a series; `server/indexer/series.ts` resolves it once per index change (memo dropped in
+  `invalidateDerived`): part → series (first series by path order claims a shared part; an
+  entry naming nothing, itself, or another series is ignored, the last warned once), series →
+  ordered entries. `posts()` takes `{ parts: "hide" | "show" }`: "hide" (the default; GET
+  /api/posts, the designed feed) drops a part whose series this reader can see and gives the
+  series card `parts`, `partList`, `partTags` and a `date` that is the newest of its own and its
+  visible parts'; "show" (feed, sitemap, ActivityPub, deep-link og: tags, the designer's
+  reachable set) keeps every part, each carrying `series: { title, path, index, count }`.
+  Visibility is per reader (published + languageFilter); a series with no visible part has no
+  `parts` and is an ordinary post. The admin list alone carries `seriesPlan` (every entry with
+  its status) so unpublished parts can be greyed. The client never derives membership: the
+  article page finds a part inside `partList` (`client/blog/series.tsx findPost`), and walks
+  `partList` for previous/next part. Rename rewrites `series:` entries
+  (`renameWithLinkRewrite` adds `seriesDeclarersOf` to the linkers). Parity:
+  `tests/series.test.ts` asserts no row of the default list is a part and every hidden part is
+  carried by a card.
 - **An empty public list says WHY it is empty, and never how much it is hiding.** With the
   languageFilter on, the blog's empty state adds one line naming the rule
   (`blogFilteredByLanguage`); `/api/me` carries `languageFilter` as a BOOLEAN policy flag and

@@ -52,7 +52,8 @@ export default function BlogTopic({
   }, [resolved, tag]);
 
   const filtered = useMemo(
-    () => (posts ?? []).filter((p) => p.tags.includes(resolved)),
+    () => // A series is listed under its parts' tags too (PostMeta.partTags).
+    (posts ?? []).filter((p) => p.tags.includes(resolved) || (p.partTags?.includes(resolved) ?? false)),
     [posts, resolved],
   );
   return (
