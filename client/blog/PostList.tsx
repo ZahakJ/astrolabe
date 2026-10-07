@@ -7,6 +7,7 @@ import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
 import { countPhrase, t } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
+import { SeriesMeta } from "./series.tsx";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import { folderUrl, topicUrl } from "./nav.ts";
@@ -80,6 +81,7 @@ export function PostMetaLine({ post, locale }: { post: PostMeta; locale: string 
       </time>
       <MetaSep className="s-blog-meta__dot" />
       <span>{countPhrase(post.readingMinutes, "readMinutes")}</span>
+      <SeriesMeta post={post} />
       {/* No `·` before the chips, and the reason is a phone: the meta line
           WRAPS, and at 390 the chips went to their own line while the
           separator stayed behind — every tagged card ending its meta line

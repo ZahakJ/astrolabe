@@ -49,6 +49,13 @@ export function requestOrigin(c: Context): string {
  *  the client router: ".md" optional, case-insensitive, percent-encoded
  *  segments.
  *
+ *  posts(TRUE, …, { parts: "show" }) — the visitor list, ENUMERATING every
+ *  page — is the only correct source here, and for the feed and sitemap
+ *  below. "show" because a part of a series is a page of its own: it needs its
+ *  own og: tags, a feed item (a subscriber wants each new part) and a sitemap
+ *  row; the visitor-facing LISTS ask for { parts: "hide" } and see the series
+ *  note as one card instead (server/indexer/posts.ts PostsOptions).
+ *
  *  posts(TRUE) — the visitor list — is the only correct source here. This is a
  *  crawler-facing surface with no session: it is what puts a note into Google
  *  and into social cards. Iterating the admin list leaked a language-hidden
@@ -71,7 +78,7 @@ function matchPublished(pathname: string, lang: FilterLang): PostMeta | null {
   // a `.md` one is — and a crawler that follows the feed's link lands on the
   // post's own <title> and og: tags rather than on the generic site meta.
   const wants = noteCandidates(rel).map((c) => c.toLowerCase());
-  for (const post of posts(true, lang)) {
+  for (const post of posts(true, lang, false, { parts: "show" })) {
     if (wants.includes(post.path.toLowerCase())) return post;
   }
   return null;
@@ -94,7 +101,7 @@ export function renderFeed(origin: string, scope: LanguageScope): string {
   // …and, in designed mode, minus the static pages: an About page is part of
   // the site, not an item in its feed (server/pages.ts). staticPagesActive()
   // is false under the stock blog, so this feed is byte-for-byte what it was.
-  const items = posts(true, scope.lang, staticPagesActive())
+  const items = posts(true, scope.lang, staticPagesActive(), { parts: "show" })
     .slice(0, FEED_MAX_ITEMS)
     .map((post) => {
       const link = origin + notePathToUrl(post.path);
@@ -180,7 +187,7 @@ function w3cDate(iso: string): string | null {
  * years, and a field nobody reads is a claim nobody checks.
  */
 export function renderSitemap(origin: string, scope: LanguageScope): string {
-  const all = posts(true, scope.lang);
+  const all = posts(true, scope.lang, false, { parts: "show" });
   const items = all.slice(0, SITEMAP_MAX_URLS - 1); // -1: the home URL below
   const urls: string[] = [];
   // The front door changes whenever the newest post does, so it borrows that

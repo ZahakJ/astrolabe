@@ -261,7 +261,7 @@ designRoutes.get("/", (c) => {
     // instead of silently vanishing from the public menu later.
     pages: pages(false, null),
     visible: [
-      ...posts(true, null).map((post) => post.path),
+      ...posts(true, null, false, { parts: "show" }).map((post) => post.path),
       ...pages(true, null).map((page) => page.path),
     ],
     // WHAT THE DESIGN'S FEED WILL ACTUALLY HOLD — the designer's preview reads
@@ -281,7 +281,7 @@ designRoutes.get("/", (c) => {
     // site print": VISITOR scope, the visitor's own language scope, and pages
     // excluded unconditionally — a designed site never lists a page as an
     // article, whatever `publicLayout` says today.
-    posts: posts(true, languageScope(c, true).lang, true),
+    posts: posts(true, languageScope(c, true).lang, true, { parts: "hide" }),
   });
 });
 

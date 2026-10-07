@@ -1164,6 +1164,17 @@ const ar = {
   blogMoreWritings: "مزيد من الكتابات",
   blogRelated: "ذات صلة",
   blogRelatedWritings: "كتابات ذات صلة",
+  blogSeries: "سلسلة",
+  blogSeriesPartOf: "الجزء {n} من {count}",
+  blogSeriesParts: "الأجزاء",
+  blogSeriesPrevPart: "الجزء السابق",
+  blogSeriesNextPart: "الجزء التالي",
+  blogSeriesNav: "التنقل في السلسلة",
+  blogSeriesUnpublished: "غير منشور",
+  blogSeriesMissing: "غير موجود",
+  blogSeriesSelf: "السلسلة نفسها",
+  blogSeriesNested: "سلسلة (غير مدعومة هنا)",
+  blogSeriesClaimed: "في سلسلة أخرى",
 
   // ── Blog search (nav field + Ctrl/Cmd+K overlay) ────────────────────────
   blogSearchPlaceholder: "بحث في الكتابات…",

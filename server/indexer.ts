@@ -38,6 +38,8 @@ import { detectArabic } from "./indexer/language.ts";
 import { dropAttachmentMemos } from "./indexer/publish.ts";
 import { dropFolderMemos } from "./indexer/folders.ts";
 import { dropTwinsMemo, resolveLink } from "./indexer/resolve.ts";
+import { dropSeriesMemo } from "./indexer/series.ts";
+import { parseSeriesRefs } from "../shared/series.ts";
 import { flatBody, labelsOfFm, props } from "./indexer/queries.ts";
 export { isNoteVisibleToVisitor, publishedCensus, visibleUnder, publishedTopics } from "./indexer/language.ts";
 export type { FilterLang, PublishedCensus } from "./indexer/language.ts";
@@ -47,6 +49,8 @@ export { detectTemplatesFolder, detectHadithFolder, hadithLookup, detectTagsFold
 export { exportSelection, notesReferencing, notesLinkingTo, notesLinkedFrom, notesWithTag, isNotePublished, isAllowedAttachment, publishedNotes, visibleNotesUnder, publishedPaths, publishedCounts, listImageAttachments, unreferencedAttachments, registerAttachment, noteTitle } from "./indexer/publish.ts";
 export type { ExportSelection } from "./indexer/publish.ts";
 export { folderMeta, libraryRefs, collectionRows, tagPageCollections, publicFolderCounts, libraryLessons, posts, pages, trackers, routines } from "./indexer/posts.ts";
+export type { PostsOptions } from "./indexer/posts.ts";
+export { seriesDeclarersOf } from "./indexer/series.ts";
 export { mentions, hasNote, linkSpellingFor, tasks, cards, decks, deckCards, onThisDay, timelineNotes, queryPaths, queryNotes, search, replaceCandidates, graph, backlinks, searchTerms, searchMatches, tags, props, tagPageLabels } from "./indexer/queries.ts";
 export type { SearchOptions } from "./indexer/queries.ts";
 
@@ -182,6 +186,10 @@ export interface NoteRecord {
    *  its wikilink but not yet resolved (see `twinOf`, which resolves it and
    *  makes the relation symmetric). Null for almost every note. */
   twinRef: string | null;
+  /** Frontmatter `series:` — the parts this note declares, cleaned of their
+   *  wikilink brackets but not yet resolved (server/indexer/series.ts resolves
+   *  them once per index change). Null when the note declares none. */
+  seriesRefs: string[] | null;
   /** This face's own short label — frontmatter `face:`. What lets a pair of
    *  SAME-LANGUAGE faces ("short"/"long") say which is which; null for the
    *  ordinary bilingual pair, whose two languages say it already. */
@@ -381,6 +389,7 @@ let nearbyRev = 0;
 function invalidateDerived(): void {
   dropAttachmentMemos();
   dropTwinsMemo();
+  dropSeriesMemo();
   dropFolderMemos();
   // The Nearby corpus (server/nearby.ts) weighs every note against the
   // vault's term frequencies, so one changed note moves every score a little
@@ -839,6 +848,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     citekeys: parts.citekeys,
     aliases: parseAliases(fm),
     twinRef: parseTwin(fm),
+    seriesRefs: parseSeriesRefs(fm),
     face: parseFace(fm),
     props: scalarProps(fm),
     excerptSource: parts.firstParagraph,
@@ -1131,6 +1141,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // answers to its aliases exactly as it answers to its title.
     aliases: parseAliases(fm),
     twinRef: parseTwin(fm),
+    seriesRefs: parseSeriesRefs(fm),
     face: parseFace(fm),
     excerptSource: null,
     tags: parseTags("", frontmatter),

@@ -47,7 +47,7 @@ import { onEvent, safeAbs } from "./vault.ts";
 /** Every page this site may talk to other sites about, newest first. */
 export function federablePosts(): PostMeta[] {
   if (!publicReads()) return [];
-  return posts(true, siteScope().lang, staticPagesActive());
+  return posts(true, siteScope().lang, staticPagesActive(), { parts: "show" });
 }
 
 export function isFederable(notePath: string): boolean {

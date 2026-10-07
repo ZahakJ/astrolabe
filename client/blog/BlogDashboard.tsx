@@ -15,6 +15,7 @@ import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import { useBannerSrc } from "../components/BannerImg.tsx";
 import { countPhrase, localeNum, t } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
+import { SeriesMeta } from "./series.tsx";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import HomeBannerModal from "./HomeBannerModal.tsx";
@@ -76,6 +77,7 @@ function Card({ post, locale }: { post: PostMeta; locale: string }) {
           </time>
           <MetaSep className="s-blog-meta__dot" />
           <span>{countPhrase(post.readingMinutes, "readMinutes")}</span>
+          <SeriesMeta post={post} />
         </div>
         {post.excerpt !== "" && (
           <p className="s-dash-card__excerpt" dir="auto">

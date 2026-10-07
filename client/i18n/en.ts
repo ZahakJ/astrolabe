@@ -1518,6 +1518,20 @@ const en = {
   blogMoreWritings: "More writings",
   blogRelated: "Related",
   blogRelatedWritings: "Related writings",
+  // SERIES (shared/series.ts): a note that declares its parts. The card line
+  // ("Series · 7 parts"), the bar above a part's title, the app-rendered
+  // Parts section, and the owner-only reasons an entry is greyed.
+  blogSeries: "Series",
+  blogSeriesPartOf: "Part {n} of {count}",
+  blogSeriesParts: "Parts",
+  blogSeriesPrevPart: "Previous part",
+  blogSeriesNextPart: "Next part",
+  blogSeriesNav: "Series navigation",
+  blogSeriesUnpublished: "not published",
+  blogSeriesMissing: "not found",
+  blogSeriesSelf: "itself",
+  blogSeriesNested: "a series (not supported here)",
+  blogSeriesClaimed: "already in another series",
 
   // ── Blog search (nav field + Ctrl/Cmd+K overlay) ────────────────────────
   blogSearchPlaceholder: "Search writings…",

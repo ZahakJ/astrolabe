@@ -26,6 +26,7 @@ describe("server/indexer.ts, split into server/indexer/*", () => {
       "server/indexer/publish.ts",
       "server/indexer/posts.ts",
       "server/indexer/queries.ts",
+      "server/indexer/series.ts",
     ]);
   });
 });

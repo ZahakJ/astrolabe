@@ -73,6 +73,8 @@ import { eventRoutes } from "./eventRoutes.ts";
 import { webmentionApi } from "./webmentionRoutes.ts";
 import { renameRoutes } from "./renameRoutes.ts";
 export type { MoveFolderResponse } from "./renameRoutes.ts";
+// The rename flow, for tests that drive it without a session (tests/series.test.ts).
+export { renameWithLinkRewrite } from "./renameRoutes.ts";
 
 export const api = new Hono();
 
@@ -1503,7 +1505,7 @@ api.get("/posts", (c) => {
   // the stock blog on, staticPagesActive() is false and this is the call it
   // always was.
   const limited = isPublishLimited(c);
-  const list = posts(limited, languageScope(c, limited).lang, staticPagesActive());
+  const list = posts(limited, languageScope(c, limited).lang, staticPagesActive(), { parts: "hide" });
   if (commentsEnabled()) {
     const counts = commentCounts(!limited);
     for (const post of list) post.commentCount = counts.get(post.path) ?? 0;

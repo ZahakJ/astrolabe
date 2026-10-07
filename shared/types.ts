@@ -943,6 +943,38 @@ export interface PostMeta {
    *  field is to carry the face the reader is not currently being shown, so
    *  the ع/EN switch can take them to it instead of to the home page. */
   twin?: TwinFaceRef;
+  /** On a PART of a series (shared/series.ts): where it sits, counted over
+   *  the parts THIS reader may see. Absent on every other post. */
+  series?: SeriesRef;
+  /** On a SERIES note: how many of its parts this reader may see. Absent on
+   *  every other post, and absent (not 0) when none are visible — a series
+   *  with no visible part is listed as an ordinary post. When present, `date`
+   *  is already the newest of the note's own date and its parts' dates. */
+  parts?: number;
+  /** On a series card in a LIST (parts hidden): the visible parts, in series
+   *  order, each carrying `series` — so the article page can name a part the
+   *  list no longer shows. */
+  partList?: PostMeta[];
+  /** On a series card: the tags its visible parts carry (EXCLUDE_TAGS
+   *  applied), so a topic page lists the series under them too. */
+  partTags?: string[];
+  /** ADMIN ONLY, on a series note: every entry of its `series:` key in order,
+   *  with why an entry is not a visible part. Never sent to a visitor. */
+  seriesPlan?: SeriesPlanEntry[];
+}
+
+export interface SeriesRef {
+  title: string;
+  path: string;
+  index: number; // 1-based, over the visible parts
+  count: number;
+}
+
+export interface SeriesPlanEntry {
+  ref: string;
+  path: string | null;
+  title: string;
+  status: import("./series.ts").SeriesEntryStatus;
 }
 
 /** One face of a twinned note, named for a surface that is showing the other.
