@@ -1543,7 +1543,10 @@ const AUDIENCES = [
   // rules in blog.css, all on the article and list paint. 1094 → 1097.
   // SERIES, the stylesheet: the parts list, the bar above a part and the
   // series line on a card, 1097.5 kB actual. 1097 → 1098.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1098 * 1024 },
+  // 3.41.1 SERIES CARD PARTS: the parts listed inline on a series card
+  // (SeriesCardParts and its six rules in blog.css), 1098.6 kB actual.
+  // 1098 → 1100.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1100 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
