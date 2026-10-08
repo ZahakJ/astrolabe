@@ -430,6 +430,52 @@ function propsHideDemo(host: HTMLElement, lang: Lang): () => void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.41.0",
+    title: { en: "Series", ar: "سلاسل" },
+    slides: [
+      {
+        // ── One note names its parts; the blog shows one card, the parts a bar ──
+        title: { en: "A series is one note that names its parts", ar: "السلسلة ملاحظة واحدة تسمّي أجزاءها" },
+        body: {
+          en: "Writing that comes in parts no longer floods the home page. List the parts, in order, under series: in the frontmatter of a published note, and that note becomes the series: your text is its introduction, and the app draws the Parts below it, numbered, with each part's excerpt, date and reading time. On the home page, topic and folder pages, the series is one card, dated by its newest part. Each part gets a bar above its title (Part 2 of 3 · Tracing) and steps to the previous and next part instead of the previous and next post. Only published parts count, so list the whole plan and release it one part at a time; the feed still announces every part.",
+          ar: "لم تعد الكتابة التي تأتي في أجزاء تغرق الصفحة الرئيسية. اذكر الأجزاء بترتيبها تحت series: في مقدّمة ملاحظة منشورة، فتصير تلك الملاحظة هي السلسلة: نصّك مقدّمتها، ويرسم التطبيق تحته قائمة الأجزاء مرقّمة، مع مقتطف كل جزء وتاريخه ومدة قراءته. وفي الصفحة الرئيسية وصفحات المواضيع والمجلدات تظهر السلسلة بطاقة واحدة، تاريخها تاريخ أحدث أجزائها. ويحمل كل جزء شريطًا فوق عنوانه (الجزء 2 من 3 · Tracing) وينتقل إلى الجزء السابق والتالي بدل المنشور السابق والتالي. ولا يُحتسب إلا المنشور من الأجزاء، فاذكر الخطة كاملة وأطلقها جزءًا جزءًا؛ وتبقى التغذية تعلن عن كل جزء.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-size="9" fill="var(--text-faint)"><text x="30" y="34">${L(lang, "the note's frontmatter", "مقدّمة الملاحظة")}</text><text x="300" y="34">${L(lang, "what readers see", "ما يراه القرّاء")}</text></g>
+  <rect x="28" y="42" width="236" height="150" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g font-family="ui-monospace, monospace" font-size="10.5" fill="var(--text)">
+    <text x="40" y="62">---</text>
+    <text x="40" y="78">publish: true</text>
+    <text x="40" y="94">series:</text>
+    <g class="wa-late" style="--i:1"><text x="48" y="110">- "[[strace]]"</text></g>
+    <g class="wa-late" style="--i:2"><text x="48" y="126">- "[[ftrace]]"</text></g>
+    <g class="wa-late" style="--i:3"><text x="48" y="142">- "[[perf stat]]"</text></g>
+    <text x="40" y="158">---</text>
+    <text x="40" y="178" fill="var(--text-faint)">${L(lang, "Your introduction…", "مقدّمتك…")}</text>
+  </g>
+  <path class="wa-draw" d="M272 116 h18" fill="none" stroke="var(--accent)" stroke-width="1.5" marker-end="none"/>
+  <g class="wa-late" style="--i:2">
+    <rect x="298" y="42" width="232" height="54" rx="8" fill="var(--bg)" stroke="var(--accent)"/>
+    <text x="312" y="62" fill="var(--text)" font-size="13" font-weight="700">${L(lang, "Tracing from first principles", "التتبّع من المبادئ الأولى")}</text>
+    <text x="312" y="80" fill="var(--text-faint)" font-size="10">${L(lang, "series · 3 parts · one card on the home page", "سلسلة · 3 أجزاء · بطاقة واحدة في الرئيسية")}</text>
+  </g>
+  <g class="wa-late" style="--i:3">
+    <rect x="298" y="108" width="232" height="84" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <rect x="298" y="108" width="232" height="18" rx="8" fill="var(--bg-hover)"/>
+    <text x="312" y="121" fill="var(--accent)" font-size="9.5" font-weight="600">${L(lang, "Part 2 of 3 · Tracing from first principles", "الجزء 2 من 3 · التتبّع من المبادئ الأولى")}</text>
+    <text x="312" y="146" fill="var(--text)" font-size="14" font-weight="700">ftrace</text>
+    <g font-size="9.5" fill="var(--text-faint)"><text x="312" y="180">← strace</text><text x="518" y="180" text-anchor="end">perf stat →</text></g>
+  </g>
+</svg>`,
+        },
+        docs: "blog-mode",
+      },
+    ],
+  },
+  {
     version: "3.40.0",
     title: { en: "Properties, out of the way", ar: "الخصائص، بعيدًا عن الطريق" },
     slides: [
