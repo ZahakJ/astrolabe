@@ -1127,6 +1127,54 @@
   gap: 8px;
 }
 
+/* A series card's parts, inline: a short numbered list under the excerpt,
+   set like the meta line (small, muted) so the card still reads as one post
+   with the parts as its contents, not as four posts stacked. The number sits
+   in a fixed column so titles align; the reading time trails in the muted
+   tone and wraps under the title on a phone. */
+
+.s-blog-card-parts {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.893rem;
+}
+
+.s-blog-card-parts__item {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+}
+
+.s-blog-card-parts__n {
+  flex: 0 0 1.4em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-faint);
+}
+
+.s-blog-card-parts__title {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.s-blog-card-parts__title:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.s-blog-card-parts__time {
+  color: var(--text-faint);
+}
+
+.s-dash-card .s-blog-card-parts {
+  margin-top: 8px;
+}
+
 .s-blog-series-bar {
   display: flex;
   align-items: baseline;
