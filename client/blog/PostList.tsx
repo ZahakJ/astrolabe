@@ -7,7 +7,7 @@ import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import FolderGlyph from "../components/FolderGlyph.tsx";
 import { countPhrase, t } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
-import { SeriesMeta } from "./series.tsx";
+import { SeriesCardParts, SeriesMeta } from "./series.tsx";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import { folderUrl, topicUrl } from "./nav.ts";
@@ -181,6 +181,7 @@ export default function PostList({
                 {post.excerpt}
               </p>
             )}
+            <SeriesCardParts post={post} />
           </div>
           <EntryThumb post={post} />
         </article>

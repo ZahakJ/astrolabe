@@ -37,6 +37,32 @@ export function SeriesMeta({ post }: { post: PostMeta }) {
   );
 }
 
+/** The parts of a series, inline on its CARD in the home, topic and folder
+ *  lists: the series stays one card (fourteen parts do not bury the rest of
+ *  the site), and the parts are in view and one click away all the same —
+ *  the owner's call on 2026-10-07 ("1": keep the card, show the parts).
+ *  Number, title, reading time; nothing the full Parts section on the series
+ *  page does not say better. */
+export function SeriesCardParts({ post }: { post: PostMeta }) {
+  const parts = post.partList;
+  if (!parts || parts.length === 0) return null;
+  return (
+    <ol className="s-blog-card-parts" aria-label={t("blogSeries")}>
+      {parts.map((part, i) => (
+        <li key={part.path} className="s-blog-card-parts__item">
+          <span className="s-blog-card-parts__n" aria-hidden="true">
+            {localeNum(i + 1)}
+          </span>
+          <NavLink url={notePathToUrl(part.path)} className="s-blog-card-parts__title" dir="auto">
+            {part.title}
+          </NavLink>
+          <span className="s-blog-card-parts__time">{countPhrase(part.readingMinutes, "readMinutes")}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 /** "Part 3 of 7 · ‹series›", above a part's title. */
 export function SeriesBar({ part }: { part: PostMeta }) {
   const s = part.series;

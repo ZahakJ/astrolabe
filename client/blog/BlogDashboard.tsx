@@ -15,7 +15,7 @@ import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import { useBannerSrc } from "../components/BannerImg.tsx";
 import { countPhrase, localeNum, t } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
-import { SeriesMeta } from "./series.tsx";
+import { SeriesCardParts, SeriesMeta } from "./series.tsx";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import HomeBannerModal from "./HomeBannerModal.tsx";
@@ -84,6 +84,7 @@ function Card({ post, locale }: { post: PostMeta; locale: string }) {
             {post.excerpt}
           </p>
         )}
+        <SeriesCardParts post={post} />
         {post.tags.length > 0 && (
           <div className="s-dash-card__tags">
             <TagChips tags={post.tags} />
