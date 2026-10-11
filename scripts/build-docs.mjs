@@ -222,9 +222,11 @@ function rewriteHref(href, lang, page, from = lang === "ar" ? "docs/ar" : "docs"
     if (found) return `${targetLang === lang ? "../" : `../../${targetLang}/`}${found.slug}/${anchor}`;
     return `${REPO}/blob/main/${target}${anchor}`;
   }
-  if (target.startsWith("docs/screenshots/")) return `../../../${target.slice(5)}`;
   if (/\.md$/.test(target) || !target.startsWith("docs/")) return `${REPO}/blob/main/${target}${anchor}`;
-  return href;
+  // A file under docs/ (a screenshot, a brand asset) is served from the site root; a
+  // directory has no listing on the site, so it points at the repository tree.
+  if (/\/$/.test(target) || !/\.[a-z0-9]+$/i.test(target)) return `${REPO}/tree/main/${target.replace(/\/$/, "")}`;
+  return `../../../${target.slice(5)}${anchor}`;
 }
 
 function render(markdown, lang, page) {

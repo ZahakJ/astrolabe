@@ -77,7 +77,7 @@ presence: false
 </code></pre>
 <p>الملاحظة التي في مقدّمتها <code>presence: false</code> تظهر <strong>يكتب</strong> أو <strong>يقرأ</strong>، أي النشاط، ولا يظهر عنوانها أبدًا مهما قال <strong>الوضع</strong>. والملاحظة التي تحمل أيًّا من الوسوم التي تُبقيها خارج الموقع العام (<strong>الإعدادات ← النشر ← متقدّم ← وسوم مستبعدة</strong>، أو <code>EXCLUDE_TAGS</code>) تُعامل المعاملة نفسها، فالملاحظة الموسومة <code>#private</code> خاصّة هنا أيضًا.</p>
 <h2 id="الصور"><a class="anchor" href="#الصور">الصور</a></h2>
-<p>الشعار والصور الصغيرة الثماني ملفات PNG بحجم 1024 × 1024 بكسل في <a href="../brand/presence/"><code>docs/brand/presence/</code></a>، ويجلبها Discord من موقع صفحات المشروع نفسه. فلا شيء يُرفع.</p>
+<p>الشعار والصور الصغيرة الثماني ملفات PNG بحجم 1024 × 1024 بكسل في <a href="https://github.com/ZahakJ/astrolabe/tree/main/docs/brand/presence" target="_blank" rel="noreferrer"><code>docs/brand/presence/</code></a>، ويجلبها Discord من موقع صفحات المشروع نفسه. فلا شيء يُرفع.</p>
 <p>وإن فضّلت أن يحتفظ Discord بنسخه هو، أو كانت شبكتك تمنعه من جلب الصور الخارجية، فارفعها بدلًا من ذلك: افتح تطبيقك في بوابة المطوّرين، ثم <strong>Rich Presence ← Art Assets</strong>، وأضف كل ملف PNG باسم ملفه بلا <code>.png</code> (<code>mark</code> و<code>pen</code> و<code>page</code> و<code>book</code> و<code>cards</code> و<code>brush</code> و<code>shelf</code> و<code>compass</code> و<code>moon</code>). ثم اجعل <strong>الإعدادات ← حضور Discord ← متقدّم ← مصدر الصور</strong> <em>مرفوعة إلى Discord</em>.</p>
 <p>ويرسم الصورَ <code>scripts/shoot-presence-assets.mjs</code> من ملفات SVG التي بجانبها؛ والشعار مولَّد من الهندسة نفسها التي تُرسم بها أيقونة التطبيق.</p>
 <h2 id="كم-مرة-يتغيّر"><a class="anchor" href="#كم-مرة-يتغيّر">كم مرة يتغيّر</a></h2>
