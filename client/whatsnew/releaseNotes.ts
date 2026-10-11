@@ -13,6 +13,7 @@
 // prose and demos cost the entry nothing.
 
 import { isoDate, mergeEntry, parseRoutine, parseRoutineLog, shiftDate, type EntryPatch, type RoutineEntry } from "../../shared/routine.ts";
+import { brandMarkSvg } from "../../shared/brandMark.ts";
 import { buildPropsCard } from "../editor/noteMeta.ts";
 import { t } from "../i18n.ts";
 // The 3.40.0 demo draws the reading view's own properties card.
@@ -426,9 +427,106 @@ function propsHideDemo(host: HTMLElement, lang: Lang): () => void {
   return () => window.clearTimeout(timer);
 }
 
+// ── 3.42.0: Discord presence ────────────────────────────────────────────────
+
+/** The mark's own geometry (shared/brandMark.ts), unwrapped so it can sit in
+ *  a deck drawing at any size: the inner elements of its <svg>, in the
+ *  accent, for a <g transform> to place. */
+function markInner(): string {
+  return brandMarkSvg({ size: 100, detail: "full", color: "var(--accent)" })
+    .replace(/^<svg[^>]*>/, "")
+    .replace(/<\/svg>$/, "");
+}
+
+/** The card Discord draws under your name, in this deck's tokens. The badge
+ *  is the pen glyph of docs/brand/presence/pen.svg, the small image Discord
+ *  shows for Writing. */
+function presenceCardSvg(lang: Lang): string {
+  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-size="9" fill="var(--text-faint)"><text x="36" y="40">${L(lang, "in Astrolabe", "في أسطرلاب")}</text><text x="172" y="40">${L(lang, "on your Discord profile", "على ملفك في Discord")}</text></g>
+  <rect x="36" y="52" width="104" height="128" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="48" y="74" fill="var(--text)" font-size="11" font-weight="700">${L(lang, "Chapter 3", "الفصل 3")}</text>
+  <g fill="var(--bg-hover)"><rect x="48" y="86" width="80" height="5" rx="2.5"/><rect x="48" y="98" width="70" height="5" rx="2.5"/><rect x="48" y="110" width="76" height="5" rx="2.5"/><rect x="48" y="122" width="44" height="5" rx="2.5"/></g>
+  <rect x="92" y="120" width="1.5" height="10" fill="var(--accent)"/>
+  <path class="wa-draw" d="M146 116 h18" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <rect x="172" y="52" width="352" height="128" rx="10" fill="var(--bg)" stroke="var(--border)"/>
+  <text x="188" y="72" fill="var(--text-faint)" font-size="8.5" font-weight="700" letter-spacing="0.08em">${L(lang, "PLAYING", "يلعب")}</text>
+  <rect x="188" y="82" width="80" height="80" rx="12" fill="var(--bg-hover)"/>
+  <g transform="translate(196 88) scale(0.64)" fill="none" stroke="var(--accent)" stroke-linecap="round" stroke-linejoin="round">${markInner()}</g>
+  <g class="wa-late" style="--i:1">
+    <circle cx="262" cy="156" r="13" fill="var(--bg-raised)" stroke="var(--bg)" stroke-width="3"/>
+    <g transform="translate(249 143) scale(0.26)" fill="none" stroke="var(--accent)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"><path d="M66 24 L76 34 L42 68 L26 74 L32 58 Z"/><path d="M26 74 L38 62"/></g>
+  </g>
+  <text x="286" y="98" fill="var(--text)" font-size="13" font-weight="700">Astrolabe</text>
+  <g class="wa-late" style="--i:2"><text x="286" y="118" fill="var(--text)">${L(lang, "Writing", "يكتب")}</text></g>
+  <g class="wa-late" style="--i:3"><text x="286" y="136" fill="var(--text)">${L(lang, "Chapter 3", "الفصل 3")}</text></g>
+  <g class="wa-late" style="--i:4"><text x="286" y="154" fill="var(--text-muted)" font-size="11">${L(lang, "00:12:34 elapsed", "مضى 00:12:34")}</text></g>
+  <text x="348" y="200" text-anchor="middle" fill="var(--text-faint)" font-size="10">${L(lang, "the words you chose, and nothing else", "الكلمات التي اخترتها، ولا شيء غيرها")}</text>
+</svg>`;
+}
+
+/** The three positions of Mode, and the note that keeps its title home. */
+function presenceModesSvg(lang: Lang): string {
+  const rows: [string, string, string, string][] = [
+    ["Off", "متوقف", "Discord is told nothing", "لا يُقال لـDiscord شيء"],
+    ["Activity", "النشاط", "Writing", "يكتب"],
+    ["With title", "مع العنوان", "Writing · Chapter 3", "يكتب · الفصل 3"],
+  ];
+  const drawn = rows
+    .map(
+      ([en, ar, sayEn, sayAr], i) => `<g class="wa-late" style="--i:${i + 1}">
+    <rect x="40" y="${42 + i * 38}" width="108" height="26" rx="13" fill="${i === 2 ? "var(--accent-soft)" : "var(--bg)"}" stroke="${i === 2 ? "var(--accent)" : "var(--border)"}"/>
+    <text x="94" y="${59 + i * 38}" text-anchor="middle" fill="var(--text)" font-size="11">${L(lang, en, ar)}</text>
+    <path d="M160 ${55 + i * 38} h22" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+    <text x="194" y="${59 + i * 38}" fill="${i === 0 ? "var(--text-faint)" : "var(--text)"}" font-size="12">${L(lang, sayEn, sayAr)}</text>
+  </g>`,
+    )
+    .join("\n  ");
+  return `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="40" y="34" fill="var(--text-faint)" font-size="9">${L(lang, "Settings → Discord → Mode", "الإعدادات ← حضور Discord ← الوضع")}</text>
+  ${drawn}
+  <path class="wa-draw" d="M28 160 h504" fill="none" stroke="var(--border)" stroke-dasharray="3 3"/>
+  <g class="wa-late" style="--i:4">
+    <rect x="40" y="170" width="150" height="26" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="52" y="187" fill="var(--text)" font-family="ui-monospace, monospace" font-size="11">presence: false</text>
+    <path d="M200 183 h22" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+    <text x="234" y="187" fill="var(--text)" font-size="12">${L(lang, "Writing", "يكتب")}</text>
+    <text x="300" y="187" fill="var(--text-faint)" font-size="10">${L(lang, "the title stays home, in every mode", "يبقى العنوان في البيت دائمًا")}</text>
+  </g>
+</svg>`;
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.42.0",
+    title: { en: "Discord presence", ar: "الحضور على Discord" },
+    slides: [
+      {
+        // ── The card under your name: the mark, the glyph, two lines, a timer ──
+        title: { en: "What Discord shows", ar: "ما يعرضه Discord" },
+        body: {
+          en: "Discord can now show, under your name, what you are doing in Astrolabe: Writing · Chapter 3, Reading a book, Reviewing cards with how many are left, Drawing. It is off until you switch it on, and you choose how much it says. Nothing about the vault leaves the machine but the words you chose, and they go to the Discord app on this computer, never to a server of ours. The desktop app speaks to Discord itself; a server you run yourself can too, when Discord runs beside it.",
+          ar: "يستطيع Discord الآن أن يعرض تحت اسمك ما تفعله في أسطرلاب: يكتب · الفصل 3، أو يقرأ كتابًا، أو يراجع البطاقات مع عدد ما بقي منها، أو يرسم. وهو متوقف حتى تشغّله، وأنت تختار كم يقول. ولا يخرج من الخزانة شيء سوى الكلمات التي اخترتها، وتذهب إلى تطبيق Discord على هذا الحاسوب، لا إلى خادم لنا أبدًا. ويكلّم تطبيق سطح المكتب Discord بنفسه؛ ويستطيع ذلك أيضًا خادم تشغّله بنفسك حين يعمل Discord بجانبه.",
+        },
+        visual: { kind: "svg", svg: presenceCardSvg },
+        docs: "presence",
+      },
+      {
+        // ── Off · Activity · With title, and the note that keeps its title ──
+        title: { en: "How much it says", ar: "كم يقول" },
+        body: {
+          en: "Settings → Discord → Mode has three positions. Off tells Discord nothing and opens no connection. Activity says only what you are doing. With title adds the title of the note or the book: its title, never its folder or path. A note with presence: false in its frontmatter, or carrying a tag you keep off the public site, is shown without its title whatever the mode.",
+          ar: "للوضع في الإعدادات ← حضور Discord ← الوضع ثلاث حالات. «متوقف» لا يقول لـDiscord شيئًا ولا يفتح اتصالًا. و«النشاط» يقول ما تفعله فقط. و«مع العنوان» يضيف عنوان الملاحظة أو الكتاب: عنوانها، لا مجلدها ولا مسارها أبدًا. والملاحظة التي في مقدّمتها presence: false، أو التي تحمل وسمًا تُبقيه خارج الموقع العام، تظهر بلا عنوانها مهما كان الوضع.",
+        },
+        visual: { kind: "svg", svg: presenceModesSvg },
+        docs: "presence",
+      },
+    ],
+  },
   {
     version: "3.41.0",
     title: { en: "Series", ar: "سلاسل" },
