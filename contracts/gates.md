@@ -22,7 +22,7 @@ after a build. Each script's own header says why it exists; the line below is wh
 | `check-media.mjs` | The Media page's folder chip, in a browser: pressing it reveals the tracker's folder in the tree — unfolded, scrolled on screen and painted without the tree holding focus — and a folder with its own note opens that note as well; fixtures written through the API and deleted permanently. |
 | `check-cascade.mjs` | No phone or touch declaration (an `@media` asking `pointer: coarse`, `hover: none` or a `max-width` ≤ 1000px) is undone by a later unconditional rule for the same selector and property, across every stylesheet in load order. |
 | `check-contrast.mjs` | WCAG ratios for every theme's tokens (text 4.5:1, muted and faint 3:1, accent, focus ring); every theme id has a block and every block an id; `:root` carries `THEMES[0]`'s values; every block declares every token. |
-| `check-deck.mjs` | Every what's-new slide, in English and Arabic, measured in a browser: nothing runs off its frame. |
+| `check-deck.mjs` | Every what's-new slide, in English and Arabic, measured in a browser: nothing runs off its frame, and every part of a drawing sits where its markup puts it (the same drawing cloned outside the stage, where no motion rule reaches, is the reference). |
 | `check-designer-nav.mjs` | The designer in both directions: every preview draws inside its own box (the RTL `transform-origin` trap), and navigation and alignment behave. |
 | `check-desktop.mjs` | The desktop app's files, with no Electron installed: the questions whose answers go silently wrong when something else is edited (then `npm --prefix desktop run typecheck`). |
 | `check-desktop-boot.sh` | The packed AppImage's main process boots under a virtual display and stays up. |

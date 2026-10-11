@@ -60,6 +60,38 @@ function stagger(host: HTMLElement): void {
   // count: a drawing of thirty parts at a fixed step had its last parts
   // arrive as the loop was already fading.
   svg.style.setProperty("--step", `${Math.min(0.32, 2.6 / Math.max(1, i)).toFixed(3)}s`);
+  holdPlace(svg);
+}
+
+/** The effects that MOVE a part (whatsnew.css, "Motion"): each sets
+ *  `transform-origin: center` on a `fill-box` so its `translate` / `scale`
+ *  pivot on the part itself. A tick that draws or a caret that blinks only
+ *  paints, and pivots on nothing. */
+const MOVING = new Set(["wa", "wa-late", "wa-press", "wa-pulse", "wa-grow", "wa-drop"]);
+
+/** A PART PLACED BY ITS OWN `transform` ANIMATES THROUGH A WRAPPER. The SVG
+ *  `transform` attribute is the CSS `transform` property, so it turns about
+ *  `transform-origin` like any other: once a moving effect moved the origin
+ *  to the part's centre, `translate(196 88) scale(0.64)` scaled about that
+ *  centre instead of the drawing's 0,0 and the part landed off its place by
+ *  (1 − scale) × its own centre — 3.42.0's mark out of its tile and its pen
+ *  outside its badge, 3.16.0's scaled icons off their rows. Wrapping keeps
+ *  the attribute on a plain group that turns about 0,0, as the drawing was
+ *  written, and gives the motion to a group of its own; the drawing at rest
+ *  is then the drawing its markup describes (check-deck holds it to that). */
+function holdPlace(svg: SVGSVGElement): void {
+  for (const el of [...svg.querySelectorAll("[transform]")]) {
+    if (!(el instanceof SVGElement)) continue;
+    const moving = [...el.classList].filter((c) => MOVING.has(c));
+    if (moving.length === 0) continue;
+    const wrap = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    wrap.classList.add(...moving);
+    el.classList.remove(...moving);
+    const step = el.style.getPropertyValue("--i");
+    if (step !== "") wrap.style.setProperty("--i", step);
+    el.replaceWith(wrap);
+    wrap.append(el);
+  }
 }
 
 function VisualStage({ visual, lang }: { visual: Visual; lang: Lang }) {

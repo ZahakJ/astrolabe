@@ -450,7 +450,11 @@
    attribute, which the CSS `transform` property replaces outright — the
    first cut of this animated `transform` and every 3.12.0 drawing built on
    translated groups collapsed into its own top-left corner (scripts/
-   check-deck.mjs is the gate that would have caught it). */
+   check-deck.mjs is the gate that would have caught it). The attribute
+   also turns about `transform-origin`, which these rules move to the part's
+   centre, so a part that carries its own `transform` is wrapped and the
+   motion given to the wrapper (WhatsNew.tsx, holdPlace) — 3.42.0's mark and
+   pen sat outside their boxes before that. */
 .s-wn-stage .wa {
   animation: s-wn-in 9s calc(var(--i, 0) * var(--step, 0.32s)) infinite both;
   transform-box: fill-box;

@@ -2312,6 +2312,13 @@ explains better) or `image` (a PNG imported as a URL; the last resort). Prose li
 as `{en, ar}` — NOT in the dictionary, which ships whole to every surface — and the only strings
 that go through `t()` are the ones the check-i18n DOM scan would otherwise flag.
 
+**A drawing plays, and every part stays in its place.** `stagger()` gives each part of an `svg`
+visual `.wa` and an index (whatsnew.css, "Motion"); the moving effects animate `translate` and
+`scale`, never `transform`, about the part's own centre. The SVG `transform` attribute turns about
+that same origin, so a part that carries one is wrapped in a plain group that takes the motion
+(`holdPlace`), and the attribute keeps turning about the drawing's 0,0 as written. check-deck
+holds every part, at rest, to the same drawing cloned outside the stage.
+
 **The rule is a gate.** `npm run check-whatsnew` (scripts/check-whatsnew.mjs) fails the build when
 package.json is at a new `x.Y.0` that `versions.ts` does not list or `releaseNotes.ts` has no entry
 for, when a listed version is a patch, or when a slide's title or body is empty or not Arabic in

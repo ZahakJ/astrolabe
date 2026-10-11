@@ -18,6 +18,10 @@
 //   · a <text> that follows a chip-sized rect in the same group (a button, a
 //     pill: 40–260px wide, under 60 tall) must sit inside it;
 //   · no two <text> boxes may overlap;
+//   · every part sits where its markup puts it (the drawing cloned outside
+//     the stage, where no motion rule reaches, is the reference) — a part
+//     with its own `transform` once turned about the motion's centre and
+//     left its box (3.42.0's mark and pen);
 //   · a live demo may not overflow the stage sideways.
 // Arabic inside an SVG <text> is refused when it is set right-to-left
 // (direction="rtl", text-anchor="end") or is a whole sentence: the stage
@@ -78,6 +82,40 @@ for (const lang of ["en", "ar"]) {
           const prev = t.previousElementSibling;
           if (prev && prev.tagName === "rect") { const q = box(prev); if (q.width >= 40 * k && q.width < 260 * k && q.height >= 14 * k && q.height < 60 * k && (b.left < q.left - 1 || b.right > q.right + 1)) out.push(`outside its chip: "${txt.slice(0, 30)}"`); }
         }
+        // Every part where its markup puts it. The stage animates a drawing's
+        // parts, and a part that carries its own `transform` once turned about
+        // the CENTRE the motion rules set instead of the drawing's 0,0 —
+        // 3.42.0's mark sat outside its tile and its pen outside its badge,
+        // and no text moved, so nothing above saw it. The same drawing, cloned
+        // outside the stage (no motion rules reach it) at the same size, is
+        // what the markup says; at rest every part must coincide with it.
+        const still = svg.cloneNode(true);
+        for (const e of [still, ...still.querySelectorAll("*")]) {
+          for (const c of [...e.classList]) if (c === "wa" || c.startsWith("wa-")) e.classList.remove(c);
+        }
+        const host = document.createElement("div");
+        host.style.cssText = `position:fixed;left:${S.left}px;top:${S.top}px;width:${S.width}px;height:${S.height}px;direction:ltr;pointer-events:none;opacity:0`;
+        still.style.width = `${S.width}px`;
+        still.style.height = `${S.height}px`;
+        still.style.display = "block";
+        host.append(still);
+        document.body.append(host);
+        const live = [...svg.querySelectorAll("*")];
+        const rest = [...still.querySelectorAll("*")];
+        let moved = 0;
+        for (let n = 0; n < live.length && n < rest.length; n++) {
+          const e = live[n];
+          if (!(e instanceof SVGGraphicsElement) || e.closest("defs")) continue;
+          const a = box(e), b = box(rest[n]);
+          if (a.width === 0 && a.height === 0) continue;
+          const off = Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.right - b.right), Math.abs(a.bottom - b.bottom));
+          if (off > 1.5) {
+            moved++;
+            if (moved <= 3) out.push(`off its place by ${off.toFixed(0)}px: <${e.tagName}${e.getAttribute("transform") ? ` transform="${e.getAttribute("transform")}"` : ""}>`);
+          }
+        }
+        if (moved > 3) out.push(`…and ${moved - 3} more parts off their place`);
+        host.remove();
         for (let a = 0; a < texts.length; a++) for (let c = a + 1; c < texts.length; c++) {
           const A = box(texts[a]), B = box(texts[c]);
           const ox = Math.min(A.right, B.right) - Math.max(A.left, B.left), oy = Math.min(A.bottom, B.bottom) - Math.max(A.top, B.top);
