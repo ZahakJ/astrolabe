@@ -61,6 +61,9 @@ const TYPE = {
   rowSizeAdjust: "104",
   editorWidthCustom: "900px",
   rowLibraryTitle: "Walked shelf",
+  // A Discord application id is 17–20 digits; Discord on this machine answers
+  // a made-up one with "invalid id", which the status row then says.
+  rowPresenceClientId: "123456789012345678",
 };
 
 /** The value to type when a field already holds its TYPE value. */

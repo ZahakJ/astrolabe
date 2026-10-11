@@ -15,6 +15,8 @@
 //                         copied out of server/auth.ts.
 //   electron/ipc.ts       the bridge's vocabulary (also counted by
 //                         `npm run check-desktop`).
+//   electron/presenceState.ts  which vault's activity Discord shows when
+//                         several are open, and the messages that carry it.
 //
 // Root `npm run typecheck` follows these imports in, which is the second half
 // of why they are pure: the desktop's spine is typechecked by the release gate
@@ -59,6 +61,8 @@ import {
   stepZoom,
   type Prefs,
 } from "../electron/prefs.ts";
+import { isPresenceToParent, PresenceBook, presenceStatusMessage } from "../electron/presenceState.ts";
+import { isPresenceFromParent } from "../shared/presence/messages.ts";
 
 // ── Deep links: what a stranger's link may name ────────────────────────────
 
@@ -608,3 +612,65 @@ describe("spellcheck languages", () => {
 });
 
 
+
+// ── Discord presence: one card for every open vault ───────────────────────
+
+describe("PresenceBook", () => {
+  const A = { type: 0 as const, details: "Writing" };
+  const B = { type: 0 as const, details: "Drawing" };
+  const msg = (clientId: string | null, activity: typeof A | null) => ({ type: "astrolabe:presence" as const, clientId, activity });
+
+  it("is null with nothing to show", () => {
+    const book = new PresenceBook();
+    assert.equal(book.pick(), null);
+    book.set("/v/one", msg(null, null), 1);
+    assert.equal(book.pick(), null);
+  });
+
+  it("the most recent non-null activity wins across vaults", () => {
+    const book = new PresenceBook();
+    book.set("/v/one", msg("111111111111111111", A), 1);
+    book.set("/v/two", msg("222222222222222222", B), 2);
+    assert.deepEqual(book.pick(), { clientId: "222222222222222222", activity: B });
+    book.set("/v/one", msg("111111111111111111", A), 3);
+    assert.deepEqual(book.pick(), { clientId: "111111111111111111", activity: A });
+  });
+
+  it("a vault that turns null steps aside instead of clearing another's card", () => {
+    const book = new PresenceBook();
+    book.set("/v/one", msg("111111111111111111", A), 1);
+    book.set("/v/two", msg(null, null), 2);
+    assert.deepEqual(book.pick(), { clientId: "111111111111111111", activity: A });
+    book.set("/v/one", msg("111111111111111111", null), 3);
+    assert.equal(book.pick(), null);
+  });
+
+  it("a dropped vault is forgotten", () => {
+    const book = new PresenceBook();
+    book.set("/v/one", msg("111111111111111111", A), 1);
+    book.set("/v/two", msg("222222222222222222", B), 2);
+    book.drop("/v/two");
+    assert.deepEqual(book.pick(), { clientId: "111111111111111111", activity: A });
+  });
+});
+
+describe("presence messages", () => {
+  it("the child's message is recognized, and nothing else on the channel is", () => {
+    assert.equal(isPresenceToParent({ type: "astrolabe:presence", clientId: "1", activity: null }), true);
+    assert.equal(isPresenceToParent({ type: "astrolabe:presence", clientId: null, activity: { type: 0 } }), true);
+    assert.equal(isPresenceToParent({ type: "astrolabe:listening", port: 6801 }), false);
+    assert.equal(isPresenceToParent({ type: "astrolabe:presence", clientId: 1, activity: null }), false);
+    assert.equal(isPresenceToParent({ type: "astrolabe:presence", clientId: "1", activity: [] }), false);
+    assert.equal(isPresenceToParent(null), false);
+  });
+
+  it("the parent's status message round-trips through the child's guard", () => {
+    for (const c of ["off", "searching", "connected", "invalid-id"] as const) {
+      assert.deepEqual(presenceStatusMessage(c), { type: "astrolabe:presence-status", connection: c });
+      assert.equal(isPresenceFromParent(presenceStatusMessage(c)), true);
+    }
+    assert.equal(isPresenceFromParent({ type: "astrolabe:presence-status", connection: "lost" }), false);
+    assert.equal(isPresenceFromParent({ type: "astrolabe:presence", connection: "off" }), false);
+    assert.equal(isPresenceFromParent("x"), false);
+  });
+});

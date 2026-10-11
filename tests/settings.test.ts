@@ -803,3 +803,77 @@ describe("voice notes: settings.voice (3.24.0; the backend and the processor def
     assert.equal(getSettings().voice, undefined);
   });
 });
+
+describe("Discord presence: settings.presence (3.42.0)", () => {
+  it("absent by default, every default filled in effective, the placeholder id read as null", () => {
+    patchSettings({ presence: null });
+    assert.equal(getSettings().presence, undefined);
+    assert.deepEqual(effectiveSettings().presence, {
+      mode: "off",
+      clientId: null,
+      idleMinutes: 10,
+      idle: "clear",
+      vaultName: false,
+      elapsed: "subject",
+      button: false,
+      server: false,
+      assets: "site",
+    });
+  });
+
+  it("merges sub-keys, deletes a value equal to its default, a null sub-key, and the whole key on null", () => {
+    patchSettings({ presence: { mode: "title", clientId: " 123456789012345678 " } });
+    patchSettings({ presence: { idleMinutes: 30, idle: "show", vaultName: true, elapsed: "session", button: true, server: true, assets: "uploaded" } });
+    assert.deepEqual(getSettings().presence, {
+      mode: "title",
+      clientId: "123456789012345678",
+      idleMinutes: 30,
+      idle: "show",
+      vaultName: true,
+      elapsed: "session",
+      button: true,
+      server: true,
+      assets: "uploaded",
+    });
+    assert.equal(effectiveSettings().presence.clientId, "123456789012345678");
+    patchSettings({ presence: { idleMinutes: 10, idle: "clear", vaultName: false, elapsed: "subject", button: false, server: false, assets: "site" } });
+    assert.deepEqual(getSettings().presence, { mode: "title", clientId: "123456789012345678" });
+    patchSettings({ presence: { clientId: null, mode: "off" } });
+    assert.equal(getSettings().presence, undefined, "every sub-key back at its default leaves no key at all");
+    patchSettings({ presence: { mode: "activity" } });
+    patchSettings({ presence: null });
+    assert.equal(getSettings().presence, undefined);
+  });
+
+  it("refuses every malformed value and unknown sub-key, and lands nothing", () => {
+    patchSettings({ presence: { mode: "activity" } });
+    assert.match(refuse({ presence: "on" }), /presence/);
+    assert.match(refuse({ presence: [] }), /presence/);
+    assert.match(refuse({ presence: { mode: "loud" } }), /presence\.mode/);
+    assert.match(refuse({ presence: { clientId: "12345" } }), /presence\.clientId/);
+    assert.match(refuse({ presence: { clientId: "PASTE_YOUR_DISCORD_APPLICATION_ID" } }), /presence\.clientId/);
+    assert.match(refuse({ presence: { clientId: 123456789012345678 } }), /presence\.clientId/);
+    assert.match(refuse({ presence: { idleMinutes: 0 } }), /presence\.idleMinutes/);
+    assert.match(refuse({ presence: { idleMinutes: 121 } }), /presence\.idleMinutes/);
+    assert.match(refuse({ presence: { idleMinutes: 2.5 } }), /presence\.idleMinutes/);
+    assert.match(refuse({ presence: { idle: "hide" } }), /presence\.idle/);
+    assert.match(refuse({ presence: { vaultName: "yes" } }), /presence\.vaultName/);
+    assert.match(refuse({ presence: { button: 1 } }), /presence\.button/);
+    assert.match(refuse({ presence: { server: "true" } }), /presence\.server/);
+    assert.match(refuse({ presence: { elapsed: "always" } }), /presence\.elapsed/);
+    assert.match(refuse({ presence: { assets: "cdn" } }), /presence\.assets/);
+    assert.match(refuse({ presence: { colour: "gold" } }), /Unknown settings key: presence\.colour/);
+    assert.match(refuse({ presence: { mode: "title", nope: 1 } }), /presence\.nope/);
+    assert.deepEqual(getSettings().presence, { mode: "activity" }, "a refused patch lands nothing");
+    patchSettings({ presence: null });
+  });
+
+  it("a hand-edited file with malformed sub-keys reads them as absent", () => {
+    const file = path.join(data, "settings.json");
+    writeFileSync(file, JSON.stringify({ presence: { mode: "loud", clientId: "nope", idleMinutes: 999, button: true, elapsed: "off" } }));
+    utimesSync(file, 2_000_000, 2_000_000);
+    assert.deepEqual(getSettings().presence, { button: true, elapsed: "off" });
+    assert.equal(effectiveSettings().presence.mode, "off");
+    patchSettings({ presence: null });
+  });
+});

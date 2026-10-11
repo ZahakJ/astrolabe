@@ -192,6 +192,15 @@ What the suite covers, and why each file exists:
   spoken before a language is installed (the key, never an invented string), a switch applied at
   once when its strings are here, one that waits for them, and one superseded while waiting that
   never lands.
+- The Discord presence files ([presence.md](presence.md), "What the tests hold"):
+  `tests/presenceFrame.test.ts` (the IPC framing and socket candidates), `tests/presenceCore.test.ts`
+  (reducer, privacy policy and render — the policy is the one that must never regress: a path never
+  leaves), `tests/presenceIpc.test.ts` (the protocol client against a fake Discord on a unix socket:
+  the 15-second rate, reconnect, clear on stop, an invalid id stopping the retries),
+  `tests/presenceRoutes.test.ts` (the two routes, admin-only, titles withheld by `presence: false`
+  and excluded tags) and `tests/presenceClient.test.ts` (the reporter's pure half — every surface of
+  the event table, idle for a hidden tab, no title in a report — and the status row's sentences in
+  both languages).
 
 **Tests named `KNOWN BUG:` assert current, wrong-ish behavior on purpose** — they are the written
 record of a defect nobody has decided to fix yet, and they keep the suite honest instead of green

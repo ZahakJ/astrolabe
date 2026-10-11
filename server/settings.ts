@@ -12,6 +12,7 @@
 // uniqueFolder, uniqueFormat, captureInbox, voice { model, language, keepAudio }, feeds { fetch, note }, launch,
 // webmentions { accept, send }, fediverse { enabled, handle }, speak { engine, rate, voices, public }
 // (speak.voicesDir and speak.external are accepted here and kept in speak-local.json — server/speakLocal.ts),
+// presence { mode, clientId, idleMinutes, idle, vaultName, elapsed, button, server, assets },
 // dateCalendar, textDirection, textAlign,
 // tagsFolder, tagLabels, folderIcons,
 // publicFolders { enabled, nav, home, folders }.
@@ -36,6 +37,7 @@ import { isSpeakEngine, isSpeakLang, isVoiceOf, SPEAK_ENGINE_DEFAULT, SPEAK_RATE
 import { isOwnVoiceId } from "../shared/speechVoices.ts";
 import { applyStagedSpeakLocal, discardStagedSpeakLocal, speakLocal, stageExternal, stageVoicesDir } from "./speakLocal.ts";
 import { fetchableSiteUrl, warmAuthorSites } from "./authorSites.ts";
+import { cleanPresencePatch, presenceEffective, readPresenceSettings } from "./presence/settings.ts";
 import { FEEDS_NOTE_DEFAULT } from "../shared/feeds.ts";
 import { defaultFediverseHandle, isFediverseHandle } from "../shared/fediverse.ts";
 import type {
@@ -684,6 +686,9 @@ export function getSettings(): SettingsData {
   if (gitSync) out.gitSync = gitSync;
   const ask = readAskSettings(raw.ask);
   if (ask) out.ask = ask;
+  // Discord presence (server/presence/settings.ts validates; the same drop).
+  const presence = readPresenceSettings(raw.presence);
+  if (presence) out.presence = presence;
   // Typography (fonts.ts validates; an unknown/wrongly-slotted id reads back
   // as "system" rather than throwing — reads never fail).
   if (raw.fonts !== undefined) {
@@ -866,6 +871,7 @@ export function effectiveSettings(): EffectiveSettings {
     gitSync: gitSyncEffective(),
     // Likewise `keySet`, never the Anthropic key.
     ask: askEffective(),
+    presence: presenceEffective(s.presence),
     fonts: fontSlots(),
     // Localization. `tagLabels` is the STORED map only — the tag pages' own
     // labels are merged in by server/tagLabels.ts at read time and must never
@@ -2074,6 +2080,12 @@ const PATCH_HANDLERS: Record<string, PatchHandler> = {
   },
   // WRITE-ONLY, and not into settings.json: ASTROLABE_DATA/ask-credentials.json.
   anthropicKey: (_raw, value) => stageAnthropicKey(value),
+  // ── Discord presence (server/presence/settings.ts) ───────────────────────
+  presence: (raw, value) => {
+    const next = cleanPresencePatch(value, raw.presence);
+    if (next === null) delete raw.presence;
+    else raw.presence = next;
+  },
   // Typography. The ids are re-validated here (strict allowlist — an unknown
   // id or one the slot does not accept is a 400) even though the route
   // already validated them to download the faces: this handler is the only

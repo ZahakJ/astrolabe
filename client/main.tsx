@@ -143,3 +143,22 @@ if (window.matchMedia("(pointer: coarse)").matches) {
 if (/\bElectron\//.test(navigator.userAgent)) {
   void import("./desktop/index.ts").then((mod) => mod.mountDesktop());
 }
+
+// ── Discord presence ────────────────────────────────────────────────────────
+// The reporter (client/presence/report.ts) is a lazy chunk for the same
+// budget reason as the desktop's module above, and it is mounted only while
+// the session is an admin's AND /api/me says presence is on for this vault —
+// so a visitor, and every owner who never switched it on, fetch none of it.
+// It follows the flag both ways: a settings save that turns presence off
+// refreshes /api/me, the flag drops, and the reporter stops.
+let presence: Promise<() => void> | null = null;
+function followPresence(on: boolean): void {
+  if (on && presence === null) {
+    presence = import("./presence/report.ts").then((mod) => mod.mountPresence()).catch(() => () => {});
+  } else if (!on && presence !== null) {
+    const running = presence;
+    presence = null;
+    void running.then((stop) => stop());
+  }
+}
+useStore.subscribe((s) => followPresence(s.authReady && s.admin && s.presenceOn));

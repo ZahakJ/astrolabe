@@ -50,6 +50,7 @@ import {
   type Bounds,
 } from "./prefs.ts";
 import { APP_ROOT, parseEnvFile, startVaultServer, type VaultServer } from "./server.ts";
+import { attachPresence, detachPresence, presenceActive, shutdownPresence } from "./presence.ts";
 import { enableSpellcheck, replaceMisspelling, spellMenuFor } from "./spellcheck.ts";
 import { fencePermissions } from "./permissions.ts";
 import { dataDirFor, flushPrefs, loadPrefs, partitionFor, savePrefs } from "./store.ts";
@@ -271,8 +272,21 @@ app.on("activate", () => {
   else void openVaultDialog();
 });
 
-app.on("before-quit", () => {
+/** Discord is told goodbye before the servers go: one deferred quit, capped,
+ *  so a wedged socket can delay leaving by a moment and never prevent it. */
+let presenceCleared = false;
+const PRESENCE_QUIT_CAP_MS = 400;
+
+app.on("before-quit", (event) => {
   quitting = true;
+  if (!presenceCleared && presenceActive()) {
+    presenceCleared = true;
+    event.preventDefault();
+    const cap = new Promise<void>((resolve) => setTimeout(resolve, PRESENCE_QUIT_CAP_MS));
+    void Promise.race([shutdownPresence().catch(() => {}), cap]).then(() => app.quit());
+    return;
+  }
+  presenceCleared = true;
   for (const instance of instances.values()) {
     instance.stopKeepAlive();
     instance.server.stop();
@@ -463,6 +477,7 @@ async function openVaultUnguarded(vault: string, route: string): Promise<void> {
     spellLanguages: [],
   };
   instances.set(vault, instance);
+  attachPresence(vault, server.child);
 
   // The menu opens in the INSTANCE's language as a first guess — the window
   // under it is about to render in it — and then FOLLOWS THE READER: the
@@ -577,6 +592,7 @@ function giveUpOnVault(
   signal: NodeJS.Signals | null,
 ): void {
   instances.delete(instance.vault);
+  detachPresence(instance.vault);
   instance.stopKeepAlive();
   for (const win of instance.windows) if (!win.isDestroyed()) win.close();
   refreshMenu();
@@ -605,6 +621,7 @@ async function respawnServer(
       onExit: (c, s) => onServerExit(instance.vault, c, s),
     });
     instance.server = server;
+    attachPresence(instance.vault, server.child);
     // Sign in again against the NEW child. Its SESSION_SECRET is the same
     // (this launch's credential, or the deployment's own .env), so the cookie
     // in the partition is still valid — but the same call also re-establishes
@@ -690,6 +707,7 @@ function newWindowFor(instance: Instance, route = "/"): BrowserWindow {
 
 function closeVault(instance: Instance): void {
   instances.delete(instance.vault);
+  detachPresence(instance.vault);
   instance.stopKeepAlive();
   instance.server.stop();
   refreshMenu();

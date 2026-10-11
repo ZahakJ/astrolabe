@@ -67,6 +67,7 @@ import { fileRoutes } from "./fileRoutes.ts";
 import { commentRoutes } from "./commentRoutes.ts";
 import { deckRoutes } from "./deckRoutes.ts";
 import { settingsRoutes } from "./settingsRoutes.ts";
+import { presenceRoutes } from "./presenceRoutes.ts";
 import { syncRoutes } from "./syncRoutes.ts";
 import { versionRoutes } from "./versionRoutes.ts";
 import { eventRoutes } from "./eventRoutes.ts";
@@ -1818,6 +1819,9 @@ api.get("/visibility", (c) => {
 
 // Settings, the theme mirror and the operator's faces (server/settingsRoutes.ts).
 api.route("/", settingsRoutes);
+
+// Discord presence: the tabs' reports and the status row (server/presenceRoutes.ts).
+api.route("/", presenceRoutes);
 
 // Backup and sync, workspace state, layouts (server/syncRoutes.ts).
 api.route("/", syncRoutes);

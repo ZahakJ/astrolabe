@@ -22,6 +22,7 @@ feature gets a section in the area it belongs to (or its own file, added to the 
 | [public-site.md](contracts/public-site.md) | The blog shell, topics vs publishing, collections, the site design engine, the composed pages, the designer. |
 | [features.md](contracts/features.md) | Twins, trackers, Sigils, the Calendar page, Orbits, block references, queries, tasks, periodic notes, bookmarks, layouts, the month and margin, capture, Ask the vault, voice notes. |
 | [sync-desktop-mobile.md](contracts/sync-desktop-mobile.md) | Settings that travel, git backup and sync, the desktop app, its updates and sessions, the pocket vault on the phone. |
+| [presence.md](contracts/presence.md) | Discord presence: the pure core in `shared/presence/`, the two hosts and the one sink, who owns the socket, the privacy policy as a contract, the rate, clear on exit, the reporter and the Settings page. |
 | [i18n.md](contracts/i18n.md) | Localization and RTL, numerals and calendars, note layout, tag labels, Arabic in labels. |
 | [gates.md](contracts/gates.md) | Every `scripts/check-*` gate and what it asserts, and the test suite. |
 | [releases.md](contracts/releases.md) | The history: each version, one line, and where its contract lives. |
@@ -30,4 +31,4 @@ feature gets a section in the area it belongs to (or its own file, added to the 
 reader of the contracts sees). Agents and tools that open this file find the map here; the words
 live in the files.
 - `contracts/settings-audit.md` — the 3.38.0 settings purge: every row of the old index with its verdict (keep, move, merge, demote); `tests/settings-purge.test.ts` holds the sections to it.
-- `contracts/settings-design.md` — the settings' shape: the row anatomy with its measurements, the control catalogue (one component per kind), the four groups and eighteen pages of the rail, the "This device" rule, and what the browser walk proves.
+- `contracts/settings-design.md` — the settings' shape: the row anatomy with its measurements, the control catalogue (one component per kind), the four groups and nineteen pages of the rail, the "This device" rule, and what the browser walk proves.

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <circle cx="50" cy="50" r="50" fill="#0d1117"/>
+  <g fill="none" stroke="#e3b341" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- A compass rose: the ring, the four ticks, the needle. -->
+    <circle cx="50" cy="50" r="30"/>
+    <path d="M50 14 V20 M50 80 V86 M14 50 H20 M80 50 H86"/>
+    <path d="M50 28 L57 50 L50 72 L43 50 Z"/>
+    <path d="M50 28 L57 50 L43 50 Z" fill="#e3b341"/>
+  </g>
+</svg>

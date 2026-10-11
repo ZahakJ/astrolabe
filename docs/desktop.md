@@ -173,6 +173,16 @@ next request rather than asked for. The one exception is an [env-linked vault](#
 beside it, which runs under that deployment's own settings: there the window opens as a reader, and **Sign in**
 takes the same password the site takes.
 
+## Discord presence
+
+When **Settings → Discord → Mode** is not off, the desktop app tells Discord what you are doing —
+*Writing · Chapter 3*, *Reading a book* — through Discord's own socket on this computer, for every
+vault it has open, following whichever window you used last. There is nothing else to switch on:
+the page's **This server runs beside Discord** row is for a server you host yourself, and is greyed
+out here because the app owns the connection. When the app quits it clears the line from your
+profile. The two-minute setup, and exactly what leaves the machine, are in
+[Discord presence](presence.md).
+
 ## Where things live
 
 The app's own configuration is in `~/.config/astrolabe` (the old `vellum` directory from before

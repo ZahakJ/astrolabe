@@ -450,7 +450,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // menu, the settings write and the toasts are the lazy propsActions.ts) and
 // eight strings a language. 914.3 kB in the working tree with the settings
 // highlight round beside it. 913 → 915.
-const PHONE_BUDGET = 915 * 1024;
+// DISCORD PRESENCE (next: 3.42.0): 914.8 → 919.3 kB, the entry's +4.4 kB of
+// dictionary and mount condition, nothing of the phone shell's. 915 → 920.
+const PHONE_BUDGET = 920 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1137,7 +1139,15 @@ const AUDIENCES = [
   // with the settings highlight round's stylesheet beside it. 784 → 785.
   // SERIES (next: 3.41.0): 785.0 kB measured, a hair over — eleven dictionary
   // strings and the "parts" count unit (en + ar ride the entry). 785 → 786.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 786 * 1024 },
+  // DISCORD PRESENCE (next: 3.42.0): 785.0 → 789.4 kB, +4.4 kB, measured against
+  // a build of 3.41.1 (0946a2e) in a clean worktree. Nearly all of it is the
+  // dictionary in the larger language: the Discord page's 52 strings (ten rows'
+  // labels and hints, three ⓘ paragraphs, the status row's eleven sentences),
+  // which every first paint carries because t() reads them; the rest, a few
+  // hundred bytes, is client/main.tsx's mount condition for the lazy reporter
+  // and the store's `presenceOn`. The reporter, the page and the deck are lazy.
+  // 786 → 790.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 790 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1546,7 +1556,9 @@ const AUDIENCES = [
   // 3.41.1 SERIES CARD PARTS: the parts listed inline on a series card
   // (SeriesCardParts and its six rules in blog.css), 1098.6 kB actual.
   // 1098 → 1100.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1100 * 1024 },
+  // DISCORD PRESENCE (next: 3.42.0): 1098.6 → 1102.9 kB, the entry's
+  // +4.4 kB and nothing of the blog's own (see the entry's note). 1100 → 1104.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1104 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1857,7 +1869,9 @@ const AUDIENCES = [
   // 1047 → 1049.
   // SERIES (next: 3.41.0): 1049.2 kB — the entry's series strings, nothing
   // else. 1049 → 1050.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1050 * 1024 },
+  // DISCORD PRESENCE (next: 3.42.0): 1049.2 → 1053.6 kB, the entry's +4.4 kB
+  // and nothing else — the settings page and the reporter are lazy. 1050 → 1054.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1054 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
@@ -1996,6 +2010,9 @@ const MUST_SPLIT = [
   // The "What's new" deck: slides, live demos and prose for every release,
   // behind a door (whatsnew/door.ts) that is a version compare and nothing else.
   "whatsnew/WhatsNew.tsx",
+  // The Discord presence reporter: mounted by client/main.tsx only for an
+  // admin whose /api/me says presence is on, so nobody else downloads it.
+  "presence/report.ts",
   // The drawing surface: Excalidraw whole, the largest chunk in the product,
   // behind a tab that opens only when a drawing does. The renderer's owner
   // fallback (renderEmbed.ts) is a second door into the same vendor chunk,

@@ -193,11 +193,15 @@ you save.
   what's-new deck after an update, and in the desktop app only its name, its icon, a launcher
   entry and **Software updates** (see [the desktop app](desktop.md#updates)). All of it is kept
   on this device.
+- **Discord** — what Discord shows under your name while you work: the mode (off, the activity, or
+  the activity with its title), the application id, when you count as idle and what idle does, the
+  vault name, the timer, the blog button, whether this server speaks to a Discord beside it, and a
+  status line; the image source under *Advanced*. Instance-only. See [Discord presence](presence.md).
 - **About** — the version, the Node version, the vault's counts, and the absolute paths of the
   vault, the data directory, `settings.json` and the uploaded-fonts folder.
 
-A **pocket vault** (a GitHub repository opened on the Android app) shows fourteen: Publishing,
-Comments & mentions, Collections, Library and Ask need a server, and the rows it cannot keep are
+A **pocket vault** (a GitHub repository opened on the Android app) shows thirteen: Publishing,
+Comments & mentions, Collections, Library, Ask and Discord need a server, and the rows it cannot keep are
 drawn greyed, with one line saying why.
 
 Image fields reuse the banner machinery: pick from the vault's attachments or upload right
@@ -309,6 +313,7 @@ above.
 | `webmentions` | `{ accept, send }` — [webmentions](webmentions.md): receive them into moderation, and tell the sites a post links to when it is published (Settings → Comments & mentions → Webmentions). **No env counterpart** | both `false` |
 | `fediverse` | `{ enabled, handle }` — the blog as one [fediverse](webmentions.md#the-fediverse) account, and the name before the `@` (1–30 letters, digits or underscores). **No env counterpart** | `enabled: false`; the handle is the site's name folded to that alphabet, else `blog` |
 | `ask` | `{ provider, chatModel, anthropicModel, embedModel, topK }` — [Ask the vault](ask.md): who answers (`ollama` · `anthropic`), the model names, and how many passages an answer reads (2–12). The Anthropic key is **not** here: it is write-only and lives in `ASTROLABE_DATA/ask-credentials.json`, which never travels | `ollama`, `qwen3.5:9b`, `claude-sonnet-5`, `embeddinggemma`, `6` |
+| `presence` | `{ mode, clientId, idleMinutes, idle, vaultName, elapsed, button, server, assets }`: [Discord presence](presence.md). `mode` is `off` · `activity` · `title`; `clientId` the Discord application id (17–20 digits); `idleMinutes` 1–120; `idle` `clear` · `show`; `elapsed` `off` · `subject` · `session`; `server` lets a self-hosted server speak to a Discord on its own machine (ignored under the desktop app); `assets` `site` · `uploaded`. A sub-key at its default is stored as nothing. **No environment counterpart** | `off`, the placeholder id (nothing connects), `10`, `clear`, `false`, `subject`, `false`, `false`, `site` |
 | `favicon` | vault-relative image (`.ico .png .svg .jpg .jpeg .gif .webp .avif`) | none |
 | `logo` | https URL or vault-relative image | none |
 | `home.mode` | `note` · `dashboard` | `note` |

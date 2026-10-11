@@ -36,6 +36,7 @@ import { orbitsTabFor } from "../workspace.ts";
 import Face from "./Face.tsx";
 import { headOf, CardQueue, type Pick, type Preview } from "./queue.ts";
 import { diffAnswer, type DiffOp } from "./typed.ts";
+import { setOrbitsLeft } from "../presence/orbitsLeft.ts";
 
 const VAULT_EVENT = "astrolabe:vault";
 const GRADES: Grade[] = ["again", "hard", "good", "easy"];
@@ -159,6 +160,12 @@ export default function SessionView({ path, section }: { path: string; section: 
   const current = useMemo(() => (queue ? queue.next() : null), [queue, tick]); // eslint-disable-line react-hooks/exhaustive-deps
   const previews = useMemo(() => (queue && current ? queue.previews(current.pick, current.star) : null), [queue, current]);
   const typedKind = meta !== null && meta !== "gone" && meta.kind === "typed" && current?.star.kind === "qa";
+  // Discord presence's "12 cards left" (client/presence/orbitsLeft.ts): the
+  // count after every step, and nothing once the session leaves the screen.
+  useEffect(() => {
+    if (queue) setOrbitsLeft(queue.progress().total - queue.progress().done);
+  }, [queue, current]);
+  useEffect(() => () => setOrbitsLeft(null), []);
 
   const reset = useCallback((): void => {
     setRevealed(false);

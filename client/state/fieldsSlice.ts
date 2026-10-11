@@ -70,6 +70,7 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
     editorLangPref: readEditorLang(),
     languageToggle: false,
     obsidianVault: false,
+    presenceOn: false,
     languageFilter: "off",
     languageFallback: null,
     visibility: null,

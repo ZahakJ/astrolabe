@@ -65,6 +65,7 @@ import {
 import { localIsoDay } from "../../../shared/dates.ts";
 import { lang as phoneLang, wordsIn, type Lang, type Sentence } from "../i18n.ts";
 import { PocketVaultError } from "./vaultIo.ts";
+import { PRESENCE_DEFAULTS } from "../../../shared/presence/types.ts";
 
 // ── what a request and an answer are ────────────────────────────────────────
 
@@ -618,6 +619,10 @@ export function createPocketServer(deps: PocketDeps): {
           keySet: false,
           ollamaUrl: "",
         },
+        // Discord presence needs a process beside Discord; a phone has none,
+        // and the Settings page is a pocket-hidden tab. The shape is answered
+        // so the type (and any older client) is satisfied: everything off.
+        presence: PRESENCE_DEFAULTS,
         // Catalog faces are downloaded and served by an instance; the phone
         // ships no font directory, so every slot is the system stack.
         fonts: { prose: "system", ui: "system", mono: "system", arabic: "system" },

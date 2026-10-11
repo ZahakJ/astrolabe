@@ -30,7 +30,7 @@ its screenshots:
 
 ## The pages — a two-level rail
 
-Four groups, eighteen short pages. A page answers one question and holds **at most ten rows in
+Four groups, nineteen short pages. A page answers one question and holds **at most ten rows in
 sight** (rows set once and left fold behind its **Advanced** line; `check-settings` enforces the
 ten, counted as one kind of vault sees the page). The rail shows every group's heading with its
 pages under it and lights the page that is open; ↑/↓ walk the pages across groups, Home/End jump to
@@ -56,6 +56,7 @@ same four groups as headed lists, each page a pushed screen.
 | | Versions & travel (`versions`) | note history, what the vault carries to the next machine | 3 |
 | | Ask (`ask`) | which models read the notes and answer | 5 + 2 |
 | **App** | This device (`device`) | the app itself here: offline copy, Vim keys, what's new; on the desktop its name, icon, launcher, updates | 3 · desktop 7 — *all on this device* |
+| | Discord (`presence`) | what Discord is told while you work, and which process tells it — instance-only | 9 + 1 |
 | | About (`about`) | version, paths, counts, the manual | facts, no rows |
 
 **Decisions the list encodes.** *Open on launch* stays the first row of Writing: it is saved in the
@@ -65,8 +66,8 @@ on it is kept on this device. *Vim keys* moved from Writing › Advanced to This
 editor rules only. *Offline reading* moved from Reading to This device ("offline copy"). The
 visitors' language filter and switch stay on Language: a reader who wants "Arabic only" looks
 under Language, not under Publishing. There is no zoom row — the desktop's zoom is the View menu's
-and survives a relaunch on its own (3.35.0). A pocket vault draws fourteen pages: Publishing,
-Comments & mentions, Collections, Library and Ask hold only rows a pocket cannot keep.
+and survives a relaunch on its own (3.35.0). A pocket vault draws thirteen pages: Publishing,
+Comments & mentions, Collections, Library, Ask and Discord hold only rows a pocket cannot keep.
 
 **Every old id maps forward** (`sectionId` in `settings/tabs.ts`): the purge's nine ids are still
 pages (`appearance`, `language`, `writing`, `reading`, `site`, `collections`, `sync`, `ask`,

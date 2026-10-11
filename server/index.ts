@@ -26,6 +26,7 @@ import { warmAuthorSites } from "./authorSites.ts";
 import { getSettings } from "./settings.ts";
 import { initComments } from "./comments.ts";
 import { initIndexer } from "./indexer.ts";
+import { initPresence, isPresenceFromParent, setParentConnection, stopPresence } from "./presence/host.ts";
 import { initSittings, pruneSittings } from "./sittings.ts";
 import { initAsk } from "./ask.ts";
 import { initFeeds } from "./feeds.ts";
@@ -93,6 +94,9 @@ startWatcher();
 initSittings();
 await initIndexer();
 pruneSittings();
+// Discord presence (docs/plans/discord-presence.md): after the index, which
+// it asks whether a note opted out. Off by default, and then it opens nothing.
+initPresence();
 // The shelf's page text (server/pdfText.ts), read in the background after
 // the note index the first request needs. Nothing waits on it: a search that
 // arrives mid-pass answers from the books read so far, and a vault without a
@@ -404,8 +408,40 @@ if (existsSync(distDir)) {
 // and the next launch of that vault finds its own port taken and has to move,
 // which is precisely the event that loses the reader's stored theme, tabs and
 // folds (see electron/prefs.ts).
+// The third line is presence: the parent owns the one Discord socket and
+// tells us how it is doing, so the Settings status row is honest here too.
 if (process.send) {
-  process.on("disconnect", () => process.exit(0));
+  process.on("disconnect", () => shutdown(0));
+  process.on("message", (m: unknown) => {
+    if (isPresenceFromParent(m)) setParentConnection(m.connection);
+  });
+}
+
+// ── LEAVING CLEANLY ─────────────────────────────────────────────────────────
+// A process that spoke to Discord itself must clear what it showed on the way
+// out, or Discord keeps "Writing · Chapter 3" under the owner's name until it
+// notices the socket is gone. Capped: no goodbye is worth holding a quit.
+const STOP_CAP_MS = 300;
+let leaving = false;
+
+function shutdown(code: number, signal?: NodeJS.Signals): void {
+  if (leaving) return;
+  leaving = true;
+  const cap = new Promise<void>((resolve) => setTimeout(resolve, STOP_CAP_MS).unref());
+  void Promise.race([stopPresence().catch(() => {}), cap]).then(() => {
+    // Re-raised rather than turned into an exit code, so a supervisor sees
+    // the same death it asked for.
+    if (signal !== undefined) process.kill(process.pid, signal);
+    else process.exit(code);
+  });
+}
+
+for (const signal of ["SIGTERM", "SIGINT"] as const) {
+  const onSignal = (): void => {
+    process.off(signal, onSignal);
+    shutdown(0, signal);
+  };
+  process.on(signal, onSignal);
 }
 
 // ── THE LAST NET ────────────────────────────────────────────────────────────
@@ -454,7 +490,7 @@ function survive(kind: string, err: unknown): void {
   console.error(
     `astrolabe: ${faults.length} unhandled faults in ${FAULT_WINDOW_MS / 1000}s — exiting so this vault gets a clean process`,
   );
-  process.exit(1);
+  shutdown(1);
 }
 
 process.on("uncaughtException", (err) => survive("uncaught exception", err));

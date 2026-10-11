@@ -42,6 +42,7 @@ describe("server/api.ts, its routes split into server/*Routes.ts", () => {
       "server/commentRoutes.ts",
       "server/deckRoutes.ts",
       "server/settingsRoutes.ts",
+      "server/presenceRoutes.ts",
       "server/syncRoutes.ts",
       "server/versionRoutes.ts",
       "server/eventRoutes.ts",

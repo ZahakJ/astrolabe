@@ -71,6 +71,9 @@ export const TABS: Tab[] = [
   // own question (docs/ask.md).
   { id: "ask", key: "tabAsk", intro: "introAsk", group: "data" },
   { id: "device", key: "tabDevice", intro: "introDevice", group: "app", device: true },
+  // Its own page: what Discord is told while you work (docs/presence.md).
+  // Under App because it is about the program beside this one, not the site.
+  { id: "presence", key: "tabPresence", intro: "introPresence", group: "app" },
   { id: "about", key: "tabAbout", intro: "introAbout", group: "app" },
 ];
 
@@ -79,7 +82,8 @@ export const TABS: Tab[] = [
  *  A repository cloned onto a phone has no visitors and no route that would
  *  serve them: the pocket server answers /api/collections and /api/library
  *  with a 501, refuses every publishing and conversation key in its `PATCH
- *  /api/settings`, and has no /api/ask to point a model at. (Site identity
+ *  /api/settings`, has no /api/ask to point a model at, and no process
+ *  beside a Discord client to tell it what the reader is doing. (Site identity
  *  stays: its name, tagline and logo are the vault's own, and the rows a
  *  pocket cannot keep are drawn locked.)
  *
@@ -87,7 +91,7 @@ export const TABS: Tab[] = [
  *  product. What keeps a SEARCH from landing on them is `mode: "instance"`,
  *  which scripts/settings-index.mjs reads off their `!pocket` render
  *  condition in TabBody.tsx. */
-export const POCKET_HIDDEN_TABS: ReadonlySet<string> = new Set(["publishing", "conversation", "collections", "library", "ask"]);
+export const POCKET_HIDDEN_TABS: ReadonlySet<string> = new Set(["publishing", "conversation", "collections", "library", "ask", "presence"]);
 
 /** The pages one kind of vault draws, in rail order. */
 export function visiblePages(pocket: boolean): Tab[] {

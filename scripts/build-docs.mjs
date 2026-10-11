@@ -43,6 +43,7 @@ export const SECTIONS = [
       { slug: "desktop", file: "desktop.md", title: { en: "The desktop app", ar: "تطبيق سطح المكتب" } },
       { slug: "mobile", file: "mobile.md", title: { en: "The Android app", ar: "تطبيق أندرويد" } },
       { slug: "terminal", file: "terminal.md", title: { en: "In the terminal", ar: "في الطرفية" } },
+      { slug: "presence", file: "presence.md", title: { en: "Discord presence", ar: "الحضور على Discord" } },
     ],
   },
   {

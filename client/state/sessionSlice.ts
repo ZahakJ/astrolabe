@@ -195,6 +195,8 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
         // the preview honest.
         const languageToggle = me.languageToggle === true;
         const obsidianVault = me.obsidianVault === true;
+        // Never true for a visitor: the server only says it to an admin.
+        const presenceOn = me.admin && me.presence === true;
         const language: Lang = chromeLang({
           admin: me.admin,
           languageToggle,
@@ -245,6 +247,7 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
         set({
           languageToggle,
           obsidianVault,
+          presenceOn,
           languageFilter: me.languageFilter ?? "off",
           languageFallback: me.languageFallback === "ar" || me.languageFallback === "en" ? me.languageFallback : null,
           visibility: me.visibility ?? null,

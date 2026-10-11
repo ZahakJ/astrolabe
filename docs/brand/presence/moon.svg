@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <circle cx="50" cy="50" r="50" fill="#0d1117"/>
+  <g fill="none" stroke="#e3b341" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- A crescent and one star: away for now. -->
+    <path d="M58 22 A30 30 0 1 0 80 62 A24 24 0 1 1 58 22 Z"/>
+    <path d="M70 26 Q70 34 78 34 Q70 34 70 42 Q70 34 62 34 Q70 34 70 26 Z" fill="#e3b341" stroke-width="2"/>
+  </g>
+</svg>

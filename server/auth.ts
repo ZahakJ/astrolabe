@@ -30,6 +30,7 @@ import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir,
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
 import { authorSiteCards } from "./authorSites.ts";
 import { getVaultRoot, normalizeRel } from "./vault.ts";
+import { presenceEffective } from "./presence/settings.ts";
 
 export const COOKIE_NAME = "astrolabe_session";
 /** The cookie's name before the rename. Read, never written: a session
@@ -755,6 +756,12 @@ authRoutes.get("/me", (c) => {
   // Admin only — it may be a vault path — and only when it is not the
   // default, so a default instance's payload is byte-for-byte what it was.
   if (admin && settings.launch !== undefined) me.launch = settings.launch;
+  // Admin only: whether to load the Discord reporter at all. A visitor's tab
+  // has nothing to report, and the switch describes the owner's machine.
+  if (admin) {
+    const presence = presenceEffective(settings.presence);
+    if (presence.mode !== "off" && presence.clientId !== null) me.presence = true;
+  }
   me.version = VERSION;
   // The vault tree's per-folder glyphs. OUTSIDE the public-layout gate below:
   // this describes the SIDEBAR, which an admin has in blog and designed mode

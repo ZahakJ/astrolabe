@@ -100,8 +100,9 @@ describe("the new index against the ledger", () => {
 });
 
 describe("the pages", () => {
-  it("are eighteen short pages in four groups, each group's pages together in the rail", () => {
-    assert.equal(TABS.length, 18);
+  it("are nineteen short pages in four groups, each group's pages together in the rail", () => {
+    // Eighteen from the second pass; Discord (3.42.0) is the nineteenth.
+    assert.equal(TABS.length, 19);
     assert.deepEqual(GROUPS.map((g) => g.id), ["you", "site", "data", "app"]);
     const order = TABS.map((s) => GROUPS.findIndex((g) => g.id === s.group));
     assert.deepEqual(order, [...order].sort((a, b) => a - b), "a group's pages are split across the rail");

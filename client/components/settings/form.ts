@@ -21,6 +21,8 @@ import { externalCommandProblem } from "../../../shared/speechVoices.ts";
 import { isNotePath } from "../../../shared/noteFormat.ts";
 import { isFediverseHandle } from "../../../shared/fediverse.ts";
 import { isImagePath } from "../../../shared/fileKinds.ts";
+import { isApplicationId } from "../../../shared/presence/config.ts";
+import { PRESENCE_DEFAULTS, PRESENCE_IDLE_MAX, PRESENCE_IDLE_MIN, type PresenceEffective } from "../../../shared/presence/types.ts";
 
 export interface Form {
   siteName: string;
@@ -129,6 +131,19 @@ export interface Form {
   askEmbedModel: string;
   askTopK: string;
   askKey: string;            // WRITE-ONLY, like syncToken
+  // ── Discord presence (docs/presence.md) ──────────────────────────────────
+  // Prefilled from `effective`, like sync and Ask: no env counterpart, so
+  // every control shows the value in force. The id is "" while the
+  // placeholder in shared/presence/config.ts stands.
+  presenceMode: string;        // "off" | "activity" | "title"
+  presenceClientId: string;
+  presenceIdleMinutes: string; // whole minutes, 1–120
+  presenceIdle: string;        // "clear" | "show"
+  presenceVaultName: string;   // "on" | "off"
+  presenceElapsed: string;     // "off" | "subject" | "session"
+  presenceButton: string;      // "on" | "off"
+  presenceServer: string;      // "on" | "off"
+  presenceAssets: string;      // "site" | "uploaded"
   // ── Typography (fonts) ───────────────────────────────────────────────────
   // Catalog id or SYSTEM_FONT. Like sync, these prefill from `effective`: a
   // webfont choice has no env counterpart, so "inherit" would mean nothing.
@@ -290,6 +305,9 @@ export function formFrom(s: SettingsResponse): Form {
     askTopK: String(s.effective.ask.topK),
     // The key never comes back, exactly like the git token.
     askKey: "",
+    // A server from before 3.42.0 sends no presence block (the phone app
+    // speaks to servers of every age); its defaults are what it does then.
+    ...presenceForm(s.effective.presence ?? PRESENCE_DEFAULTS),
     fontProse: s.effective.fonts?.prose ?? SYSTEM_FONT,
     fontUi: s.effective.fonts?.ui ?? SYSTEM_FONT,
     fontMono: s.effective.fonts?.mono ?? SYSTEM_FONT,
@@ -474,6 +492,26 @@ export function speakSaveErrorKey(code: string | undefined): I18nKey | null {
   }
 }
 
+/** The presence rows' values, from the settings in force. */
+export function presenceForm(p: PresenceEffective): Pick<Form, "presenceMode" | "presenceClientId" | "presenceIdleMinutes" | "presenceIdle" | "presenceVaultName" | "presenceElapsed" | "presenceButton" | "presenceServer" | "presenceAssets"> {
+  const onOff = (b: boolean): string => (b ? "on" : "off");
+  return {
+    presenceMode: p.mode,
+    presenceClientId: p.clientId ?? "",
+    presenceIdleMinutes: String(p.idleMinutes),
+    presenceIdle: p.idle,
+    presenceVaultName: onOff(p.vaultName),
+    presenceElapsed: p.elapsed,
+    presenceButton: onOff(p.button),
+    presenceServer: onOff(p.server),
+    presenceAssets: p.assets,
+  };
+}
+
+function isOneOf<T extends string>(value: string, set: readonly T[]): value is T {
+  return (set as readonly string[]).includes(value);
+}
+
 export function validate(f: Form): Partial<Record<keyof Form, string>> {
   const errors: Partial<Record<keyof Form, string>> = {};
   if (f.siteName.trim().length > 80) errors.siteName = maxChars(80);
@@ -543,6 +581,11 @@ export function validate(f: Form): Partial<Record<keyof Form, string>> {
   if (topK !== "" && (!/^\d{1,2}$/.test(topK) || Number(topK) < 2 || Number(topK) > 12)) {
     errors.askTopK = tf("errAskTopK", { min: localeNum(2), max: localeNum(12) });
   }
+  // A Discord application id is a snowflake: 17–20 digits, nothing else. The
+  // server refuses anything else; said here, the paste that caught a space or
+  // the word "ID" is fixed before the save.
+  const appId = f.presenceClientId.trim();
+  if (appId !== "" && !isApplicationId(appId)) errors.presenceClientId = t("errPresenceClientId");
   // Your own voices (docs/read-aloud.md): an absolute path — a POSIX one, a
   // drive letter, or a UNC share — which the server checks again against
   // the disk and the vault; and a command that names the file it writes.
@@ -893,6 +936,27 @@ export function buildPatch(initial: Form, f: Form): SettingsPatch {
   if (Object.keys(ask).length > 0) patch.ask = ask;
   // Write-only, like the git token: empty leaves the stored key alone.
   if (f.askKey !== "") patch.anthropicKey = f.askKey;
+  // ── Discord presence ─────────────────────────────────────────────────────
+  // Only what moved, like `voice`; a value back at its default is sent as
+  // null, which the server stores as nothing at all.
+  {
+    const presence: NonNullable<SettingsPatch["presence"]> = {};
+    const d = PRESENCE_DEFAULTS;
+    const on = (v: string): boolean => v === "on";
+    if (f.presenceMode !== initial.presenceMode && isOneOf(f.presenceMode, ["off", "activity", "title"] as const)) presence.mode = f.presenceMode === d.mode ? null : f.presenceMode;
+    if (f.presenceClientId.trim() !== initial.presenceClientId.trim()) presence.clientId = f.presenceClientId.trim() === "" ? null : f.presenceClientId.trim();
+    if (f.presenceIdleMinutes !== initial.presenceIdleMinutes) {
+      const n = Number(f.presenceIdleMinutes);
+      if (Number.isInteger(n) && n >= PRESENCE_IDLE_MIN && n <= PRESENCE_IDLE_MAX) presence.idleMinutes = n === d.idleMinutes ? null : n;
+    }
+    if (f.presenceIdle !== initial.presenceIdle && isOneOf(f.presenceIdle, ["clear", "show"] as const)) presence.idle = f.presenceIdle === d.idle ? null : f.presenceIdle;
+    if (f.presenceVaultName !== initial.presenceVaultName) presence.vaultName = on(f.presenceVaultName) === d.vaultName ? null : on(f.presenceVaultName);
+    if (f.presenceElapsed !== initial.presenceElapsed && isOneOf(f.presenceElapsed, ["off", "subject", "session"] as const)) presence.elapsed = f.presenceElapsed === d.elapsed ? null : f.presenceElapsed;
+    if (f.presenceButton !== initial.presenceButton) presence.button = on(f.presenceButton) === d.button ? null : on(f.presenceButton);
+    if (f.presenceServer !== initial.presenceServer) presence.server = on(f.presenceServer) === d.server ? null : on(f.presenceServer);
+    if (f.presenceAssets !== initial.presenceAssets && isOneOf(f.presenceAssets, ["site", "uploaded"] as const)) presence.assets = f.presenceAssets === d.assets ? null : f.presenceAssets;
+    if (Object.keys(presence).length > 0) patch.presence = presence;
+  }
   // ── Typography ───────────────────────────────────────────────────────────
   // All four slots travel together: the server needs the whole set to know
   // which families to have on disk before it writes the file.

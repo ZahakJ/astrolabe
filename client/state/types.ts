@@ -194,6 +194,10 @@ export interface State {
    *  drawing takes the Excalidraw plugin's `.excalidraw.md` spelling and the
    *  plugin opens it there. Admin only; false for everyone else. */
   obsidianVault: boolean;
+  /** /api/me `presence`: Discord presence is on for this vault and this is
+   *  an admin session, so client/main.tsx mounts the reporter
+   *  (client/presence/report.ts) and unmounts it when this turns false. */
+  presenceOn: boolean;
   /** settings.languageFilter — how the site curates by NOTE language.
    *  "follow" is the one that changes the client's behaviour rather than just
    *  its copy: under it, flipping the EN/ع switch changes which notes exist

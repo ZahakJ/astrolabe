@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <circle cx="50" cy="50" r="50" fill="#0d1117"/>
+  <g fill="none" stroke="#e3b341" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- A brush, its tip laid down, and a drop of ink beside it. -->
+    <path d="M74 22 L50 48"/>
+    <path d="M50 48 C42 46 36 52 34 60 C32 68 28 72 22 76 C34 78 46 72 50 62 C52 56 52 52 50 48 Z"/>
+    <path d="M70 58 C66 64 62 69 62 73 A8 8 0 0 0 78 73 C78 69 74 64 70 58 Z"/>
+  </g>
+</svg>

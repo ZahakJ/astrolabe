@@ -29,6 +29,7 @@ import DeviceTab from "./DeviceTab.tsx";
 import LanguageTab from "./LanguageTab.tsx";
 import LibraryTab from "./LibraryTab.tsx";
 import NotesTab from "./NotesTab.tsx";
+import PresenceTab from "./PresenceTab.tsx";
 import PublishingTab from "./PublishingTab.tsx";
 import ReadingTab from "./ReadingTab.tsx";
 import { DevicePage } from "./Row.tsx";
@@ -66,6 +67,7 @@ export default function TabBody({ tab }: { tab: string }) {
       {tab === "versions" && <VersionsTab />}
       {tab === "ask" && !pocket && <AskTab />}
       {tab === "device" && <DeviceTab />}
+      {tab === "presence" && !pocket && <PresenceTab />}
       {tab === "about" && <AboutTab about={loaded.about ?? null} />}
     </DevicePage.Provider>
   );

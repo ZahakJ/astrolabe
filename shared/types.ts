@@ -10,6 +10,7 @@ import type { TrackerRating, TrackerSession, TrackerStatus } from "./tracker.ts"
 import type { InteractionKind, MentionType } from "./mentions.ts";
 import type { VoiceBackend, VoiceEffective, VoiceLanguage, VoiceModelSetting, VoiceSettings } from "./voice.ts";
 import type { SpeakEffective, SpeakEngineId, SpeakLang, SpeakSettings } from "./speech.ts";
+import type { PresenceAssets, PresenceEffective, PresenceElapsed, PresenceIdle, PresenceMode, PresenceSettings } from "./presence/types.ts";
 
 /** The stored feeds key (settings.json `feeds`). */
 export interface FeedsSettings {
@@ -694,6 +695,11 @@ export interface MeData {
   /** Admin only: the vault is also an Obsidian vault (it has `.obsidian/`), so
    *  a new drawing takes the Excalidraw plugin's `.excalidraw.md` spelling. */
   obsidianVault?: boolean;
+  /** Admin only: Discord presence is on for this vault (`settings.presence.mode`
+   *  is not off AND an application id is in force), so the client loads its
+   *  reporter (client/presence/report.ts). Absent = off, and a visitor is
+   *  never told. */
+  presence?: boolean;
   languageToggle?: boolean; // settings.languageToggle — the public shell offers visitors an EN/ع chrome switch (default off; absent = off)
   /** settings.topics — where the public categories come from: `tags` (a topic per
    *  tag, the default; absent = tags) or `folders` (every published note takes its
@@ -1328,6 +1334,9 @@ export interface SettingsData {
   /** Ask the vault (docs/ask.md): which models answer and embed. The
    *  Anthropic key is NOT here — ASTROLABE_DATA/ask-credentials.json (0600). */
   ask?: AskSettings;
+  /** Discord presence (shared/presence/types.ts, docs/presence.md): off
+   *  unless set; how much Discord is told, and by which process. */
+  presence?: PresenceSettings;
   /** Typography: catalog ids (or "system") per slot. Chosen faces are cached
    *  under ASTROLABE_DATA/fonts/catalog/ and served from this instance only. */
   fonts?: FontSlotSettings;
@@ -1545,6 +1554,9 @@ export interface EffectiveSettings {
   /** Ask the vault, defaults filled in; says whether a key is stored, never
    *  the key. */
   ask: AskEffective;
+  /** Discord presence with every default filled in (PRESENCE_DEFAULTS);
+   *  `clientId` is the id in force or null while the placeholder stands. */
+  presence: PresenceEffective;
   /** Typography slots in effect (every slot present, "system" when unset). */
   fonts: FontSlotsEffective;
   /** Localization: the three display settings in force (defaults filled in)
@@ -1686,6 +1698,19 @@ export interface SettingsPatch {
   } | null;
   /** Template for new notes; null (or "") turns the default back off. */
   defaultTemplate?: string | null;
+  /** Discord presence. Sub-keys merge; a sub-key set to null (or to its
+   *  default) is deleted; the whole key null clears it. */
+  presence?: {
+    mode?: PresenceMode | null;
+    clientId?: string | null;
+    idleMinutes?: number | null;
+    idle?: PresenceIdle | null;
+    vaultName?: boolean | null;
+    elapsed?: PresenceElapsed | null;
+    button?: boolean | null;
+    server?: boolean | null;
+    assets?: PresenceAssets | null;
+  } | null;
   /** Git sync configuration; null clears the whole key. */
   gitSync?: {
     enabled?: boolean | null;

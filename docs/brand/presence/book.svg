@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
+  <circle cx="50" cy="50" r="50" fill="#0d1117"/>
+  <g fill="none" stroke="#e3b341" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+    <!-- An open book on its spine, a ribbon falling from the right page. -->
+    <path d="M50 34 C42 28 30 27 20 31 V73 C30 69 42 70 50 76 C58 70 70 69 80 73 V31 C70 27 58 28 50 34 Z"/>
+    <path d="M50 34 V76"/>
+    <path d="M62 30 V52 L66 48 L70 52 V29"/>
+  </g>
+</svg>

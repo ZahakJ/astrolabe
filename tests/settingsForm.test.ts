@@ -73,6 +73,34 @@ describe("the settings form, as both hosts hold it", () => {
     }
   });
 
+  it("the Discord page patches only what moved, and a default goes back as null", () => {
+    const initial = formFrom(settingsResponse());
+    assert.equal(initial.presenceMode, "off", "presence is off until the owner says so");
+    const on = { ...initial, presenceMode: "title", presenceClientId: " 123456789012345678 ", presenceIdleMinutes: "30", presenceServer: "on" };
+    assert.deepEqual(validate(on), {});
+    assert.deepEqual(buildPatch(initial, on), { presence: { mode: "title", clientId: "123456789012345678", idleMinutes: 30, server: true } });
+    const back = { ...on, presenceMode: "off", presenceIdleMinutes: "10", presenceServer: "off", presenceClientId: "" };
+    assert.deepEqual(buildPatch(on, back).presence, { mode: null, clientId: null, idleMinutes: null, server: null });
+    for (const id of ["1234567890123456", "123456789012345678901", "ID 123456789012345678"]) {
+      assert.ok("presenceClientId" in validate({ ...initial, presenceClientId: id }), `${id} passed as an application id`);
+    }
+  });
+
+  it("the server takes the Discord page's patch back as the form", () => {
+    const initial = formFrom(settingsResponse());
+    const on = { ...initial, presenceMode: "activity", presenceClientId: "123456789012345678", presenceElapsed: "session", presenceAssets: "uploaded" };
+    const after = formFrom(patchSettings(buildPatch(initial, on) as Record<string, unknown>));
+    assert.equal(after.presenceMode, "activity");
+    assert.equal(after.presenceClientId, "123456789012345678");
+    assert.equal(after.presenceElapsed, "session");
+    assert.equal(after.presenceAssets, "uploaded");
+    assert.deepEqual(buildPatch(after, after), {});
+    // And back off: the defaults are stored as nothing.
+    const off = formFrom(patchSettings(buildPatch(after, { ...after, presenceMode: "off", presenceClientId: "", presenceElapsed: "subject", presenceAssets: "site" }) as Record<string, unknown>));
+    assert.equal(off.presenceMode, "off");
+    assert.equal(off.presenceClientId, "");
+  });
+
   it("a field the rules refuse is named, and a refused form is not clean", () => {
     const initial = formFrom(settingsResponse());
     const bad = { ...initial, blogLocale: "not a locale!!" };

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الحضور على Discord · دليل أسطرلاب</title>
+<meta name="description" content="ما يعرضه Discord تحت اسمك وأنت تعمل في أسطرلاب، وكيف تشغّله، وما الذي يخرج من الجهاز بالضبط.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/presence/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link" href="../../ar/capture/">الالتقاط</a><a class="nav__link" href="../../ar/feeds/">الخلاصات</a><a class="nav__link" href="../../ar/import/">الاستيراد</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a><a class="nav__link" href="../../ar/mobile/">تطبيق أندرويد</a><a class="nav__link" href="../../ar/terminal/">في الطرفية</a><a class="nav__link is-current" href="../../ar/presence/">الحضور على Discord</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/today/">اليوم</a><a class="nav__link" href="../../ar/calendar/">التقويم</a><a class="nav__link" href="../../ar/timeline/">الخط الزمني</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ الكتب</a><a class="nav__link" href="../../ar/ask/">اسأل الخزانة</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a><a class="nav__link" href="../../ar/webmentions/">إشارات الويب والفيديفيرس</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a><a class="nav__link" href="../../ar/read-aloud/">القراءة بصوت عالٍ</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="الحضور-على-discord">الحضور على Discord</h1>
+<p><em>ما يعرضه Discord تحت اسمك وأنت تعمل في أسطرلاب، وكيف تشغّله، وما الذي يخرج من الجهاز بالضبط.</em></p>
+<hr>
+<p>في Discord سطرٌ تحت اسمك لما تفعله الآن: لعبة، أو أغنية، أو برنامج. ويستطيع أسطرلاب أن يملأه. فحين تكتب يرى أصدقاؤك <strong>يكتب · الفصل 3</strong>، وحين تقرأ ملف PDF <strong>يقرأ كتابًا</strong>، وفي جلسة مدارات <strong>يراجع البطاقات · بقي 12</strong>. وهو <strong>متوقف</strong> حتى تشغّله، وأنت تختار كم يقول، وتذهب الكلمات إلى تطبيق Discord العامل على حاسوبك أنت؛ فأسطرلاب لا يرسلها إلى أي خادم خاص به.</p>
+<h2 id="ما-يعرضه-discord"><a class="anchor" href="#ما-يعرضه-discord">ما يعرضه Discord</a></h2>
+<p>للبطاقة أربعة أجزاء، وكلٌّ منها يأتي من إعداد تراه:</p>
+<pre><code> ┌──────┐  Astrolabe              اسم التطبيق
+ │ mark │  يكتب                   ما تفعله
+ │    ✎ │  الفصل 3                العنوان (إن سمحت به فقط)
+ └──────┘  00:12:34               المؤقّت (إن أردته)
+</code></pre>
+<p>الصورة الكبيرة شعار أسطرلاب. والصغيرة المستديرة في زاويتها تقول بلمحة ما تفعله: قلم للكتابة، وصفحة لقراءة ملاحظة، وكتاب مفتوح لملف PDF أو EPUB، وبطاقتان لجلسة مدارات، وفرشاة للرسم، ورفّ للمكتبة، وبوصلة لكل ما عدا ذلك (المخطط، والتقويم، واليوم)، وهلال حين تبتعد.</p>
+<div class="table"><table><thead><tr><th>أنت…</th><th>يقول Discord</th></tr></thead><tbody><tr><td>في ملاحظة تحرّرها</td><td>يكتب</td></tr><tr><td>في ملاحظة في عرض القراءة</td><td>يقرأ</td></tr><tr><td>في ملف PDF أو EPUB</td><td>يقرأ كتابًا</td></tr><tr><td>في جلسة مدارات</td><td>يراجع البطاقات، وكم بقي منها</td></tr><tr><td>في رسم</td><td>يرسم</td></tr><tr><td>في المكتبة أو صفحة الوسائط</td><td>في المكتبة</td></tr><tr><td>في أي مكان آخر</td><td>يتصفّح</td></tr><tr><td>بعيدًا أطول من <strong>الخمول بعد</strong></td><td>لا شيء، أو «خامل»</td></tr></tbody></table></div><p>وحين تُفتح عدة تبويبات (حاسوب وهاتف، أو نافذتان) يغلب التبويب الذي لمسته آخر مرة.</p>
+<h2 id="الإعداد"><a class="anchor" href="#الإعداد">الإعداد</a></h2>
+<p>لا يعرض Discord نشاطًا إلا من <em>تطبيق</em> يعرفه، ولا يستطيع أحد غيرك أن ينشئ تطبيقك. ويستغرق ذلك دقيقتين:</p>
+<ol>
+<li>افتح <a href="https://discord.com/developers/applications" target="_blank" rel="noreferrer">بوابة مطوّري Discord</a> واضغط <strong>New Application</strong>.</li>
+<li>سمّه <strong>Astrolabe</strong>. هذا الاسم هو السطر الأول في البطاقة، فسمّه ما تريد أن يقرأه أصدقاؤك.</li>
+<li>في الصفحة التي تُفتح (<strong>General Information</strong>) انسخ <strong>Application ID</strong>، وهو رقم من 17 إلى 20 خانة.</li>
+<li>في أسطرلاب افتح <strong>الإعدادات ← حضور Discord ← معرّف التطبيق</strong>، والصقه، واجعل <strong>الوضع</strong> <em>النشاط</em> أو <em>مع العنوان</em>، ثم اضغط <strong>حفظ</strong>.</li>
+</ol>
+<p>ويقول صفّ <strong>الحالة</strong> في أسفل الصفحة ما جرى: <em>متصل عبر تطبيق سطح المكتب</em>، وتحته ما يعرضه Discord الآن. فإن قال غير ذلك فانظر <a href="#حين-لا-يظهر">حين لا يظهر</a>.</p>
+<p>وإن كنت تبني أسطرلاب بنفسك وتفضّل أن يعيش المعرّف في الشيفرة، فاستبدل العنصر النائب في <code>shared/presence/config.ts</code>:</p>
+<pre><code class="language-ts">export const PRESENCE_APPLICATION_ID = &quot;123456789012345678&quot;;
+</code></pre>
+<p>ويبقى المعرّف في <strong>الإعدادات ← حضور Discord ← معرّف التطبيق</strong> غالبًا عليه.</p>
+<p>وبقية صفوف الصفحة:</p>
+<ul>
+<li><strong>الخمول بعد</strong>: كم من الوقت بلا مفتاح ولا نقرة ولا تمرير في أي تبويب مفتوح قبل أن تُعدّ غائبًا (من 5 إلى 60 دقيقة، و10 افتراضيًا).</li>
+<li><strong>عند الخمول</strong>: <em>امسح</em> يرفع السطر عن ملفك؛ و<em>اعرض «خامل»</em> يبقيه ويقول ذلك، مع الهلال.</li>
+<li><strong>اسم الخزانة</strong>: اسم مجلد الخزانة على البطاقة، تلميحًا للصورة الكبيرة وسطرًا ثانيًا حين لا عنوان. اسمٌ، لا مسارٌ أبدًا.</li>
+<li><strong>الوقت المنقضي</strong>: المؤقّت: بلا مؤقّت، أو منذ فتحت الملاحظة الحالية، أو منذ بدأ أسطرلاب.</li>
+<li><strong>زر المدونة</strong>: زر <em>اقرأ المدونة</em> تحت البطاقة يقود إلى موقعك العام. ويحتاج تخطيط المدونة أو المصمَّم، وعنوانًا يبدأ بـ<code>https://</code> في <code>SITE_URL</code>؛ وإلا بهت الصف وقال لماذا.</li>
+<li><strong>هذا الخادم يعمل بجانب Discord</strong>: انظر القسم التالي.</li>
+</ul>
+<h2 id="من-يكلّم-discord"><a class="anchor" href="#من-يكلّم-discord">من يكلّم Discord</a></h2>
+<p>يصغي Discord على مقبس محلي، أي ملف على الحاسوب الذي يعمل عليه. ولا يصل إليه إلا برنامج على الحاسوب نفسه، فأيّ برنامج يتكلّم يتوقف على طريقة تشغيلك أسطرلاب:</p>
+<ul>
+<li><strong>تطبيق سطح المكتب</strong> يكلّم Discord بنفسه دائمًا، عن كل خزانة يفتحها. ولا شيء آخر يُشغَّل: ففي تطبيق سطح المكتب يبهت صف <strong>هذا الخادم يعمل بجانب Discord</strong>، لأن التطبيق يملك الاتصال.</li>
+<li><strong>خادم تشغّله بنفسك</strong> وتفتحه في متصفح لا يكلّم Discord إلا إذا شغّلت <strong>الإعدادات ← حضور Discord ← هذا الخادم يعمل بجانب Discord</strong>، وهذا هو الصواب حين يعمل الخادم على الحاسوب نفسه الذي يعمل عليه Discord (حاسوبك المكتبي، وأسطرلاب مشغَّل بـ<code>npm start</code>). أما خادم على جهاز آخر، خادم افتراضي أو خادم منزلي، فلا Discord بجانبه؛ وتشغيل الصف هناك لا يفعل إلا أن يبحث عنه بصمت.</li>
+</ul>
+<p>وفي الحالتين يخبر التبويبُ الذي تعمل فيه خادمَه بما تفعله: السطح ومسار الملاحظة، لا العنوان أبدًا، والخادم يقرّر ما يُقال. والمسار لا يغادر الخادم.</p>
+<h2 id="ما-يخرج-من-الجهاز"><a class="anchor" href="#ما-يخرج-من-الجهاز">ما يخرج من الجهاز</a></h2>
+<p>لا شيء تحت الخط يصل إلى Discord أبدًا. وكل ما فوقه لا يصل إلا حين يقول الإعداد الذي بجانبه ذلك.</p>
+<div class="table"><table><thead><tr><th>ماذا</th><th>متى يُقال لـDiscord</th></tr></thead><tbody><tr><td>ما تفعله (يكتب، يقرأ، كتاب…)</td><td><strong>الوضع</strong> <em>النشاط</em> أو <em>مع العنوان</em></td></tr><tr><td>عنوان الملاحظة أو الكتاب أو الرزمة</td><td><strong>الوضع</strong> <em>مع العنوان</em>، ولم تحتفظ الملاحظة به لنفسها (<a href="#ملاحظة-تحتفظ-بعنوانها">أدناه</a>)</td></tr><tr><td>كم بقي من البطاقات في الجلسة</td><td>في الجلسة (فالعدد لا يقول شيئًا عن الخزانة)</td></tr><tr><td>اسم مجلد الخزانة</td><td><strong>اسم الخزانة</strong> مشغَّل</td></tr><tr><td>الوقت منذ بدأت</td><td><strong>الوقت المنقضي</strong> ليس «بلا مؤقّت»</td></tr><tr><td>رابط إلى موقعك العام</td><td><strong>زر المدونة</strong> مشغَّل، والموقع عامّ ويبدأ بـ<code>https://</code></td></tr><tr><td>المسارات، وأسماء المجلدات، ونص الملاحظات، والوسوم، والروابط، والملاحظات الأخرى</td><td><strong>أبدًا</strong></td></tr></tbody></table></div><p>والعنوان هو قيمة <code>title:</code> في مقدّمة الملاحظة، وإلا فاسم ملفها بلا امتداد. والعنوان الذي فيه <code>/</code> يُقطع إلى جزئه الأخير، فلا يستطيع اسمٌ أن يهرّب مجلدًا. وكل نص يُقطع عند 128 حرفًا، وهو حدّ Discord.</p>
+<p>وتذهب الكلمات إلى تطبيق Discord على هذا الحاسوب. وما يفعله Discord بها بعد ذلك شأنه: يعرضها لمن يستطيع رؤية ملفك، كما يفعل مع أي لعبة. ومع <strong>الوضع</strong> متوقفًا لا يفتح أسطرلاب أي اتصال بـDiscord على الإطلاق.</p>
+<h2 id="ملاحظة-تحتفظ-بعنوانها"><a class="anchor" href="#ملاحظة-تحتفظ-بعنوانها">ملاحظة تحتفظ بعنوانها</a></h2>
+<p>بعض الملاحظات لا ينبغي أن تظهر عناوينها على ملفك حتى حين تظهر عناوين غيرها. ولذلك طريقان:</p>
+<pre><code class="language-yaml">---
+presence: false
+---
+</code></pre>
+<p>الملاحظة التي في مقدّمتها <code>presence: false</code> تظهر <strong>يكتب</strong> أو <strong>يقرأ</strong>، أي النشاط، ولا يظهر عنوانها أبدًا مهما قال <strong>الوضع</strong>. والملاحظة التي تحمل أيًّا من الوسوم التي تُبقيها خارج الموقع العام (<strong>الإعدادات ← النشر ← متقدّم ← وسوم مستبعدة</strong>، أو <code>EXCLUDE_TAGS</code>) تُعامل المعاملة نفسها، فالملاحظة الموسومة <code>#private</code> خاصّة هنا أيضًا.</p>
+<h2 id="الصور"><a class="anchor" href="#الصور">الصور</a></h2>
+<p>الشعار والصور الصغيرة الثماني ملفات PNG بحجم 1024 × 1024 بكسل في <a href="../brand/presence/"><code>docs/brand/presence/</code></a>، ويجلبها Discord من موقع صفحات المشروع نفسه. فلا شيء يُرفع.</p>
+<p>وإن فضّلت أن يحتفظ Discord بنسخه هو، أو كانت شبكتك تمنعه من جلب الصور الخارجية، فارفعها بدلًا من ذلك: افتح تطبيقك في بوابة المطوّرين، ثم <strong>Rich Presence ← Art Assets</strong>، وأضف كل ملف PNG باسم ملفه بلا <code>.png</code> (<code>mark</code> و<code>pen</code> و<code>page</code> و<code>book</code> و<code>cards</code> و<code>brush</code> و<code>shelf</code> و<code>compass</code> و<code>moon</code>). ثم اجعل <strong>الإعدادات ← حضور Discord ← متقدّم ← مصدر الصور</strong> <em>مرفوعة إلى Discord</em>.</p>
+<p>ويرسم الصورَ <code>scripts/shoot-presence-assets.mjs</code> من ملفات SVG التي بجانبها؛ والشعار مولَّد من الهندسة نفسها التي تُرسم بها أيقونة التطبيق.</p>
+<h2 id="كم-مرة-يتغيّر"><a class="anchor" href="#كم-مرة-يتغيّر">كم مرة يتغيّر</a></h2>
+<p>يقبل Discord تغييرًا واحدًا كل 15 ثانية. ولا يرسل أسطرلاب تغييرًا إلا حين يتغيّر ما سيقوله، وحين تقع عدة تغييرات داخل تلك الثواني الخمس عشرة يذهب آخرها. فالتنقّل بين عشر ملاحظات في دقيقة يحدّث ملفك بضع مرات، لا عشرًا.</p>
+<p>ويخبر كل تبويب مفتوح خادمَه بما يعرضه بعد ثانية من استقراره، ثم كل دقيقة، فيعرف الخادم أيّ تبويب قيد الاستعمال ومتى ابتعدت. والتبويب المغلق أو النائم يُنسى بعد دقيقتين ونصف. وحين يُغلق أسطرلاب يمسح السطر عن ملفك.</p>
+<h2 id="حين-لا-يظهر"><a class="anchor" href="#حين-لا-يظهر">حين لا يظهر</a></h2>
+<p>اقرأ صفّ <strong>الحالة</strong> أولًا؛ فهو يسمّي المشكلة.</p>
+<ul>
+<li><strong>«الصق معرّف التطبيق أعلاه، ثم احفظ.»</strong> لا معرّف ساريًا بعد: انظر <a href="#الإعداد">الإعداد</a>.</li>
+<li><strong>«لا شيء يكلّم Discord بعد.»</strong> أنت على خادم في متصفح، وصفّ <strong>هذا الخادم يعمل بجانب Discord</strong> فيه متوقف. شغّله إن كان Discord يعمل على الحاسوب نفسه، أو استخدم تطبيق سطح المكتب.</li>
+<li><strong>«لا يعمل Discord على هذا الحاسوب.»</strong> شغّل Discord. يظل أسطرلاب يبحث عنه، بسرعة أولًا ثم كل خمس دقائق تقريبًا، ويتصل وحده؛ ولا يعرض خطأً أبدًا لأن Discord مغلق.</li>
+<li><strong>«لا يعرف Discord معرّف التطبيق هذا.»</strong> المعرّف مكتوب خطأً، أو حُذف التطبيق من البوابة. انسخه من جديد. ويكفّ أسطرلاب عن سؤال Discord حتى يتغيّر المعرّف.</li>
+<li><strong>متصل، ولا شيء على ملفك.</strong> في Discord افتح <strong>User Settings</strong> ثم <strong>Activity Privacy</strong>، واسمح له بمشاركة نشاطك.</li>
+<li><strong>Discord من Flatpak أو Snap.</strong> كلاهما يحفظ المقبس في مجلد خاص به؛ ويبحث أسطرلاب هناك أيضًا (<code>$XDG_RUNTIME_DIR/app/com.discordapp.Discord/</code> و<code>snap.discord/</code>). وDiscord من Flatpak بلا وصول إلى ذلك المجلد لا يصل إليه أي برنامج، ولا أسطرلاب.</li>
+</ul>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/presence.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/terminal/"><span class="pager__kicker">السابق</span><span class="pager__title">في الطرفية</span></a><a class="pager__link pager__link--next" href="../../ar/editor/"><span class="pager__kicker">التالي</span><span class="pager__title">المحرر وعرض القراءة</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#ما-يعرضه-discord">ما يعرضه Discord</a><a class="toc__link toc__link--2" href="#الإعداد">الإعداد</a><a class="toc__link toc__link--2" href="#من-يكلّم-discord">من يكلّم Discord</a><a class="toc__link toc__link--2" href="#ما-يخرج-من-الجهاز">ما يخرج من الجهاز</a><a class="toc__link toc__link--2" href="#ملاحظة-تحتفظ-بعنوانها">ملاحظة تحتفظ بعنوانها</a><a class="toc__link toc__link--2" href="#الصور">الصور</a><a class="toc__link toc__link--2" href="#كم-مرة-يتغيّر">كم مرة يتغيّر</a><a class="toc__link toc__link--2" href="#حين-لا-يظهر">حين لا يظهر</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>
