@@ -1,197 +1,90 @@
-<p align="center"><img src="docs/gh-hero.png" alt="Astrolabe" width="720"></p>
-
 # Astrolabe
 
-**Your notes, charted. A self-hosted reading room for a folder of plain Markdown and LaTeX, in Arabic and English as equals, with a press attached. One small Node process.**
+A self-hosted Markdown notes app and blog, in Arabic and English.
 
-<p align="center"><a href="https://zahakj.github.io/astrolabe/"><strong>✦ Visit the project site ✦</strong></a></p>
+```sh
+git clone https://github.com/ZahakJ/astrolabe.git && cd astrolabe && npm install && npm start
+```
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-e3b341.svg)](LICENSE)
-[![Node ≥ 24](https://img.shields.io/badge/node-%E2%89%A5%2024-339933?logo=node.js&logoColor=white)](package.json)
+Needs Node ≥ 24. Open http://localhost:6801. The first run creates `./vault` with starter notes
+that double as the manual.
 
-> An *astrolabe* was the instrument that told a traveller where they stood by the stars. This one runs on `localhost`.
->
-![The live-preview editor: callouts, tasks, wikilinks, KaTeX math, outline, local graph, and backlinks](docs/screenshots/hero-editor.png)
+Desktop builds (AppImage, deb, pacman, Windows) and the Android app are on the
+[latest release](https://github.com/ZahakJ/astrolabe/releases/latest).
 
-**The manual** lives at [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/), with a full Arabic edition at [/site/ar](https://zahakj.github.io/astrolabe/site/ar/). The same pages are the markdown under [`docs/`](docs/README.md).
+![The editor: a note in live preview with callouts, math, the outline and backlinks](docs/screenshots/hero-editor.png)
 
 ## What it is
 
-Astrolabe is an instrument for people who read seriously and write from what they read. It runs as **one small Node process you host yourself**, over an ordinary folder of Markdown and LaTeX files, and everything it knows about your notes it reads from those files. It gives you a live-preview editor with wikilinks and backlinks; a graph; a search that understands Arabic letter forms and diacritics; a [book reader](docs/books.md) driven by vim keys that cites your highlights straight into the note beside it; [trackers](docs/trackers.md) for the books, games and courses you are working through; [sigils](docs/sigils.md) for the days — an exercise week, the prayers, sleep — with streaks and a heatmap; [orbits](docs/orbits.md), spaced repetition over decks that are notes; a [canvas](docs/drawing.md) for drawings; and a [typography](docs/typography.md) catalogue that sets Arabic and Latin on one line without flinching.
+One Node process over a folder of Markdown and LaTeX files. It edits, links, searches and
+renders the notes, and can publish the ones you mark as a blog or a designed site. Everything it
+knows comes from the files; there is no database for notes, and removing Astrolabe leaves the
+folder as it was. The interface is fully translated into Arabic and mirrored right to left.
 
-It is **bilingual by design**: Arabic and English are two equal renderings of the same product, with a mirrored shell, [Hijri dates](docs/arabic-and-rtl.md#hijri-dates), and right-to-left prose that behaves in the editor, the reading view and on the page. It opens **from any browser** on your network, so a phone, a laptop and the [desktop app](docs/desktop.md) are three windows on one vault.
+It opens in any browser on your network. The desktop app and the Android app are windows onto
+the same server; the Android app can also work on a vault in a private GitHub repository with no
+server.
 
-When some of those notes deserve readers, the same vault becomes a public site with one frontmatter flag: articles, topics, RSS and reader comments in [blog mode](docs/blog-mode.md), a homepage you [compose](docs/designer.md) from sections or one of the shipped houses, and a [library](docs/library.md) that walks a reader through a course in order. Nothing is converted, wrapped or put in a database; delete the app tomorrow and the folder does not notice.
+## Features
 
-| | |
-| --- | --- |
-| ![Blog dashboard home](docs/screenshots/blog-dashboard.png)<br>*Blog mode's dashboard home — posts as cards, each with a generated gradient until you set a banner.* | ![Blog article with comments](docs/screenshots/blog-article.png)<br>*An article page: related posts, then "Marginalia" — built-in, rate-limited reader comments.* |
-| ![Graph view](docs/screenshots/graph.png)<br>*Graph view — a hand-rolled canvas force simulation; drag nodes, click to open.* | ![The forty-six themes](docs/screenshots/themes.jpg)<br>*Forty-six themes — thirty-two dark, fourteen light, twenty-four of them the palettes editors already agree on — each defining its whole palette.* |
+- [Editor and reading view](docs/editor.md): live preview, wikilinks, backlinks, embeds, callouts, KaTeX, tables, vim mode
+- [Search](docs/editor.md#navigating): operators (`tag:`, `path:`, `before:`), Arabic diacritics folded; search and replace across the vault with a dry run and undo
+- [Templates and banners](docs/templates-and-notes.md), and [linguistic twins](docs/templates-and-notes.md#linguistic-twins) for one note in two languages
+- [LaTeX notes](docs/latex.md): `.tex` files edited, linked and published like Markdown
+- [Book reader](docs/books.md): PDF and EPUB, highlights cited into notes
+- [Trackers](docs/trackers.md), [sigils](docs/sigils.md) (daily habits) and [orbits](docs/orbits.md) (spaced repetition, Anki import)
+- [Today](docs/today.md), [calendar](docs/calendar.md) and [timeline](docs/timeline.md)
+- [Drawings](docs/drawing.md) in Excalidraw format
+- [Capture](docs/capture.md): quick capture, a web clipper bookmarklet, voice notes transcribed locally
+- [Ask the vault](docs/ask.md): search by meaning and cited answers, from a local model through Ollama or from Anthropic if you choose it
+- [Feeds](docs/feeds.md), [import](docs/import.md) from Notion, Evernote and Obsidian, [export](docs/export.md) and [printing](docs/printing.md)
+- [Panes, tabs and windows](docs/workspace.md), [offline reading](docs/offline.md), [keymap](docs/keymap.md)
+- [Publishing](docs/publishing.md): per-note `publish: true`, [blog mode](docs/blog-mode.md), [designed pages](docs/designer.md), a [library](docs/library.md) of courses, comments, RSS, [webmentions](docs/webmentions.md)
+- [Themes](docs/theming.md) (46, checked against WCAG AA) and [typography](docs/typography.md) with self-hosted fonts
+- [Arabic and RTL](docs/arabic-and-rtl.md), Hijri dates; [Japanese furigana](docs/japanese.md); [read aloud](docs/read-aloud.md) with offline voices
+- [Backup and sync](docs/backup-and-sync.md) to a git remote you own, with note history
+- [Desktop app](docs/desktop.md), [Android app](docs/mobile.md), [command-line client](docs/terminal.md), [Discord presence](docs/presence.md)
+- No CDN requests, analytics or telemetry
 
-## Quickstart
+How it compares with Obsidian, Logseq and Joplin: [docs/comparison.md](docs/comparison.md).
 
-Needs **Node ≥ 24** (`node --version`).
+## Your own notes
 
-```sh
-git clone https://github.com/ZahakJ/astrolabe.git
-cd astrolabe
-npm install
-npm start
-```
-
-Open **http://localhost:6801**. On first launch Astrolabe creates `./vault` and seeds it with
-interlinked starter notes that double as the user manual.
-
-### Point it at your own notes
-
-Any folder of `.md` (and `.tex`) files is a vault — including one you already keep in another tool:
+Any folder of `.md` and `.tex` files is a vault, including one kept in Obsidian:
 
 ```sh
 ASTROLABE_VAULT=~/notes npm start
-# or:  npm start -- --vault ~/notes
 ```
 
-Astrolabe reads and writes the conventions the Markdown world already shares: `[[wikilinks]]`
-(aliases, `#heading` links, rename-safe), `![[embeds]]`, callouts, `$…$`/`$$…$$` math, `#tags`
-and frontmatter `tags:`, properties, highlights, comments, footnotes, daily notes, `{{date}}`
-templates and `.excalidraw` drawings. Nothing is converted or moved, another tool's own config
-folders are ignored, and attachments are served in place, so a vault you keep in Obsidian opens
-here unchanged and keeps working there. (What each extension looks like from Obsidian's side is
-said where the extension is: [drawings](docs/drawing.md#in-obsidian), [trackers](docs/trackers.md#in-obsidian),
-[sigils](docs/sigils.md#in-obsidian) and [orbits](docs/orbits.md#where-the-schedule-lives).)
+Wikilinks, embeds, callouts, tags, frontmatter and `.excalidraw` drawings are read as other tools
+write them. Nothing is converted or moved, and other tools' config folders are ignored.
 
-### Publish it
+## Publishing
 
-Three steps from a private vault to a public site.
+Set an admin password (`npm run hash-password`, then `ADMIN_PASSWORD_HASH` and `SESSION_SECRET`
+in `.env`), add `publish: true` to the notes you want public, and set `PUBLIC_LAYOUT=blog`. Put it
+behind an HTTPS reverse proxy. Details: [Publishing and access](docs/publishing.md).
 
-**1. Set an admin password**, so strangers read and only you write:
+![A published article with related posts and reader comments](docs/screenshots/blog-article.png)
 
-```sh
-cp .env.example .env
-npm run hash-password        # prompts, prints an argon2id hash
-```
+## Configuration
 
-Put the hash in `.env` (single-quoted — it contains `$`), plus a cookie-signing secret:
-
-```sh
-ADMIN_PASSWORD_HASH='$argon2id$v=19$m=65536,...'
-SESSION_SECRET=some-long-random-string   # e.g. openssl rand -hex 32
-```
-
-Visitors now get a read-only view; a "Sign in" link in the status bar unlocks editing for you.
-
-**2. Mark a note as public** — add `publish: true` to its frontmatter, or press `Ctrl/Cmd Shift P`
-with it open. Nothing else is visible to anyone.
-
-**3. Turn on the blog**, in `.env` or live from Settings → Publishing:
-
-```sh
-PUBLIC_LAYOUT=blog
-SITE_NAME=Night Garden
-```
-
-Restart, and `/` is a blog: masthead, topic nav, article pages, RSS at `/feed.xml`, a sitemap at
-`/sitemap.xml` and a `/robots.txt` that points at it. Put it on the
-internet behind any HTTPS reverse proxy pointed at `localhost:6801` — see
-[Publishing & access](docs/publishing.md).
-
-## Make it yours
-
-The desktop app answers to whatever name and icon you give it. **Settings → This device**
-sets both on your computer — the tray, the window icon, the About box and a launcher entry in
-your name — and an update never takes them back. To bake your name and icon into the executable
-itself:
-
-```
-node scripts/rebrand.mjs --name "Marginalia" --icon ~/marginalia.png
-npm --prefix desktop run dist
-```
-
-The site's own name and logo are settings too, and they travel with the vault. See
-[the desktop app](docs/desktop.md#your-own-name-and-icon).
-
-## What's in it
-
-- **[A live-preview editor](docs/editor.md)** — CodeMirror 6, wikilinks with autocomplete, hover previews, callouts, KaTeX, transclusions, slash commands, vim mode; [tables you edit in the grid](docs/editor.md#tables), one undo per change; and [embeds](docs/editor.md#embeds) — pictures, PDF pages, drawings and [video](docs/editor.md#embeds) — that drag within a note, into another or out of the app, answer one menu, and rename everywhere they are embedded
-- **[Backlinks, outline, graph and instant search](docs/editor.md#navigating)** — a hand-rolled canvas force simulation, MiniSearch over the whole vault, live file watching. Search takes **operators** (`tag:`, `path:`, `is:published`, `before:`/`after:`, `linkto:`/`linkfrom:`, negated with `-`) and **folds diacritics**, so «المقدمة» finds «الْمُقَدِّمَة» and `resume` finds *résumé*
-- **[Search and replace across the vault](docs/editor.md#navigating)** — the thing every note-taker wants and nobody ships, because a bad vault-wide edit is unrecoverable. So it is built on the safety net rather than beside it: a dry run of every file and every line with a checkbox on each, an offer to snapshot the vault to git first, and one **Undo** on the toast. Matching is exact and frontmatter is never touched
-- **[Templates and banners](docs/templates-and-notes.md)** — `{{date}}`, `{{time}}`, `{{title}}` templates in the syntax other tools share, a `banner:` hero on any note, drag-to-move sections, a trash you can restore from, and [linguistic twins](docs/templates-and-notes.md#linguistic-twins): one line of frontmatter makes an English note and an Arabic one two faces of one note, turned over in place
-- **[A book reader](docs/books.md)** — every PDF and every EPUB in the vault opens as a book: vim keys and a `:` command line, a place remembered by the file's bytes so a rename loses nothing, night mode that leaves the pictures alone, and highlights that cite themselves into the note beside you with Undo. An EPUB is set by your own browser in the app's own type — reflowing, resizable, and right-to-left where the book says so — which is the difference between reading Arabic and looking at a picture of it
-- **[Panes, tabs and windows](docs/workspace.md)** — split the column, drag a tab to split, preview and pinned tabs, and several windows over one vault where one holds the edit lease and the other reads live; and on a phone or a tablet, [a layout of its own](docs/workspace.md#on-a-phone): five doors, screens and sheets, back that means up, and two columns on a tablet or a foldable opened
-- **[LaTeX notes](docs/latex.md)** — `.tex` files are notes: edited, searched, linked and published like any other, and they still compile
-- **[Drawings](docs/drawing.md)** — an Excalidraw canvas in a pane, saved into the vault as `.excalidraw` (or the `.excalidraw.md` form other tools' plugins read) so every tool opens the same file; a picture exported beside it on every save, so `![[sketch.excalidraw]]` renders in the editor, the reading view and on the published site without anyone loading the editor
-- **[Trackers](docs/trackers.md)** — a `tracker` fence turns a note into a progress card for a book, a game, a course, with a bar you can nudge; a `tracker-board` fence shelves all of them, the Media page shelves them by kind with a form that writes the note for you, and the shelf knows who is looking
-- **[Sigils](docs/sigils.md)** — a `sigil` fence is a plan by the day (an exercise week with morning and evening columns, the five prayers, sleep, water) and the `sigil-log` the app writes under it is the record; the card shows today's checklist, the streak, the week and a twelve-week heatmap, wears an icon and a banner of your choosing, and the Sigils page asks you every morning, with templates built in and yours saved beside them; and [`mode: course`](docs/sigils.md#a-course) turns a sigil into an ordered list of steps whose dates are projected, so a missed day moves everything after it and nothing else (older notes spell the fence `orbit` or `routine`, and both still work) <!-- lineage -->
-- **[Orbits](docs/orbits.md)** — spaced repetition that lives in the vault: a deck is a note with a `deck` block and `front::back::extra` lines (typed answers, reversed pairs, a section per lesson), a session has Anki's learning steps and a daily limit of new cards, an Anki `.apkg` or a CSV imports as a note, and a sigil slot that links a deck shows what is due and ticks itself; every `==highlight==`, `> [!quote]` and `Question / ? / Answer` block anywhere is still a card, and every schedule is written into the note as the Obsidian Spaced Repetition plugin's own comment
-- **[Capture](docs/capture.md)** — `Ctrl/Cmd Shift D` drops a line into today's note from anywhere in the app, a bookmarklet clips a web page into `Clips/` as Markdown, and the installed site takes shares from a phone; a [voice note](docs/capture.md#voice) is transcribed by your own server, on its processor, in Arabic or English or both
-- **[Today](docs/today.md), [the Calendar](docs/calendar.md) and [the Timeline](docs/timeline.md)** — the day on one page (today's note, the sigils, cards and tasks due, this day in earlier years, and an evening question), the month as a page, the whole vault by date with filters and a rail of months, and a [year in review](docs/timeline.md#year-in-review) written into a note of your own
-- **[Ask the vault](docs/ask.md)** — search by meaning in either language, related notes and links worth adding, and questions answered from your notes alone with every passage cited, by a model on your own machine (or Anthropic, only if you choose it)
-- **[Feeds](docs/feeds.md) and [import](docs/import.md)** — the feeds you follow listed in a note and fetched only once you switch it on, **Keep** to turn an article into a private note; and a Notion, Evernote or Obsidian export brought into a folder, previewed first and undone with one button
-- **[The rest of the reading view](docs/editor.md#rendering)** — footnotes in the margin or the pane, a page of a book, a sound, a timeline and a diagram embedded in a note; live `query` and `tasks` fences; block references; a calendar in the sidebar with notes for the day, the week, the month and the year; and [notes to self](docs/editor.md#notes-to-self) on a passage that leave the text alone
-- **[Reading sessions](docs/books.md#reading-sessions)** — a sitting with a book is logged into its tracker, the marks become a note, and **Review the week** adds it all up on one page
-- **[Offline reading](docs/offline.md)** — a service worker keeps the app and every note you read on the device, so the same address opens the same note on a train; only for an admin session, cleared when you sign out, and edits made offline are saved when the network returns
-- **[Publishing](docs/publishing.md)** — one frontmatter flag, a real server-side visitor preview, rate-limited reader comments with built-in moderation
-- **[Blog mode](docs/blog-mode.md)** — masthead, topic nav, dashboard home, hover previews, RSS, sitemap/robots and server-injected SEO meta
-- **[Designed mode](docs/designer.md)** — compose your own homepage from sections, eighty-one shipped presets (twenty-one of them signature houses that open with something drawn in your theme's own colours), with the stock blog kept as an always-working fallback
-- **[The library](docs/library.md)** — books, courses and lecture series as paths a reader walks in order: a folder becomes a shelf entry, its subfolders the chapters, its published notes the lessons
-- **[Webmentions and the fediverse](docs/webmentions.md)** — replies, likes and mentions from other sites arrive in moderation and appear under the post once approved, publishing tells the sites a post links to, and the blog can be followed from Mastodon as one account; three switches, all off until you turn them on
-- **[Forty-six themes](docs/theming.md)** — thirty-two dark, fourteen light, Nord and Dracula and Catppuccin among them, every one gated at WCAG AA, plus a custom-theme builder and `custom.css`
-- **[Real typography](docs/typography.md)** — a self-hosted font catalog and your own uploads, with per-character Arabic that sets correctly inside an English sentence
-- **[Arabic & RTL](docs/arabic-and-rtl.md)** — the whole interface mirrored and translated, a [language key](docs/arabic-and-rtl.md#switching-the-interface-language) always on screen (and `Ctrl/Cmd Alt Shift L`) to switch the interface back, an optional visitor `EN`/`ع` switch, a language filter, Hijri dates, ayah and hadith callouts
-- **[Japanese & furigana](docs/japanese.md), and French** — `{漢字|かんじ}` readings over kanji, a right-click that suggests them, a face only Japanese lines get; and [French corrected as you type](docs/editor.md#french-corrected-as-you-type), one undo each
-- **[Read aloud](docs/read-aloud.md)** — select a word in French or Japanese (or Arabic, or English) and hear it, from offline voices that run on your own machine's processor, a sentence at a time with the sentence lit; [your own Piper voices](docs/read-aloud.md#your-own-voices) from a folder on the machine, and [this device's voices](docs/read-aloud.md#this-devices-voices), named, when the app's are not installed
-- **[Export](docs/export.md) and [printing](docs/printing.md)** — a note, a folder, a tag or the whole vault as a ZIP with wikilinks kept or converted, any note as a standalone HTML page, and a printed page whose PDF carries real bookmarks and working links
-- **[Discord presence](docs/presence.md)** — off until you switch it on: Discord shows *Writing · Chapter 3* or *Reviewing cards · 12 left* under your name, saying as much as you choose — a title at most, never a path, and no title at all from a note marked `presence: false`
-- **[A desktop app](docs/desktop.md)** — AppImage, deb, pacman and a Windows build: a native menu bar in both languages, recent vaults, an always-on-top reference window, find in page, and updates that only tell you — nothing downloads until you click
-- **[An Android app](docs/mobile.md)** — a door onto your own server, or [your vault from a private GitHub repository](docs/mobile.md#a-vault-from-github) with no server anywhere, every save a commit: a connection screen, a share sheet that captures into the vault, and nothing of the web client shipped twice
-- **[In the terminal](docs/terminal.md)** — [Astrolabe CLI](https://github.com/ZahakJ/astrolabe-cli), a separate single static binary (`astrolabe`, or `ast`), opens the same vault as plain files with no server: a reader that typesets notes, a Vim-style editor, and shell verbs for capture and search, Arabic right to left included. `curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh`
-- **[Backup & sync](docs/backup-and-sync.md)** — commit the vault to a private git remote you own, manually or on a timer, fast-forward only; and the site's settings, layouts, book shelf and notes to self [travel with the vault](docs/backup-and-sync.md#settings-travel-with-the-vault), so a new machine pointed at the folder has everything
-- **[Note history](docs/backup-and-sync.md#note-history-reading-what-the-backup-kept)** — every commit that touched the open note, read any revision as it was, restore one with an Undo behind it, and take a local snapshot before anything you are unsure about
-- **A tour, for all of the above** — fifteen illustrated cards, each with a **Show me** that really opens the thing it describes. It is never shown at you: `Ctrl/Cmd P` → *Take the tour*, a quiet line on the empty vault, or the foot of the `Ctrl/Cmd /` sheet
-- **Zero CDN requests.** No webfonts, no analytics, no telemetry, nothing phoning anywhere
+Every `.env` key and every setting: [docs/configuration.md](docs/configuration.md), and
+[`.env.example`](.env.example).
 
 ## Documentation
 
-| | |
-| --- | --- |
-| [Configuration](docs/configuration.md) | Every `.env` key, the Settings panel's nine sections, every settings key |
-| [Publishing & access](docs/publishing.md) | Passwords, sessions, the `publish:` flag, comments, HTTPS |
-| [Blog mode](docs/blog-mode.md) · [Designed mode](docs/designer.md) · [The library](docs/library.md) · [Webmentions & the fediverse](docs/webmentions.md) | The public site, and the conversation around it |
-| [The editor & reading view](docs/editor.md) | Live preview, rendering, navigation |
-| [Templates, banners & notes](docs/templates-and-notes.md) · [LaTeX notes](docs/latex.md) | Authoring |
-| [Theming](docs/theming.md) · [Typography](docs/typography.md) | The look |
-| [Arabic & RTL](docs/arabic-and-rtl.md) · [Japanese & furigana](docs/japanese.md) · [Read aloud](docs/read-aloud.md) | Language, direction, the filter, Hijri dates, tag labels, readings over kanji, hearing a selection |
-| [Capture](docs/capture.md) · [Feeds](docs/feeds.md) · [Import](docs/import.md) · [Export](docs/export.md) · [Printing & PDF](docs/printing.md) | Getting things in, and out |
-| [Trackers](docs/trackers.md) · [Sigils](docs/sigils.md) · [Orbits](docs/orbits.md) · [The book reader](docs/books.md) · [Ask the vault](docs/ask.md) | Reading, the days, study |
-| [Today](docs/today.md) · [The Calendar](docs/calendar.md) · [The Timeline](docs/timeline.md) | The day, the month, the years |
-| [Panes, tabs & windows](docs/workspace.md) · [Drawings](docs/drawing.md) · [Offline reading](docs/offline.md) | The workspace |
-| [The desktop app](docs/desktop.md) · [The Android app](docs/mobile.md) · [In the terminal](docs/terminal.md) | On your own devices |
-| [Backup & sync](docs/backup-and-sync.md) · [Keymap](docs/keymap.md) · [Development](docs/development.md) | Operating and hacking on it |
+The manual is at [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/)
+and in Arabic at [/site/ar](https://zahakj.github.io/astrolabe/site/ar/). The source is
+[`docs/`](docs/README.md).
 
-Also in the repo: [`DESIGN.md`](DESIGN.md) (the rules a change is judged against),
-[`CONTRACTS.md`](CONTRACTS.md) (the invariants the code has committed to), and
-[`.env.example`](.env.example).
+## Development
 
-## Requirements
-
-**Node ≥ 24**, and nothing else — no database, no build toolchain for the server. Three things set
-that floor: type stripping on by default (22.18), `--env-file-if-exists` (22.9), and an unflagged
-`node:sqlite` for the comments database (22.13). They line up at 24, the first LTS line carrying
-all three. `engine-strict=true` is in `.npmrc`, so a clone on an older Node **fails at
-`npm install`** with the required and actual versions in the message, rather than dying later with
-a syntax error from inside a `.ts` file.
-
-## Architecture
-
-One process, one port, one origin. The **server** (`server/`) is Hono running on Node's native
-TypeScript support — no build step — watching the vault with chokidar, keeping an in-memory
-MiniSearch index plus a wikilink graph, streaming change events over SSE, and serving attachments
-with ETags. Nothing is ever written outside the vault. The **client** (`client/`) is React +
-zustand with a CodeMirror 6 live-preview plugin, a standalone reading-view renderer that shares the
-editor's link/embed resolve logic, and a canvas graph view; Vite builds it into `dist/`, which the
-same server serves statically. `shared/` holds the wire contract both sides import. Your notes stay
-ordinary files on disk the entire time.
+`npm run dev` runs the server and Vite together. The checks a change must pass, the code layout
+and how to send a change: [docs/development.md](docs/development.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md). [`DESIGN.md`](DESIGN.md) and [`CONTRACTS.md`](CONTRACTS.md)
+hold the design rules and module contracts.
 
 ## License
 
-[MIT](LICENSE) © 2026 avicenna
+[MIT](LICENSE)
