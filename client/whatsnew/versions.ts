@@ -8,8 +8,8 @@
 // THE RULE (scripts/check-whatsnew.mjs holds it): every MINOR release
 // (x.Y.0) ships a deck. A patch (x.Y.z) inherits its minor's. Bump
 // package.json to a new x.Y.0 without adding it here and to releaseNotes.ts,
-// and the gate fails the build — the owner: "remind future sessions to make
-// sure to create a new preview with every major change".
+// and the gate fails the build, so a release cannot ship without its
+// preview.
 export const RELEASE_VERSIONS: readonly string[] = ["3.10.0", "3.11.0", "3.12.0", "3.13.0", "3.14.0", "3.15.0", "3.16.0", "3.17.0", "3.18.0", "3.19.0", "3.20.0", "3.21.0", "3.22.0", "3.23.0", "3.24.0", "3.25.0", "3.26.0", "3.27.0", "3.28.0", "3.29.0", "3.30.0", "3.31.0", "3.32.0", "3.33.0", "3.34.0", "3.35.0", "3.36.0", "3.37.0", "3.38.0", "3.39.0", "3.40.0", "3.41.0", "3.42.0"];
 
 /** Semver-ish compare on the numeric triple; anything else is 0. */
