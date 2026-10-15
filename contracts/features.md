@@ -4,12 +4,9 @@ The vault's own features: twins, trackers, Sigils, the Calendar page, Orbits, ca
 
 ## Linguistic twins — one note, two faces (`shared/twins.ts`, `server/indexer.ts` `twinOf`, `client/twins.ts`)
 
-**The ask, in the owner's words:** *"I can have the usecase of writing the same blog/note in two
-different languages… instead of just creating another note in the different language we can somehow
-make the 'translated' or linguistic twin of the note be somehow the same note and we can swap
-between them? I am aware that this is weird since in the file-system they must be different
-files… 'we preserve everything globally as a md' vs 'I want it to look nice and clean on my editor
-UI'."* Both halves of that sentence are binding. Two files on disk; one note everywhere else.
+**The problem.** The same post written in two languages is two notes, and the reader of the editor
+wants it to be one: open it, turn it over, see the other language. On disk they must stay two
+plain Markdown files. Both halves are binding. Two files on disk; one note everywhere else.
 
 **THE NOTE IS THE STATE.** The whole relation is one frontmatter line — `twin: [[Other Note]]`, a
 wikilink resolved like any other, a bare path accepted too. No manifest, no sidecar, no id, nothing
@@ -165,7 +162,7 @@ furniture that lies.
 name lives inside a code fence, so neither `parseLinks()` nor `parseAssets()` can see it. Tracker
 covers are collected into BOTH `allowedAttachments()` and `collectAttachmentTargets()` in
 `server/indexer.ts` (`trackerCovers()`), by the same path-then-basename ladder embeds take.
-Without it a published shelf renders its art for the owner and 404s for every visitor — the
+Without it a published shelf renders its art for the admin and 404s for every visitor — the
 silent public-site breakage that walk already carries a comment about.
 
 **The board's scope is `posts()`' scope.** `trackers(visitor, lang)` iterates `publishedSet` for a
@@ -204,9 +201,8 @@ vault event, because a fence edited by hand in another window is still this page
 **A work's `folder:` answers with ONE note, not a list (3.9.0).** `folderFacts()` in the indexer
 carries `folderNotes` (the count), `folderNote` (the folder's own note) and `folderRecent`, a
 list of AT MOST ONE — the note touched last under the folder. It carried three, and the right
-panel's "Notes of this work" walked the tree and listed every note under the folder; the owner's
-book folders hold dozens of atomic notes and the section was the height of the panel ("a long
-list of all the notes taken"). Both surfaces now show the last note only — the Media card's
+panel's "Notes of this work" walked the tree and listed every note under the folder; a real
+book folder holds dozens of atomic notes and the section was the height of the panel. Both surfaces now show the last note only — the Media card's
 "Last note" door and the panel's, with the count in the panel header and an "Open the folder"
 door — and both doors (and the phone's tracker screen) go through one function,
 `openTrackerFolder()` (`client/trackerFolder.ts`). Since 3.39.3 the folder is ALWAYS shown in the
@@ -214,7 +210,7 @@ tree — the sidebar opened, the folder unfolded (`expandFolder`) and pulsed thr
 (`.s-tree__item--revealed`, painted by `useTreeCursor`'s reveal whether or not the tree holds
 focus, since the cursor ring draws only while it does) — and a folder with its own note opens that
 note as well; it used to open the note INSTEAD, and a reveal moved an invisible cursor to a
-closed row (the owner, from the Media page: "just highlight it on the left bar"). `check-media`
+closed row, so from the Media page the folder could not be found in the tree. `check-media`
 holds both doors. The wire shape stayed a list so an older client still reads it. The banner picker and the
 Media form's cover upload send the note's folder as the upload CONTEXT (`uploadAttachment(file,
 admin, dir)`), as an editor paste does: they sent none, so under the "same folder" and
@@ -237,8 +233,8 @@ sees buys nothing), and every user-facing string, the URL (`/sigils`; `/routines
 kept; NEVER `Orbits/`, which is the decks' folder now — `routinesRootFor`), the door (a seal glyph,
 `data-testid="sigils-door"`, beside the Orbits ring) and the docs (`docs/sigils.md`) say sigil.
 `npm run check-names` (scripts/check-names.mjs) greps every user-facing surface for the old words and
-fails on a hit. The owner asked for "a daily tracker … per-day details on specific activities …
-templates like an exercise tracker … custom templates". A tracker is a card about one work; a
+fails on a hit. The need was a daily tracker: per-day details on specific activities, with
+templates such as an exercise week, and custom ones. A tracker is a card about one work; a
 routine is a card about your days, and it follows every rule the tracker set rather than inventing
 new ones.
 
@@ -252,10 +248,9 @@ every-day tasks, `fields: name:type[:unit|max]`, `target: n/week`, `notes: |`. W
 words fold in both languages. **A body with neither a title nor a plan parses to null** and the
 fence reads as its own source (the $$-math rule).
 
-**A COURSE IS THE SECOND MODE OF THE SAME FENCE (3.19.0), AND NOTHING IN IT IS DATED.** The owner:
-"there has to be a way to dynamically ask a sigil to keep moving/bumping yesterday's task if not
-done because future tasks depend on it … if it takes me two days instead of one the schedule
-handles it by shifting the task to the second day". `mode: course` turns the plan from a week into
+**A COURSE IS THE SECOND MODE OF THE SAME FENCE (3.19.0), AND NOTHING IN IT IS DATED.** A study
+plan's steps depend on each other, so a step not done yesterday has to move, and everything after
+it with it: if a step takes two days instead of one, the schedule shifts it to the second day. `mode: course` turns the plan from a week into
 an ORDERED LIST: `days:` (the weekdays that get steps), `capacity:` (`15 min · sat 45 min · sun 0`
 — a day's budget, `0` a rest day), `items:` (unchanged; the middle dot joins a list as a comma
 does, which is what `[[a]] · [[b]]` wants, and `plan.itemsSep` remembers which the author used so
@@ -341,8 +336,8 @@ due by today (the count the "Due by today" list below it draws, handed up rather
 its Orbits door shows while cards are due, and "nothing due" — the recents row taking the top —
 means no sigil, no card and no task. A slot that
 wikilinks a deck wears the chip `client/routines/orbits.ts` draws (see Orbits below). **The month is
-not on this page.** It was a section at its top until 3.18 (the owner: "kinda weird and useless in
-the sigils window") and is the Calendar page now; the trackers went with it, because they only ever
+not on this page.** It was a section at its top until 3.18, where it was out of place, and is the
+Calendar page now; the trackers went with it, because they only ever
 rode this page's load for the grid's second mark.
 
 **Today ticks through the card's edit (3.28).** Both shells' Today (`client/today/model.ts`
@@ -382,8 +377,8 @@ resolves against the card's ANCESTOR container, which is the squish 3.15 fixes; 
 
 ## Sigils: the name, the icon and banner, the rebuilt form, the squish <!-- lineage: shipped in 3.15.0 under the name Orbits -->
 
-**The name.** The owner: "routine is kinda a lame name… name it something cooler that sounds cool
-and legit in arabic and english". Orbits / المدارات (singular مدار). What changed is every VALUE a
+**The name.** "Routine" was a plain name that read poorly in Arabic; the feature wanted one
+that works in both languages. Orbits / المدارات (singular مدار). What changed is every VALUE a
 reader sees and every word a note is written with. The identifiers stood then; the page's own
 ids took its final name in the sweep that followed 3.27.0 — `SIGILS_TAB`, `isSigilsTab`,
 `toggleSigils`, `sigilsOpen`, the surface and view id `"sigils"` — while `POST /api/routine`,
@@ -395,8 +390,8 @@ ids took its final name in the sweep that followed 3.27.0 — `SIGILS_TAB`, `isS
   widget, the indexer, the spans and the routes all go through the one reader. The form and the
   seed write ```` ```orbit ````. **A log fence the app ADDS is spelled the way its plan is**
   (`logFenceWordFor(plan.opener)`): a legacy ```` ```routine ```` plan gets a ```` ```routine-log ````
-  under it, never an `orbit-log`, so a note keeps one vocabulary and the owner's
-  `~/Documents/alchemy/Routines/*.md` are never touched. Tested both ways.
+  under it, never an `orbit-log`, so a note keeps one vocabulary and an existing
+  `Routines/*.md` folder is never touched. Tested both ways.
 - **Folder.** `ROUTINES_ROOT` = `Orbits` / `مدارات`; `ROUTINES_ROOTS` lists the two legacy names
   after them, and `routinesRootFor` prefers the instance's own new name, then ANY root the vault
   already has (a vault with `Routines/` keeps filing there), then the new name.
@@ -422,7 +417,7 @@ basename vault-wide) and draws `.s-rv-routine__banner`, a strip bled through the
 `display:none` until the image's `load` fires (a hidden `<img>` still fetches; a `loading="lazy"`
 one does NOT — it was lazy for one build and never loaded). A miss or a broken file draws nothing and
 costs no grid gap. The draft carries `icon` / `banner` and `routineFenceBody` writes them right
-after `kind`, which is why the owner's sample round-trips byte for byte (tested).
+after `kind`, which is why a real-world sample round-trips byte for byte (tested).
 
 **The form, rebuilt** (`client/routines/RoutineForm.tsx`, `.s-orbitform*` in
 client/styles/routines.css, the Media form's frame kept). A sheet in four numbered sections —
@@ -436,7 +431,7 @@ toggles: on = a field with that key (either language) is in the list; toggling o
 `fieldFromKnown` in the instance's language; a number's unit and a scale's ceiling are editable in
 the row. Anything else is a **Your own fields** row (name, kind of value as a Select whose note
 explains it, unit or ceiling). **Presets pre-tick, nothing is forced** — the exercise preset lists
-minutes and weight and the owner unticks both; the fence then has no `fields:` line (tested in the
+minutes and weight and the author unticks both; the fence then has no `fields:` line (tested in the
 browser). "Custom" (was "Blank") starts from nothing and the hint says so. The kind row always
 shows. The icon is a shelf of forty emoji (radio buttons) plus a free field (≤8 chars, `cleanIcon`
 on parse); the banner is the Media form's cover row — `PathInput kind="image"` and an upload
@@ -454,8 +449,8 @@ the known field's sentence, or the generic one for its type ("soreness, rated fr
 scale row's `title` adds "click a number; click it again to clear". The same sentences sit under
 the form's toggles. The dictionary's `orbitField*` block is theirs.
 
-**The squish** (the owner: "when clicking to create a new routine my first routine gets weirdly
-squished to the right"). Reproduced in Chromium with TWO cards on the row: the first card's head
+**The squish** (opening the form to create a second routine squeezed the first card to the
+right). Reproduced in Chromium with TWO cards on the row: the first card's head
 sat in a 27px column with everything else in the second. Cause: 3.14's `@container (inline-size
 >= 640px) { .s-rv-routine { grid-template-columns: 1fr auto } .s-rv-routine > :not(week):not(heat)
 { grid-column: 1 / -1 } }` with `container-type: inline-size` ON the card. A container rule on an
@@ -471,8 +466,8 @@ geometry. The card's `container-type` is gone. Measured before/after with the fo
 **The form's own container.** `.s-orbitform__body` is a query container so the rules that stack
 the own-field row on a narrow SHEET ask the sheet's width — the lesson above, applied.
 
-**Verified** (scratchpad/orbits/verify.mjs against a scratch server): `/routines` → `/orbits`; the
-owner's sample renders with its 🚶; a legacy ```` ```routine ```` plan renders on the page and in
+**Verified** (scratchpad/orbits/verify.mjs against a scratch server): `/routines` → `/orbits`; a
+real-world sample renders with its 🚶; a legacy ```` ```routine ```` plan renders on the page and in
 the editor and a tick writes into its ```` ```routine-log ````; the exercise preset with minutes and
 weight unticked saves a note with no `fields:` line and ```` ```orbit ```` fences; an edit saved
 untouched leaves the note byte for byte; a custom rating and Focus land as
@@ -503,8 +498,7 @@ vault holding legacy ```` ```routine ```` notes in `Routines/` beside new ones):
 ## The Calendar page (`shared/dayAgenda.ts`, `client/calendar/CalendarView.tsx`, `client/styles/calendarpage.css`)
 
 **The month is a PLACE, not a widget on somebody else's page.** From 3.17 a 440px grid sat at the
-top of the Sigils page; the owner took it off ("I might honestly remove the calendar view from the
-sigil window… kinda weird and useless in the sigils window"), and it is a page of its own from
+top of the Sigils page; it did not belong there, and it is a page of its own from
 3.18. `CALENDAR_TAB = "~calendar"`, `surface === "calendar"`, `setView("calendar")` /
 `toggleCalendar()`, `/calendar` in the router, a lazy chunk pinned by `MUST_SPLIT`, a door in the
 status bar (a wall-calendar leaf, `data-testid="calendar-door"`, beside the seal and the ring;
@@ -556,8 +550,7 @@ top bar's `⋯`).
 
 ## Orbits — spaced repetition (`shared/decks.ts`, `shared/srsSession.ts`, `client/orbits/`, `server/deckImport.ts`)
 
-The vault's own spaced-repetition system, replacing Anki for the owner ("screw Anki… let's make
-our own version and integrate it"). A card comes back around on its schedule, which is what an
+The vault's own spaced-repetition system, so that cards need no second program beside the vault. A card comes back around on its schedule, which is what an
 orbit is: the page is **Orbits** (المدارات), inside it a **deck** (مجموعة) is a note and a **card**
 (بطاقة) a line, a study run a **session** (جلسة). Lineage, once: the system was built under the
 working name Constellations (a deck a constellation, a card a star) and renamed before it shipped, <!-- lineage -->
@@ -633,14 +626,13 @@ Study due cards, New deck…, Import an Anki deck…. The status-bar Orbits door
 **The chips survive a tick (3.19.1).** The Sigils page patches a standing card by MORPHING the
 fresh draw into it (client/morph.ts), and a morph carries only what the fresh draw holds — the
 chips arrived a tick later on a card that was never placed, so every checkbox tick blanked the
-counts until a reload (the owner: "all the orbits linked items stop showing how many orbits are
-due"). `decorateDeckTasks` now dresses the card SYNCHRONOUSLY from the shelf's last answer
+counts until a reload (every Orbits-linked slot stopped showing how many cards were due). `decorateDeckTasks` now dresses the card SYNCHRONOUSLY from the shelf's last answer
 (`lastList`) so the morph carries the chips, then asks the shelf again and dresses whichever card
 is live by then (`card` if placed, else the page's `live()` — the standing one). AND A SLOT WITH
 NOTHING DUE TICKS ITSELF when the counts arrive (`tickClearSlots`, the session-end rule applied at
 draw time; only slots whose every deck the shelf lists, one write per card, none when nothing
-changes) — a "review [[Hiragana]]" with no card due sat open asking the owner "what am I supposed
-to check?".
+changes) — a "review [[Hiragana]]" with no card due sat open with nothing to
+check.
 
 **The sigil link (`client/routines/orbits.ts` — the whole of the Sigils touch).** A slot text or
 every-day item that wikilinks a deck note shows, on the sigil card, the link by its name and a chip
@@ -655,7 +647,7 @@ has a card due. Task ↔ row alignment is positional: the renderer draws `tasksF
 order, one `<li>` each.
 
 **Docs.** `docs/orbits.md` + `docs/ar/orbits.md`; the site keeps answering at `flashcards/` through
-`MOVED` (the 3.13 deck slide links it), as `routines/` does for `sigils/`. Kanji data in the owner's
+`MOVED` (the 3.13 deck slide links it), as `routines/` does for `sigils/`. Kanji data in the
 example decks is KANJIDIC2 (EDRDG, CC BY-SA 4.0), attributed in the notes' frontmatter and in the
 docs.
 
@@ -1041,9 +1033,9 @@ through `applyToBuffer` (one undoable change, spaced as a word), or appends thro
 `applyNoteContent` when no editor holds the note. The answer panel closes itself after Copy as note
 so the toast's Open is not under the scrim.
 
-## Voice notes: spoken on a phone or a desk, transcribed on the owner's machine
+## Voice notes: spoken on a phone or a desk, transcribed on your own machine
 
-The recorder is a half of the quick-capture sheet; the words are made by the owner's own server;
+The recorder is a half of the quick-capture sheet; the words are made by your own server;
 the recording and the words land in the vault. `shared/voice.ts` (every rule, pure),
 `server/voice.ts` (the door and the writes), `server/voiceQueue.ts` (one at a time),
 `server/voiceEngine.ts` + `server/voiceWorker.ts` + `server/voiceAudio.ts` (the models, the child
@@ -1061,7 +1053,7 @@ onnxruntime-node, CPU). Both were measured on the same two clips — 60 seconds 
 English, the same passage in both, synthesized by Meta's MMS-TTS (VITS, through transformers.js;
 `espeak-ng`'s Arabic turned out to be unintelligible to EVERY model, detected as English or Latin
 and scored ~100% WER, so it could not rank anything) — decoded from WebM/Opus exactly as a browser
-records, on the owner's machine (RTX 4070 SUPER 12 GB shared with a running Ollama holding 7.7 GB,
+records, on the development machine (RTX 4070 SUPER 12 GB shared with a running Ollama holding 7.7 GB,
 16 cores, load average ~20 from other work during the runs). Error rates are word / character,
 after folding harakat, the alef family, tatweel and punctuation:
 
@@ -1095,8 +1087,7 @@ current driver, integrated GPUs included.
 
 ### VOICE NOTES WITHOUT A GPU: THE PROCESSOR IS FIRST-CLASS
 
-The owner: "make sure that is not dependent on gpu", and "other people with no good gpu will use
-app". **whisper.cpp's prebuilt CPU build cannot be that path**, and that is a measurement, not a
+It must not depend on a GPU: most machines that will run it have no good one. **whisper.cpp's prebuilt CPU build cannot be that path**, and that is a measurement, not a
 guess: `objdump` finds no AVX register in `@fugood/node-whisper-linux-x64` (nor in the Vulkan or
 CUDA builds' own CPU code — the build targets baseline x86-64), and its bench runs one thread
 whatever `maxThreads` says. Ten seconds of speech took the small model 187 s; the large models did
@@ -1193,7 +1184,7 @@ A native addon that faults takes its process with it; in the server's process th
 session and every save. So `server/voiceEngine.ts` forks `server/voiceWorker.ts` (the same Node,
 the server's own flags — Electron's Node with `ELECTRON_RUN_AS_NODE` in the desktop app), sends it
 the recording's bytes over advanced-serialization IPC, and ends it after five idle minutes, which
-gives the model's half-gigabyte of VRAM back to a card the owner may be sharing. whisper.cpp's forty
+gives the model's half-gigabyte of VRAM back to a card the machine may be sharing. whisper.cpp's forty
 lines of stderr per model load are kept (the last forty) and printed only if the child dies badly.
 A job that does not come back in twenty minutes kills the child and fails with `timeout`.
 
@@ -1229,7 +1220,7 @@ the input positions the output reads. Safari's MP4/AAC is refused with `voiceFor
    happened in `Inbox/`, plus `Voice/` (so the default "specified" mode gives
    `<attachments>/Voice/`) — named `YYYY-MM-DD HHMM.<ext>` by the DEVICE's clock, ` (2)` on a
    collision, written `wx` so two racing recordings cannot overwrite. From here a crash, a restart or
-   a model that will not load leaves a recording the owner can find.
+   a model that will not load leaves a recording the admin can find.
 2. The job joins the FIFO queue (`createVoiceQueue`): one transcription at a time, because two
    models filling one GPU is the second one failing for memory the first was about to return. The
    route answers `202` with the job; the sheet POLLS `GET /api/voice/:id` once a second. Not
@@ -1332,7 +1323,7 @@ the DICT. Entry cost of the feature: +3.2 kB.
   `mobile/src/pocket/server.ts` writes the recording (the pocket's attachment setting, `Voice/`),
   appends the link-only bullet to the day's inbox and commits both as `Astrolabe pocket: voice
   note`, answering `{ status: "kept", error: "pocket" }`; `GET /api/voice/*` is a 501 with the
-  sentence. A phone WebView is not the owner's machine, and half a gigabyte of model in IndexedDB is
+  sentence. A phone WebView is not your machine, and half a gigabyte of model in IndexedDB is
   a phone's storage spent on a feature the laptop already has. **It is not transcribed later** when
   the repository is opened on an instance: a server rewriting bullets in a note last touched on a
   phone, unasked, is prose edited behind its owner's back — the thing the conflict rule refuses.
@@ -1358,13 +1349,13 @@ fake engine, the landing over a throwaway vault, the resampler, the copy), `test
 (the kept note, the 501s, the settings), `tests/links.test.ts` (the path-form embed).
 
 
-## Read aloud: a selection spoken on the owner's machine, on its CPU
+## Read aloud: a selection spoken on your own machine, on its CPU
 
 *Self-contained: `shared/speech.ts` (every rule, pure), `server/speak.ts` (the door), `server/speakEngine.ts` + `server/speakWorker.py` (the venv, the models, the persistent child), `server/speakQueue.ts` (one at a time), `server/speakCache.ts` (the LRU), `server/standalonePython.ts` (the Python fetched for a machine with none), `client/speech/*` (the player, the chip, the doors, `deviceVoices.ts`), `client/components/settings/ReadAloudControls.tsx` (the row's controls), `electron/systemVoice.ts` (Windows' chosen voice); your own voices: `shared/speechVoices.ts` (what a voice file says, the ids, the picker merge, `resolveVoice`, the command template — pure), `server/speakVoices.ts` (the folder's scan), `server/speakLocal.ts` (this machine's two settings), `server/speakExternal.ts` (the external speaker), `server/speakSelfTest.ts` (what each engine truly speaks here), `client/components/settings/OwnVoices.tsx` (the row), `client/speech/speakStatus.ts` + `voiceOptions.ts` (the status every surface shares; one picker's groups). Docs: `docs/read-aloud.md` and its Arabic twin. Tests: `tests/speech.test.ts`, `tests/speakCache.test.ts`, `tests/speakQueue.test.ts`, `tests/speakRoutes.test.ts`, `tests/standalonePython.test.ts`, `tests/deviceVoices.test.ts`, `tests/speechVoices.test.ts`, `tests/speakVoices.test.ts`, `tests/speakExternal.test.ts`, `tests/speakWorker.test.ts` (+ `tests/helpers/speak_worker_paths.py`, `tests/helpers/speak_worker_espeak.py`), `tests/speakSelfTest.test.ts`.*
 
 ### THE ENGINES WERE CHOSEN BY EAR, ON THE CPU
 
-The owner's ask was a friend's: "highlight a word in French or Japanese and it would read it to me at a level that matches or surpasses Google Translate", offline. The owner then ruled the GPU out ("remember other people with no good gpu will use app"), so the design target is an ordinary laptop or a small home server with none. Kokoro-82M (PyTorch, and kokoro-onnx fp32 and int8), Piper 1.8 and MeloTTS each spoke the same ten lines on the CPU (a 7800X3D at 8 threads, and pinned with `taskset` to 2 cores and to 1), judged by whisper large-v3-turbo round trips (character error rate) and UTMOS22 (predicted naturalness), with the WAVs kept for the owner to hear (`scratchpad/tts-samples/`, a README beside them). The numbers that decided it:
+The request came from a language learner: select a word in French or Japanese and hear it read at least as well as Google Translate does, offline. A GPU is ruled out, since most machines that will run it have none, so the design target is an ordinary laptop or a small home server with none. Kokoro-82M (PyTorch, and kokoro-onnx fp32 and int8), Piper 1.8 and MeloTTS each spoke the same ten lines on the CPU (a 7800X3D at 8 threads, and pinned with `taskset` to 2 cores and to 1), judged by whisper large-v3-turbo round trips (character error rate) and UTMOS22 (predicted naturalness), with the WAVs kept for listening (`scratchpad/tts-samples/`, a README beside them). The numbers that decided it:
 
 | | word 8c / 2c / 1c | 3.9 s French sentence 8c / 2c / 1c | download | UTMOS | whisper CER |
 | --- | --- | --- | --- | --- | --- |
@@ -1381,9 +1372,9 @@ The owner's ask was a friend's: "highlight a word in French or Japanese and it w
 ### THE WORKER IS A PERSISTENT CHILD; THE INSTALL NEEDS NOTHING BUT A VENV
 
 - `POST /api/speak/install { engine }` makes `ASTROLABE_DATA/tts/venv` with `uv venv --python 3.12` when `uv` is on PATH, else `-m venv` from a standalone Python an earlier install fetched, else from a system Python 3.10–3.13, else it FETCHES one: python-build-standalone's `cpython-3.12.*-<triple>-install_only_stripped.tar.gz` for `process.platform`-`process.arch` (linux/win32/darwin × x64/arm64; 21–34 MB), pinned to one release by exact size and SHA-256 in `PYTHON_BUILDS`, unpacked in Node (ustar/GNU/pax; an entry or link outside the folder refuses the archive; symlinks become copies on Windows) into `ASTROLABE_DATA/tts/python/` and run by full path (`python.exe` at its root on Windows, `bin/python3` elsewhere; the venv's is `Scripts\python.exe` / `bin/python`). The phase is `fetch-python` with `install.progress` 0–100. Only a failed fetch (offline, a platform with no build — musl Linux, 32-bit) is `speakNoPython`, said in the row. Programs are found on PATH in-process (`findOnPath`: PATHEXT, `Path`, quoted entries) — never by spawning `which`/`where`; Windows' WindowsApps `python.exe` stub fails the version probe; every Python the server starts runs without `PYTHONHOME`/`PYTHONPATH`. Packages are PINNED to what the trial ran and installed `--only-binary :all:` (`piper-tts==1.8.0`, `kokoro-onnx==0.6.1`, `soundfile==0.14.0`, `fugashi`, `jaconv`, `mojimoji`, `addict`, `regex`); `misaki==0.9.4` and `unidic-lite` go in `--no-deps` (misaki's `[ja]` extra pulls pyopenjtalk, which has no wheels; the worker stands an empty module in for an import it never calls). A `.astrolabe-<engine>` marker is written only once an engine's packages are in, so a half-finished pip is not an engine. Models download into `ASTROLABE_DATA/models/tts/` (Piper from the `v1.0.0` tag of rhasspy/piper-voices, Kokoro from kokoro-onnx's `model-files-v1.0` release) to `.part`, size-checked (JSON sidecars parsed), renamed. The row polls `GET /api/speak/status` and prints the phase and the percentage — the whisper model's pattern.
-- `server/speakWorker.py` is spawned with the venv's Python and kept up: JSON lines in, JSON lines out (audio base64), stdout reserved for the protocol and every library's chatter sent to stderr (kept, forty lines, printed only if the child dies). Both engines' sessions share one thread count (`ASTROLABE_TTS_THREADS`, default half the cores, ≤ 8). The child ends after 10 idle minutes (~600 MB with both engines loaded) and after an install (it has not imported the new packages). `GET /api/speak/status` from the owner warms the chosen engine.
+- `server/speakWorker.py` is spawned with the venv's Python and kept up: JSON lines in, JSON lines out (audio base64), stdout reserved for the protocol and every library's chatter sent to stderr (kept, forty lines, printed only if the child dies). Both engines' sessions share one thread count (`ASTROLABE_TTS_THREADS`, default half the cores, ≤ 8). The child ends after 10 idle minutes (~600 MB with both engines loaded) and after an install (it has not imported the new packages). `GET /api/speak/status` from the admin warms the chosen engine.
 - Answers are Ogg Opus at 24 kHz (Piper's 22 050 Hz resampled linearly) when the bundled libsndfile has Opus, else WAV; the client asks for WAV when its `<audio>` cannot play Opus. About 4 kB a word.
-- Measured through the route on the owner's machine, warm: a word 65–77 ms (Piper), 330–350 ms (Kokoro); a French sentence 150 ms (Piper); a 25-character Japanese sentence 1.3 s (Kokoro, first of its kind); a cache hit 2–3 ms.
+- Measured through the route on the development machine, warm: a word 65–77 ms (Piper), 330–350 ms (Kokoro); a French sentence 150 ms (Piper); a 25-character Japanese sentence 1.3 s (Kokoro, first of its kind); a cache hit 2–3 ms.
 
 ### WHAT EACH ENGINE TRULY SPEAKS: THE SELF-TEST, AND KOKORO'S ESPEAK PATH
 
@@ -1411,20 +1402,20 @@ A reader's report (Windows desktop app, both engines, Natural chosen): "it reads
 - A DOM selection inside `.s-reading`, `.s-epub__body`, `.s-book__doc` or `.s-blog-article` grows a chip BELOW its last line (the annotation button sits above it, Android's callout too); on the phone the chip also answers an editor selection, since the phone has no selection menu. The palette's **Read this note aloud** and the phone note sheet's Actions row read the rendered body in the reading view (lit), else the editor from the caret's line (the whole note from the top or the frontmatter), else the source.
 - Text is spoken as the reader sees it: `<rt>`/`<rp>` dropped (furigana read once, as the base — the engine's G2P reads the kanji; never base then reading), buttons and footnote marks dropped, a block's end a sentence's end; an editor selection goes through `speechTextOfNote` (the word count's prose reduction). `splitSentences` knows spaced French `?`/`!` and guillemets, Japanese 「。」 with no space after it, the Arabic `؟`, abbreviations, initials and decimals, and cuts past 280 characters at a breath.
 - The player (`client/speech/player.ts`, drawn by `SpeechPlayer.tsx`, one lazy mount per shell) asks a sentence at a time and prefetches the next; the current sentence is lit in the page with the Custom Highlight API (`astrolabe-speaking`) when the passage came from the page. Audio reaches `<audio>` as a `data:` URL: the shell CSP has no `blob:` and must not (check-books), and the first run fell straight through to the device's voices on exactly that. The rate button is `playbackRate` over the synthesis rate, pitch kept.
-- When the server cannot speak — `speakNotInstalled` (whose body's `lang`, the server's decision, is the language the device voice is chosen for), the pocket's 501, a visitor's 404, a network failure, an undecodable answer — the rest of the passage is read by `speechSynthesis`, and the player says which of THREE states is true, never the old "no voice installed here" (a Windows reader with three French voices read it as "we cannot see your system's voices"): **(a)** the app's voices spoke → nothing; **(b)** a device voice speaks the language → `speakAppVoicesMissing` ("The app's own voices for French are not installed — reading with this device's voice:") / `speakPocketReading` / `speakDeviceNote`, then the voice's NAME with a ▾ (the shared `Select`) of every device voice for the language, then, for the owner on a server, **Install the app's voices** → `openSettingsAt("rowReadAloud")`; **(c)** none does → `speakNoDeviceVoice` (the owner, naming Settings → Reading & speech → Read aloud and a system voice, with the same button) / `speakNoDeviceVoicePocket` / `speakNoDeviceVoiceVisitor`. An EMPTY voice list is still tried (some engines never list), and an utterance with no `start` in 4 s, or an `error`, is (c) — a Linux Electron accepts `speak()` and never speaks.
+- When the server cannot speak — `speakNotInstalled` (whose body's `lang`, the server's decision, is the language the device voice is chosen for), the pocket's 501, a visitor's 404, a network failure, an undecodable answer — the rest of the passage is read by `speechSynthesis`, and the player says which of THREE states is true, never the old "no voice installed here" (a Windows reader with three French voices read it as "we cannot see your system's voices"): **(a)** the app's voices spoke → nothing; **(b)** a device voice speaks the language → `speakAppVoicesMissing` ("The app's own voices for French are not installed — reading with this device's voice:") / `speakPocketReading` / `speakDeviceNote`, then the voice's NAME with a ▾ (the shared `Select`) of every device voice for the language, then, for the admin on a server, **Install the app's voices** → `openSettingsAt("rowReadAloud")`; **(c)** none does → `speakNoDeviceVoice` (the admin, naming Settings → Reading & speech → Read aloud and a system voice, with the same button) / `speakNoDeviceVoicePocket` / `speakNoDeviceVoiceVisitor`. An EMPTY voice list is still tried (some engines never list), and an utterance with no `start` in 4 s, or an `error`, is (c) — a Linux Electron accepts `speak()` and never speaks.
 - Which device voice (`client/speech/deviceVoices.ts`, pure `pickVoice` over the list): the reader's choice for the language (localStorage `astrolabe.speak.deviceVoices`, `{lang: voiceURI}`, per device), else in the desktop app on Windows the voice chosen in Windows' Settings → Speech (`electron/systemVoice.ts` reads `HKCU\Software\Microsoft\Speech_OneCore\Voices\DefaultTokenId`, then SAPI's, via `reg query`, and hands the token's name over `hello.systemVoice`; matched by name or by short name without " Desktop"), else the browser's `default` voice for the language — NOT on Windows, where Chromium marks the first voice of the registry (`is_default = (i == 0)`) and a page is never told the system's choice — else the reader's own locale, else a local voice over a network one, else the first. Choosing in the player re-reads the current sentence in the new voice.
 - Visitors: see `/api/speak` in [vault-server.md](vault-server.md). The blog's article carries `data-note-path` so a visitor's request names its page.
 
 ### YOUR OWN VOICES: A FOLDER THE SERVER SCANS, AND AN EXTERNAL SPEAKER
 
-The ask was a friend's again, a Linux reader who already runs Piper voices through LibreOffice's Read Text extension ("it gives me an option to point it at where the model reads from"); the owner's: "an option to point the app to a local voice model … make it clean". The clean door is a folder, not a model path: every voice in it is found and offered like a built-in one.
+The ask was a friend's again, a Linux reader who already runs Piper voices through LibreOffice's Read Text extension and points it at the folder the models live in; the app should take a local voice model the same way, cleanly. The clean door is a folder, not a model path: every voice in it is found and offered like a built-in one.
 
 - **The folder** (`speak.voicesDir`): absolute, outside the vault (the vault itself and anything under it refused, lexically and again after `realpath`; a folder CONTAINING the vault is allowed and the scan steps around the vault), a directory the server's user can read. Refusals are 400s with a code the panel says in the reader's language: `speakDirRelative`, `speakDirInVault`, `speakDirMissing`, `speakDirNotDir`, `speakDirUnreadable`. The client refuses a path that does not look absolute before asking.
 - **The scan** (`scanVoicesDir`) is recursive and follows symlinks (each real directory once), skips dot-folders and `node_modules`, stops at 8 levels / 5,000 folders / 50,000 files (`truncated`, said). A Piper voice is `<name>.onnx` beside `<name>.onnx.json` (or `<name>.json`); its language is the config's `language.code`, then `language.family`, then `espeak.voice`, then the file name's locale; its name and quality are the file name's (`fr_FR-upmc-medium` → Upmc, medium; a name off the convention takes the config's `dataset`); a multi-speaker config (`num_speakers` > 1 and a `speaker_id_map`) is ONE ENTRY PER SPEAKER ("Upmc · Jessica", "Upmc · Pierre"). A Kokoro pack is a `voices-*.bin` (an npz; its members are listed from the zip's central directory, nothing inflated) beside a `kokoro-*.onnx` (the full-precision one when several); a voice's first letter is its language. What is not a voice is listed, never fatal: `noJson`, `noModel`, `badJson` (not JSON, over 1 MB, or no `phoneme_id_map`), `noLanguage`, `otherLanguage` (with the language: German is found and said, not offered — `SpeakLang` is the languages the detector can name), `unreadable`, `noKokoroModel`. It runs at boot, when a PATCH names the folder, on `POST /api/speak/voices/rescan`, and when a request finds the folder unscanned (the request waits for that one scan).
 - **Ids** are `own:<path relative to the folder, />` + `#<speaker>` for a speaker or a pack's voice — stable across rescans, so `speak.voices[lang]` stores one exactly like a built-in id (kept on load even while the folder is away, so an unplugged disk does not forget the choice).
 - **Which voice speaks** (`resolveVoice`): the pick when it is a found voice still in the folder whose engine's runtime is installed (Piper's is Light's — onnxruntime + piper; a Kokoro pack's is Natural's); else the built-in engine as before, with the pick when it is that engine's; else the first found voice of the language whose runtime is here (a Spanish Piper voice speaks Spanish on a Light-only machine); else the 409, whose `needs` names the runtime the found voices need (`engineNeededWith`). A found voice whose file went away since the scan falls to the next answer and schedules a rescan. The rule chosen for the runtime is the simplest true one: found voices need the Light engine INSTALLED (its models included — 190 MB, once); the row says "Installing Light downloads its own built-in voices once (190 MB); your voice files are not downloaded again".
 - **The worker loads by path**: a job may carry `model`, `config`, `speaker`, `pack`; `piper_voice` loads `model` with `config` (default `<model>.json`), and the loaded-voice cache is keyed by (path, mtime) — a replaced file is a new key and the old one is dropped; `SynthesisConfig.speaker_id` carries the speaker. Kokoro is cached the same way over (model, mtime, pack, mtime). The HTTP cache key's voice is `<own id>@<model mtime>`, so a replaced voice is spoken afresh. `X-Speak-Voice` (URI-encoded) names the voice that spoke.
-- **Every picker**: Settings' Read aloud row draws a picker for each language with a choice (`pickerLangs`: any found voice, or several built-in voices whose engine is installed or chosen — no longer only English and Japanese), grouped by engine (the resolving one, then the other installed one — see "A man's voice" above) / **Your voices** (`voiceGroups`; a stored voice no longer found stays visible under "Not found now"; an on-choice voice not here yet notes "downloads when chosen · 77 MB"). The player's line under the sentence names the app's voice with the same ▾ (`.s-speak__engine`, the owner's, drawn only when there is a choice and never as a `.s-speak__note` — state (a) still says nothing about voices); choosing saves `speak.voices[lang]` and re-reads the sentence.
+- **Every picker**: Settings' Read aloud row draws a picker for each language with a choice (`pickerLangs`: any found voice, or several built-in voices whose engine is installed or chosen — no longer only English and Japanese), grouped by engine (the resolving one, then the other installed one — see "A man's voice" above) / **Your voices** (`voiceGroups`; a stored voice no longer found stays visible under "Not found now"; an on-choice voice not here yet notes "downloads when chosen · 77 MB"). The player's line under the sentence names the app's voice with the same ▾ (`.s-speak__engine`, the admin's, drawn only when there is a choice and never as a `.s-speak__note` — state (a) still says nothing about voices); choosing saves `speak.voices[lang]` and re-reads the sentence.
 - **The external speaker** (`speak.external { command, langs }`, off by default, folded inside the same row — the Language tab gains one row for all of this, 15): the template is split like a POSIX shell line (quotes, backslashes; `splitCommand`) and run WITHOUT a shell, in its own process group; the sentence on stdin; `{lang}` and `{out}` substituted in every word (a template whose arguments never name `{out}` is refused, `speakExternalNoOut`; unclosed quotes `speakExternalQuotes`); 20 s, then the group is killed; stderr logged line by line; the file read back if it is RIFF/WAVE or OggS and removed. A non-zero exit, a timeout, no file, or not audio is a 502 `speakExternal`, and the player STOPS with "Your external speaker failed on this sentence…" and a button to the row — it does not read the passage in another voice. It is never run for a visitor. It runs as the server's user, which is more than the admin password should grant, so **the OPERATOR allows it: `SPEAK_EXTERNAL=on` in the server's .env** (default off; `externalAllowed()` in server/speakLocal.ts, read per call). While it is off a PATCH naming a command is `400 speakExternalOff` (clearing is always accepted), a command saved earlier is never run (the app's voices answer), `GET /api/speak/status` says `externalAllowed: false`, and the row's folded part shows "The operator has not allowed an external speaker on this server: set SPEAK_EXTERNAL=on in .env" instead of the fields. The desktop app is its own operator: `childEnv` (electron/server.ts) passes `SPEAK_EXTERNAL=on`, which a linked deployment's own .env may still set off. The row's ⓘ and the docs say all of this.
 - **Both are this machine's**: accepted by the settings PATCH and answered in `effective.speak`, but written to `ASTROLABE_DATA/speak-local.json` (0600, staged and applied after the whole patch is accepted, the git token's shape) and NEVER to `settings.json`, which the config mirror carries into the vault — a path is one disk's, and a command that arrived by sync and was then executed would be a remote code execution. `speak: null` clears them too.
 - The pocket answers `voicesDir: null, external: null` and refuses a PATCH naming either with 501 `keepSpeakLocal` (the rest of `speak` is untouched); `/api/speak/voices/rescan` is a 501 under the `/api/speak/` refusal. The Row is locked there.

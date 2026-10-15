@@ -11,9 +11,8 @@ back-gesture guard (`backGesture.ts`, `backGuard.ts`) — was kept for one relea
 contract no longer describes the drawer (3.15.0's docked-grips rule and 3.23.0's native drawer
 went with it); [releases.md](releases.md) keeps their one line.
 
-The owner, over the audit that measured the old phone: *"I almost wish to rewrite that whole side
-of the app to be natively designed for the phone and tablet form factor instead of trying to
-retrofit what we have here."* The retrofit had cost 97 phone `@media` blocks, 2,245 lines of
+The audit that measured the old phone layout concluded that it should be rewritten for the phone
+and tablet rather than retrofitted from the desktop. The retrofit had cost 97 phone `@media` blocks, 2,245 lines of
 override CSS, five copies of the drawer query and 125 of 443 commits — and still shipped a P0 (a
 tap on a note in the drawer opened nothing, §"the navigation" below). The phone shell is a new
 FRAME around the existing content parts, not a rewrite of them.
@@ -179,7 +178,7 @@ Fold (690×829 at DPR 2.625; the Fold 6's 707×823) either way up, an iPad in po
 phone on its side, the Fold's cover (344×882): a list pushes the note across the whole glass and Back
 comes home to the list. 3.34 to 3.39.0 gave two columns by SHAPE (`(min-width: 768px), ((min-width:
 640px) and (min-aspect-ratio: 3/4))`), and the open Fold got a rail, a list and a note of 358px —
-the owner: "the note only shows on half a page". From 1000 (a tablet in landscape, 1024/1080/1180): a
+the note on half the page. From 1000 (a tablet in landscape, 1024/1080/1180): a
 72px rail, a list column (the deepest list of the tab's stack) of `clamp(240px, var(--ph-list-w,
 320px), 360px)` — a list's measure, never a share of the page — a GRIP between them
 (`ColumnGrip.tsx`, role separator, 240–360, drag or arrows, double tap resets, the width in
@@ -491,8 +490,7 @@ a list, not a map.
 
 Lift a tab and every pane raises five drop targets: a centre that means "join
 this pane's strip", and four edges that mean "split this pane and land me on
-THAT side" (the owner: "should be able to just drag and drop one of the
-windows to the right or lift to trigger a split"). The solo pane raises them
+THAT side" — dragging a tab to an edge is how a split is made. The solo pane raises them
 too — dragging one of two tabs to an edge is exactly how the FIRST split is
 made. Within a strip, hovering a tab shows an insertion caret and dropping
 reorders; the caret's before/after half is resolved logically, so the leading
@@ -654,7 +652,7 @@ out would hold a tree it may no longer read and offer writes the server will ref
 flips false while a window previews as a visitor — `loadMe()` reports the server's word, which is
 "visitor" under `X-Astrolabe-Preview` — and broadcasting that flip as an auth event made every peer
 window call `logout()`, which POSTs `/api/logout`, which bumps the session epoch, which revokes
-EVERY session on EVERY device. One "Preview as visitor" with a second tab open signed the owner out
+EVERY session on EVERY device. One "Preview as visitor" with a second tab open signed the admin out
 of the web admin, the desktop app and the phone at once, and each fell back to the site language as
 a visitor. The broadcast is guarded on `previewVisitor`, which `setPreviewVisitor` sets BEFORE the
 `loadMe()` that flips `admin`, so it is a reliable witness at the moment the subscription fires.
@@ -835,9 +833,9 @@ stays on `.s-panel--collapsed`, as it always did.
   (`--sidebar-w` + 1px for its border) and `overflow: hidden`; its children are pinned to
   `--sidebar-w` so the rows do not reflow to a narrower measure while the pane closes. Same
   pattern the backlinks panel already used. 180ms, both directions, zen included.
-- **THE NOTE'S TWO MARGINS ARE EQUAL IN EVERY FOLD STATE.** The owner's request was "make sure
-  that the margin between open note and left/right bar is correct and nice looking even when bar
-  is closed/folded" — a statement about the two margins AGREEING, and the thing to measure is the
+- **THE NOTE'S TWO MARGINS ARE EQUAL IN EVERY FOLD STATE.** The margin between the open note and
+  each side bar has to look right whether the bar is open or folded — a statement about the two
+  margins AGREEING, and the thing to measure is the
   gap from the prose to the furniture beside it, not to the window edge.
   An earlier build pinned the column to the WINDOW's centre line instead, padding `.s-main` to
   compensate for whichever pane was heavier (`--balance`/`--slack`, both gone now). It read well
@@ -1056,7 +1054,7 @@ stays on `.s-panel--collapsed`, as it always did.
   except on macOS inside the editor, where `Mod-Shift-z` is the *only* redo binding and keeps it.
 
 **EVERY FOLDER STARTS FOLDED.** The tree opened its top level on a first visit and left the rest
-shut; the owner asked for all of them shut. `defaultOpen()` in `Sidebar.tsx` answers false for
+shut; a large vault reads better with all of them shut. `defaultOpen()` in `Sidebar.tsx` answers false for
 every depth, and the per-browser map (`astrolabe.tree-expanded`) still remembers each folder the
 reader opens, so the price is one click per folder, once, and a reveal (`TREE_REVEAL_EVENT`) still
 opens every ancestor of the note it is showing. Nothing else moved: the fold-all and unfold-all
@@ -1164,8 +1162,8 @@ cluster's width as `--topactions-w` on `.s-main`, which the shell's own strip (`
 solo only) pads by. **Split, the cluster takes a row of its own** (`.s-main:has(> .s-panes)
 .s-topactions` is static, a `2.5rem` bar above the grid): the earlier rule padded EVERY split
 pane's strip by the cluster's width (`.s-view:last-of-type` matched the only pane of each column),
-and a 390px cluster over a 400px pane left ten pixels for the tabs — the owner's friend lost every
-tab name in split view. **The strip is
+and a 390px cluster over a 400px pane left ten pixels for the tabs — every tab name was lost in
+split view. **The strip is
 a box and the tabs scroll in a box inside it** (`.s-tabs__scroll`, Tabs.tsx `scrollRef`): a scroll
 container's end padding exists only at the END of its scroll, so while the strip itself scrolled,
 twenty-five tabs ran under the cluster on the row's first screen. The reservation lives on the
@@ -1173,8 +1171,8 @@ strip, the overflow in the scroller whose width is the strip's less that room, t
 width (`flex: none`) and the active tab is scrolled into view on open and on resize. At phone
 width the cluster is wider than the phone and the scroller has no room; the tabs are then out of
 sight rather than under the buttons, which is the lesser lie until the cluster folds. Zen hides the
-cluster. Without a host (a bare test) the tools stay in the bar. The owner's screenshot drew the
-line: "the status stuff def belongs to bottom".
+cluster. Without a host (a bare test) the tools stay in the bar. The line is drawn where a
+reader looks for it: status belongs at the bottom.
 
 **The frame names what is on screen.** `openPath` is a note by contract and the mirror looks past a
 book, a drawing or a virtual tab to the nearest note — right for the outline and the backlinks,
@@ -1233,7 +1231,7 @@ carry that, and none of them may be quiet:
 - **A 404 inside visitor preview is the CORRECT answer, and must not be dressed as a fault.**
   `setPreviewVisitor(true)` cannot scope the open tabs until `loadTree()` answers, and in the
   meantime the reading view refetched the open note with the visitor header on — so the eye
-  button, whose entire job is letting the owner inspect his own site, opened by announcing
+  button, whose entire job is letting the admin inspect their own site, opened by announcing
   "Failed to open <path>" about a site that was fine. Two halves: `openPath` goes to **null** for
   the length of the transition (drop the tab before the view refetches, restore it if it
   survives), and when the note does NOT survive the scoping the store says why in its own words
@@ -1252,7 +1250,7 @@ carry that, and none of them may be quiet:
   shell the strip is the first child of `#root`, which becomes a flex column (`:has()`) so
   `.s-blog`'s own scroller takes what is left — the blog's sticky nav then sticks to the top of
   THAT scroller and the two can never share a band. Nothing may overlay the site at either edge:
-  preview exists so the owner can judge his own layout. `Esc` exits, the store no longer writes
+  preview exists so the admin can judge their own layout. `Esc` exits, the store no longer writes
   `astrolabe.preview`, and boot clears any value an older build left behind — a reload always returns
   the admin to the app.
 - **Discoverability is chrome, not folklore.** The status bar carries icon toggles for the
@@ -1388,7 +1386,7 @@ carry that, and none of them may be quiet:
 
 **A SHORTCUT IS RESOLVED BY THE LAYOUT FIRST AND BY THE PHYSICAL KEY SECOND** — `client/keys.ts`,
 and the whole of it goes through `shortcutKey(e)`. `KeyboardEvent.key` is what the LAYOUT
-produced, and `App.tsx` compared `e.key.toLowerCase()` to Latin letters, so on the owner's Arabic
+produced, and `App.tsx` compared `e.key.toLowerCase()` to Latin letters, so on an Arabic
 keyboard — where the physical P key reports `"ح"`, K reports `"ن"`, G `"ل"` — **every global
 shortcut in the product was dead**, in an app that ships a complete Arabic translation and mirrors
 its entire layout for it. Measured by `scripts/check-layouts.mjs` before the fix: 5 of 7 bindings
@@ -1572,7 +1570,7 @@ closes it when it is already active (`Ctrl/Cmd G`, the status-bar button, the pa
 menu), `graphOpen()` says whether the focused pane shows it. The mirror looks past it like a
 drawing (`openPath` is never `"~graph"`); the router answers `/graph` for it and opens it from
 `/graph`; `Tabs.tsx` titles it `docTitleGraph`. Clicking a node opens the note as the tab beside
-it, which is the flip-flop the owner asked for; the tab drags, splits, pins and closes like any
+it, so graph and note sit side by side rather than in turn; the tab drags, splits, pins and closes like any
 other, and a restored session brings it back. `PaneMode` still lists `"graph"` for old stored
 workspaces, unused by anything that opens the graph now. **The Media page is a tab on the same
 terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `setView("media")`,
@@ -1581,9 +1579,8 @@ terms** (`MEDIA_TAB = "~media"`, `isMediaTab`, `isVirtualTab` for the pair; `set
 **THE CALENDAR IS A TAB TOO, from 3.18** (`CALENDAR_TAB = "~calendar"`, `isCalendarTab`,
 `surfaceOf` → `"calendar"`; `setView("calendar")`, `toggleCalendar()`, `calendarOpen()`; the router
 answers `/calendar`; `Tabs.tsx` titles it `calendar`; the page is `client/calendar/CalendarView.tsx`,
-a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17 and the owner
-wanted it out — "kinda weird and useless in the sigils window… maybe just give it its own window
-and icon on the top". So it became a page, with the fourth door in the status bar's admin group
+a lazy chunk check-bundle pins). It was a card at the top of the Sigils page in 3.17, where it
+was out of place and wanted its own window and icon. So it became a page, with the fourth door in the status bar's admin group
 (a leaf of the month), a palette row and a row in the phone's ⋯ menu. *What the page draws, and why
 it draws its own grid rather than the sidebar's, is settled once under **The Calendar page** below;
 this paragraph is the tab model only. Do not restate the drawing here — an earlier draft of this
@@ -1595,7 +1592,7 @@ both were false by the time it shipped.*
 **THE GRAPH OPENED GREY, AND THAT WAS A BUG, NOT A LOOK.** The keyboard route lights the node its
 cursor rests on and dims the rest to 15%, and the cursor rested on the open note from the moment
 the view opened, so a reader who had not pressed a key saw a thousand grey discs and one gold one.
-The owner met it as "the colour of nodes is lame if you are not highlighting them". The canvas now
+Every node but one drawn grey made the graph read as broken. The canvas now
 takes the cursor only while the node list HOLDS focus (`listFocused`); a highlight is an answer to a
 question, and nobody had asked one.
 
@@ -1630,7 +1627,7 @@ canvas or in the forces reheats; a recolour does not. The search field is the on
 is session state: it lights the matching titles the way a hover lights a neighbourhood
 (`matchSet` stands in for the hover set), and the pointer still wins while it is on a node.
 
-**THE MOTION IS CALM ON PURPOSE.** "Too quick" was the owner's word: the speed cap went from 40
+**THE MOTION IS CALM ON PURPOSE.** The old motion read as too quick: the speed cap went from 40
 to 16 world px a step, damping from 0.82 to 0.86, the reheat from 0.45 to 0.3, and a button zoom
 eases over 220 ms about the viewport centre (the wheel stays immediate: a wheel is the reader's
 own hand). The three force sliders scale the shipped constants (`repulsion`, `linkDistance`,
@@ -1642,7 +1639,7 @@ normalised field by field on load (`normalizeGraphPrefs`), per browser, never se
 ## The graph panel is a box you can drag
 
 `.s-graph__panel` sits at the PHYSICAL right in both directions (`top/right/bottom`), as does
-`.s-graph__controls`: the owner reads the graph's chrome as one instrument cluster. Its head is a
+`.s-graph__controls`: the graph's chrome reads as one instrument cluster. Its head is a
 drag handle (pointer capture, clamped to the graph's box); once moved it wears `--moved` (left/top
 inline, bottom unpinned, max-height in the box) and the position is remembered in
 `localStorage["astrolabe.graphPanelPos"]`, re-clamped on mount. Reset and ✕ are buttons, not handle.
@@ -1731,9 +1728,8 @@ inline, bottom unpinned, max-height in the box) and the position is remembered i
 ## Settings panel (SettingsModal)
 
 **EIGHTEEN PAGES IN FOUR GROUPS, ONE CATALOGUE (settings, round 2).** The purge (3.38.0,
-below) sorted the rows by intent into nine sections, and the owner still read them as bad: "You
-should feel free to break stuff out in more categories. Also wth is this browser dictionaries
-with like so many on off toggles. Please make sure things are legit." The shape is now written
+below) sorted the rows by intent into nine sections, and they still read badly: too few categories,
+and a browser-dictionaries page that was a wall of on/off toggles. The shape is now written
 down in [`settings-design.md`](settings-design.md) — the row anatomy with its measurements, the
 control catalogue, the page list — and held by tests and the browser walk; the row-by-row ledger
 is [`settings-audit.md`](settings-audit.md), whose *Page (round 2)* column
@@ -1785,7 +1781,7 @@ is [`settings-audit.md`](settings-audit.md), whose *Page (round 2)* column
   (`buildPatch` nested its key under the comments' condition).
 
 **THE SETTINGS PURGE — NINE SECTIONS BY INTENT (after 3.37; re-cut into pages above).** The
-owner: "make settings as clean and as intuitive as possible." The audit
+goal: settings as clean and as intuitive as they can be. The audit
 (`contracts/settings-audit.md`) gave each of the 110 rows then indexed a verdict — 38 KEEP, 50
 MOVE, 10 MERGE, 12 DEMOTE, 0 ENV-ONLY, 0 REMOVE — into nine sections (Appearance, Language &
 dates, Writing, Reading & speech, Your site, Collections, Backup & sync, Ask, About). No stored
@@ -1982,8 +1978,8 @@ instance's language, instead of arriving as an English 400 in a toast.
   `z-index: 200` every picker in Settings opened BENEATH the panel — laid out, focused, invisible
   (found by the Read aloud round's screenshots, and visible in the earlier round's too).
 - **The BOUNDS are the scrolling region, not the dialog** (`[data-popbounds]`, which
-  `SettingsModal` puts on `.s-smodal__body`), intersected with the viewport — the owner's words
-  were "fits correctly within the settings screen bounds". Clamping to `[role="dialog"]` met that
+  `SettingsModal` puts on `.s-smodal__body`), intersected with the viewport — a popover has to
+  fit within the settings screen's bounds. Clamping to `[role="dialog"]` met that
   only in the middle: measured at 1440, five popovers reached **58–192px past the footer's top
   edge**, over the divider and the Close / Save row, which are chrome the reader has to be able to
   reach WHILE choosing. `[role="dialog"]` remains the fallback for a Select outside the panel.

@@ -1,6 +1,6 @@
 # Discord presence
 
-What Astrolabe tells Discord while the owner works (3.42.0), how the pieces are cut, and what may never leave the process. Part of the module contracts (see [CONTRACTS.md](../CONTRACTS.md) for the map). The design was written before the code in [docs/plans/discord-presence.md](../docs/plans/discord-presence.md); the reader's page is [docs/presence.md](../docs/presence.md). **Edit the area, append nothing:** a change to how something works is written HERE, in the section it changes; a release gets one line in [releases.md](releases.md).
+What Astrolabe tells Discord while you work (3.42.0), how the pieces are cut, and what may never leave the process. Part of the module contracts (see [CONTRACTS.md](../CONTRACTS.md) for the map). The design was written before the code in [docs/plans/discord-presence.md](../docs/plans/discord-presence.md); the reader's page is [docs/presence.md](../docs/presence.md). **Edit the area, append nothing:** a change to how something works is written HERE, in the section it changes; a release gets one line in [releases.md](releases.md).
 
 ## One core, two hosts, one reporter
 
@@ -34,7 +34,7 @@ Applied on the server before anything leaves the process, whatever the client se
 
 - **One SET_ACTIVITY per `PRESENCE_RATE_MS` (15 s), and only on change**; when several changes land in one window the latest wins. An unchanged activity sends nothing, ever.
 - No socket → silent. Reconnect backs off from `PRESENCE_BACKOFF_FIRST_MS` doubling to `PRESENCE_BACKOFF_CAP_MS`, reset after a handshake; at most one log line on the first failure. A CLOSE with code 4000 (invalid client id) stops the retries until the id changes, and the status says so.
-- **Clear on exit.** Stopping (the desktop quitting, the server shutting down, presence switched off) sends a clearing SET_ACTIVITY and a CLOSE before ending the socket, so the owner's profile never keeps a stale "Writing" after the app is gone.
+- **Clear on exit.** Stopping (the desktop quitting, the server shutting down, presence switched off) sends a clearing SET_ACTIVITY and a CLOSE before ending the socket, so your profile never keeps a stale "Writing" after the app is gone.
 
 ## The Settings page
 

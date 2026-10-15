@@ -169,7 +169,7 @@ accounted for.
 | ----- | -------------- | --- |
 | `rowWebmentions` | `conversation` | The purge's one new host: webmentions in and out are one row with two parts (rows 49 and 50). |
 | `feedsNoteField` | `reading`, part of `rowFeeds` | The note that lists the feeds was a field beside the Feeds switch, the one row drawn as a side-by-side pair; it is a part under the switch now, and a search lands on it by name. |
-| `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the owner's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
+| `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the admin's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
 | `rowPresenceMode` | `presence` | How much Discord is told (3.42.0, `settings.presence.mode`): the first row of the Discord page, a new page rather than a move — no row of 3.37.0 spoke to Discord. |
 | `rowPresenceClientId` | `presence` | The Discord application id the presence connects with; empty while the placeholder in `shared/presence/config.ts` stands. |
 | `rowPresenceIdleAfter` | `presence` | How long without input before the presence counts as away. |
@@ -219,7 +219,7 @@ way to see or clear it from the app, which is a trap rather than a purge.
   Arabic-Indic or Latin digits, a real editorial choice made once; it is
   demoted instead.
 - *Design the site* duplicates the palette's "Open the designer", the REMOVE
-  definition exactly — but the owner-facing reason it exists (a reader who
+  definition exactly — but the admin-facing reason it exists (a reader who
   picks *Designed* is otherwise left with no door to the designer) still holds,
   so it survives as the button under Public layout rather than as a row.
 - *Hadith corpus folder* is detected automatically when empty; demoted, not

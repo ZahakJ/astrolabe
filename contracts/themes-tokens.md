@@ -193,15 +193,15 @@ overruled.
   the ☾/☀ button read the store and flipped from the wrong room.
 - **The editor's theme and a reader's choice are two keys.** `setTheme` stored the admin's editor
   pick in `astrolabe.theme`, the same key a visitor's public-site choice uses, and that key survives
-  signing out — so in any browser the owner had ever signed in from, their editor theme outranked
-  every design they made, for them and only for them ("none of my themes really show on Mission
-  Control, it's just the default dark theme"). A reader's choice made on the public site now lives
+  signing out — so in any browser the admin had ever signed in from, their editor theme outranked
+  every design they made, for them and only for them (no design theme showed on Mission
+  Control; it was just the default dark theme). A reader's choice made on the public site now lives
   in `astrolabe.site-theme`; which key a session reads is decided by the surface it is on
   (`themeKey()` in `client/state.ts`: the site's for a visitor shell — the served page says so via
-  `client/boot.ts`, which only a session shown the public site is told — and for the owner
+  `client/boot.ts`, which only a session shown the public site is told — and for the admin
   previewing as one; the editor's otherwise). `loadMe` runs into and out of preview, so one block
   serves both: entering, the site key is empty and the design's theme applies; leaving, the editor
-  key holds the owner's own room and it comes back. A ☾/☀ press on the public site or in preview
+  key holds the admin's own room and it comes back. A ☾/☀ press on the public site or in preview
   writes the site key and never the editor's. One migration cost, accepted: a visitor who chose a
   theme on the public site before this build chose it into `astrolabe.theme`, and lands on the site's
   default once until they choose again.
@@ -216,7 +216,7 @@ overruled.
   differently". `tests/themeToggle.test.ts` states it for all twenty-one rooms, from all twenty-one.
 - **The first paint is the right paint.** A visitor's page booted as an app — `publicLayout` at
   "app", the theme at the client's fallback — and became a designed site only after `/api/me`, then
-  got its document a fetch later. Measured on the owner's site: the stock masthead and menu at
+  got its document a fetch later. Measured on a real site: the stock masthead and menu at
   ~204ms, replaced by the designed console at ~259ms, on every refresh. `server/boot.ts` inlines
   `window.__astrolabe` into the served shell for sessions shown the public site — the served layout,
   the theme (design's, else the instance's, same precedence as `/api/me`), and on a designed site

@@ -9,10 +9,8 @@ This file is the *shape*: what a row looks like, which control a value gets, and
 
 ## Why a second pass
 
-The purge (3.38.0) sorted the rows by intent and still read badly. The owner: "astrolabe settings
-are still bad if not worse? You should feel free to break stuff out in more categories. Also wth is
-this browser dictionaries with like so many on off toggles. Please make sure things are legit." In
-its screenshots:
+The purge (3.38.0) sorted the rows by intent and still read badly: too few categories, and a
+browser-dictionaries page that was a wall of on/off toggles. In the screenshots of that round:
 
 1. **Browser dictionaries** was four On/Off pills ("French: off · Arabic: off · …") for one
    question — which languages does this browser spellcheck.

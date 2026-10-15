@@ -33,8 +33,8 @@ properties listed in the styles contract; components must use tokens, never hard
 
 **The brand is a different room (2.18).** The icon, the README banner (`docs/brand/hero.html` →
 `docs/gh-hero.png` via `scripts/shoot-brand.mjs`), the pages site (`docs/index.html`) and the manual
-(`docs/site/docs.css`) are painted in the `sidereal` theme, starlight `#9aa3ff` on `#070a17`: the owner
-and his readers found the gold heavy and asked for something darker and easier on the eye. The in-app
+(`docs/site/docs.css`) are painted in the `sidereal` theme, starlight `#9aa3ff` on `#070a17`: the
+gold read heavy, and the darker blue is easier on the eye. The in-app
 default stays `github-dark` (`THEMES[0]`); a reader picks a room in the picker, and the product does
 not move under them. Screenshots in `docs/screenshots/` are shot in sidereal (`scratchpad/sky/shoot-docs-sidereal.mjs`,
 `check-signatures.mjs` with `THEME=sidereal`) so the pages stay in one room.
@@ -168,7 +168,7 @@ failures happen, and a crash card that must fetch a chunk after the crash is not
   on "The vault is open." with `Welcome.md` sitting in the tree behind it: the one moment a new
   reader has nothing of their own to come back to was the one moment they were shown nothing.
   ADMIN ONLY past the home note, deliberately — a visitor's landing is the site, and opening
-  somebody's first published file at them because the owner set no home note is a guess made in
+  somebody's first published file at them because the admin set no home note is a guess made in
   public. A deep link in the address bar still outranks all of it (the router applies it right after
   bootstrap), and an EMPTY vault still gets the empty state, which is where the seed offer lives.
 - **A SCROLL BOUNDARY FADES; IT DOES NOT GUILLOTINE.** `client/scrollFade.ts`

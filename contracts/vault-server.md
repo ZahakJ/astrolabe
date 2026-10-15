@@ -862,7 +862,7 @@ tree outside the vault that the call will not touch.
 
 ## Delete previews (server indexer + `/api/delete-preview` + client dialogs)
 
-**The dialog counted markdown and the folder held images.** The owner moved a note out of its
+**The dialog counted markdown and the folder held images.** A note was moved out of its
 folder, deleted the now note-less folder, read "0 notes" and shipped a published essay with four
 broken embeds — the folder still held the four images that note used, and the confirm had no way
 to know because it only ever counted `.md`. The indexer has always known which notes point at
@@ -962,7 +962,7 @@ lets the nine seconds run out.
 
 **Every delete dialog promised a bin the product could not reach.** "Recoverable from disk" was
 true and useless: `.trash/` is a dot-dir that the tree, the indexer and the watcher are all built
-to ignore, so honouring the promise meant handing the owner a terminal. A safety net nobody can
+to ignore, so honouring the promise meant handing the admin a terminal. A safety net nobody can
 reach is a safety net in the sense that a locked fire exit is a fire exit.
 
 - **`GET /api/trash` → `TrashEntry[]`**, newest first:
@@ -1121,7 +1121,7 @@ through `confirmDeleteAttachment()` and therefore carries the same "still embedd
 
 A vault is not only `.md`. The tree used to list markdown and nothing else, so `Media/` — 1,158
 images in the fixture this was built against — appeared as a folder that expanded to **nothing**,
-and the owner of a real instance read that as lost files. Fixing it is three pieces:
+and on a real instance that read as lost files. Fixing it is three pieces:
 
 - **`TreeNode.attachment?: AttachmentInfo`** (`shared/types.ts`) — present on non-markdown FILE
   nodes only: `{ kind: "image"|"pdf"|"audio"|"video"|"other", ext, size }`. **Its absence is the

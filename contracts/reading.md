@@ -265,7 +265,7 @@ note is a path of that kind, titled by its name, addressed by its title, covered
 The three layers each do one job and are read in this order — the ROOT ("everything published under
 here is a book"), the FOLDER NOTE (`title`, `description`, `cover`, `source`, `hidden`, `library`,
 `slug`: vault-portable facts about one folder, and the reason a root is not the last word), the ROW
-(the owner's override of one folder, still winning field by field). The schema is a SUPERSET and
+(the admin's override of one folder, still winning field by field). The schema is a SUPERSET and
 `libraryRefs()` still reads rows first, so an upgraded server with no roots produces a byte-identical
 shelf: nothing is rewritten at boot, and the fold of now-redundant rows is OFFERED in the panel, not
 performed — folding them is a visible reorder (rows keep their own order, a root's children follow
@@ -278,7 +278,7 @@ taken)`: the folder note's `slug:` first, then `suggestSlug(title)`, and otherwi
 slug claims first and is never displaced. The old rule was `suggestSlug(title) || "path"` plus a
 `-2`, `-3`… counter assigned in folder order, and on this vault three Arabic-titled books would all
 have landed on `/library/path`, `/library/path-2`, `/library/path-3`, renumbered by whichever book
-existed that morning — with every reader's saved progress keyed to the slug. A URL the owner would
+existed that morning — with every reader's saved progress keyed to the slug. A URL the admin would
 never paste is not an address, and not publishing is the visitor-safe default: those folders are not
 on the shelf today either, and their notes stay on the blog. The settings panel lists them under
 *Needs an address* with the reason, and `slug:` in the folder note is the answer that needs no row.
@@ -312,8 +312,8 @@ that resolves (`resolveLink`) to a note that is a lesson of any path on the shel
 **A LESSON IS NOT A POST.** `posts()` (server/indexer.ts) skips every published note under a
 folder `libraryLessonFolders(settings.library)` names — the enabled library's visible paths,
 boundary at the slash (`isLibraryLesson`) — in the admin list and the visitor list alike. Before
-2.8.1 publishing a book's chapters put them all on the blog home, in the topics and in RSS, which
-the owner met as "my chapter notes went to be actual blog posts" the moment they toggled the door
+2.8.1 publishing a book's chapters put them all on the blog home, in the topics and in RSS, so a
+book's chapter notes turned into blog posts the moment the library door was switched on
 (the door had nothing to do with it; the feed had never excluded them). The note's own URL still
 renders; hidden paths and a disabled library give the notes back to the blog.
 
@@ -327,7 +327,7 @@ same question `resolveLibraryPath()` answers with null, because `library: book` 
 folder note with nothing published handed an anonymous caller a picture out of a folder of drafts
 that no page on the site linked to. `unreferencedAttachments()` stays UNFILTERED: the agreement
 between the two walks is one-directional (nothing the allowlist serves may be called unused), and
-filtering there would offer the owner's cover art for deletion. A folder note's `source:` is judged
+filtering there would offer the admin's cover art for deletion. A folder note's `source:` is judged
 by the row's own https regex for the same reason — it ends up in an `href`.
 
 **THE FIRST /api/me DECLARES THE STORED VISITOR LANGUAGE.** `loadMe()` calls
@@ -339,13 +339,13 @@ resolved language still overwrites it; the server ignores the header for an admi
 toggle is off.
 
 **THE SHELF IS LANGUAGE-SCOPED LIKE THE FEED.** On a site whose language is Arabic with the
-filter on `follow`, a visitor sees the English books only after the ع/EN toggle; the owner, logged
+filter on `follow`, a visitor sees the English books only after the ع/EN toggle; the admin, logged
 in, sees them always. That is the feed's own rule, not a bug, and the reason "how do I see the
 library on public?" has two answers (publish the notes; and the visitor's language).
 
 **THE DOOR NEEDS A LESSON.** `/api/me.library` is sent only when some path has a lesson this
-session may read; a path whose notes are all drafts hides the door for visitors (and the owner,
-logged out, asked where the library went). The settings card prints "N of M notes published" per
+session may read; a path whose notes are all drafts hides the door for visitors (and for the admin
+logged out, who then could not find the library). The settings card prints "N of M notes published" per
 path, red when M > 0 and N = 0, computed from the tree and `publishedPaths` (`loadPublished()` is
 called if the set is not loaded yet). The cover field is `PathInput` (`controls/PathInput.tsx`):
 the vault's images offered as you type, thumbnails in the rows, a preview beside the field once the
@@ -413,7 +413,7 @@ file (`server/books.ts::bookKey`, format validated by
 
 The vault is the one directory this application does not own. Obsidian writes
 to it, Syncthing and Dropbox write to it, `git pull` writes to it, and the
-owner writes to it with `mv` at two in the morning. A key that only our own
+admin writes to it with `mv` at two in the morning. A key that only our own
 rename handler maintains goes stale the first time a book is filed by hand, and
 what is lost is not a cache: it is page 612 of a book someone has been reading
 since March. So the identity travels IN the file, and a book that moves, or is
@@ -466,7 +466,7 @@ flight.
 
 `GET /api/books` (the shelf), `GET /api/books/one?path=`, `GET|PUT|POST|DELETE
 /api/books/state?key=`. Mounted under the auth guard, and both GETs say
-`assertAdminRead(c)` themselves: a shelf is an enumeration of the owner's own
+`assertAdminRead(c)` themselves: a shelf is an enumeration of the admin's own
 directory, and a visitor shown one published page must not be able to ask what
 else is in there. The PDF's bytes still come from `/api/file`, publish-gated and
 `Content-Security-Policy: sandbox`'d exactly as before — this surface widens
@@ -652,8 +652,8 @@ typed without its harakat finds the book that carries them.
 addresses, because a book someone is halfway through is a thing they bookmark
 (the page is already remembered server-side, so the URL only names the volume).
 
-**A book is a WORKSPACE TAB** (the owner: "prob should just treat it like a
-normal tab?? so people can open the book while taking notes"). The portal era —
+**A book is a WORKSPACE TAB**, so a book can stay open beside the notes taken
+from it. The portal era —
 a React root on a body-appended element, full-screen over the app, a
 `booksAreOpen()` flag the router consulted — is deleted, not kept as a second
 door. `client/books/door.ts` is what remains in first-paint code: URL parsing,
@@ -847,7 +847,7 @@ Both renderers draw it and both open it. In the reading view it is an
 `cm-s-cite`, resolved through the reader's own PDF lookup rather than
 `resolveLink` (which answers about NOTES, so a PDF would otherwise render
 dashed and a click would offer to create `Ihya.pdf.md`). On a published page a
-citation is not a link at all — it reads as the words the owner wrote, because
+citation is not a link at all — it reads as the words the author wrote, because
 a visitor has no library to open and no business enumerating one.
 
 Clicking it opens the reader at that page and pulses the rectangle three times
@@ -915,7 +915,7 @@ short.
 
 ### Two doors with names on them: go-to and zen
 
-Zathura's grammar was all here (`12G`, `:12`, `:+3`, `gg`, `G`) and the owner, a month in, asked
+Zathura's grammar was all here (`12G`, `:12`, `:+3`, `gg`, `G`) and still, a month in, a reader had to ask
 how one goes to a page. A key sheet is not a door. `p`, `:page` and the page counter in the status
 line (a button now, and the one thing on that line a reader wants to CHANGE) open the go-to panel:
 one field that takes the whole page grammar (`212`, `+3`, `-3`, `40%`, Latin or Eastern Arabic
@@ -948,8 +948,7 @@ routes trade in a content key, a page number and four numbers between 0 and 1.
 
 ## EPUB in the reader (`client/epub/`, `server/epub.ts`)
 
-The owner's ask was **"the arabic prints suck super bad… can you maybe support
-epub through reader maybe?"**, and the answer is a second reading surface
+The problem was that **Arabic PDFs read badly**, and EPUB support was the obvious ask; the answer is a second reading surface
 rather than a converter. A PDF of Arabic poetry is a PICTURE of type: the
 shaping was decided once by whatever made the file, the measure is frozen with
 it, and zooming gives a bigger picture rather than larger text. An EPUB is
@@ -1042,7 +1041,7 @@ them. Each one asks the question `/api/file` asks, in the same words —
 each answer wears `Content-Security-Policy: sandbox` and `nosniff`, so an
 `image/svg+xml` plate out of somebody's book cannot run in this origin even if
 the sanitizer is one day wrong about something. **A book in an unpublished
-folder is the normal case**: these routes are for the owner reading their own
+folder is the normal case**: these routes are for the admin reading their own
 library.
 
 ### The publisher's CSS is PREFIXED, not shadowed
@@ -1065,7 +1064,7 @@ costs none of that and is a pure function of a string — which is why
 to.
 
 Dropping `font-family` is the ASK, not tidiness: a publisher's embedded face is
-what the owner was escaping. Dropping `color` and `background` is the theme: a
+what the reader was escaping. Dropping `color` and `background` is the theme: a
 book that sets ink and paper is unreadable in half the rooms in tokens.css, and
 "the text went invisible when I switched theme" is not a bug anyone can
 diagnose.

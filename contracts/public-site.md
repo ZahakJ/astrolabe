@@ -132,7 +132,7 @@ What a visitor sees: the blog shell, publishing and topics, collections, and the
   the published set, so a topic over private notes is an empty page and the library drops such a
   path entirely (`resolveLibraryPath` returns null on zero lessons). The menu row therefore reads
   "Create a topic from this folder…", never "Publish folder as a topic…" — the old label promised
-  the one thing the action cannot do, and the owner lost an afternoon to it.
+  the one thing the action cannot do, and cost an afternoon to find out.
 - **Publishing a folder is its own row**, `folderPublishAll`. It walks the tree node for `.md`
   files, skips paths already in `publishedPaths`, confirms with the count and the consequence
   named, then calls `publishNote(path, true)` once per note — the SAME route the status bar's star
@@ -165,8 +165,8 @@ no parent), title `libraryTitleOf(folder)`, mark `settings.folderIcons[folder] ?
 from the title made unique in path order (stable across requests), id `a` + sha1(folder)[:12].
 UNDER FOLDERS THE DECLARED ROWS ARE SET ASIDE WHOLE (kept for switching back): the folders are the
 categories, a folder note renames, describes, re-marks or hides one, the settings panel shows no
-collections block and the tree offers no collection verbs (2.10.1 — the owner met the two side by
-side as "kinda confusing"). Under tags, collections are hand-made topics beside the tag topics.
+collections block and the tree offers no collection verbs (2.10.1 — side by side, the two were
+confusing). Under tags, collections are hand-made topics beside the tag topics.
 `auth.ts` builds `me.publicFolders` from `collectionRows()` and treats the feature as ON under
 folders whatever the master switch says.
 
@@ -348,7 +348,7 @@ answer:
 - **a visitor** gets `<BlogShell />` — the stock component, unmodified, no props — automatically.
   Never a blank page and never a stack trace. The gate measures rendered TEXT, not markup length,
   because "blank" and "slow" look identical otherwise.
-- **the owner** (an admin previewing their own site, `store.previewVisitor`) keeps the designed
+- **the admin** (previewing their own site, `store.previewVisitor`) keeps the designed
   page with the failing section replaced by a card that NAMES it, under a strip carrying
   "Back to the stock blog" — which is `PATCH /api/settings {publicLayout:"blog"}` and nothing
   else, so it is lossless.
@@ -361,7 +361,7 @@ without a reload.
 **Three doors reach it, and the server closes two of them earlier.** A corrupt or quarantined
 store never reaches the browser at all (`servedLayout()`), and `/api/me` carries a
 `designNotice` to a REAL admin session — never to a visitor, never to an admin in preview — so
-the owner is told in the app, where they actually are, rather than only on a page they are not
+the admin is told in the app, where they actually are, rather than only on a page they are not
 looking at. That notice also covers the case the server can see and the boundary cannot reach in
 time: a valid design whose `note` section points at a note that has since been deleted,
 unpublished or language-hidden.
@@ -751,10 +751,10 @@ the portability.
 
 **A FILE DROPPED ON A FOLDER IS FILED THERE.** The attachment-location setting answers for an
 upload that named no place — a paste into a note, a drop into the editor. A drop on the TREE names
-one. It used to be honoured for PDFs only (the owner dragged a book onto `Library/` and found it in
+one. It used to be honoured for PDFs only (a book dragged onto `Library/` ended up in
 `attachments/`); then a friend dropped a folder of icons on a folder and every one was carried off
-to `attachments/` (3.1.2). The owner's rule: "only auto attachments when the user pastes or drops
-directly on the note; if I drag and drop an image to a folder then my choice shall be honoured."
+to `attachments/` (3.1.2). The rule: a file goes to the attachments folder only when it is pasted or dropped
+directly on a note; a file dropped on a folder goes to that folder.
 `uploadDestination(loc, context, ext, filed)` (`shared/attachments.ts`): a tree drop sends
 `place=here`, and the drop folder is the destination for every type; the setting decides the rest.
 `tests/uploadDestination.test.ts` states it.
@@ -840,7 +840,7 @@ it and nothing here changes it — the scenery's cost on those rows is zero like
 a matrix that finds a number and does not say so is worse than no matrix.
 
 **`prefers-reduced-motion` FREEZES A SCENERY RATHER THAN DELETING IT**, and this is the one place
-the feature parts company with the ambient layer, which deletes its own. An atmosphere the OWNER
+the feature parts company with the ambient layer, which deletes its own. An atmosphere the ADMIN
 switched on behind a masthead costs nothing when it is gone; a scenery is what the AUTHOR chose
 their site to stand in, and deleting it hands a reader who asked for less motion a different design.
 The fields stay, the drift stops, and two screenshots 2.5s apart are byte-identical.
@@ -901,11 +901,11 @@ time** (duplicate id, empty or un-Arabic copy, a section or nav item naming a no
    → the localized "Read more"). It has to be this way: `Section.heading` is a plain string with
    nowhere to put a second language, so a preset that typed "Latest writing" would ship an
    English word into an Arabic instance and a stranger's voice into everybody's. The shape is
-   ours; every word on the page is the owner's. It is also why fifty-nine presets are cheap to write
+   ours; every word on the page is the author's. It is also why fifty-nine presets are cheap to write
    and impossible to mistranslate.
 2. **A PRESET NAMES NOTHING IN THE VAULT.** No `note` section, no `note`/`page` nav item, no tag
    filter, no image path — a shipped design cannot know what is in somebody else's vault, and a
-   preset that guessed would render as the owner's very first error card. It leans on the
+   preset that guessed would render as the admin's very first error card. It leans on the
    fallbacks that already exist: `nav.fallback: "topics"` fills the menu from the busiest
    published tags, and list/grid sections read every published post. A fresh install gets a
    furnished site.
@@ -1189,7 +1189,7 @@ interface PreviewContent {
 
 Where the content comes from, and this is the half that makes a fresh install compelling:
 
-- **The owner's own posts first — as a VISITOR will get them.** Real titles, real dates, real
+- **The admin's own posts first — as a VISITOR will get them.** Real titles, real dates, real
   banners, real reading times, in real order. A preset previewed against six of your own essays is
   a decision you can make; the same preset against "Lorem ipsum" is a screenshot.
 
@@ -1243,7 +1243,7 @@ own**, at a width the author picks, settling on the trailing edge of their edits
    `s-dsg-top--sticky` and the switch that turns it on finally has a preview.
 
 **`about:blank`, not `srcdoc` and not a route.** The shell's CSP is `frame-src 'none'` and stays
-that way (the one exception is the owner's "Embed external video" switch — see "Another site's
+that way (the one exception is the admin's "Embed external video" switch — see "Another site's
 video" — and the designer does not depend on it). That directive is checked on frame NAVIGATIONS: `srcdoc` and any URL are refused, while
 a frame with no `src` is the initial `about:blank` — not a navigation, and it inherits the
 parent's origin (so the portal can reach in) and the parent's policy (so nothing inside is more
@@ -1432,7 +1432,7 @@ the side of the card.
 That is not a cosmetic drift. Measured on an Arabic instance before the fix: every gallery card
 drew its page at x −145…76 of a card at 754…975 — **entirely outside its own `overflow: hidden`,
 so all fifty-nine cards were blank rectangles** — and the preset detail sheet drew a page clipped
-to its right-hand third, which is the "preview shifted to the right" the owner reported. In
+to its right-hand third, which is the reported "preview shifted to the right". In
 English the identical code is pixel-perfect, which is why this is a rule with a gate behind it
 rather than a screenshot somebody remembers to take.
 
