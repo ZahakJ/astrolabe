@@ -16,7 +16,7 @@ Node ≥ 24, then open http://localhost:6801. Desktop builds and the Android app
 - **Reading and study.** A PDF and EPUB reader that cites into notes, trackers, daily sigils, spaced repetition.
 - **Your machine.** One Node process, git backup to a remote you own, no telemetry; desktop and Android apps.
 
-<p align="center"><img src="docs/media/editor.png" width="400" alt="The editor, in Arabic"><img src="docs/media/graph.png" width="400" alt="The graph"><br><img src="docs/media/blog.png" width="400" alt="A published article"><img src="docs/media/mobile.png" width="400" alt="The Android app and the blog on a phone"></p>
+<p align="center"><img src="docs/media/editor.png" width="400" align="top" alt="The editor, in Arabic"><img src="docs/media/graph.png" width="400" align="top" alt="The graph"><br><img src="docs/media/blog.png" width="400" align="top" alt="A published article"><img src="docs/media/mobile.png" width="400" align="top" alt="The Android app and the blog on a phone"></p>
 
 **Manual:** [English](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/) · [source](docs/README.md)
 
