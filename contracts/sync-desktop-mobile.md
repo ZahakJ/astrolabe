@@ -600,7 +600,9 @@ second on every AppImage before it is uploaded or swapped into `~/Applications`.
   detached `/bin/sh` that waits for this pid to vanish and execs the file with an environment
   scrubbed of the old mount and of `APPIMAGE`/`APPDIR`/`ARGV0`/`OWD`. `ASTROLABE_SELFTEST=relaunch`
   fires the same path 4 s after boot; `scripts/check-desktop-relaunch.sh` runs every AppImage
-  through it before upload, beside `check-desktop-boot.sh`.
+  through it before upload, beside `check-desktop-boot.sh`. It runs its own Xvfb rather than
+  `xvfb-run`, which stops its display when the first instance exits and so left the relaunched one
+  racing for a display it might not get; without Xvfb it says SKIP and exits 2.
 
 ## Desktop updates, without a framework — and without a will of their own (electron/update.ts, electron/updatePolicy.ts)
 

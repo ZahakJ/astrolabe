@@ -23,7 +23,8 @@ ulimit -c 0
 [ -x "$IMG" ] || { echo "RELAUNCH FAIL: $IMG is not executable"; exit 1; }
 IMG="$(readlink -f "$IMG")"
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"' EXIT
+XPID=""
+trap '[ -n "$XPID" ] && kill "$XPID" 2>/dev/null; rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/xdg" "$WORK/home"
 LOG="$WORK/run.log"
 
@@ -41,8 +42,19 @@ mains() {
 
 cd "$WORK/home"
 mkdir -p "$WORK/vault"
-XDG_CONFIG_HOME="$WORK/xdg" HOME="$WORK/home" ASTROLABE_VAULT="$WORK/vault" ASTROLABE_SELFTEST=relaunch \
-  xvfb-run -a "$IMG" --no-sandbox > "$LOG" 2>&1 &
+# A DISPLAY THAT OUTLIVES THE FIRST INSTANCE. `xvfb-run` tears its server
+# down the moment its child exits — and the child exiting is the whole point
+# here — so the relaunched instance raced the teardown for a display: it won
+# on a quiet machine and lost on a busy one, and the gate reported "nothing
+# came back" about an app that had relaunched fine. The gate runs its own
+# Xvfb on a free display (-displayfd) and stops it on the way out.
+command -v Xvfb >/dev/null || { echo "RELAUNCH SKIP: no Xvfb on this machine (install xorg-server-xvfb); nothing was tested"; exit 2; }
+Xvfb -displayfd 4 -screen 0 1280x800x24 -nolisten tcp 4> "$WORK/display" >/dev/null 2>&1 &
+XPID=$!
+for _ in $(seq 1 50); do [ -s "$WORK/display" ] && break; sleep 0.1; done
+[ -s "$WORK/display" ] || { echo "RELAUNCH SKIP: Xvfb did not start; nothing was tested"; exit 2; }
+DISPLAY=":$(tr -d '[:space:]' < "$WORK/display")" XDG_CONFIG_HOME="$WORK/xdg" HOME="$WORK/home" ASTROLABE_VAULT="$WORK/vault" ASTROLABE_SELFTEST=relaunch \
+  "$IMG" --no-sandbox > "$LOG" 2>&1 &
 # Mounting the image and starting the main process takes a few seconds.
 FIRST=""
 for _ in $(seq 1 15); do
