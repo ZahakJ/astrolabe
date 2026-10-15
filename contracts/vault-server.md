@@ -138,7 +138,7 @@ other way round; shortest-path winner on duplicates in either table; `[[Name|ali
 `[[Name#heading]]` variants parse (link target is `Name`). See "Aliases — a note answers to
 more than one name".
 
-## Server modules (server agent owns `server/`)
+## Server modules (`server/`)
 
 - `server/vault.ts` — vault root resolution, safe path helpers, tree/read/write/create/rename/delete/mkdir, chokidar watcher exposing `onEvent(cb)`.
 - `server/indexer.ts` — in-memory index rebuilt incrementally from watcher: minisearch (fields title+content), link graph, backlinks, tags. Exports `search(q)`, `graph()`, `backlinks(path)`, `tags()`, `resolveLink(name): string | null`.

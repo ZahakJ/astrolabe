@@ -1054,7 +1054,7 @@ and its two engines, the decode and the windows), `client/voice/*` +
 
 ### ON A GPU THE ENGINE IS WHISPER.CPP, AND THE NUMBERS CHOSE IT (3.24.0)
 
-The brief allowed two engines that install as npm dependencies of this repo with nothing global
+The candidates were the two engines that install as npm dependencies of this repo with nothing global
 and no Python: whisper.cpp through a prebuilt N-API binding (`@fugood/whisper.node` — CPU, Vulkan
 and CUDA builds, no compiler at install), and ONNX whisper in Node (`@huggingface/transformers`,
 onnxruntime-node, CPU). Both were measured on the same two clips — 60 seconds of Arabic and 60 of

@@ -4,7 +4,7 @@ Every `scripts/check-*` gate and what it asserts, then the test suite. Part of t
 
 ## Every gate
 
-All green before a release (the list the briefs name as common ground): `npm run typecheck` ·
+All green before a release: `npm run typecheck` ·
 `node scripts/check-i18n.mjs` · `npm test` · `npm run build` (never bare vite) then
 `node scripts/check-bundle.mjs` · check-a11y · check-contrast · check-settings · check-keymap ·
 check-names · check-docs · check-books · check-media · check-whatsnew · check-desktop · check-shell-seam ·

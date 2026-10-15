@@ -96,7 +96,7 @@ exported, no part exports what its family does not take, nothing outside reaches
 
 - No default exports except React components. No `any` unless unavoidable. Small files > clever files.
 - Errors surface to the user via `console.error` + a transient `.s-toast` div helper in
-  `client/toast.ts` (`export function toast(msg: string)`) — shell agent owns it. The MESSAGE is
+  `client/toast.ts` (`export function toast(msg: string)`), part of the shell. The MESSAGE is
   `t()`/`tf()`, keyed off `ApiError.code` where the server names one; see the API section.
 
 ### Toasts are a STACK, and an offer outlives a statement (v1.8 moments, F23)

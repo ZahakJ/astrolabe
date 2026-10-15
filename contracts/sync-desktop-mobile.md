@@ -23,7 +23,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
   resolves (imports hoist), so when the pull changed any key `main.tsx` calls
   `reloadPrefsFromStorage()` (client/state.ts) before `createRoot` and the store re-reads them.
   Before 3.18.0 a fresh device painted the old side on its first load and the vault's on its
-  second (measured, maturity brief §4.1). `lastPull()` says when the pull ran and how many keys
+  second (measured in the 3.18 maturity audit). `lastPull()` says when the pull ran and how many keys
   it applied, for the travel row. Pushes
   come from a patch on `Storage.prototype.setItem/removeItem`, only for `localStorage` and only
   for travelling keys, debounced 1.2 s, flushed with `keepalive` on `pagehide`. A 401/403 marks
@@ -57,7 +57,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
   at 0600 is set back to 0600 when it arrives from the vault (a git clone lands at 0644).
 - **Fonts, with caps.** `DIRS` was `["fonts"]` from the day the mirror was written, and `fonts/`
   has held only two directories since 357202c, so no uploaded face ever travelled while three
-  documents said it did (maturity brief §4.1). It is `["fonts/custom"]` since 3.18.0;
+  documents said it did (found in the 3.18 maturity audit). It is `["fonts/custom"]` since 3.18.0;
   `fonts/catalog/` NEVER travels — it is re-fetchable, and the receiving side warms it instead
   (below). A file over `FONT_UPLOAD_MAX_BYTES` (5 MB) is skipped, and once a directory's eligible
   bytes pass `DIR_TOTAL_MAX_BYTES` (40 MB, `index.json` counted first) the rest are skipped, so a

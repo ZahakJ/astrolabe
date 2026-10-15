@@ -211,7 +211,7 @@ foot of their section, which names them, so they are one click from sight and
 one search from the keyboard.
 
 **Why nothing is ENV-ONLY or REMOVED.** Every candidate was weighed and kept
-in reach, because the brief also says *no stored key changes*: a row taken out
+in reach, because the purge also promised *no stored key changes*: a row taken out
 of the app leaves any value already saved in `settings.json` in force with no
 way to see or clear it from the app, which is a trap rather than a purge.
 - *Date locale* (`BLOG_LOCALE`) was the strongest ENV-ONLY case — a BCP-47 tag
@@ -235,7 +235,7 @@ section's first screen carries a row a first-day reader has to skip.
 
 ## The new information architecture
 
-By the reader's intent. Nine sections, About included (the brief's ceiling).
+By the reader's intent. Nine sections, About included (the ceiling the purge set).
 The four a first-day reader looks for — theme, language, publishing, sync —
 are the first rows of sections 1, 2, 5 and 7, and each section's name says
 what it is for, never how it is built. Counts are rows (parts not counted),
@@ -254,7 +254,7 @@ as one device sees them.
 | 9 | About (`about`) | This app and this instance | 1 (browser) · 4 (desktop) | *This app:* what's new, and on the desktop its name, icon, launcher and updates — then the version, the paths, the counts and the manual |
 
 **"This device" is gone as a section, and on purpose.** It was a section
-named after a storage mechanism (localStorage), which is the brief's "tab named
+named after a storage mechanism (localStorage), which is the classic "tab named
 after an implementation": a reader looking for the theme had to know it was
 kept per browser to know where to look. Every row it held now sits where its
 question is asked — the theme under Appearance, the reader's language under

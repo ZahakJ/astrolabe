@@ -61,8 +61,8 @@ same four groups as headed lists, each page a pushed screen.
 
 **Decisions the list encodes.** *Open on launch* stays the first row of Writing: it is saved in the
 vault (it follows the vault to the next machine), so it cannot sit on a page that says everything
-on it is kept on this device. *Vim keys* moved from Writing › Advanced to This device (the brief's
-"keyboard"): it is a per-device editing key map, and with it there the Writing page is the vault's
+on it is kept on this device. *Vim keys* moved from Writing › Advanced to This device, as a
+keyboard setting: it is a per-device editing key map, and with it there the Writing page is the vault's
 editor rules only. *Offline reading* moved from Reading to This device ("offline copy"). The
 visitors' language filter and switch stay on Language: a reader who wants "Arabic only" looks
 under Language, not under Publishing. There is no zoom row — the desktop's zoom is the View menu's

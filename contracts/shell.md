@@ -306,7 +306,7 @@ before Back discards and saves, the tag picker writes the tag, a list comes back
 target 44px and every field 16px. `check-windows-layout` runs its ladder on the desktop's own
 widths (720 and up) and asserts which shell each posture and width gets.
 
-## Client state (shell agent owns; file `client/state.ts`)
+## Client state (`client/state.ts`)
 
 zustand store `useStore`:
 
@@ -343,7 +343,7 @@ interface State {
 
 `client/api.ts` — typed fetchers for every endpoint (`getTree`, `getNote`, `putNote`, `createNote`,
 `renameNote`, `deleteNote`, `createFolder`, `search`, `getGraph`, `getBacklinks`, `getTags`,
-`subscribeEvents(cb): () => void`). Shell agent owns it.
+`subscribeEvents(cb): () => void`).
 
 ## The workspace (client/workspace.ts, client/state.ts)
 
@@ -685,13 +685,15 @@ which is exactly the quality of Obsidian's own linked preview at none of the cos
 
 ## Component contracts
 
-- Shell agent owns `client/index.html` (already written), `client/main.tsx`, `client/App.tsx`,
-  `client/state.ts`, `client/api.ts`, `client/components/Sidebar.tsx`, `Tabs.tsx`, `StatusBar.tsx`,
-  `BacklinksPanel.tsx`. Layout: left sidebar (tree + search box + tags), center column (Tabs on top,
-  then Editor or GraphView per `view`), right collapsible backlinks panel, bottom StatusBar
-  (word count of open note, vim toggle, theme toggle). App wires keyboard: `Ctrl/Cmd+P` palette,
-  `Ctrl/Cmd+G` graph toggle, `Ctrl/Cmd+N` new note. App subscribes to SSE → `loadTree()` +
-  refresh open note if changed externally.
+The client's first cut, and the shape its parts still keep.
+
+- **The shell** is `client/index.html`, `client/main.tsx`, `client/App.tsx`, `client/state.ts`,
+  `client/api.ts`, and `client/components/Sidebar.tsx`, `Tabs.tsx`, `StatusBar.tsx` and
+  `BacklinksPanel.tsx`. Layout: left sidebar (tree + search box + tags), center column (Tabs on
+  top, then Editor or GraphView per `view`), right collapsible backlinks panel, bottom StatusBar
+  (word count of the open note, vim toggle, theme toggle). App wires the keyboard (`Ctrl/Cmd+P`
+  palette, `Ctrl/Cmd+G` graph toggle, `Ctrl/Cmd+N` new note) and subscribes to SSE → `loadTree()`,
+  refreshing the open note when it changed on disk.
 
 **EVERY WRITER CLAIMS ITS OWN WRITE BEFORE SENDING IT** (`state.ts::markSelfWrite` /
 `recentSelfWrite`, read by App's SSE handler). The server writes the file and notifies its
@@ -706,10 +708,10 @@ one note cannot swallow a genuine external change to another. The old dirty→cl
 as a second belt, for a writer some future path forgets to claim. The alarm itself is unchanged:
 an external write to a DIRTY note still toasts, and to a clean one still reloads silently.
 
-- Editor agent owns `client/editor/` and `client/components/Editor.tsx`.
+- **The editor** is `client/editor/` and `client/components/Editor.tsx`.
   Props: `{ path: string }`. It loads the note via
   `client/api.ts` fetchers, autosaves (600ms debounce after change; also on Ctrl/Cmd+S),
-  reports dirty state to store. Exports default React component.
+  and reports dirty state to the store. Its default export is the React component.
   - `client/editor/setup.ts` — builds the CM6 `EditorState` extensions: markdown lang, history,
     search, vim (conditional), theme extension, live-preview extension, wikilink autocomplete.
   - `client/editor/livePreview.ts` — THE flagship. Obsidian-style live preview via ViewPlugin +
@@ -721,18 +723,16 @@ an external write to a DIRTY note still toasts, and to a clean one still reloads
     `resolveLink` helper in `client/editor/links.ts` that matches against store tree basenames.
     `#tags` → pill styling. External urls clickable.
   - `client/editor/autocomplete.ts` — typing `[[` completes note titles from store tree.
-  - `client/editor/theme.ts` — CM6 theme reading the CSS custom properties (use var() in the theme spec).
-- Graph/palette agent owns `client/components/GraphView.tsx` (canvas force-directed sim,
+  - `client/editor/theme.ts` — CM6 theme reading the CSS custom properties (`var()` in the theme spec, never a literal colour).
+- **The graph and the palette** are `client/components/GraphView.tsx` (canvas force-directed sim,
   hand-rolled: repulsion + spring + centering, ~60fps rAF, drag nodes, click node → openNote,
   hover highlights neighbors, resize-aware, colors from CSS tokens via getComputedStyle) and
   `client/components/CommandPalette.tsx` (modal, fuzzy over: open note by title [uses
   `search` api when query nonempty, else recent/all from tree], commands: New note, Toggle graph,
   Toggle theme, Toggle vim, Delete current, Rename current [inline second input]; ↑↓ + Enter, Esc).
-- Styles/vault agent owns `client/styles/tokens.css` + `client/styles/app.css`, `vault-seed/`
-  (6–8 interlinked starter notes teaching the app: Welcome, Wikilinks, Graph, Editor, Tags, Daily
-  Notes…, each with real `[[links]]` + `#tags`), and `README.md` (hero pitch, quickstart
-  `git clone / npm install / npm start`, point-at-your-vault instructions, features, keymap table,
-  screenshots placeholder, port table, license MIT). Also `LICENSE` (MIT, holder "avicenna").
+- **Styles and the seed vault** are `client/styles/tokens.css` + `client/styles/app.css`, and
+  `vault-seed/`: interlinked starter notes that teach the app (Welcome, Wikilinks, Graph, Editor,
+  Tags, Daily Notes…), each with real `[[links]]` and `#tags`.
 
 ## Lazy surfaces: ONE BOUNDARY EACH (`client/App.tsx`)
 
@@ -2283,10 +2283,9 @@ visitors, which is what lets it name absolute paths.
 
 ## What's new after an update (`client/whatsnew/`)
 
-The owner: "whenever you update to a new version and open that version for the first time you get
-some super nice looking modern popup with a preview of all the features added in said update" —
-on by default, a switch in Settings → About, "not just a bunch of words but images", and
-"we shouldn't change it for bug fixes".
+The first launch of a new minor version opens a deck of slides showing what it added: on by
+default, a switch in Settings → About, pictures rather than paragraphs, and nothing for a patch
+release.
 
 **Three files, one boundary.** `versions.ts` is the list of minor versions that have a deck and a
 version compare — the entry carries that and nothing else. `door.ts` (first paint) holds the two
@@ -2322,6 +2321,5 @@ holds every part, at rest, to the same drawing cloned outside the stage.
 **The rule is a gate.** `npm run check-whatsnew` (scripts/check-whatsnew.mjs) fails the build when
 package.json is at a new `x.Y.0` that `versions.ts` does not list or `releaseNotes.ts` has no entry
 for, when a listed version is a patch, or when a slide's title or body is empty or not Arabic in
-its Arabic half. Bumping the minor without writing the deck is therefore impossible to ship — which
-is the reminder the owner asked for ("remind future sessions to create a new preview with every
-major change").
+its Arabic half. Bumping the minor without writing the deck is therefore impossible to ship: the gate is
+the reminder.

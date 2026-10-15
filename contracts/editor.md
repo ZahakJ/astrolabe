@@ -403,7 +403,7 @@ A note is no longer necessarily markdown, and `**bold**` typed into a `.tex` fil
 and that the live preview beside the caret does not render. Measured before this landed: Ctrl+B in
 a `.tex` note wrote `**Typed**`, the menu's "Heading 2" wrote `## ` (invisible to the `\section`
 outline, so the note lost a heading it appeared to gain), and a colour swatch wrote a
-`<span style="color:…">` into a LaTeX document. Three agents each shipped something correct and the
+`<span style="color:…">` into a LaTeX document. Three changes each shipped something correct and the
 seam between them was the defect; this is the rule that closes it.
 
 - **`syntaxOf(state)` is the one question**, answered from `notePathFacet`, which BOTH editors
