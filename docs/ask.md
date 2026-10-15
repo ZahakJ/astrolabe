@@ -24,7 +24,7 @@ ollama pull embeddinggemma   # reads notes for meaning (621 MB)
 ollama pull qwen3.5:9b       # answers questions (6.6 GB)
 ```
 
-That is all. Astrolabe finds Ollama at its usual address (`http://127.0.0.1:11434`); if you have moved it, the `OLLAMA_HOST` variable Ollama itself reads is the one Astrolabe reads too. The first time the server starts with Ollama running, it reads the whole vault in the background. A 60-note vault takes two to four seconds; a vault of 2,400 notes (4,565 passages) took 55 seconds on an RTX 4070 SUPER. Nothing waits for it: the app is usable at once, and the doors say "still reading" until it is done.
+That is all. Astrolabe finds Ollama at its usual address (`http://127.0.0.1:11434`); if you have moved it, the `OLLAMA_HOST` variable Ollama itself reads is the one Astrolabe reads too. The first time the server starts with Ollama running, it reads the whole vault in the background: seconds for a small vault, about a minute for a few thousand notes on a desktop graphics card. Nothing waits for it: the app is usable at once, and the doors say "still reading" until it is done.
 
 From then on, only what changes is read again. Save a note and, a moment later, the passages you edited are read; the ones you did not touch are not. Restart the server and nothing is read at all.
 
@@ -102,20 +102,10 @@ A [pocket vault](mobile.md#a-vault-from-github) — a GitHub repository opened o
 
 ## Choosing the embedding model
 
-The embedding model decides what "near in meaning" means, and the one most tutorials start with, `all-minilm`, was trained almost entirely on English. It was measured against four other models Ollama offers on a bilingual sample: the 61-note vault the feature was built against (sleep, bread, al-Andalus, software, the garden; about a third of it in Arabic, several notes with a counterpart in the other language), and 24 questions written as paraphrases, 12 in each language, each with the note that answers it. "Hit@1" is how often that note came first; "cross-language hit@3" is how often its counterpart in the *other* language was in the top three.
-
-| Model | English hit@1 | English hit@3 | Arabic hit@1 | Arabic hit@3 | Cross-language hit@3 | Reading the vault |
-| --- | --- | --- | --- | --- | --- | --- |
-| all-minilm | 9/12 | 12/12 | **0/12** | 4/12 | 0/23 | 0.3 s |
-| nomic-embed-text | 10/12 | 11/12 | 2/12 | 6/12 | 0/23 | 5.7 s |
-| paraphrase-multilingual | 3/12 | 12/12 | 8/12 | 12/12 | 15/23 | 0.9 s |
-| bge-m3 | 9/12 | 11/12 | 5/12 | 10/12 | 15/23 | 1.1 s |
-| **embeddinggemma** | **9/12** | **12/12** | **9/12** | **11/12** | **20/23** | 0.9 s |
-
-`all-minilm` found the right Arabic note first for none of the twelve Arabic questions, and never once connected a note to its counterpart in the other language. `embeddinggemma` does both languages as well as the English-only models do English, and finds the other language's version of a note in the top three for 20 of 23 questions, which is why it is the default. `bge-m3` is a reasonable second choice. Any Ollama embedding model works: type its name in the row and pull it.
+The embedding model decides what "near in meaning" means. The default, `embeddinggemma`, reads Arabic and English equally well and finds a note's counterpart in the other language. `bge-m3` is a reasonable second choice. Avoid English-only models such as `all-minilm` and `nomic-embed-text` for a bilingual vault: they rarely find the right Arabic note and never connect the two languages. Any Ollama embedding model works: type its name in the row and pull it.
 
 ## How it works
 
 A note is cut into passages at its headings, and at paragraphs within a long section, so that each passage is about 200 to 400 tokens and belongs to exactly one heading; that heading is what a citation or a result opens. Each passage is shown to the model with the note's title and its heading above it, and the vector the model returns is stored in the server's data directory (`embeddings.db`), keyed by a fingerprint of exactly that text and the model's name. A passage whose text, heading and note title have not changed is never read twice, however often the note around it is edited. The file is a cache: deleting it costs one reading pass and loses nothing, and it never travels with the vault.
 
-Searching compares the question's vector with every passage's in the server's memory. For a vault of thousands of notes that takes a few milliseconds, which is why there is no separate database to install. On the 2,400-note test vault a meaning search took about 50 milliseconds from request to answer, most of it the model reading the question. The first word of an answer from `qwen3.5:9b` on an RTX 4070 SUPER arrived in about 0.3 seconds once the model was loaded, and in about 8 seconds when Ollama had to load it first.
+Searching compares the question's vector with every passage's in the server's memory, so there is no separate database to install. The first answer after Ollama starts takes several seconds longer, while the model loads.

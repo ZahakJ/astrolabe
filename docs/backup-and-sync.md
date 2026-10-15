@@ -112,14 +112,11 @@ committed, **whatever your vault's own `.gitignore` says about them**:
 | `.trash/` | Deleting a note, an attachment or a folder *moves* it here, and the whole promise of that is that it is a **local** bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: `Ctrl/Cmd P` → Open trash). Committing it would make every deletion permanent remote history, which is the opposite guarantee. The small `.astrolabe-trash.json` inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule. |
 | `ASTROLABE_DATA`, when it is inside the vault | It holds `settings.json`, the comments database and your git **access token**. |
 
-This is done with `git rm --cached` against the index, not with an ignore rule, and the
-difference matters. An ignore rule is your file and your opinion: git's *last matching rule*
-wins, so a `.gitignore` that says `.trash/` and later `!.trash/` un-ignores it again, and an
-older build that only checked "is there a `.trash/` line?" saw nothing to do and pushed the
-trash. Removing it from the index asks no ignore file anything. It also **repairs** a vault an
-older build already pushed: the first sync after upgrading stages the removal, so the trash
-leaves the latest commit on your branch on its own. (It stays in the *history* — the older
-commits — see the note about rewriting below.)
+This is done with `git rm --cached` against the index, not with an ignore rule, so no
+`.gitignore` can override it (git's *last matching rule* wins, and a later `!.trash/` would
+un-ignore the trash). If the trash was ever committed, the next sync stages its removal and it
+leaves the latest commit on your branch. (It stays in the *history* — the older commits — see
+the note about rewriting below.)
 
 Astrolabe still *adds* `.trash/` and `.obsidian/workspace*.json` to your `.gitignore` if they are
 missing, so that `git status` in a terminal is quiet too — but that is a courtesy, not the
@@ -146,8 +143,8 @@ If you have pointed `ASTROLABE_DATA` inside the vault anyway, Astrolabe defends 
 and all four work on an existing repository with an existing `.gitignore`, which is the normal
 case, not a special one. **Initialize repository** creates `.gitignore`, or *appends* the
 data-directory rule to the one you already have. Every sync re-checks the rule with
-`git check-ignore` and **refuses to run** if the directory is still not ignored. Anything an
-older build already committed is dropped from the index (`git rm --cached`). And that same
+`git check-ignore` and **refuses to run** if the directory is still not ignored. Anything
+already committed is dropped from the index (`git rm --cached`). And that same
 removal runs again after `git add -A` on every sync, so the directory is out of the index no
 matter which ignore rule matched last. A sync never stages your credentials. One caveat: files
 already pushed stay in the remote's *history*. If that happened, rotate the token and rewrite
@@ -187,13 +184,12 @@ and cannot read any of them.
 
 ## Versions, before and beside git
 
-A note's history used to begin the day the vault became a git repository, and not a minute
-before. Backup & sync is off by default, and on most instances it stays off for weeks. In that
-time the editor's autosave — which writes about 600 ms after you stop typing — could turn a bad
-paste, or a select-all-and-type, into the only copy of the note within a second. The trash
-catches deletes; nothing caught overwrites.
+Git history begins only once the vault is a repository, and Backup & sync is off by default.
+The editor's autosave writes about 600 ms after you stop typing, so a bad paste or a
+select-all-and-type becomes the saved note within a second. The trash catches deletes; versions
+catch overwrites.
 
-Now every save keeps a **version**. Before the vault writes a note, it puts the text the note
+Every save keeps a **version**. Before the vault writes a note, it puts the text the note
 held a moment ago in the data directory, at
 `ASTROLABE_DATA/versions/<sha1 of the note's path>/<time>.md`, beside a small `index.json` that
 names the path in clear and lists each version: when it was replaced, when that text was last
@@ -257,14 +253,8 @@ pauses so the next keystroke cannot overwrite the newer version, and a strip abo
 offers the two ways out — **Keep my version** (write yours over the newer file) or **Use the
 disk version** (take theirs, undoably).
 
-This needed saying out loud because of a real incident. A note was published from the browser;
-the desktop app had been open for days with that note loaded from *before* the publish. Each
-server watches the vault for its own connected clients, so the "this file changed" message never
-reached the sleeping desktop app — and a browser's event stream replays nothing it missed while
-the laptop was shut. The refusal above is what kept the note safe. What was missing was any way
-to find out *before* trying to save.
-
-So Astrolabe now **re-checks when it wakes up**: when its connection to the server comes back,
+Each server tells only its own clients that a file changed, and a window that was asleep misses
+those messages. So Astrolabe also **re-checks when it wakes up**: when its connection to the server comes back,
 or when you return to a window that had been hidden, it asks the server for the current state of
 the notes you have open. Ones you have not touched reload silently; one with unsaved edits gets
 the same resolution strip immediately, while you are looking at it, instead of interrupting you
@@ -277,7 +267,7 @@ Two things worth knowing about the arrangement:
   Backup & sync is the one deliberate exception, for the reason in the next section: a commit is
   a whole-vault operation with a single git index, so two cannot run at once.
 - **Scripts and older clients still work.** A write with no modification time attached — `curl`,
-  a script of your own, an older desktop build — behaves exactly as it always did: the last
+  a script of your own, an older desktop build — is not checked: the last
   writer wins. The check is opt-in, and only clients that can handle a refusal ask for one.
 
 If you run two servers, point both at the same vault directory and give them **different data
@@ -289,8 +279,7 @@ Notes are written one at a time. A **commit, though, is written for the whole va
 through a single `.git/index` that git guards with a lock of its own. Two Astrolabes committing
 the same folder in the same second do not produce two backups: one of them dies with *"Another
 git process seems to be running in this repository"*, possibly having already staged half the
-vault. That is not hypothetical. It is why sync used to be worth running only by hand on a
-machine that also ran the desktop app.
+vault.
 
 So every pass that changes the repository — **Sync now**, **Snapshot now**, **Initialize
 repository**, and every scheduled tick — first takes a lock file at `.git/astrolabe-sync.lock`,
@@ -313,8 +302,8 @@ to a desktop app.
   naming the dead holder. A pass that is merely slow is never mistaken for a dead one: a live
   holder refreshes the lock every minute while it works.
 - **What it does not cover.** The lock is advisory — it only stops programs that look for it —
-  so your own `git commit` in a terminal is unaffected; that has always been git's own
-  `index.lock` to arbitrate. And two *machines* sharing one vault over a network filesystem is
+  so your own `git commit` in a terminal is unaffected; git's own
+  `index.lock` arbitrates that. And two *machines* sharing one vault over a network filesystem is
   outside what this lock guarantees: whether one side or both can create the lock file at the
   same instant depends on the network filesystem, and the fifteen-minute age check is the only
   recovery there.
