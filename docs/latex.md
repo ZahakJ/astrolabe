@@ -19,18 +19,16 @@ define yourself) that you keep beside the file.
   and every other line reads as the thing it becomes. Section headings are set in serif;
   `\emph`, `\textbf` and `\texttt` render; `\item` becomes a bullet or its number; `$…$` and display
   environments are typeset by KaTeX; `\cite` is a chip; and `\begin{figure}` shows **the actual
-  image from your vault** with its caption. (Section and equation *numbers* belong to the reading
-  view. They are a property of the whole document, and a number that renumbered itself as you typed
-  above it would be a distraction rather than a preview; the outline panel beside the editor prints
-  them.) Fold any environment or section from the chevron beside it. Autocomplete covers
+  image from your vault** with its caption. (Section and equation *numbers* appear in the reading
+  view and in the outline panel beside the editor.) Fold any environment or section from the
+  chevron beside it. Autocomplete covers
   `\note{`, `\ref{`, `\cite{` and `\begin{` (which writes the matching `\end` for you).
 - **The formatting keys write LaTeX here.** `Ctrl/Cmd B` in a `.tex` note writes `\textbf{…}`, not
   `**…**`; `Ctrl/Cmd I` writes `\emph{…}`; inline code is `\texttt{…}`; "Heading 2" is
   `\subsection{…}`; a bulleted list is an `itemize` environment; and a wikilink is `\note{…}`.
   Strikethrough, highlight, the task list and the colour swatches are **absent** from the menu in a
-  `.tex` note rather than approximated: LaTeX cannot spell them without a package your document may
-  not load, and a key that quietly writes something neither Astrolabe nor `pdflatex` can render is
-  worse than a key that does nothing.
+  `.tex` note rather than approximated: LaTeX cannot write them without a package your document may
+  not load.
 - **Reading and publishing.** Rendered in the same visual language as markdown: numbered sections,
   numbered equations, "Figure 1" captions, theorem boxes, resolved cross-references, a `\bibitem`
   bibliography, footnotes. The outline panel follows the `\section` hierarchy.
@@ -67,8 +65,7 @@ it, `pdflatex` typesets the very same file.
 
 ## What renders, and what does not
 
-An honest boundary beats a leaky claim of "full LaTeX". Anything not listed below is **passed
-through as a quiet inline marker**, never as raw source and never as a crash, and a document that
+Anything not listed below is **passed through as a quiet inline marker**, never as raw source and never as a crash, and a document that
 cannot be parsed still opens, is listed, publishes and is searchable by its title.
 
 | | |
@@ -76,15 +73,14 @@ cannot be parsed still opens, is listed, publishes and is searchable by its titl
 | **Structure** | `\part` `\chapter` `\section` `\subsection` `\subsubsection` `\paragraph` `\subparagraph` (starred forms unnumbered), `\appendix`, `\maketitle` with `\title`/`\author`/`\date`, `abstract`, `\tableofcontents`, `\label` anywhere |
 | **Text** | `\emph` `\textit` `\textbf` `\texttt` `\textsc` `\textsf` `\underline`, `\footnote`, `\\` breaks, `~`, `--`/`---`, ` ``…'' ` quotes, accents (`\'e` `\"o` `\c{c}` …), `\LaTeX` and the common symbol macros, `\url` and `\href` |
 | **Lists** | `itemize`, `enumerate` (numbered), `description` |
-| **Maths** | `$…$`, `\(…\)`, `\[…\]`, `$$…$$`, `equation` `align` `gather` `multline` `alignat` `flalign` `eqnarray` `displaymath` and their starred forms, `aligned` `gathered` `split` `cases` `array` and the matrix family — all through KaTeX, with **Astrolabe's own equation numbering** (KaTeX restarts its counter per block, which would print "(1)" for every equation in a paper) and `\nonumber`/`\notag` honoured |
+| **Maths** | `$…$`, `\(…\)`, `\[…\]`, `$$…$$`, `equation` `align` `gather` `multline` `alignat` `flalign` `eqnarray` `displaymath` and their starred forms, `aligned` `gathered` `split` `cases` `array` and the matrix family — all through KaTeX, with equations **numbered across the whole document** and `\nonumber`/`\notag` honoured |
 | **Floats** | `figure` with `\includegraphics` (extension optional, resolved against your vault) and `\caption`; `table` with `tabular`/`tabularx`/`longtable`, `\multicolumn`, alignment from the column spec |
 | **Blocks** | `quote` `quotation` `verse`, `center`, `verbatim` `lstlisting` `minted` (highlighted), `thebibliography` with `\bibitem` |
 | **Theorems** | `theorem` `lemma` `proposition` `corollary` `definition` `remark` `example` `proof` and friends, numbered, with the optional `[title]` |
 | **Macros** | `\newcommand`/`\renewcommand` with up to nine arguments and an optional default — expanded in text, and handed to KaTeX for maths |
 | **Ignored** | the set-up at the top of the document (`\documentclass`, `\usepackage`, `\setlength`, `\hypersetup`, spacing commands, `\index`, `\nocite`) — consumed silently, never printed |
 
-Known simplifications, stated up front rather than left for you to discover: numbering is
-article-style (`1`, `1.1`, `1.1.1`) whatever the document class; `\ref` prints a number for a label
-in the same note, and the target's *title* when the label is in another note, because a bare "1"
-means nothing in someone else's paper; and BibTeX is not run, so `\cite` looks for a
+Known simplifications: numbering is article-style (`1`, `1.1`, `1.1.1`) whatever the document
+class; `\ref` prints a number for a label in the same note, and the target's *title* when the label
+is in another note; and BibTeX is not run, so `\cite` looks for a
 `\bibitem` in the document or a note carrying that `citekey:`, and is otherwise left as it is.

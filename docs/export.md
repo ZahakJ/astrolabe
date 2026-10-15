@@ -13,8 +13,7 @@ a copy whose `[[wikilinks]]` still work in a tool that does not understand them;
 a single page you can email to someone who has no vault at all.
 
 Press `Ctrl/Cmd P` and run **Export…**, or right-click a folder in the tree and pick **Export
-folder…**. Both open the same small sheet. Export is for the admin only. A visitor to your site
-has the site; the archive never leaves your own server except into your own downloads folder.
+folder…**. Both open the same small sheet. Export is for the admin only.
 
 ## The archive
 
@@ -23,7 +22,7 @@ has the site; the archive never leaves your own server except into your own down
 | **What to export** | **This note**, **A folder** (the tree's right-click starts here, on that folder; **Choose…** picks another, or the vault root), **A tag** (every note carrying it — inline `#tag` or frontmatter `tags:`, nested tags included), or **The whole vault**. |
 | **Attachments** | **Included** takes every file the exported notes point at, by every route the reader honours: `![[embeds]]`, `![alt](Media/x.png)`, a note's `banner:`, a tracker's `cover:`, the svg beside an embedded drawing. Nothing else — an image no exported note uses stays behind. **Notes only** leaves them all out. |
 | **The paths inside** | The vault's own: `Folder/Note.md`, `Media/cover.png`, whatever the scope. Unzip two exports into one folder and you have the vault's layout, not two competing ones. Arabic names survive — the archive marks every name as UTF-8. |
-| **The bytes** | As on disk, unless you asked for standard links (below). Modification times are kept to the second. The archive is stored, not compressed: a vault's bulk is its pictures, which are already compressed, and the point of an export is fidelity. |
+| **The bytes** | As on disk, unless you asked for standard links (below). Modification times are kept to the second. The archive is stored without compression. |
 | **The line under the controls** | Before you download, the sheet asks the server what the same download would hold and prints it — *12 notes, 4 files · 3.2 MB* — so a refusal is a sentence here rather than a failed download in your browser's list. |
 | **The cap** | Two gigabytes. Above it the sheet says so and asks you to export a folder or a tag at a time. |
 
@@ -47,11 +46,10 @@ carry:
   becomes `#my-heading`. An embedded *note* (`![[Other]]`) has no standard equivalent and becomes
   a link to it.
 
-Two honest limits. **Your vault is never touched** — the rewrite happens in the archive and
-nowhere else. And **a link to a note that is not in the export stays exactly as written**: a
-`[Note](Note.md)` pointing at a file that is not there would be worse than the `[[Note]]` you
-wrote, which at least says what it was. Code blocks and inline code are left alone for the same
-reason: a wikilink inside them is text *about* wikilinks, not a link.
+Two limits. **Your vault is never touched**: the rewrite happens in the archive and nowhere
+else. And **a link to a note that is not in the export stays exactly as written**, as a
+`[[wikilink]]`. Code blocks and inline code are left alone: a wikilink inside them is text
+*about* wikilinks, not a link.
 
 ## One note as an HTML page
 
@@ -67,7 +65,7 @@ already ask — and hands it to your downloads:
 - **Pictures inside the file.** Every image the note shows is fetched and written into the page
   itself as text (a data URI), so the page is complete on its own. One that cannot be fetched — or one
   above 25 MB — keeps its address instead, as an absolute URL: it still shows next to a running
-  instance, and is an honest broken image away from one. It is never silently dropped.
+  instance, and as a broken image anywhere else. It is never silently dropped.
 - **Right-to-left when the note is.** The page's direction follows the note's prose, or the
   `dir:` its frontmatter pins.
 

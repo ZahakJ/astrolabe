@@ -13,12 +13,6 @@ language the instance is in. Inside the sheet, `↑` and `↓` walk the rows tha
 cursor starts on the best match, so "graph" then `Enter` is the whole gesture. This page is the same
 list on paper.
 
-Literally the same list. The tables between here and *Menus, gestures and the pointer* are a
-RENDERING of the `GROUPS` table in `client/components/ShortcutsHelp.tsx`, and `npm run check-keymap`
-fails the build when the two stop agreeing, in either direction. A binding exists in one place, and
-a key documented here that nothing binds is as much a bug as a key nobody documented. The same gate
-is what refuses two rows claiming one keystroke; see [Development](development.md).
-
 <!-- keymap:begin -->
 
 ## Shell
@@ -116,31 +110,19 @@ is already at the box's edge (mirrored in a right-to-left table), `↑` and `↓
 | `Ctrl/Cmd Alt F` | Focus one section — everything else collapses; `Esc` restores it exactly |
 | `Ctrl/Cmd Alt ↑` / `↓` | Jump to the previous / next heading (scrolls, in reading view) |
 
-**On macOS both fold rows are spelled differently, and the table above does not say so yet.** Both
-bindings come from CodeMirror's own `foldKeymap`, which overrides the section fold for Mac
-(`Ctrl-Shift-[` becomes `Cmd-Alt-[`) and leaves fold-all on `Ctrl-Alt-[` for every platform. So on a
-Mac the section fold is `Cmd Alt [` / `]` — not `Cmd Shift [`, which binds nothing — and fold-all
-keeps its `Ctrl`. The shortcut sheet prints `Ctrl/Cmd` for both; the keymap gate compares the sheet
-against this page and cannot see past either of them into CodeMirror, so this paragraph is the
-correction until the two rows are given their real Mac spellings.
+**On macOS the two fold rows are spelled differently.** The section fold is `Cmd Alt [` / `]`
+(`Cmd Shift [` binds nothing), and fold-all stays on `Ctrl Alt [` / `]`. The shortcut sheet prints
+`Ctrl/Cmd` for both.
 
-**`Ctrl/Cmd G` is the graph everywhere, including inside the editor, and that is a decision.**
-CodeMirror's `searchKeymap` binds `Mod-g` to "find again", but the shell catches the key before the
-editor sees it — so that binding has never fired here. It stays that way: find-again already has two
-other ways to run (`F3`, and `Enter` in the find field), while the graph toggle is a documented
-Astrolabe binding a reader would be surprised to lose halfway through a note. This is the opposite call
-to the one made for `Ctrl/Cmd D` and `Ctrl/Cmd B`, where the editor's meaning is the per-minute one
-and the shell's was the once-a-day one — the rule is which verb the key is worth more to, not who
-asked first. Written down because a keymap gate that compares this page to the shortcut sheet cannot
-see CodeMirror's own keymaps, so the next reader to notice `Mod-g` would otherwise "fix" it.
+**`Ctrl/Cmd G` opens the graph everywhere, including inside the editor.** To find the next match
+again, press `F3`, or `Enter` in the find field.
 
 <!-- keymap:end -->
 
 ## Menus, gestures and the pointer
 
-Below this line the ledger stops. These are SURFACES rather than bindings: Astrolabe claims no
-keystroke of its own for them, so the shortcut sheet names the surface where its other rows name a
-key, and the keymap gate leaves them alone.
+These are surfaces rather than bindings: Astrolabe claims no keystroke of its own for them, so the
+shortcut sheet names the surface where its other rows name a key.
 
 | How | Action |
 | --- | ------ |
@@ -165,8 +147,7 @@ innermost layer that is open.
 
 ## The book reader
 
-The reader has its own sheet (`?` inside a book) and its own grammar, deliberately outside the
-ledger above: `j`/`k` scroll, `J`/`K` page, `gg`/`G`, `p` go to, `o` contents, `/` `n` `N` search,
+The reader has its own sheet (`?` inside a book) and its own keys: `j`/`k` scroll, `J`/`K` page, `gg`/`G`, `p` go to, `o` contents, `/` `n` `N` search,
 `+`/`-` zoom, `a`/`s`/`d` fit width, fit page, two pages, `i` night, `r` rotate, `m<c>`/`'<c>`
 marks, `h` highlight, `c` cite, `e` margin note, `x` unmark, `A` marked passages, `:` command
 line, `z` zen, `q` close, and a count typed before any of them. The whole table, with what each key
@@ -176,15 +157,13 @@ An **EPUB** keeps the keys that still mean something in a text with no pages —
 `gg`/`G`, `/` `n` `N`, `o`, `z`, `l`, `q`, `?` — and reads the rest differently: `J`/`K` step a
 chapter rather than a page, `+`/`-`/`0` (and `Ctrl`/`Cmd` with them) set the TYPE size rather than
 a zoom, and `c` copies a citation to the selected passage. There is no `a`/`s`/`d`, no `i`, no `r`
-and no `:` line: fitting, rotating and inverting are things you do to a picture of a page, and this
-format has none. See [EPUB](books.md#epub).
+and no `:` line. See [EPUB](books.md#epub).
 
 ## Feeds
 
-The [Feeds](feeds.md) page answers four keys of its own while focus is inside it, outside the
-ledger for the book reader's reason: they are a surface's grammar, not the shell's, and a
-letter pressed anywhere else still types a letter. They are matched by the key's position, so
-they work on an Arabic layout too.
+The [Feeds](feeds.md) page answers four keys of its own while focus is inside it; anywhere else
+the same letters type as usual. They are matched by the key's position, so they work on an
+Arabic layout too.
 
 | Keys | Action |
 | ---- | ------ |
@@ -195,9 +174,9 @@ they work on an Arabic layout too.
 ## The tour
 
 A deck of illustrated cards, one feature each, with a **Show me** that really opens the thing it
-describes. It claims no keystroke of its own, because it is only ever entered on purpose, never
-shown to you unasked, so its doors are the palette (*Take the tour*), the quiet line on an empty
-vault, the foot of the `Ctrl/Cmd /` sheet, and a line in `Welcome.md`.
+describes. It has no keystroke of its own and never opens unasked; open it from the palette
+(*Take the tour*), the quiet line on an empty vault, the foot of the `Ctrl/Cmd /` sheet, or a line
+in `Welcome.md`.
 
 | Keys | Action |
 | ---- | ------ |
@@ -216,9 +195,8 @@ vault, the foot of the `Ctrl/Cmd /` sheet, and a line in `Welcome.md`.
 
 ## Why these keys
 
-The five formatting keys are Obsidian's, checked against its shortcut tables rather than guessed,
-except underline, which Obsidian has no command for at all (markdown has no underline; Astrolabe's
-writes `<u>`, a tag the HTML filter already allowed and the reading view already rendered). All five
+The five formatting keys are Obsidian's, except underline, which Obsidian has no command for
+(Markdown has no underline; Astrolabe's writes `<u>`). All five
 **toggle**: press twice and the markers come off. With nothing selected they insert the pair and
 park the caret between them, so bold-then-type works. Across a multi-line selection they apply
 **per line**, because markdown emphasis cannot cross a blank line, and one `**` at the top of three
@@ -226,21 +204,16 @@ paragraphs is two stray asterisks, not bold text. In a [`.tex` note](latex.md) t
 write LaTeX instead, and the two that markdown has no spelling for are absent from the menu rather
 than approximated.
 
-**`Ctrl/Cmd B` used to fold the notes sidebar.** Formatting won it: it is the binding every reader
-arrives with, and a key that bolds a word in one half of the window and folds a pane in the other is
-a key nobody can describe. The two pane toggles kept their shape (one key, and `Shift` picks the
-second pane) and gained one modifier, so the only thing to re-learn is "add `Alt`". Outside the
-editor `Ctrl/Cmd B` and `Ctrl/Cmd Shift B` are still swallowed, because Firefox's bookmarks sidebar
-and Chrome's bookmark bar must never open over the app. macOS Option+B (`∫`) and Option+T (`†`)
+**`Ctrl/Cmd B` is bold, so the pane toggles wear `Alt`:** `Ctrl/Cmd Alt B` folds the Notes sidebar
+and `Shift` picks the other pane. Outside the editor `Ctrl/Cmd B` and `Ctrl/Cmd Shift B` are
+swallowed, so the browser's bookmarks sidebar and bookmark bar never open over the app. macOS Option+B (`∫`) and Option+T (`†`)
 work, and every binding declines when `AltGr` is held, so a European layout's Right-Alt never folds
 a pane by accident; see [Non-Latin keyboards](#non-latin-keyboards) for how that is decided.
 
 **The tab keys wear `Alt` for the same reason the templates do.** The world has three chords for
 tabs, `Ctrl Tab`, `Ctrl PageUp`/`PageDown` and `Ctrl W`, and the browser owns all three. Two of them
-can take one more modifier, which is the way out this page keeps taking; the third cannot,
-because `Alt Tab` belongs to the window manager. So `Ctrl/Cmd Alt PageDown`/`PageUp` walks the strip
-and `Ctrl/Cmd Alt W` closes the tab, and your muscle memory transfers with one extra finger. Not
-arrows: `Ctrl Alt ←`/`→` is GNOME's workspace switcher and macOS Chrome's own tab switcher, and
+can take one more modifier; the third cannot, because `Alt Tab` belongs to the window manager. So
+`Ctrl/Cmd Alt PageDown`/`PageUp` walks the strip and `Ctrl/Cmd Alt W` closes the tab. Not arrows: `Ctrl Alt ←`/`→` is GNOME's workspace switcher and macOS Chrome's own tab switcher, and
 neither hands it back. "Next" means **next along the strip** in both languages: the bar mirrors with
 the reading direction, and a tab bar is a list, not a map.
 
@@ -255,14 +228,9 @@ inside the editor stays redo; `Ctrl Shift Z` enters zen there.
 ## Non-Latin keyboards
 
 **Every binding on this page works with an Arabic, Persian, Russian, Greek or Hebrew system
-keyboard.** That deserves saying out loud, because for a while it was not true: the shortcuts were
-matched against the letter the keyboard *typed*, and on an Arabic layout the key marked `P` types
-`ح`, so `Ctrl P` opened nothing at all. If you run Astrolabe in Arabic, and the interface is fully
-[translated and mirrored](arabic-and-rtl.md) for exactly that, your shortcuts are the keys marked
-with the Latin letters on your keycaps. That includes every chord with `Shift` in it:
-`Ctrl/Cmd Shift F` (find and replace across the vault) is the `ب` key on an Arabic layout, and
-`npm run check-keymap` refuses any handler in the client that compares the typed character instead
-of the key.
+keyboard.** Your shortcuts are the keys marked with the Latin letters on your keycaps, including
+every chord with `Shift` in it: `Ctrl/Cmd Shift F` (find and replace across the vault) is the `ب`
+key on an Arabic layout.
 
 The rule, in one line: **a shortcut follows the letter your layout types when that letter is Latin,
 and the key's position when it is not.**
@@ -279,5 +247,5 @@ and the key's position when it is not.**
   character each key produces beside the letter (`P` `ح`), with a line saying why. This works on
   Chromium; elsewhere it prints the letters alone rather than guessing.
 
-Vim mode is the exception, and it is not one this can fix: in normal mode `hjkl` are keys your
-Arabic or Russian layout does not have, so vim is a Latin-layout feature.
+Vim mode is the exception: in normal mode `hjkl` are keys an Arabic or Russian layout does not
+have, so vim is a Latin-layout feature.

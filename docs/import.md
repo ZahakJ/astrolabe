@@ -52,7 +52,7 @@ Attachments move into the attachments folder; `![[embeds]]` are renamed where a 
 
 ## Import, and undo
 
-**Import** writes the plan and shows its progress as it goes. When it is done, **Undo the import** moves every file it wrote to the trash and removes the folders it made, **unless you have edited a file since**: an edited file is left where it is and listed, because an undo that threw away your later work would be worse than no undo. The trash keeps what the undo moved (see [Backup & sync](backup-and-sync.md) for the trash and note history).
+**Import** writes the plan and shows its progress as it goes. When it is done, **Undo the import** moves every file it wrote to the trash and removes the folders it made, **unless you have edited a file since**: an edited file is left where it is and listed. The trash keeps what the undo moved (see [Backup & sync](backup-and-sync.md) for the trash and note history).
 
 The undo is kept by the server for a day, and a restart forgets it; after that, the trash and your git history are the way back.
 
@@ -60,7 +60,7 @@ The undo is kept by the server for a day, and a restart forgets it; after that, 
 
 ## Limits
 
-An export may be up to 256 MB, hold up to 20,000 files, and unpack to at most a gigabyte. A [pocket vault](mobile.md) does not import: unpacking and converting an export is work for a server's own disk. Import on the instance, and the pocket has the notes on its next sync.
+An export may be up to 256 MB, hold up to 20,000 files, and unpack to at most a gigabyte. A [pocket vault](mobile.md) does not import. Import on the instance, and the pocket has the notes on its next sync.
 
 ## Related
 

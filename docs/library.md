@@ -42,9 +42,7 @@ There are four ways, and they all end in the same place.
 **From a shelf root.** Settings → Library → **Shelf roots**: choose `Books`
 once, say *book*, and every folder inside it that holds a published note is a path — titled by its
 name, addressed by its title, covered by its [Media tracker](trackers.md#the-media-page) when one
-names it. The next book you publish joins by itself. A root is one sentence about the shape of
-your vault, and it is the answer to twelve rows that all said what the folder's own name already
-said. Only IMMEDIATE children count: a note sitting directly in `Books` is still a blog post. Up
+names it. The next book you publish joins by itself. Only immediate children count: a note sitting directly in `Books` is still a blog post. Up
 to 8 roots, and no root may sit inside another root or inside a path.
 
 **From the vault.** Put a note named like the folder (or `index.md`) inside it and write, in its
@@ -102,8 +100,7 @@ When two or more of your rows sit under one folder and that folder is not a root
 asks once: *"Books holds 10 of your paths — make it a shelf root?"* It lists the rows that say
 nothing the folder does not, and the order the shelf would take if you folded them (the rows you
 keep first, in their order; the folded folders after, by title). Three answers: fold them, keep
-them, or not now. **Nothing folds unless you press it** — folding is a visible reorder, and a
-reorder nobody asked for is not an upgrade.
+them, or not now. **Nothing folds unless you press it.**
 
 ## What a reader gets
 
@@ -128,12 +125,3 @@ that is not on any shelf opens the note's own page, as it always did.
 Progress is the reader's own, kept in their browser and never sent anywhere: opening a lesson
 marks it read, the path page counts, the shelf card says *Continue with lesson n*, and *Forget my
 place* clears it.
-
-## Where it lives
-
-`shared/library.ts` holds the rules (what a legal row is, how a unit's name is read, how things
-sort), shared by the settings editor and the server so the editor (a green field) can never
-accept what the server (a 400) refuses. `server/library.ts` builds a path from the vault index,
-limited to what one session may see. `GET /api/library`
-is the shelf; `/api/me.library` is the door. `client/library/` is the pages, the band, the covers
-and the progress. `npm test` covers the rules (`tests/library.test.ts`).

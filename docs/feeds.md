@@ -46,7 +46,7 @@ With fetching on, the server asks every feed in the list:
 
 It asks politely: each request carries the feed's last `ETag` and `Last-Modified`, so an unchanged feed costs a "not modified" answer and no bytes. A feed that fails (a timeout, a 404, a page that names no feed) is shown with the reason, and asked again next time.
 
-What was fetched, and which articles you have read, is kept in the server's data directory (`feeds.db`), **never in the vault**. A hundred articles an hour from somebody else's blog would be noise in your notes and your git history, and "I read this" is a fact about you on this machine. It does not travel with the vault (see [Backup & sync](backup-and-sync.md)); deleting it loses the read marks and nothing else.
+What was fetched, and which articles you have read, is kept in the server's data directory (`feeds.db`), **never in the vault**. It does not travel with the vault (see [Backup & sync](backup-and-sync.md)); deleting it loses the read marks and nothing else.
 
 ## Reading
 
@@ -92,4 +92,4 @@ From then on it is a note like any other: link to it, tag it, and highlight in i
 
 On a phone, **Feeds** is a row under **More**. The list is one row per article under its feed's name; tap one to read it, and **Keep**, **Mark read** and **Open the original** are in its **⋯** sheet. Back returns to the list.
 
-A [pocket vault](mobile.md) fetches no feeds: a round of feeds is a server asking other servers on a timer, and the read marks live in that server's data directory. The notes you kept are notes, and a pocket vault has them like any others.
+A [pocket vault](mobile.md) fetches no feeds. The notes you kept reach it like any others.
