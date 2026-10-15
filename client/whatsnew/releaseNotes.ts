@@ -603,8 +603,8 @@ export const RELEASES: Release[] = [
         // ── A vocalised heading: before, the lines collide; now, they breathe ──
         title: { en: "Arabic, whole", ar: "العربية كاملة" },
         body: {
-          en: "Arabic marks sit above and below the line, and in several places they were being cut or run together: the shadda and damma over a tab title or an outline row, the kasra of one heading line meeting the damma of the next, the hairline under a title running through its descenders. Headings and titles written right to left now take the room their marks need, single-line labels clip only sideways, and a long note's outline no longer squeezes its rows. English text keeps its own spacing.",
-          ar: "تقع علامات العربية فوق السطر وتحته، وكانت تُقطع أو تتداخل في مواضع عدة: الشدّة والضمّة فوق عنوان تبويب أو صفّ في المخطط، وكسرة سطر من العنوان تلتقي بضمّة السطر الذي يليه، والخطّ الرفيع تحت العنوان يمرّ بين حروفه النازلة. والآن تأخذ العناوين المكتوبة من اليمين إلى اليسار المسافة التي تحتاجها علاماتها، ولا تُقصّ تسميات السطر الواحد إلا من الجانبين، ولم يعد مخطط الملاحظة الطويلة يضغط صفوفه. ويحتفظ النص الإنجليزي بتباعده الخاص.",
+          en: "Arabic marks sit above and below the line, and now they always get the room they need: the shadda and damma over a tab title or an outline row, the kasra of one heading line above the damma of the next, the descenders under a title's hairline. Headings and titles written right to left take the room their marks need, single-line labels clip only sideways, and a long note's outline keeps its rows full height. English text keeps its own spacing.",
+          ar: "تقع علامات العربية فوق السطر وتحته، وصارت تأخذ دائمًا المسافة التي تحتاجها: الشدّة والضمّة فوق عنوان تبويب أو صفّ في المخطط، وكسرة سطر من العنوان فوق ضمّة السطر الذي يليه، والحروف النازلة تحت الخطّ الرفيع للعنوان. فالعناوين المكتوبة من اليمين إلى اليسار تأخذ المسافة التي تحتاجها علاماتها، ولا تُقصّ تسميات السطر الواحد إلا من الجانبين، ويحتفظ مخطط الملاحظة الطويلة بصفوفه كاملة الارتفاع. ويحتفظ النص الإنجليزي بتباعده الخاص.",
         },
         visual: {
           kind: "svg",
@@ -640,8 +640,8 @@ export const RELEASES: Release[] = [
         // ── The card under your name: the mark, the glyph, two lines, a timer ──
         title: { en: "What Discord shows", ar: "ما يعرضه Discord" },
         body: {
-          en: "Discord can now show, under your name, what you are doing in Astrolabe: Writing · Chapter 3, Reading a book, Reviewing cards with how many are left, Drawing. It is off until you switch it on, and you choose how much it says. Nothing about the vault leaves the machine but the words you chose, and they go to the Discord app on this computer, never to a server of ours. The desktop app speaks to Discord itself; a server you run yourself can too, when Discord runs beside it.",
-          ar: "يستطيع Discord الآن أن يعرض تحت اسمك ما تفعله في أسطرلاب: يكتب · الفصل 3، أو يقرأ كتابًا، أو يراجع البطاقات مع عدد ما بقي منها، أو يرسم. وهو متوقف حتى تشغّله، وأنت تختار كم يقول. ولا يخرج من الخزانة شيء سوى الكلمات التي اخترتها، وتذهب إلى تطبيق Discord على هذا الحاسوب، لا إلى خادم لنا أبدًا. ويكلّم تطبيق سطح المكتب Discord بنفسه؛ ويستطيع ذلك أيضًا خادم تشغّله بنفسك حين يعمل Discord بجانبه.",
+          en: "Discord can now show, under your name, what you are doing in Astrolabe: Writing · Chapter 3, Reading a book, Reviewing cards with how many are left, Drawing. It is off until you switch it on, and you choose how much it says. Nothing about the vault leaves the machine but the words you chose, and they go to the Discord app on this computer, never to any other server. The desktop app speaks to Discord itself; a server you run yourself can too, when Discord runs beside it.",
+          ar: "يستطيع Discord الآن أن يعرض تحت اسمك ما تفعله في أسطرلاب: يكتب · الفصل 3، أو يقرأ كتابًا، أو يراجع البطاقات مع عدد ما بقي منها، أو يرسم. وهو متوقف حتى تشغّله، وأنت تختار كم يقول. ولا يخرج من الخزانة شيء سوى الكلمات التي اخترتها، وتذهب إلى تطبيق Discord على هذا الحاسوب، لا إلى أي خادم آخر. ويكلّم تطبيق سطح المكتب Discord بنفسه؛ ويستطيع ذلك أيضًا خادم تشغّله بنفسك حين يعمل Discord بجانبه.",
         },
         visual: { kind: "svg", svg: presenceCardSvg },
         docs: "presence",
@@ -728,8 +728,8 @@ export const RELEASES: Release[] = [
         // ── Eighteen pages under four headings; one control column; chips ──
         title: { en: "Settings, designed", ar: "إعدادات مصمَّمة" },
         body: {
-          en: "Settings now live on eighteen short pages under four headings — You, Your site, Data and App — and each page answers one question. Every row has the same shape: a label, one line of help, and one control in one column. Spellcheck is a single row of language chips, offering only what this device can actually check. Every setting has been set, reloaded and read back in the browser, so what you choose is what stays.",
-          ar: "صارت الإعدادات ثماني عشرة صفحة قصيرة تحت أربعة عناوين — أنت، وموقعك، والبيانات، والتطبيق — وكل صفحة تجيب عن سؤال واحد. ولكل صف الشكل نفسه: عنوان، وسطر مساعدة واحد، وأداة واحدة في عمود واحد. والتدقيق الإملائي صفّ واحد من شرائح اللغات، لا يعرض إلا ما يستطيع هذا الجهاز تدقيقه فعلًا. وقد ضُبط كل إعداد وأُعيد تحميله وقُرئ في المتصفح، فما تختاره هو ما يبقى.",
+          en: "Settings now live on eighteen short pages under four headings — You, Your site, Data and App — and each page answers one question. Every row has the same shape: a label, one line of help, and one control in one column. Spellcheck is a single row of language chips, offering only what this device can check.",
+          ar: "صارت الإعدادات ثماني عشرة صفحة قصيرة تحت أربعة عناوين — أنت، وموقعك، والبيانات، والتطبيق — وكل صفحة تجيب عن سؤال واحد. ولكل صف الشكل نفسه: عنوان، وسطر مساعدة واحد، وأداة واحدة في عمود واحد. والتدقيق الإملائي صفّ واحد من شرائح اللغات، لا يعرض إلا ما يستطيع هذا الجهاز تدقيقه.",
         },
         visual: {
           kind: "svg",
@@ -784,8 +784,8 @@ export const RELEASES: Release[] = [
         // ── A wikilink outside a note is a link; the phone's switch breathes ─
         title: { en: "Links that go somewhere", ar: "روابط تفتح" },
         body: {
-          en: "A [[link]] in a sigil's slot or a task on Today is now a link: its name, not its brackets, and a tap opens the note without ticking the slot. A link to a note that isn't there yet is dashed, as in the reader. The Timeline, search and backlinks show the name too. On the phone, a slot with an Orbits chip no longer folds into one letter per line, and the Notes tab's Tree | Folders switch gets room to breathe.",
-          ar: "الرابط [[…]] في خانة من خانات السِّجِلّ أو في مهمّة على شاشة اليوم صار رابطًا: يظهر اسمه لا أقواسه، ولمسة عليه تفتح الملاحظة من غير أن تؤشّر الخانة. والرابط إلى ملاحظة لم تُكتب بعد يظهر متقطّعًا كما في القارئ. والخطّ الزمني والبحث والروابط الخلفية تُظهر الاسم كذلك. وعلى الهاتف لم تعد الخانة التي تحمل شارة مدار تنطوي حرفًا في كل سطر، وصار لمبدّل «شجرة | مجلدات» في تبويب الملاحظات متّسع.",
+          en: "A [[link]] in a sigil's slot or a task on Today is now a link: its name, not its brackets, and a tap opens the note without ticking the slot. A link to a note that isn't there yet is dashed, as in the reader. The Timeline, search and backlinks show the name too. On the phone, a slot with an Orbits chip keeps its words on their lines, and the Notes tab's Tree | Folders switch gets room to breathe.",
+          ar: "الرابط [[…]] في خانة من خانات السِّجِلّ أو في مهمّة على شاشة اليوم صار رابطًا: يظهر اسمه لا أقواسه، ولمسة عليه تفتح الملاحظة من غير أن تؤشّر الخانة. والرابط إلى ملاحظة لم تُكتب بعد يظهر متقطّعًا كما في القارئ. والخطّ الزمني والبحث والروابط الخلفية تُظهر الاسم كذلك. وعلى الهاتف تحفظ الخانة التي تحمل شارة مدار كلماتها على أسطرها، وصار لمبدّل «شجرة | مجلدات» في تبويب الملاحظات متّسع.",
         },
         visual: {
           kind: "svg",
@@ -846,8 +846,8 @@ export const RELEASES: Release[] = [
         // ── Sentences judged with their paragraph; a self-test; Pierre ────
         title: { en: "French, in French", ar: "الفرنسية بالفرنسية" },
         body: {
-          en: "A French note is now read in French all the way through, headings and short lines included, because each sentence is judged with its paragraph and the passage around it. After an install, each engine speaks one word in every language and the settings row says plainly which languages it truly speaks on this machine; a language it cannot manage goes to the other engine, never to English. Light gains Pierre, a man's French voice, downloaded the moment you choose him, and every voice now shows (m) or (f).",
-          ar: "صارت الملاحظة الفرنسية تُقرأ بالفرنسية من أولها إلى آخرها، عناوينها وأسطرها القصيرة معها، لأن كل جملة تُحكم مع فقرتها والمقطع الذي حولها. وبعد التثبيت ينطق كل محرّك كلمة من كل لغة، ويقول صف الإعدادات صراحة أيّ اللغات يقرؤها فعلًا على هذا الجهاز؛ واللغة التي يعجز عنها تذهب إلى المحرّك الآخر، لا إلى الإنجليزية أبدًا. ويُضاف إلى «خفيف» صوت Pierre، صوت رجل فرنسي، يُنزَّل لحظة تختاره، وكل صوت يُظهر الآن (رجل) أو (امرأة).",
+          en: "A French note is now read in French all the way through, headings and short lines included, because each sentence is judged with its paragraph and the passage around it. After an install, each engine speaks one word in every language and the settings row says which languages it speaks on this machine; a language it cannot manage goes to the other engine, never to English. Light gains Pierre, a man's French voice, downloaded the moment you choose him, and every voice now shows (m) or (f).",
+          ar: "صارت الملاحظة الفرنسية تُقرأ بالفرنسية من أولها إلى آخرها، عناوينها وأسطرها القصيرة معها، لأن كل جملة تُحكم مع فقرتها والمقطع الذي حولها. وبعد التثبيت ينطق كل محرّك كلمة من كل لغة، ويقول صف الإعدادات أيّ اللغات يقرؤها على هذا الجهاز؛ واللغة التي يعجز عنها تذهب إلى المحرّك الآخر، لا إلى الإنجليزية أبدًا. ويُضاف إلى «خفيف» صوت Pierre، صوت رجل فرنسي، يُنزَّل لحظة تختاره، وكل صوت يُظهر الآن (رجل) أو (امرأة).",
         },
         visual: {
           kind: "svg",
@@ -1298,8 +1298,8 @@ export const RELEASES: Release[] = [
         // ── Voice notes ──────────────────────────────────────────────────
         title: { en: "Say it instead", ar: "قُلها بدل أن تكتبها" },
         body: {
-          en: "Hold the round button and talk, on your phone or at your desk. Your own server writes down what you said and files it in today's inbox — short thoughts as a line, longer ones as a note with the recording above them. Arabic and English are told apart on their own; the words are yours in under a second on a GPU, and nothing goes to anyone's cloud.",
-          ar: "اضغط على الزر الدائري وتكلّم، على هاتفك أو على مكتبك. يكتب خادمك أنت ما قلته ويضعه في وارد اليوم — الخاطرة القصيرة سطرًا، والأطول ملاحظةً فوقها التسجيل. والعربية والإنجليزية تُميَّزان من تلقاء نفسيهما؛ والكلمات كلماتك في أقل من ثانية على بطاقة رسوميات، ولا يذهب شيء إلى سحابة أحد.",
+          en: "Hold the round button and talk, on your phone or at your desk. Your own server writes down what you said and files it in today's inbox — short thoughts as a line, longer ones as a note with the recording above them. Arabic and English are told apart on their own, and nothing goes to anyone's cloud.",
+          ar: "اضغط على الزر الدائري وتكلّم، على هاتفك أو على مكتبك. يكتب خادمك أنت ما قلته ويضعه في وارد اليوم — الخاطرة القصيرة سطرًا، والأطول ملاحظةً فوقها التسجيل. والعربية والإنجليزية تُميَّزان من تلقاء نفسيهما، ولا يذهب شيء إلى سحابة أحد.",
         },
         visual: {
           kind: "svg",
@@ -1374,8 +1374,8 @@ export const RELEASES: Release[] = [
         // ── The phone, native ────────────────────────────────────────────
         title: { en: "The phone, native", ar: "الهاتف، كما ينبغي" },
         body: {
-          en: "A phone with a pen was being handed the desktop shell — a docked sidebar, fourteen tool glyphs painted across your vault's name, and a 14-pixel tab floating at the edge of a touchscreen. Astrolabe now asks what your device's own pointer is, so a finger gets the phone's shell at every width. The floating tab is gone: swipe the page to bring your notes in, and the outline pane answers the mirrored swipe. The bottom bar carries the note's own controls instead of a desktop status line — vim and the build number moved into ⋯ — and a long site name finally ends in an ellipsis instead of colliding with the tools.",
-          ar: "كان الهاتف الذي معه قلم يُقدَّم له هيكل سطح المكتب: شريط جانبي مرسوّ، وأربعة عشر رمزًا من الأدوات مرسومة فوق اسم خزانتك، وشريط عرضه أربعة عشر بكسلًا معلّق على حافة شاشة لمس. صار أسطرلاب يسأل عن مؤشر جهازك نفسه، فيأخذ الإصبعُ هيكلَ الهاتف عند كل عرض. وذهب الشريط المعلّق: اسحب الصفحة ليأتي دفتر ملاحظاتك، وتستجيب لوحة المحتويات للتمريرة المعكوسة. وصار الشريط السفلي يحمل عناصر الملاحظة لا سطر حالة سطح مكتب — انتقل vim ورقم الإصدار إلى ⋯ — وأخيرًا ينتهي الاسم الطويل بثلاث نقاط بدل أن يصطدم بالأدوات.",
+          en: "Astrolabe now asks what your device's own pointer is, so a finger — or a phone's pen — gets the phone's shell at every width. Swipe the page to bring your notes in, and the outline pane answers the mirrored swipe. The bottom bar carries the note's own controls instead of a desktop status line — vim and the build number live in ⋯ — and a long site name ends in an ellipsis instead of running into the tools.",
+          ar: "صار أسطرلاب يسأل عن مؤشر جهازك نفسه، فيأخذ الإصبعُ — أو قلمُ الهاتف — هيكلَ الهاتف عند كل عرض. اسحب الصفحة ليأتي دفتر ملاحظاتك، وتستجيب لوحة المحتويات للتمريرة المعكوسة. ويحمل الشريط السفلي عناصر الملاحظة لا سطر حالة سطح مكتب — vim ورقم الإصدار في ⋯ — وينتهي الاسم الطويل للموقع بثلاث نقاط بدل أن يصطدم بالأدوات.",
         },
         visual: {
           kind: "svg",
@@ -1455,8 +1455,8 @@ export const RELEASES: Release[] = [
         // ── Linguistic twins ─────────────────────────────────────────────
         title: { en: "One note, two faces", ar: "ملاحظة واحدة بوجهين" },
         body: {
-          en: "Writing the same post in English and in Arabic used to make two notes that knew nothing about each other. Now one line of frontmatter — twin: [[the other note]] — makes them two faces of one note: a pill in the status bar turns the tab over in place, carrying your place in the text, and Back turns it back. On your site a reader who taps ع is taken to the other face of the post they are reading, search engines are told the two addresses are one article, and the pair is a single node on the graph. Still two plain files on disk, and a twin does not have to be a translation — a long version and a short one work the same way.",
-          ar: "كانت كتابة التدوينة نفسها بالإنجليزية والعربية تصنع ملاحظتين لا تعرف إحداهما الأخرى. وقد صار سطر واحد في الترويسة — twin: [[الملاحظة الأخرى]] — يجعلهما وجهين لملاحظة واحدة: شارة في شريط الحالة تقلب التبويب في مكانه وتحمل معك موضعك من النص، وزر الرجوع يقلبه ثانيةً. وفي موقعك يُؤخذ القارئ الذي يضغط ع إلى الوجه الآخر للتدوينة التي بين يديه، وتُخبَر محركات البحث أن العنوانين مقالة واحدة، ويصير الاقتران عقدةً واحدة في المخطط. وهما على القرص ملفان صريحان كما كانا، وليس التوأم ترجمةً بالضرورة: فالنسخة المطوّلة والموجزة تعملان بالطريقة نفسها.",
+          en: "Write a post in English and in Arabic, and one line of frontmatter — twin: [[the other note]] — makes them two faces of one note: a pill in the status bar turns the tab over in place, carrying your place in the text, and Back turns it back. On your site a reader who taps ع is taken to the other face of the post they are reading, search engines are told the two addresses are one article, and the pair is a single node on the graph. Still two plain files on disk, and a twin does not have to be a translation — a long version and a short one work the same way.",
+          ar: "اكتب التدوينة بالإنجليزية والعربية، فيجعلهما سطر واحد في الترويسة — twin: [[الملاحظة الأخرى]] — وجهين لملاحظة واحدة: شارة في شريط الحالة تقلب التبويب في مكانه وتحمل معك موضعك من النص، وزر الرجوع يقلبه ثانيةً. وفي موقعك يُؤخذ القارئ الذي يضغط ع إلى الوجه الآخر للتدوينة التي بين يديه، وتُخبَر محركات البحث أن العنوانين مقالة واحدة، ويصير الاقتران عقدةً واحدة في المخطط. وهما على القرص ملفان صريحان، وليس التوأم ترجمةً بالضرورة: فالنسخة المطوّلة والموجزة تعملان بالطريقة نفسها.",
         },
         visual: {
           kind: "svg",
@@ -1490,8 +1490,8 @@ export const RELEASES: Release[] = [
         // ── EPUB in the reader ───────────────────────────────────────────
         title: { en: "Books that reflow", ar: "كتبٌ تتدفّق" },
         body: {
-          en: "Arabic set as a PDF is a picture of type: the shaping was decided once by whatever made the file, the measure is frozen, and zooming gives you a bigger picture rather than larger text. So a .epub in your vault is now a book beside a .pdf — same shelf, same place kept, same sitting logged — but set by your own browser in the reading room's own Naskh, at whatever size you ask for. Your place is a chapter and how far down it. Search folds Arabic the way you type it, and c copies a citation that carries the words rather than an offset.",
-          ar: "العربية مصفوفةً في PDF صورةٌ للحروف: قُطعت السطور مرة واحدة، قطعها ما صنع الملف، وتجمّد العرض، والتكبير يعطيك صورة أكبر لا حرفًا أكبر. فصار ملف ‎.epub‎ في خزانتك كتابًا كما ملف ‎.pdf‎ — على الرف نفسه، ومكانك فيه محفوظ، وجلستك فيه مسجَّلة — غير أن متصفحك هو الذي يصفّه، بخط النسخ الذي في هذه الغرفة، وبالحجم الذي تطلبه. ومكانُك فصلٌ ومقدارُ ما نزلتَ فيه. والبحث يطوي العربية كما تكتبها، و‎c‎ ينسخ استشهادًا يحمل الكلمات لا موضعًا رقميًّا.",
+          en: "A .epub in your vault is now a book beside a .pdf — same shelf, same place kept, same sitting logged — but set by your own browser in the reading room's Naskh, at whatever size you ask for, where a PDF is a fixed picture of its type. Your place is a chapter and how far down it. Search folds Arabic the way you type it, and c copies a citation that carries the words rather than an offset.",
+          ar: "صار ملف ‎.epub‎ في خزانتك كتابًا كما ملف ‎.pdf‎ — على الرف نفسه، ومكانك فيه محفوظ، وجلستك فيه مسجَّلة — غير أن متصفحك هو الذي يصفّه، بخط النسخ الذي في هذه الغرفة، وبالحجم الذي تطلبه، أمّا PDF فصورةٌ ثابتة لحروفه. ومكانُك فصلٌ ومقدارُ ما نزلتَ فيه. والبحث يطوي العربية كما تكتبها، و‎c‎ ينسخ استشهادًا يحمل الكلمات لا موضعًا رقميًّا.",
         },
         visual: {
           kind: "svg",
@@ -1577,8 +1577,8 @@ export const RELEASES: Release[] = [
         // ── Tables edited in place ───────────────────────────────────────
         title: { en: "Tables you can actually edit", ar: "جداول تُحرَّر فعلًا" },
         body: {
-          en: "Click a cell in a rendered table and type — the grid stays a grid, and the pipes never come back. Tab, Enter and the arrows walk the cells; right-click for rows, columns, alignment and sorting, each one a single undo. A two-hundred-row table edits as fast as a three-row one, because committing a cell redraws that cell and not the table.",
-          ar: "انقر خلية في جدول معروض واكتب — تبقى الشبكة شبكة، ولا تعود الخطوط العمودية إلى وجهك. و‎Tab‎ و‎Enter‎ والأسهم تمشي في الخلايا؛ والنقر الأيمن يفتح الصفوف والأعمدة والمحاذاة والترتيب، كلٌّ منها خطوة تراجع واحدة. وجدول من مئتي صف يُحرَّر بسرعة جدول من ثلاثة، لأن كتابة الخلية تعيد رسم تلك الخلية لا الجدول.",
+          en: "Click a cell in a rendered table and type — the grid stays a grid, and the pipes never come back. Tab, Enter and the arrows walk the cells; right-click for rows, columns, alignment and sorting, each one a single undo. A two-hundred-row table edits as fast as a three-row one.",
+          ar: "انقر خلية في جدول معروض واكتب — تبقى الشبكة شبكة، ولا تعود الخطوط العمودية إلى وجهك. و‎Tab‎ و‎Enter‎ والأسهم تمشي في الخلايا؛ والنقر الأيمن يفتح الصفوف والأعمدة والمحاذاة والترتيب، كلٌّ منها خطوة تراجع واحدة. وجدول من مئتي صف يُحرَّر بسرعة جدول من ثلاثة.",
         },
         visual: {
           kind: "svg",
@@ -1628,10 +1628,10 @@ export const RELEASES: Release[] = [
       },
       {
         // ── The phone's other promises ───────────────────────────────────
-        title: { en: "Forty-four pixels, the notch, and the back button", ar: "أربع وأربعون بكسلًا، والحزّ، وزر الرجوع" },
+        title: { en: "Thumb-sized targets, the notch, and the back button", ar: "أهداف بحجم الإبهام، والحزّ، وزر الرجوع" },
         body: {
-          en: "Every target you tap on a phone is now 44 pixels tall and every field 16 — the section headers, the graph's controls, the theme picker, the settings rail, the media stepper. The tab strip clears the notch and the mode pills clear the gesture bar. Each drawer carries its own ✕, and on Android the back button closes whatever is open before it leaves the page.",
-          ar: "كل هدف تلمسه على الهاتف صار بارتفاع ٤٤ بكسلًا وكل حقل ١٦ — عناوين الأقسام، وأزرار الرسم البياني، ومنتقي السمة، وشريط الإعدادات، وعدّاد الوسائط. وشريط التبويبات يتجنّب الحزّ، وحبوب الأوضاع تتجنّب شريط الإيماءات. ولكل درج زر ✕ خاص به، وعلى أندرويد يغلق زر الرجوع ما هو مفتوح قبل أن يغادر الصفحة.",
+          en: "Every target you tap on a phone is now big enough for a thumb, and no field makes the page zoom — the section headers, the graph's controls, the theme picker, the settings rail, the media stepper. The tab strip clears the notch and the mode pills clear the gesture bar. Each drawer carries its own ✕, and on Android the back button closes whatever is open before it leaves the page.",
+          ar: "كل هدف تلمسه على الهاتف صار بحجم الإبهام، ولا حقل يكبّر الصفحة — عناوين الأقسام، وأزرار الرسم البياني، ومنتقي السمة، وشريط الإعدادات، وعدّاد الوسائط. وشريط التبويبات يتجنّب الحزّ، وحبوب الأوضاع تتجنّب شريط الإيماءات. ولكل درج زر ✕ خاص به، وعلى أندرويد يغلق زر الرجوع ما هو مفتوح قبل أن يغادر الصفحة.",
         },
         visual: {
           kind: "svg",
@@ -1669,10 +1669,10 @@ export const RELEASES: Release[] = [
       },
       {
         // ── Windows: the panes and the window ────────────────────────────
-        title: { en: "The panes stopped arguing with the window", ar: "كفَّتِ اللوحتان عن منازعة النافذة" },
+        title: { en: "Panes that keep up with the hand", ar: "لوحتان تجاريان اليد" },
         body: {
-          en: "Drag the divider and the pane follows your hand from wherever you took hold — the 12-pixel strip has the hairline down its middle, so the line you aim at is the line that moves. Drag the window instead and the panes give way at once, keeping the note a column to be in; nothing slides, nothing lags, nothing animates a width you did not ask for. On the desktop, Ctrl/Cmd =, − and 0 zoom the app, with the percentage shown in the corner.",
-          ar: "اسحب الفاصل فتتبع اللوحة يدك من حيث أمسكت به — فالشريط عرضه ١٢ نقطة والخيط الشعري في منتصفه تمامًا، والخط الذي تصوّب إليه هو الخط الذي يتحرك. واسحب النافذة بدلًا من ذلك فتتنحّى اللوحتان في الحال، ويبقى للملاحظة عمودٌ تكون فيه؛ لا انزلاق، ولا تأخّر، ولا حركة لعرضٍ لم تطلبه. وعلى سطح المكتب تكبّر ‎Ctrl/Cmd =‎ و‎−‎ و‎0‎ التطبيق، مع ظهور النسبة في الزاوية.",
+          en: "Drag the divider and the pane follows your hand from wherever you took hold — the grip has the hairline down its middle, so the line you aim at is the line that moves. Drag the window instead and the panes give way at once, keeping the note a column to be in; nothing slides, nothing lags, nothing animates a width you did not ask for. On the desktop, Ctrl/Cmd =, − and 0 zoom the app, with the percentage shown in the corner.",
+          ar: "اسحب الفاصل فتتبع اللوحة يدك من حيث أمسكت به — فالخيط الشعري في منتصف المقبض تمامًا، والخط الذي تصوّب إليه هو الخط الذي يتحرك. واسحب النافذة بدلًا من ذلك فتتنحّى اللوحتان في الحال، ويبقى للملاحظة عمودٌ تكون فيه؛ لا انزلاق، ولا تأخّر، ولا حركة لعرضٍ لم تطلبه. وعلى سطح المكتب تكبّر ‎Ctrl/Cmd =‎ و‎−‎ و‎0‎ التطبيق، مع ظهور النسبة في الزاوية.",
         },
         visual: {
           kind: "svg",
@@ -1706,8 +1706,8 @@ export const RELEASES: Release[] = [
         // ── Library roots ────────────────────────────────────────────────
         title: { en: "A shelf root, said once", ar: "جذر الرف، يُقال مرة واحدة" },
         body: {
-          en: "Twelve hand-typed rows described twelve folders sitting under two parents, and the thirteenth book needed a thirteenth row. Name the parent instead — every folder inside it holding a published note is on the shelf, titled by its own name and addressed by its title — and keep a row only for the books whose titles you really did type yourself. Renaming a folder now carries its row along, and a folder whose title makes no address waits in the panel with the reason rather than being handed /library/path-3.",
-          ar: "كان اثنا عشر صفًا مكتوبة بخط اليد تصف اثني عشر مجلدًا تحت مجلدين اثنين، وكان الكتاب الثالث عشر يحتاج إلى صف ثالث عشر. سمِّ المجلد الأب بدلًا من ذلك — فكل مجلد داخله ملاحظة منشورة يصير على الرف، باسمه هو ورابطه من عنوانه — وأبقِ الصف للكتب التي كتبتَ عناوينها بنفسك حقًا. وإعادة تسمية مجلد تحمل صفه معها، والمجلد الذي لا يصنع عنوانه رابطًا ينتظر في اللوحة ومعه السبب، بدل أن يُعطى عنوانًا لا يكتبه أحد.",
+          en: "Name a parent folder once, and every folder inside it holding a published note is on the shelf, titled by its own name and addressed by its title; keep a row only for the books whose titles you type yourself. Renaming a folder carries its row along, and a folder whose title makes no address waits in the panel with the reason.",
+          ar: "سمِّ المجلد الأب مرة واحدة، فكل مجلد داخله ملاحظة منشورة يصير على الرف، باسمه هو ورابطه من عنوانه؛ وأبقِ الصف للكتب التي تكتب عناوينها بنفسك. وإعادة تسمية مجلد تحمل صفه معها، والمجلد الذي لا يصنع عنوانه رابطًا ينتظر في اللوحة ومعه السبب.",
         },
         visual: {
           kind: "svg",
@@ -1753,10 +1753,10 @@ export const RELEASES: Release[] = [
       },
       {
         // ── The performance purge ────────────────────────────────────────
-        title: { en: "The note stopped waiting for the vault", ar: "الملاحظة لم تعد تنتظر الخزانة" },
+        title: { en: "A long note, quick", ar: "ملاحظة طويلة، سريعة" },
         body: {
-          en: "Typing in a three-thousand-line note used to make the app walk your entire vault once for every link on the page — and then place annotations you had never written. Both are gone: a keystroke paints in 24 ms instead of 32, the main thread sits busy a third as long between letters, and opening that note in reading view is a third faster. The outline pane loads only when it opens, so an admin's first paint is 500 kB lighter. Every number was measured before and after on the same two-thousand-note vault, and a gate now fails the build if any of them slips back.",
-          ar: "كانت الكتابة في ملاحظة من ثلاثة آلاف سطر تجعل التطبيق يمشي على خزانتك كلها مرةً لكل رابط في الصفحة، ثم يضع تعليقاتٍ لم تكتبها قط. ذهب الأمران: صارت ضغطة المفتاح تُرسم في ٢٤ مللي ثانية بدل ٣٢، ويبقى الخيط الرئيس مشغولًا ثُلث ما كان بين الحرف والحرف، وفتحُ تلك الملاحظة في وضع القراءة أسرع بالثلث. ولوحة المخطط لا تُحمَّل إلا حين تُفتح، فصار أول رسم للمدير أخفّ بخمسمئة كيلوبايت. كل رقم قيس قبلُ وبعدُ على الخزانة نفسها ذات الألفي ملاحظة، وبوابةٌ تُفشل البناء اليوم إن تراجع أيٌّ منها.",
+          en: "Typing in a long note no longer walks the whole vault for every link on the page, so each keystroke paints sooner and the note opens faster in reading view. The outline pane loads only when it opens, so the app's first paint is lighter.",
+          ar: "لم تعد الكتابة في ملاحظة طويلة تمشي على الخزانة كلها لكل رابط في الصفحة، فصارت ضغطة المفتاح تُرسم أسرع، وتُفتح الملاحظة في وضع القراءة أسرع. ولوحة المخطط لا تُحمَّل إلا حين تُفتح، فصار أول رسم للتطبيق أخفّ.",
         },
         visual: {
           kind: "svg",
@@ -1818,8 +1818,8 @@ export const RELEASES: Release[] = [
         // ── The calendar's own page ──────────────────────────────────────
         title: { en: "The month has a page of its own", ar: "صار للشهر صفحة خاصة به" },
         body: {
-          en: "A small grid used to sit at the top of the Sigils page, where it could say which days had a note and nothing else about them. The month is a place of its own now — /calendar, a leaf in the top bar — drawn full width, with room in every cell to name the sigils you kept, the cards you graded and the pages you read.",
-          ar: "كان شهر صغير يجلس في أعلى صفحة السِّجِلّ، لا يقول إلا أي الأيام له ملاحظة. صار للشهر مكان خاص به: العنوان ‎/calendar‎، وورقة تقويم في الشريط العلوي، مرسومًا بعرض الصفحة، وفي كل خلية متّسع لتسمية السِّجلّات التي حافظت عليها، والبطاقات التي قيّمتها، والصفحات التي قرأتها.",
+          en: "The month is a place of its own — /calendar, a leaf in the top bar — drawn full width, with room in every cell to name the sigils you kept, the cards you graded and the pages you read.",
+          ar: "صار للشهر مكان خاص به: العنوان ‎/calendar‎، وورقة تقويم في الشريط العلوي، مرسومًا بعرض الصفحة، وفي كل خلية متّسع لتسمية السِّجلّات التي حافظت عليها، والبطاقات التي قيّمتها، والصفحات التي قرأتها.",
         },
         visual: {
           kind: "svg",
@@ -1932,8 +1932,8 @@ export const RELEASES: Release[] = [
         // ── The Sigils page gets its top back ────────────────────────────
         title: { en: "Sigils asks one question again", ar: "صفحة السِّجِلّ تسأل سؤالًا واحدًا من جديد" },
         body: {
-          en: "With the month gone, the Sigils page opens straight from its heading into the day's cards — what is asked of you, what is due, what you have already kept. It also gave back a read it was only making for the grid's second dot, so the page loads the sigils and nothing else.",
-          ar: "بخروج الشهر، تنتقل صفحة السِّجِلّ من عنوانها إلى بطاقات اليوم مباشرة: ما يُطلب منك، وما استحقّ، وما حافظتَ عليه فعلًا. كما استعادت قراءةً لم تكن تجريها إلا من أجل النقطة الثانية في الشبكة، فصارت تحمّل السجلّات وحدها لا غير.",
+          en: "The Sigils page opens straight from its heading into the day's cards — what is asked of you, what is due, what you have already kept — and loads the sigils and nothing else.",
+          ar: "تنتقل صفحة السِّجِلّ من عنوانها إلى بطاقات اليوم مباشرة: ما يُطلب منك، وما استحقّ، وما حافظتَ عليه فعلًا؛ ولا تحمّل إلا السجلّات.",
         },
         visual: {
           kind: "svg",
@@ -1982,8 +1982,8 @@ export const RELEASES: Release[] = [
         // ── The stacking ladder ──────────────────────────────────────────
         title: { en: "Every layer knows where it stands", ar: "كل طبقة تعرف مكانها" },
         body: {
-          en: "Fourteen rungs that used to be bare numbers in nine stylesheets now have names and reasons, and a gate fails any new one written out. The command palette had been sitting at 100, underneath the phone drawer that opens it; it is at 410 now, above the drawer and below the panels it can raise.",
-          ar: "أربع عشرة درجة كانت أرقامًا مجردة في تسع ملفات أنماط صار لها أسماء وأسباب، وبوابة ترفض أي رقم جديد يُكتب يدويًا. كانت لوحة الأوامر عند 100، أي تحت الدرج الذي يفتحها على الهاتف؛ صارت الآن عند 410، فوق الدرج وتحت اللوحات التي قد ترفعها.",
+          en: "Every overlay has a fixed place in the stack. The command palette opens above the phone drawer that summons it and below the panels it can raise.",
+          ar: "لكل طبقة مكان ثابت في الترتيب. ولوحة الأوامر تُفتح فوق درج الهاتف الذي يستدعيها، وتحت اللوحات التي قد ترفعها.",
         },
         visual: {
           kind: "svg",
@@ -2027,8 +2027,8 @@ export const RELEASES: Release[] = [
         // ── Dialogs ──────────────────────────────────────────────────────
         title: { en: "A dialog that keeps the promise it makes", ar: "نافذة تفي بما تَعِد به" },
         body: {
-          en: "Twenty-one of the app's thirty-seven dialogs had no focus trap, and six of those announced themselves as modal to a screen reader anyway. They all take the one shared primitive now: Tab stays inside, and closing hands focus back to whatever opened it.",
-          ar: "إحدى وعشرون من نوافذ التطبيق السبع والثلاثين لم يكن فيها حصر للتركيز، وستٌّ منها كانت تعلن أنها نافذة حاجبة للقارئ الآلي رغم ذلك. صارت كلها تستعمل الأداة المشتركة نفسها: يبقى Tab في الداخل، ويعود التركيز عند الإغلاق إلى ما فتحها.",
+          en: "Every dialog now holds focus the same way: Tab stays inside, and closing hands focus back to whatever opened it.",
+          ar: "صارت كل نافذة تحفظ التركيز بالطريقة نفسها: يبقى Tab في الداخل، ويعود التركيز عند الإغلاق إلى ما فتحها.",
         },
         visual: {
           kind: "svg",
@@ -2060,8 +2060,8 @@ export const RELEASES: Release[] = [
         // ── Menus ────────────────────────────────────────────────────────
         title: { en: "A menu to aim at, not a list to read", ar: "قائمة تُقصد لا لائحة تُقرأ" },
         body: {
-          en: "A folder's sixteen rows are five separated groups now, and the sort menu's rows carry a tick in a column reserved on every row. The whole thing closes on Escape and on a click outside — which the old sort menu, which closed only when the mouse left it, never did on a phone at all.",
-          ar: "صفوف المجلد الستة عشر صارت خمس مجموعات مفصولة، وصفوف قائمة الترتيب تحمل علامة في عمود محجوز في كل صف. والقائمة كلها تُغلق بمفتاح Escape وبنقرة في الخارج، وهو ما لم تفعله قائمة الترتيب القديمة قط على الهاتف.",
+          en: "A folder's sixteen rows are five separated groups now, and the sort menu's rows carry a tick in a column reserved on every row. The whole thing closes on Escape and on a click outside, on a phone too.",
+          ar: "صفوف المجلد الستة عشر صارت خمس مجموعات مفصولة، وصفوف قائمة الترتيب تحمل علامة في عمود محجوز في كل صف. والقائمة كلها تُغلق بمفتاح Escape وبنقرة في الخارج، على الهاتف أيضًا.",
         },
         visual: {
           kind: "svg",
@@ -2104,8 +2104,8 @@ export const RELEASES: Release[] = [
         // ── Anchoring ────────────────────────────────────────────────────
         title: { en: "Nothing is placed off the side of the screen", ar: "لا شيء يُوضع خارج حافة الشاشة" },
         body: {
-          en: "One clamp now holds both edges of every anchored popover, so the sync panel that used to start 189 pixels off a phone's left edge sits inside it, and the folder-icon picker fits its screen instead of overrunning it — opening on a glyph, not on a search field.",
-          ar: "صار قيدٌ واحد يمسك حافتَي كل نافذة منبثقة مرتكزة، فلوحة المزامنة التي كانت تبدأ على بعد 189 بكسل خارج حافة الهاتف صارت داخله، ومنتقي أيقونة المجلد صار يسع شاشته بدل أن يتجاوزها، ويفتح على رمز لا على حقل بحث.",
+          en: "Every anchored popover stays inside the screen on both sides: the sync panel sits within a phone's edges, and the folder-icon picker fits its screen, opening on a glyph, not on a search field.",
+          ar: "كل نافذة منبثقة مرتكزة تبقى داخل الشاشة من الجانبين: لوحة المزامنة داخل حافتَي الهاتف، ومنتقي أيقونة المجلد يسع شاشته، ويفتح على رمز لا على حقل بحث.",
         },
         visual: {
           kind: "svg",
@@ -2139,8 +2139,8 @@ export const RELEASES: Release[] = [
         // ── Settings & travel (the 3.18 groundwork) ──────────────────────
         title: { en: "Settings that never lose an edit, and preferences that travel", ar: "إعدادات لا تضيّع تعديلًا، وتفضيلات تسافر" },
         body: {
-          en: "No exit from the settings panel discards silently any more: Escape, the scrim, the × and Close all ask before dropping a dirty form. “Inherit” is “Default” now — a name for what you get rather than for the mechanism — and three more preferences travel with the vault.",
-          ar: "لم يعد أي خروج من لوحة الإعدادات يتجاهل تعديلًا في صمت: مفتاح Escape والستارة وعلامة × وزر الإغلاق، كلها تسأل قبل أن تُسقط نموذجًا لم يُحفظ. وصار «الموروث» يُسمّى «الافتراضي»، وصارت ثلاثة تفضيلات أخرى تسافر مع الخزانة.",
+          en: "Every way out of the settings panel — Escape, the scrim, the × and Close — asks before dropping unsaved changes. “Inherit” is now “Default”, and three more preferences travel with the vault.",
+          ar: "كل خروج من لوحة الإعدادات — مفتاح Escape والستارة وعلامة × وزر الإغلاق — يسأل قبل أن يُسقط تعديلًا لم يُحفظ. وصار «الموروث» يُسمّى «الافتراضي»، وصارت ثلاثة تفضيلات أخرى تسافر مع الخزانة.",
         },
         visual: {
           kind: "svg",
@@ -2182,8 +2182,8 @@ export const RELEASES: Release[] = [
         // ── The rest of the round ────────────────────────────────────────
         title: { en: "A hundred small things", ar: "مئة شيء صغير" },
         body: {
-          en: "A heading is one colour again: the editor drew `# Title` a shade off the reading view's, and both surfaces now say the same token. The manual has a gate of its own, so a link that stops resolving fails the build — and the whole month, page and day pane, stays out of the first paint.",
-          ar: "والعنوان لون واحد من جديد: كان المحرر يرسم `# العنوان` بدرجة تخالف وضع القراءة، وصار السطحان ينطقان بالرمز نفسه. وصار للدليل بوابته الخاصة، فأي رابط يتوقف عن العمل يُسقط البناء، وبقي الشهر كله، صفحةً ولوحةَ يوم، خارج أول رسم.",
+          en: "A heading is the same colour in the editor and the reading view, and the month page and day pane load only when you open them.",
+          ar: "العنوان بلون واحد في المحرر ووضع القراءة، والشهر، صفحةً ولوحةَ يوم، لا يُحمَّل إلا حين تفتحه.",
         },
         visual: {
           kind: "svg",
@@ -2736,8 +2736,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "Panes you can resize, on Windows too", ar: "لوحات تغيّر حجمها، وعلى ويندوز أيضًا" },
         body: {
-          en: "A window under 1000 pixels wide used to turn into a phone: the sidebar slid in from the edge and nothing had a grip. A scaled Windows laptop lives there. With a mouse, panes now stay docked and resizable down to phone width; the drawer is for devices with no fine pointer. The outline pane's grip no longer scrolls away with a long list.",
-          ar: "كانت النافذة الأضيق من 1000 بكسل تتحول إلى هاتف: ينزلق الشريط الجانبي من الحافة ولا مقبض لشيء. وحاسوب ويندوز المحمول بتكبيره يعيش هناك. مع الفأرة تبقى اللوحات الآن راسية وقابلة لتغيير الحجم حتى عرض الهاتف؛ والدرج للأجهزة التي لا مؤشر دقيقًا لها. ومقبض لوحة المخطط لم يعد ينزلق بعيدًا مع قائمة طويلة.",
+          en: "With a mouse, panes stay docked and resizable down to phone width, so a scaled Windows laptop keeps its sidebar; the drawer is for devices with no fine pointer. The outline pane's grip stays beside a long list instead of scrolling away with it.",
+          ar: "مع الفأرة تبقى اللوحات راسية وقابلة لتغيير الحجم حتى عرض الهاتف، فيحتفظ حاسوب ويندوز المحمول المكبَّر بشريطه الجانبي؛ والدرج للأجهزة التي لا مؤشر دقيقًا لها. ومقبض لوحة المخطط يبقى بجانب القائمة الطويلة لا ينزلق معها.",
         },
         visual: {
           kind: "svg",
@@ -2756,8 +2756,8 @@ export const RELEASES: Release[] = [
       {
         title: { en: "A manual for people, in both languages", ar: "دليل للناس، باللغتين" },
         body: {
-          en: "Every page of the manual was rewritten for a reader who does not know the terminology: plain words, short sentences, what a thing is for before how it works. The Arabic edition was written as Arabic, not translated, and read back by a second pair of eyes. The interface's Arabic strings got the same pass.",
-          ar: "أُعيدت كتابة كل صفحة من الدليل لقارئ لا يعرف المصطلحات: كلمات بسيطة، وجمل قصيرة، وما ينفع الشيء قبل كيف يعمل. وكُتبت النسخة العربية عربيةً لا مترجمة، وراجعتها عين ثانية. ونصوص الواجهة العربية نالت المرور نفسه.",
+          en: "Every page of the manual is written for a reader who does not know the terminology: plain words, short sentences, what a thing is for before how it works. The Arabic edition is written as Arabic, not translated, and so are the interface's Arabic strings.",
+          ar: "كل صفحة من الدليل مكتوبة لقارئ لا يعرف المصطلحات: كلمات بسيطة، وجمل قصيرة، وما ينفع الشيء قبل كيف يعمل. والنسخة العربية مكتوبة بالعربية لا مترجمة، وكذلك نصوص الواجهة العربية.",
         },
         visual: { kind: "demo", mount: manualDemo },
         docs: "sigils",
