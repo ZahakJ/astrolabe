@@ -116,7 +116,7 @@ const KATEX_ENV: Record<string, string> = {
 function paintMath(el: HTMLElement, tex: string, display: boolean, after?: () => void): void {
   const paint = (k: NonNullable<ReturnType<typeof getKatex>>): void => {
     try {
-      k.render(tex, el, { throwOnError: false, displayMode: display, output: "htmlAndMathml" });
+      k.render(tex, el, { throwOnError: false, displayMode: display, output: "htmlAndMathml", strict: false });
     } catch {
       el.textContent = tex;
     }

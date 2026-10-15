@@ -61,17 +61,6 @@ export default function PresenceTab() {
           {...field("presenceMode")}
         />
       </Row>
-      <Row kind="text" label={t("rowPresenceClientId")} hint={t("hintPresenceClientId")} error={errors.presenceClientId}>
-        {/* A number to paste, not words: machine text, left to right. */}
-        <TextInput
-          placeholder="123456789012345678"
-          dir="ltr"
-          autoComplete="off"
-          label={t("rowPresenceClientId")}
-          invalid={errors.presenceClientId !== undefined}
-          {...field("presenceClientId")}
-        />
-      </Row>
       <Row kind="select" label={t("rowPresenceIdleAfter")} hint={t("hintPresenceIdleAfter")}>
         <Select label={t("rowPresenceIdleAfter")} options={idleChoices.map((n) => ({ value: String(n), label: idleLabel(n) }))} {...field("presenceIdleMinutes")} />
       </Row>
@@ -118,6 +107,17 @@ export default function PresenceTab() {
         </p>
       </Row>
       <Advanced tab="presence">
+        <Row kind="text" label={t("rowPresenceClientId")} hint={t("hintPresenceClientId")} error={errors.presenceClientId}>
+          {/* A number to paste, not words: machine text, left to right. */}
+          <TextInput
+            placeholder="123456789012345678"
+            dir="ltr"
+            autoComplete="off"
+            label={t("rowPresenceClientId")}
+            invalid={errors.presenceClientId !== undefined}
+            {...field("presenceClientId")}
+          />
+        </Row>
         <Row kind="segmented" label={t("rowPresenceAssets")} hint={t("hintPresenceAssets")} more={t("morePresenceAssets")}>
           <SegmentedControl
             label={t("rowPresenceAssets")}

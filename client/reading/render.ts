@@ -206,6 +206,10 @@ function katexHtml(tex: string, display: boolean): string {
       throwOnError: false,
       displayMode: display,
       output: "htmlAndMathml",
+      // Arabic (or any non-Latin script) inside \text{} is ordinary in this
+      // vault; KaTeX renders it in the page's own face and, unless told
+      // otherwise, logs two warnings per letter.
+      strict: false,
     });
   } catch {
     return `<code>${esc(tex)}</code>`;

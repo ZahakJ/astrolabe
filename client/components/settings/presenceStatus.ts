@@ -6,10 +6,11 @@ import type { PresenceStatus } from "../../../shared/presence/types.ts";
 import type { I18nKey } from "../../i18n.ts";
 
 /** The sentences for one status, in the order a reader fixes them: switch it
- *  on, give it an id, give it a host, start Discord. */
+ *  on, give it a host, start Discord. */
 export function presenceStatusLines(status: PresenceStatus): { key: I18nKey; preview?: string }[] {
-  if (status.mode === "off") return [{ key: "presenceStatOff" }];
-  if (status.applicationId === "placeholder") return [{ key: "presenceStatNoId" }];
+  // No application id anywhere (no built-in one yet, none of one's own) is
+  // presence off, and says no more than off does.
+  if (status.mode === "off" || status.applicationId === "placeholder") return [{ key: "presenceStatOff" }];
   if (status.host === "none") return [{ key: "presenceStatNoHost" }];
   const host: I18nKey = status.host === "desktop" ? "presenceStatHostDesktop" : "presenceStatHostServer";
   switch (status.connection) {

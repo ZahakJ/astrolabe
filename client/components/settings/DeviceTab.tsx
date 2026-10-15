@@ -30,6 +30,8 @@ export default function DeviceTab() {
   const toggleVim = useStore((s) => s.toggleVim);
   const relativeLines = useStore((s) => s.relativeLines);
   const toggleRelativeLines = useStore((s) => s.toggleRelativeLines);
+  const typewriter = useStore((s) => s.typewriter);
+  const toggleTypewriter = useStore((s) => s.toggleTypewriter);
   return (
     <section data-section="device">
       {offlineSupported() && (
@@ -61,6 +63,9 @@ export default function DeviceTab() {
             </Part>
           )}
         </Parts>
+      </Row>
+      <Row kind="toggle" device label={t("rowTypewriter")} hint={t("hintTypewriter")}>
+        <Toggle label={t("rowTypewriter")} value={typewriter} onChange={() => toggleTypewriter()} />
       </Row>
       <Row kind="toggle" device label={t("rowWhatsNew")} hint={t("hintWhatsNew")}>
         <Toggle value={whatsNew} onChange={setWhatsNewEnabled} label={t("rowWhatsNew")} />

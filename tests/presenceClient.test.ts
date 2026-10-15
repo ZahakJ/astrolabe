@@ -149,7 +149,7 @@ describe("Settings → Discord → Status, in words", () => {
 
   it("names the first thing to fix, in the order a reader fixes them", () => {
     assert.deepEqual(said({ ...base, mode: "off", enabled: false }), ["presenceStatOff"]);
-    assert.deepEqual(said({ ...base, applicationId: "placeholder", enabled: false }), ["presenceStatNoId"]);
+    assert.deepEqual(said({ ...base, applicationId: "placeholder", enabled: false }), ["presenceStatOff"]);
     assert.deepEqual(said({ ...base, host: "none" }), ["presenceStatNoHost"]);
     assert.deepEqual(said({ ...base, connection: "invalid-id" }), ["presenceStatInvalidId"]);
     assert.deepEqual(said({ ...base, connection: "searching" }), ["presenceStatSearchingServer"]);
@@ -165,7 +165,7 @@ describe("Settings → Discord → Status, in words", () => {
   it("speaks both languages, the Arabic lines opening in Arabic so they read right to left", () => {
     for (const lang of ["en", "ar"] as const) {
       setLang(lang);
-      for (const key of ["presenceStatOff", "presenceStatNoId", "presenceStatNoHost", "presenceStatInvalidId", "presenceStatSearchingServer", "presenceStatSearchingDesktop"] as const) {
+      for (const key of ["presenceStatOff", "presenceStatNoHost", "presenceStatInvalidId", "presenceStatSearchingServer", "presenceStatSearchingDesktop"] as const) {
         const text = t(key);
         assert.ok(text.length > 0, key);
         if (lang === "ar") assert.match(text, /^[؀-ۿ]/, `${key} opens with a Latin word: "${text}"`);

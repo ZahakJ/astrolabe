@@ -607,8 +607,10 @@ mode you are in. While text is selected the count reads **12 of 840 words**, the
 the whole, so trimming a paragraph to length never means deselecting to see the total. The count is
 one rule for the author and the blog's *N min read* alike: frontmatter, fences and markup are not
 words, and an Arabic letter with its harakat is one letter, so a pointed «الْحَمْدُ» counts exactly as
-«الحمد» does. It ends with the version you are on: the [updater](desktop.md#updates) on the
-desktop app, the releases page in a browser. The shell's own controls sit at the top, after the tabs: the
+«الحمد» does. A note with `goal: 3000` in its frontmatter reads **1,240 / 3,000 words**, with a
+hairline under it that fills toward the goal and turns to the accent once it is met. It ends with the version you are on: the [updater](desktop.md#updates) on the
+desktop app, the releases page in a browser. **Typewriter scrolling** (Settings, beside Vim keys, or the palette) keeps the line you are writing
+in the middle of the editor: typing and the arrow keys move the page, a click does not. The shell's own controls sit at the top, after the tabs: the
 panes, zen, the graph, the site designer, settings, the theme, and signing out.
 
 ## Arranging the tree

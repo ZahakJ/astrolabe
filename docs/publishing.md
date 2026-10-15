@@ -68,7 +68,8 @@ that is also serving your notes.
 ## What counts as published
 
 Exactly one thing: `publish: true` in a note's frontmatter. (The *frontmatter* is the block
-between two `---` lines at the top of a note, where its properties live.)
+between two `---` lines at the top of a note, where its properties live.) A date in its place
+publishes the note *then* — see [Scheduling a post](#scheduling-a-post).
 
 ```yaml
 ---
@@ -104,6 +105,21 @@ One frontmatter key *widens* rather than narrows: `folders:` names the
 [public folders](blog-mode.md#custom-public-folders) a published note belongs to — collections
 you define on the blog, beside the topics its tags create. It does not affect whether the note
 is published, and it does nothing until you declare a folder with that address in Settings.
+
+### Scheduling a post
+
+Give `publish:` a date or a time instead of `true`, and the note publishes itself at that moment:
+
+```yaml
+publish: 2026-11-02          # midnight, the server's time
+publish: 2026-11-02 09:30    # half past nine, the server's time
+publish: 2026-11-02T09:30+03:00
+```
+
+Until then it is a draft on every surface a visitor can reach; at the minute it goes out to the
+blog, the feed, search and every open page, and it is dated by that minute unless it has a
+`date:` of its own. The status bar shows **◷ Scheduled · 2 Nov, 9:30**; pressing it (or
+`Ctrl/Cmd Shift P`) publishes the note now instead.
 
 Nothing arrives published from outside. An article kept from [Feeds](feeds.md) and a note
 brought in by the [import wizard](import.md) carry no `publish: true` — the importer takes

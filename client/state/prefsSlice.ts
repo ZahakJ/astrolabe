@@ -2,7 +2,7 @@
 // the palette, the sidebar and the panel, zen. Moved out of client/state.ts
 // unchanged.
 
-import { PANEL_COLLAPSED_KEY, READING_KEY, RELNUM_KEY, SIDEBAR_COLLAPSED_KEY, SIDE_KEY, VIM_KEY, ZEN_KEY, persistFlag, persistFlagValue, themeKey } from "./persistence.ts";
+import { PANEL_COLLAPSED_KEY, READING_KEY, RELNUM_KEY, SIDEBAR_COLLAPSED_KEY, TYPEWRITER_KEY, SIDE_KEY, VIM_KEY, ZEN_KEY, persistFlag, persistFlagValue, themeKey } from "./persistence.ts";
 import type { State } from "./types.ts";
 import type { StoreGet, StoreSet } from "./sliceTypes.ts";
 import * as api from "../api.ts";
@@ -77,6 +77,12 @@ export function prefsSlice(set: StoreSet, get: StoreGet) {
       const relativeLines = !get().relativeLines;
       localStorage.setItem(RELNUM_KEY, String(relativeLines));
       set({ relativeLines });
+    },
+
+    toggleTypewriter: () => {
+      const typewriter = !get().typewriter;
+      localStorage.setItem(TYPEWRITER_KEY, String(typewriter));
+      set({ typewriter });
     },
 
     setVimSubMode: (vimSubMode) => set({ vimSubMode }),

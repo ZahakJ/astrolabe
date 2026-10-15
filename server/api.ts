@@ -73,6 +73,7 @@ import { versionRoutes } from "./versionRoutes.ts";
 import { eventRoutes } from "./eventRoutes.ts";
 import { webmentionApi } from "./webmentionRoutes.ts";
 import { renameRoutes } from "./renameRoutes.ts";
+import { stripPrivateComments } from "../shared/privateText.ts";
 export type { MoveFolderResponse } from "./renameRoutes.ts";
 // The rename flow, for tests that drive it without a session (tests/series.test.ts).
 export { renameWithLinkRewrite } from "./renameRoutes.ts";
@@ -450,10 +451,14 @@ api.get("/tree", async (c) => {
 
 api.get("/note", async (c) => {
   const notePath = requiredQuery(c.req.query("path"), "path");
-  if (isPublishLimited(c) && !isNotePublished(normalizeRel(notePath))) {
+  const limited = isPublishLimited(c);
+  if (limited && !isNotePublished(normalizeRel(notePath))) {
     throw new VaultError(404, `Note not found: ${normalizeRel(notePath)}`);
   }
-  return c.json(await readNote(notePath));
+  const note = await readNote(notePath);
+  // A reader gets the note without its author-only comments: the reading
+  // view never drew them, and the raw text is one "view source" away.
+  return c.json(limited ? { ...note, content: stripPrivateComments(note.content) } : note);
 });
 
 /** How many notes one revalidation may ask about. The caller is a client's set

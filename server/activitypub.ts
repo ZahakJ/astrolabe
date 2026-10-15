@@ -49,6 +49,7 @@ import { FetchRefused, safeFetch } from "./safeFetch.ts";
 import { fediverseEffective, getSettings, VERSION } from "./settings.ts";
 import { dataDir, siteLanguage, siteName, tagline } from "./site.ts";
 import { readNote } from "./vault.ts";
+import { stripPrivateComments } from "../shared/privateText.ts";
 
 export const AS_CONTEXT = "https://www.w3.org/ns/activitystreams";
 export const AS_PUBLIC = "https://www.w3.org/ns/activitystreams#Public";
@@ -408,7 +409,7 @@ export async function objectFor(post: PostMeta, origin: string, updated: string 
   const url = pageUrl(post.path, origin);
   let text = post.excerpt;
   try {
-    text = stripMarkdown(splitFrontmatter((await readNote(post.path)).content).body).trim();
+    text = stripMarkdown(stripPrivateComments(splitFrontmatter((await readNote(post.path)).content).body)).trim();
   } catch {
     /* the excerpt stands */
   }

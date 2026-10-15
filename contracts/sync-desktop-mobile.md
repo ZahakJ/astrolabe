@@ -7,7 +7,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
 - The Device-tab preferences (an allowlist in `client/prefsSync.ts`, pinned by
   `tests/prefs.test.ts`: theme, site-theme, lang, editorLang, vim, editorWidth, editorWidthCustom,
   headingNumbers, selToolbar, sidebarSide, show-attachments, graph, comment.author, whatsnew,
-  relativeLines, tags-sort, frenchAutocorrect — and, since 3.18.0, the three the owner said yes
+  relativeLines, tags-sort, typewriter, frenchAutocorrect — and, since 3.18.0, the three the owner said yes
   to: `library` (where each course was left), `properties` (the properties panel's choice) and
   `reading` (reading mode), by the same argument as a book's page: a position is the reader's,
   not the machine's) are mirrored to `<vault>/.astrolabe/prefs.json` as a map of localStorage

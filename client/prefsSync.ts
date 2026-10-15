@@ -27,6 +27,7 @@
 // Stamps are wall-clock milliseconds; newest wins per key, on both sides
 // (server/prefs.ts merges the same way). A cleared key travels as a tombstone.
 
+import { boot } from "./boot.ts";
 import { STORAGE_PREFIX } from "./storageMigration.ts";
 
 const STAMPS_KEY = `${STORAGE_PREFIX}prefs-sync`;
@@ -55,6 +56,7 @@ export const TRAVELLING_KEYS = [
   // stayed behind on their device.
   "relativeLines",
   "tags-sort",
+  "typewriter",
   // Whether your French is corrected as you type is a fact about you, not
   // about the window (client/frenchPref.ts).
   "frenchAutocorrect",
@@ -246,6 +248,13 @@ async function pushPrefs(): Promise<void> {
  *  page. */
 export async function pullPrefs(): Promise<string[]> {
   if (!prefsSyncEnabled()) return [];
+  // A page served as the public site is a reader's: the vault's preferences
+  // are admin-only, so asking cost every reader a 401 in the console and a
+  // round trip in front of the first paint.
+  if (boot.layout !== undefined) {
+    denied = true;
+    return [];
+  }
   try {
     const res = await fetch("/api/prefs", { credentials: "same-origin" });
     if (res.status === 401 || res.status === 403) {

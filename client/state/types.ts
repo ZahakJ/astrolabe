@@ -62,6 +62,9 @@ export interface State {
   /** Vim's relative line numbers in the gutter (editor/relativeLines.ts);
    *  read only while vimMode is on. Device-local, on by default. */
   relativeLines: boolean;
+  /** Typewriter scrolling: the caret's line kept at the middle of the editor
+   *  (editor/typewriter.ts). Device-local, off by default. */
+  typewriter: boolean;
   /** Which vim sub-mode the live editor is in, or null when vim is off /
    *  no editor is mounted. NOT persisted and never written by the shell —
    *  client/editor/vimStatus.ts is the only writer, forwarding vim's own
@@ -542,6 +545,7 @@ export interface State {
   setPublicTheme(theme: ThemeChoice | null): Promise<void>;
   toggleVim(): void;
   toggleRelativeLines(): void;
+  toggleTypewriter(): void;
   toggleReading(): void;
   setReadingMode(b: boolean): void;
   setPaletteOpen(b: boolean): void;

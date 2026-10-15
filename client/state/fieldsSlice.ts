@@ -8,7 +8,7 @@ import { DEFAULT_DATE_CALENDAR } from "../../shared/dates.ts";
 import { DEFAULT_LAUNCH } from "../../shared/launch.ts";
 import { DEFAULT_TEXT_ALIGN, DEFAULT_TEXT_DIRECTION } from "../../shared/textLayout.ts";
 import { NO_FOLDER_ICONS, NO_PUBLIC_FOLDERS, effectiveSide } from "./helpers.ts";
-import { PANEL_COLLAPSED_KEY, SIDEBAR_COLLAPSED_KEY, ZEN_KEY, readFlag, readReading, readRelativeLines, readSidebarSidePref, readVim } from "./persistence.ts";
+import { PANEL_COLLAPSED_KEY, SIDEBAR_COLLAPSED_KEY, ZEN_KEY, readFlag, readReading, readRelativeLines, readTypewriter, readSidebarSidePref, readVim } from "./persistence.ts";
 import type { State } from "./types.ts";
 import type { StoreCtx, StoreGet, StoreSet } from "./sliceTypes.ts";
 import * as api from "../api.ts";
@@ -33,6 +33,7 @@ export function fieldsSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
     publicTheme: null,
     vimMode: readVim(),
     relativeLines: readRelativeLines(),
+    typewriter: readTypewriter(),
     vimSubMode: null,
     readingMode: readReading(),
     paletteOpen: false,

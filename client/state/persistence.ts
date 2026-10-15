@@ -44,6 +44,7 @@ export function themeKey(): string {
 export const VIM_KEY = "astrolabe.vim";
 /** Relative line numbers beside vim keys — on by default, a device choice. */
 export const RELNUM_KEY = "astrolabe.relativeLines";
+export const TYPEWRITER_KEY = "astrolabe.typewriter";
 export const READING_KEY = "astrolabe.reading";
 const TABS_KEY = "astrolabe.tabs";
 /** The workspace supersedes `astrolabe.tabs`, and BOTH are written. The old key
@@ -93,6 +94,12 @@ export function readTheme(): ThemeChoice {
 
 export function readRelativeLines(): boolean {
   return localStorage.getItem(RELNUM_KEY) !== "false";
+}
+
+/** Typewriter scrolling (client/editor/typewriter.ts). Device-local, off by
+ *  default, travelling with the vault's preferences like vim's. */
+export function readTypewriter(): boolean {
+  return localStorage.getItem(TYPEWRITER_KEY) === "true";
 }
 
 export function readVim(): boolean {

@@ -161,7 +161,7 @@ settings KEY changes (only the rows' homes move), so nothing stored migrates.
 ## Round 2 additions
 
 Entries the index holds that no row of 3.37.0 was. The purge added one host row;
-the second pass added one part; 3.40.0 added one host; 3.42.0 added the Discord page's ten rows. `tests/settings-purge.test.ts`
+the second pass added one part; 3.40.0 added one host; 3.42.0 added the Discord page's ten rows; 3.43.0 added one device switch. `tests/settings-purge.test.ts`
 holds the index to this list: an entry that is in neither table is a row nobody
 accounted for.
 
@@ -171,13 +171,14 @@ accounted for.
 | `feedsNoteField` | `reading`, part of `rowFeeds` | The note that lists the feeds was a field beside the Feeds switch, the one row drawn as a side-by-side pair; it is a part under the switch now, and a search lands on it by name. |
 | `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the owner's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
 | `rowPresenceMode` | `presence` | How much Discord is told (3.42.0, `settings.presence.mode`): the first row of the Discord page, a new page rather than a move — no row of 3.37.0 spoke to Discord. |
-| `rowPresenceClientId` | `presence` | The Discord application id the presence connects with; empty while the placeholder in `shared/presence/config.ts` stands. |
+| `rowPresenceClientId` | `presence` | Behind Advanced: an optional Discord application id of one's own, in place of the built-in `DEFAULT_DISCORD_CLIENT_ID` (3.43.0). |
 | `rowPresenceIdleAfter` | `presence` | How long without input before the presence counts as away. |
 | `rowPresenceIdle` | `presence` | What away does: clear the presence, or show Idle. |
 | `rowPresenceVaultName` | `presence` | The vault folder's name (never a path) on the card. |
 | `rowPresenceElapsed` | `presence` | Discord's timer: none, since the note, since launch. |
 | `rowPresenceButton` | `presence` | A blog button on the card; inert while visitors land in the app. |
 | `rowPresenceServer` | `presence` | A self-hosted server speaks to a Discord on its own machine; drawn inert in the desktop app, which owns the connection. |
+| `rowTypewriter` | `device` | Typewriter scrolling (3.43.0, `astrolabe.typewriter`): the writing line held at the middle of the editor. A device switch beside Vim keys, kept with the synced preferences. |
 | `rowPresenceStatus` | `presence` | Who speaks to Discord for this vault and what it shows, polled while the page is open. |
 | `rowPresenceAssets` | `presence` | Behind Advanced: images from the project site or uploaded to the portal. |
 

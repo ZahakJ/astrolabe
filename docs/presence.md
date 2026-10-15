@@ -36,22 +36,11 @@ When several tabs are open — a laptop and a phone, two windows — the one you
 
 ## Setting it up
 
-Discord only shows activity from an *application* it knows, and only you can create yours. It takes two minutes:
-
-1. Open the [Discord Developer Portal](https://discord.com/developers/applications) and press **New Application**.
-2. Name it **Astrolabe**. That name is the first line of the card, so call it whatever you want your friends to read.
-3. On the page that opens (**General Information**), copy the **Application ID** — a number of 17 to 20 digits.
-4. In Astrolabe, open **Settings → Discord → Application id**, paste it, set **Mode** to *Activity* or *With title*, and press **Save**.
+Set **Settings → Discord → Mode** to *Activity* or *With title*, and press **Save**. Astrolabe ships with its own Discord application, so there is nothing to create or paste.
 
 The **Status** row at the foot of the page says what happened: *Connected through the desktop app*, and under it what Discord is showing right now. If it says something else, see [When it does not show](#when-it-does-not-show).
 
-If you build Astrolabe yourself and would rather the id lived in the code, replace the placeholder in `shared/presence/config.ts`:
-
-```ts
-export const PRESENCE_APPLICATION_ID = "123456789012345678";
-```
-
-An id in **Settings → Discord → Application id** still overrides it.
+To show your activity under an application of your own — your own name on the first line of the card — create one in the [Discord Developer Portal](https://discord.com/developers/applications) (**New Application**, then copy the **Application ID** from **General Information**) and paste it into **Settings → Discord → Advanced → Application id**. In a build of your own, `DEFAULT_DISCORD_CLIENT_ID` in `shared/presence/config.ts` is the built-in id. While neither is set, presence stays off.
 
 The other rows on the page:
 
@@ -105,7 +94,19 @@ A note with `presence: false` in its frontmatter is shown as **Writing** or **Re
 
 The mark and the eight small pictures are PNG files of 1024 × 1024 pixels in [`docs/brand/presence/`](brand/presence/), and Discord fetches them from the project's own pages site. Nothing to upload.
 
-If you would rather Discord kept its own copies — or your network keeps Discord from fetching outside images — upload them instead: in the Developer Portal open your application, **Rich Presence → Art Assets**, and add each PNG under its file name without `.png` (`mark`, `pen`, `page`, `book`, `cards`, `brush`, `shelf`, `compass`, `moon`). Then set **Settings → Discord → Advanced → Image source** to *Uploaded to Discord*.
+If you would rather Discord kept its own copies — or your network keeps Discord from fetching outside images — upload them instead: in the Developer Portal open the application, **Rich Presence → Art Assets**, and add each PNG under its key, the file name without `.png`. Then set **Settings → Discord → Advanced → Image source** to *Uploaded to Discord*.
+
+| Key | Shown as | When |
+| --- | --- | --- |
+| `mark` | large image | always |
+| `pen` | small image | writing a note |
+| `page` | small image | reading a note |
+| `book` | small image | reading a book |
+| `cards` | small image | reviewing cards |
+| `brush` | small image | drawing |
+| `shelf` | small image | in the library or on the Media page |
+| `compass` | small image | anywhere else |
+| `moon` | small image | idle |
 
 The pictures are drawn by `scripts/shoot-presence-assets.mjs` from the SVG files beside them; the mark is generated from the same geometry as the app icon.
 

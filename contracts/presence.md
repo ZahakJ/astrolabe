@@ -28,7 +28,7 @@ Applied on the server before anything leaves the process, whatever the client se
 - A note with `presence: false`, or carrying any of `excludeTags`, keeps its title whatever the mode; its kind is still shown.
 - Counts (`cardsLeft`) say nothing about the vault and are always allowed. The vault's NAME (a name, never a path) only with `vaultName`. The blog button only with `button`, a blog or designed layout and an https `SITE_URL`.
 - Every string is cut to Discord's limits (128; a button label 32, its URL 512).
-- `clientId` falls back to `PRESENCE_APPLICATION_ID` in `shared/presence/config.ts`; while that is the placeholder and settings carry no id, nothing connects and the status row says "paste the application id".
+- `clientId` falls back to `DEFAULT_DISCORD_CLIENT_ID` in `shared/presence/config.ts`, the built-in application (a client id is public). The Settings field is an optional override under Advanced. While neither is a valid id, nothing connects and the status row says only that presence is off — no error.
 
 ## The rate, and leaving
 

@@ -620,6 +620,20 @@ in `astrolabe.editorWidthCustom` (`normalizeCustomWidth`: 320–2400px or 30–1
 `--editor-measure` inline on `<html>`, applied on every keystroke of the field. Settings → This
 device row.
 
+## Typewriter scrolling and the word goal
+
+- **Typewriter** (`client/editor/typewriter.ts`, `astrolabe.typewriter`, synced with the vault's
+  preferences, off by default; Settings beside Vim keys and a palette row). A
+  `transactionExtender` adds `EditorView.scrollIntoView(head, {y: "center"})` to the transaction
+  that moved the caret — no second dispatch — for typing, deletion, undo/redo and keyboard
+  selection, never for `select.pointer`: a click selects where the reader pointed and the page
+  stays put. `scrollPastEnd()` lets the last line reach the middle. A compartment, toggled live.
+- **Word goal** (`shared/wordGoal.ts`). `goal:` in the leading frontmatter, as a plain number in
+  Latin or Arabic-Indic digits with `,`/`_`/space grouping; any other value is the writer's own
+  property and is left alone. The status bar's count reads `{n} / {goal}` against the live count
+  (the same `shared/wordCount.ts` rule as everywhere), with a 2px bar filling from the inline
+  start, and takes the accent once met. Nothing else reads it.
+
 ## Find in the note, replace across the vault
 
 `Ctrl/Cmd+F` opens CodeMirror's search with OUR panel (`client/editor/searchPanel.ts`, wired through

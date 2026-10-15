@@ -452,7 +452,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // highlight round beside it. 913 → 915.
 // DISCORD PRESENCE (next: 3.42.0): 914.8 → 919.3 kB, the entry's +4.4 kB of
 // dictionary and mount condition, nothing of the phone shell's. 915 → 920.
-const PHONE_BUDGET = 920 * 1024;
+// 3.43.0, ARABIC MARKS AND SCHEDULED POSTS: 919.3 → 922.3 kB, the entry's
+// +2.8 kB (above) and the phone's own converted labels. 920 → 923.
+const PHONE_BUDGET = 923 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1147,7 +1149,11 @@ const AUDIENCES = [
   // hundred bytes, is client/main.tsx's mount condition for the lazy reporter
   // and the store's `presenceOn`. The reporter, the page and the deck are lazy.
   // 786 → 790.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 790 * 1024 },
+  // 3.43.0, ARABIC MARKS AND SCHEDULED POSTS: 789.4 → 792.2 kB against 84d12407:
+  // the ~110 one-line labels now `overflow: clip visible; min-width: 0` and the
+  // three leading tokens (stylesheets every page links), the status bar's word
+  // goal and scheduled pill, and shared/publishAt.ts's parser. 790 → 793.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 793 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1558,7 +1564,11 @@ const AUDIENCES = [
   // 1098 → 1100.
   // DISCORD PRESENCE (next: 3.42.0): 1098.6 → 1102.9 kB, the entry's
   // +4.4 kB and nothing of the blog's own (see the entry's note). 1100 → 1104.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1104 * 1024 },
+  // 3.43.0, ARABIC MARKS AND SCHEDULED POSTS: 1102.9 → 1106.3 kB against 84d12407:
+  // the ~110 one-line labels now `overflow: clip visible; min-width: 0` and the
+  // three leading tokens (stylesheets every page links), the status bar's word
+  // goal and scheduled pill, and shared/publishAt.ts's parser, the readers' share of the same. 1104 → 1107.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1107 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1871,7 +1881,10 @@ const AUDIENCES = [
   // else. 1049 → 1050.
   // DISCORD PRESENCE (next: 3.42.0): 1049.2 → 1053.6 kB, the entry's +4.4 kB
   // and nothing else — the settings page and the reporter are lazy. 1050 → 1054.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1054 * 1024 },
+  // 3.43.0, ARABIC MARKS AND SCHEDULED POSTS: 1053.6 → 1057.9 kB, the entry's
+  // +2.8 kB (above), the admin's converted labels, and the typewriter switch
+  // (its Settings row, palette row and store field). 1054 → 1058.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1058 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The

@@ -7,6 +7,7 @@ import matter from "gray-matter";
 // here, which is where the product has always asked for it.
 import { yamlQuote } from "../shared/yaml.ts";
 import { splitFrontmatter } from "../shared/noteParse.ts";
+import { publishAtMs, publishedAt } from "../shared/publishAt.ts";
 export { yamlQuote };
 
 /** Read frontmatter data without touching the body. Tolerates bad YAML.
@@ -25,8 +26,16 @@ export function readFrontmatter(src: string): Record<string, unknown> {
 
 /** Publish check on already-parsed frontmatter (callers that need other
  *  frontmatter fields too parse once and reuse). */
-export function publishFlag(fm: Record<string, unknown>): boolean {
-  return fm.publish === true || fm.publish === "true";
+export function publishFlag(fm: Record<string, unknown>, now = Date.now()): boolean {
+  return publishedAt(fm.publish, now);
+}
+
+/** The future moment a `publish:` date names, or null: a note that will
+ *  publish itself (shared/publishAt.ts), which the index hands to the
+ *  release timer (server/publishSchedule.ts). */
+export function scheduledPublish(fm: Record<string, unknown>, now = Date.now()): number | null {
+  const at = publishAtMs(fm.publish);
+  return at !== null && at > now ? at : null;
 }
 
 export function isPublished(src: string): boolean {

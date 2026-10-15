@@ -613,6 +613,12 @@ export const COMMANDS: Command[] = [
     available: ({ admin }) => admin,
   },
   {
+    id: "toggle-typewriter",
+    label: () => t("cmdTypewriter"),
+    hint: () => t("cmdEditorHint"),
+    available: ({ admin }) => admin,
+  },
+  {
     // THE NIGHT LIGHT'S ONE-KEY SWITCH. The sliders live on the settings
     // panel's device tab; this is the row for the reader whose eyes are
     // already tired and who does not want to find a slider. Everybody gets
@@ -1184,6 +1190,9 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "toggle-vim":
       store.toggleVim();
+      break;
+    case "toggle-typewriter":
+      store.toggleTypewriter();
       break;
     case "warm-screen":
       toggleWarmth();

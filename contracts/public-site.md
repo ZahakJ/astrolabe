@@ -139,6 +139,26 @@ What a visitor sees: the blog shell, publishing and topics, collections, and the
   uses, never a bulk endpoint, so the two can never disagree about what `publish: true` means or
   who may write it. Offered on folders only, never on the vault root.
 
+## Scheduled publishing (shared/publishAt.ts, server/publishSchedule.ts)
+
+`publish:` takes `true` or a moment. `publishAtMs` reads `YYYY-MM-DD`, `YYYY-MM-DD HH:MM[:SS]`
+and the `T` form, with an optional zone; without one the moment is local to the server, and a bare
+date (which YAML hands over as UTC midnight) is that calendar day's local midnight. Anything else —
+`soon`, `2026-02-31` — is not a date and does not publish. No new key: a future `date:` never hides
+a post, and Obsidian reads one ordinary property.
+
+- **One answer for every side.** `publishFlag(fm, now)` is `publishedAt(fm.publish, now)`, and the
+  status bar's `isPublishedContent` / `scheduledAtContent` read the same parser, so the editor never
+  says Published over a note the site is still withholding.
+- **The index hands the moment to one timer.** Each note read with a future `publish:` goes to
+  `setScheduledPublish(path, at)` (and `null` when it no longer has one, or is deleted); one
+  `setTimeout`, armed for the earliest, capped at 2³¹−1 ms and unref'd, emits `{kind: "changed"}`
+  for each due note — the save's own event, so the note is re-read, the derived lists rebuilt and
+  every tab and the feed told, by the path a save takes.
+- **Dated by its moment.** `dateMs` reads `date:` first and the `publish:` moment second, so a
+  scheduled post without a `date:` is listed at the minute it went out.
+- The status bar draws **◷ Scheduled · {when}** in the instance's calendar; the toggle publishes now.
+
 ## Collections and categories (shared/publicFolders.ts, server/indexer.ts collectionRows, client/components/CollectionsPopover.tsx)
 
 **FOLDER NOTES ARE WHERE A FOLDER'S FACTS LIVE (2.10).** `shared/folderNote.ts`: `folderOfNote(path)`

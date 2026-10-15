@@ -3,26 +3,23 @@
 
 import type { PresenceKind } from "./types.ts";
 
-/** THE DISCORD APPLICATION ID, OR RATHER WHERE IT GOES.
- *
- *  Only the owner can create the Discord application (discord.com/developers
- *  → New Application → copy the Application ID from General Information).
- *  Paste it either here, in place of this constant, or — without touching the
- *  code — into Settings → Discord → Application id, which overrides this.
- *  While this placeholder stands and settings carry no id, nothing connects
- *  and the status row says so. */
-export const PRESENCE_APPLICATION_ID = "PASTE_YOUR_DISCORD_APPLICATION_ID";
+/** The Discord application presence speaks for, built in, as every app with
+ *  Rich Presence ships one: a client id is public, not a secret, and nobody
+ *  should have to make a Discord application to see their activity. Settings
+ *  → Discord → Advanced → Application id overrides it with one's own. Empty
+ *  means there is no application yet: presence then stays off, quietly. */
+export const DEFAULT_DISCORD_CLIENT_ID = "";
 
 /** A Discord snowflake: 17–20 decimal digits. */
 export function isApplicationId(value: unknown): value is string {
   return typeof value === "string" && /^\d{17,20}$/.test(value);
 }
 
-/** The id in force: the setting when set, else the constant when it has been
- *  replaced with a real id, else null. */
+/** The id in force: the setting when set, else the built-in one when there
+ *  is one, else null. */
 export function resolveApplicationId(settingsId: string | undefined | null): string | null {
   if (isApplicationId(settingsId)) return settingsId;
-  if (isApplicationId(PRESENCE_APPLICATION_ID)) return PRESENCE_APPLICATION_ID;
+  if (isApplicationId(DEFAULT_DISCORD_CLIENT_ID)) return DEFAULT_DISCORD_CLIENT_ID;
   return null;
 }
 

@@ -15,6 +15,8 @@ import { cleanContextLine, contextProse, expandedContext, stripMarkdown } from "
 import { dailyFolder, getSettings } from "../settings.ts";
 import { excludedTags } from "../site.ts";
 import { findAnyMatches, findMatches, foldQuery, foldTerm } from "../../shared/fold.ts";
+import { stripPrivateComments } from "../../shared/privateText.ts";
+import { snippetOf } from "../../shared/snippet.ts";
 import { isDue } from "../../shared/srs.ts";
 import { linkCandidates, resolveLink, resolveXref, twinOf } from "./resolve.ts";
 import { markHtml, windowAround } from "../../shared/snippet.ts";
@@ -532,10 +534,25 @@ export function search(
     })
     .sort((a, b) => a.tier - b.tier || a.order - b.order);
 
-  const hits: SearchHit[] = ranked.slice(0, 50).map(({ result, record, id, title }) => ({
+  // A visitor's hit has to stand on what the visitor can read: a note found
+  // only by words inside its comments is not found, and its snippet is cut
+  // from the text with the comments taken out.
+  const readable = publishedOnly
+    ? ranked.filter(({ result, record }) => {
+        if (record === undefined) return true;
+        const terms = Object.keys(result.match);
+        if (terms.some((t) => result.match[t].some((field) => field !== "body"))) return true;
+        return findAnyMatches(publicFlatBody(record), terms, 1).length > 0;
+      })
+    : ranked;
+  const hits: SearchHit[] = readable.slice(0, 50).map(({ result, record, id, title }) => ({
     path: id,
     title,
-    snippet: record ? makeSnippet(record, Object.keys(result.match)) : "",
+    snippet: record
+      ? publishedOnly
+        ? snippetOf(publicFlatBody(record), Object.keys(result.match))
+        : makeSnippet(record, Object.keys(result.match))
+      : "",
     score: result.score,
     ...(record ? aliasReason(record, result.match, qLower) : {}),
   }));
@@ -965,7 +982,7 @@ export function searchMatches(
   const terms = searchTerms(query, opts.expandTerms);
   if (terms.length === 0) return [];
   const out: SearchMatch[] = [];
-  const lines = record.body.split("\n");
+  const lines = (publishedOnly && record.prose === null ? stripPrivateComments(record.body) : record.body).split("\n");
   for (let i = 0; i < lines.length && out.length < SEARCH_MATCHES_MAX; i++) {
     // `.tex` lines are quoted raw (same reasoning as backlink context: the
     // markdown cleaner would mangle them, and the editor shows this source).
@@ -1106,6 +1123,21 @@ const MAX_SNIPPET_SOURCE_CHARS = 128 * 1024;
 /** Prose-stripped, whitespace-collapsed body — computed once per record and
  *  cached (records are replaced on reindex), input capped so a single huge
  *  note can't stall a search response. */
+/** flatBody for a visitor: the same text with `<!-- -->` and `%% %%` taken out
+ *  first, so a search can neither match nor quote what only the author reads.
+ *  A `.tex` note's prose has no Markdown comments to take out. */
+function publicFlatBody(record: NoteRecord): string {
+  if (record.prose !== null) return flatBody(record);
+  if (record.publicFlat === undefined) {
+    const body = record.body.slice(0, MAX_SNIPPET_SOURCE_CHARS);
+    record.publicFlat =
+      body.includes("<!--") || body.includes("%%")
+        ? stripMarkdown(stripPrivateComments(body)).replace(/\s+/g, " ").trim()
+        : flatBody(record);
+  }
+  return record.publicFlat;
+}
+
 export function flatBody(record: NoteRecord): string {
   if (record.flat === null) {
     // A `.tex` note arrives with its prose already extracted (the parse is

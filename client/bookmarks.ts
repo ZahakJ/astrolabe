@@ -6,7 +6,7 @@
 
 import { createNote, getNote, putNote } from "./api.ts";
 import { BOOKMARKS_PATH, addBookmark, isBookmarked, parseBookmarks, removeBookmark, reorderBookmarks, type BookmarkItem } from "../shared/bookmarks.ts";
-import { markSelfWrite } from "./state.ts";
+import { markSelfWrite, useStore } from "./state.ts";
 
 export const BOOKMARKS_EVENT = "astrolabe:bookmarks";
 
@@ -23,7 +23,13 @@ export function bookmarksNow(): BookmarkItem[] {
 export function loadBookmarks(force = false): Promise<BookmarkItem[]> {
   if (!force && known) return Promise.resolve(bookmarksNow());
   if (inflight) return inflight;
-  inflight = getNote(BOOKMARKS_PATH)
+  // The tree already says whether the note exists. Asking anyway cost every
+  // vault without bookmarks a 404 in the console on each load. A forced read
+  // (the vault said the note changed) asks regardless: the tree may not have
+  // caught up with the event yet.
+  const tree = useStore.getState().tree;
+  const absent = !force && tree !== null && !(tree.children ?? []).some((n) => n.path === BOOKMARKS_PATH);
+  inflight = (absent ? Promise.reject(new Error("no bookmarks")) : getNote(BOOKMARKS_PATH))
     .then((note) => {
       content = note.content;
       mtimeMs = note.mtimeMs;

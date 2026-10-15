@@ -502,6 +502,137 @@ function presenceModesSvg(lang: Lang): string {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.43.0",
+    title: { en: "Written now, out later", ar: "يُكتب الآن ويخرج لاحقًا" },
+    slides: [
+      {
+        // ── publish: <date> → the pill says when → the post appears on the blog ──
+        title: { en: "Schedule a post", ar: "جدولة تدوينة" },
+        body: {
+          en: "Give publish: a date or a time instead of true, and the note publishes itself then: publish: 2026-11-02 09:30. Until that minute it is a draft everywhere a reader can reach; at that minute it goes out to the blog, the feed and search, dated by the moment it went out. The status bar says Scheduled and when; pressing it publishes the note now instead.",
+          ar: "أعطِ publish: تاريخًا أو وقتًا بدل true، فتنشر الملاحظة نفسها حينئذ: publish: 2026-11-02 09:30. وهي حتى تلك الدقيقة مسوّدة في كل مكان يبلغه القارئ؛ وفيها تخرج إلى المدونة والخلاصة والبحث، ويكون تاريخها لحظةَ خروجها. ويقول شريط الحالة «مجدولة» ومتى؛ والضغط عليه ينشرها الآن بدل ذلك.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <text x="30" y="36" fill="var(--text-faint)" font-size="9">${L(lang, "the note's frontmatter", "مقدّمة الملاحظة")}</text>
+  <rect x="28" y="44" width="230" height="72" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g font-family="ui-monospace, monospace" font-size="11" fill="var(--text)">
+    <text x="40" y="66">---</text>
+    <text x="40" y="84">publish: <tspan fill="var(--accent)">2026-11-02 09:30</tspan></text>
+    <text x="40" y="102">---</text>
+  </g>
+  <g class="wa-late" style="--i:1">
+    <rect x="28" y="140" width="230" height="30" rx="15" fill="var(--bg)" stroke="var(--accent)"/>
+    <text x="143" y="159" text-anchor="middle" fill="var(--accent)" font-size="12">◷ ${L(lang, "Scheduled · 2 Nov, 9:30", "مجدولة · 2 نوفمبر، 9:30")}</text>
+  </g>
+  <path class="wa-draw" d="M272 108 h34" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <g class="wa-late" style="--i:2">
+    <rect x="318" y="44" width="212" height="126" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="334" y="68" fill="var(--text-faint)" font-size="9">${L(lang, "the blog, at 9:30", "المدونة، في 9:30")}</text>
+    <rect x="334" y="80" width="180" height="38" rx="6" fill="var(--accent-soft)" stroke="var(--accent)"/>
+    <text x="346" y="96" fill="var(--text)" font-size="12" font-weight="700">${L(lang, "On marginalia", "في الهوامش")}</text>
+    <text x="346" y="111" fill="var(--text-muted)" font-size="9">${L(lang, "2 Nov · 6 min read", "2 نوفمبر · 6 دقائق قراءة")}</text>
+    <rect x="334" y="128" width="180" height="10" rx="3" fill="var(--bg-hover)"/>
+    <rect x="334" y="146" width="140" height="10" rx="3" fill="var(--bg-hover)"/>
+  </g>
+</svg>`,
+        },
+        docs: "publishing",
+      },
+      {
+        // ── goal: 3000 → the count against it, a hairline filling toward it ──
+        title: { en: "A word goal", ar: "هدف للكلمات" },
+        body: {
+          en: "Put goal: 3000 in a note's frontmatter and the status bar counts against it: 1,240 / 3,000 words, with a hairline underneath that fills as you write and takes the accent when the goal is met. The goal is a property of the note, so it travels with the vault, and it uses the same word count the blog's reading time does.",
+          ar: "ضع goal: 3000 في مقدّمة الملاحظة فيعدّ شريط الحالة في مقابله: 1240 من أصل 3000 كلمة، وتحته خطّ رفيع يمتلئ وأنت تكتب ويأخذ لون التمييز حين تبلغ الهدف. والهدف خاصية من خصائص الملاحظة، فيرحل مع الخزانة، ويعدّ بالقاعدة نفسها التي تحسب بها المدونة مدة القراءة.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="28" y="40" width="200" height="56" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g font-family="ui-monospace, monospace" font-size="11" fill="var(--text)">
+    <text x="40" y="62">---</text>
+    <text x="40" y="80">goal: <tspan fill="var(--accent)">3000</tspan></text>
+  </g>
+  <g class="wa-late" style="--i:1">
+    <rect x="28" y="130" width="504" height="40" rx="6" fill="var(--bg)" stroke="var(--border)"/>
+    <text x="48" y="155" fill="var(--text)" font-size="13">${L(lang, "1,240 / 3,000 words", "1240 من أصل 3000 كلمة")}</text>
+    <text x="250" y="155" fill="var(--text-faint)" font-size="12">·  ${L(lang, "7,410 chars  ·  6 min read", "7410 حرفًا  ·  6 دقائق قراءة")}</text>
+    <rect x="48" y="161" width="150" height="2" rx="1" fill="var(--border)"/>
+  </g>
+  <rect class="wa-late" style="--i:2" x="48" y="161" width="62" height="2" rx="1" fill="var(--accent)"/>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        // ── The writing line held at the middle while the text moves past ──
+        title: { en: "Typewriter scrolling", ar: "تمرير الآلة الكاتبة" },
+        body: {
+          en: "Switch on Typewriter scrolling (in Settings, beside Vim keys, or from the palette) and the line you are writing stays in the middle of the editor, so your eyes rest in one place while the text moves up past them. Typing and the arrow keys move the page; a click does not, so the text never jumps out from under the pointer. It is a setting of this device, kept with your other preferences.",
+          ar: "شغّل «تمرير الآلة الكاتبة» (في الإعدادات بجوار مفاتيح Vim، أو من لوحة الأوامر) فيبقى السطر الذي تكتبه في وسط المحرر، فتستقر عيناك في موضع واحد والنص يصعد أمامهما. الكتابة ومفاتيح الأسهم تحرّك الصفحة؛ أما النقر فلا، فلا يقفز النص من تحت المؤشر أبدًا. وهو إعداد لهذا الجهاز، يُحفظ مع تفضيلاتك الأخرى.",
+        },
+        visual: {
+          kind: "svg",
+          svg: () => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <rect x="120" y="26" width="320" height="168" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g class="wa-late" style="--i:1" fill="var(--bg-hover)">
+    <rect x="144" y="44" width="250" height="8" rx="3"/>
+    <rect x="144" y="64" width="270" height="8" rx="3"/>
+    <rect x="144" y="84" width="210" height="8" rx="3"/>
+  </g>
+  <rect x="132" y="100" width="296" height="22" rx="4" fill="var(--accent-soft)"/>
+  <rect x="144" y="107" width="160" height="8" rx="3" fill="var(--text-muted)"/>
+  <rect class="wa-late" style="--i:2" x="308" y="104" width="2" height="14" fill="var(--accent)"/>
+  <g fill="var(--bg-hover)" opacity="0.6">
+    <rect x="144" y="136" width="230" height="8" rx="3"/>
+    <rect x="144" y="156" width="190" height="8" rx="3"/>
+  </g>
+  <path class="wa-draw" d="M462 150 v-80" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <path class="wa-late" style="--i:3" d="M456 78 l6 -10 l6 10" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+  <path d="M100 111 h12 M448 111 h12" stroke="var(--border)" stroke-dasharray="2 3"/>
+</svg>`,
+        },
+        docs: "editor",
+      },
+      {
+        // ── A vocalised heading: before, the lines collide; now, they breathe ──
+        title: { en: "Arabic, whole", ar: "العربية كاملة" },
+        body: {
+          en: "Arabic marks sit above and below the line, and in several places they were being cut or run together: the shadda and damma over a tab title or an outline row, the kasra of one heading line meeting the damma of the next, the hairline under a title running through its descenders. Headings and titles written right to left now take the room their marks need, single-line labels clip only sideways, and a long note's outline no longer squeezes its rows. English text keeps its own spacing.",
+          ar: "تقع علامات العربية فوق السطر وتحته، وكانت تُقطع أو تتداخل في مواضع عدة: الشدّة والضمّة فوق عنوان تبويب أو صفّ في المخطط، وكسرة سطر من العنوان تلتقي بضمّة السطر الذي يليه، والخطّ الرفيع تحت العنوان يمرّ بين حروفه النازلة. والآن تأخذ العناوين المكتوبة من اليمين إلى اليسار المسافة التي تحتاجها علاماتها، ولا تُقصّ تسميات السطر الواحد إلا من الجانبين، ولم يعد مخطط الملاحظة الطويلة يضغط صفوفه. ويحتفظ النص الإنجليزي بتباعده الخاص.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Naskh Arabic', serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g font-family="ui-sans-serif, system-ui, sans-serif" font-size="9" fill="var(--text-faint)">
+    <text x="146" y="34" text-anchor="middle">${L(lang, "before", "قبل")}</text>
+    <text x="414" y="34" text-anchor="middle">${L(lang, "now", "الآن")}</text>
+  </g>
+  <rect x="28" y="42" width="236" height="150" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+  <g direction="rtl" text-anchor="end" font-size="22" font-weight="700" fill="var(--text)">
+    <text x="250" y="88">عُنْوَانٌ طَوِيلٌ بِالتَّشْكِيلِ</text>
+    <text x="250" y="114">فِي أُصُولِ اليَقِينِ</text>
+  </g>
+  <path d="M40 121 h212" stroke="var(--text-muted)" stroke-width="1"/>
+  <rect x="296" y="42" width="236" height="150" rx="8" fill="var(--bg)" stroke="var(--accent)"/>
+  <g class="wa-late" style="--i:1" direction="rtl" text-anchor="end" font-size="22" font-weight="700" fill="var(--text)">
+    <text x="518" y="88">عُنْوَانٌ طَوِيلٌ بِالتَّشْكِيلِ</text>
+    <text x="518" y="126">فِي أُصُولِ اليَقِينِ</text>
+  </g>
+  <path class="wa-draw" d="M308 150 h212" stroke="var(--text-muted)" stroke-width="1"/>
+</svg>`,
+        },
+        docs: "arabic-and-rtl",
+      },
+    ],
+  },
+  {
     version: "3.42.0",
     title: { en: "Discord presence", ar: "الحضور على Discord" },
     slides: [

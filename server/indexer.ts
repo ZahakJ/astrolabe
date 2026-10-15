@@ -22,7 +22,9 @@ import { markdownAnchors, type NoteAnchor } from "../shared/anchors.ts";
 import { linkKeys, parseAssets, parseFmDate, parseLinks, parseTags, scalarProps, splitFrontmatter, bannerOf, wikilinkRegex } from "../shared/noteParse.ts";
 export { wikilinkRegex };
 import { pageFlag } from "./pages.ts";
-import { publishFlag, readFrontmatter } from "./publish.ts";
+import { publishFlag, readFrontmatter, scheduledPublish } from "./publish.ts";
+import { setScheduledPublish } from "./publishSchedule.ts";
+import { publishAtMs } from "../shared/publishAt.ts";
 import { parseAliases, parseFace, parseFolders, parseTwin, readNoteFrontmatter } from "./noteFrontmatter.ts";
 import { scanTrackers, type Tracker } from "../shared/tracker.ts";
 import { scanRoutines, type RoutineBlock } from "../shared/routine.ts";
@@ -58,6 +60,9 @@ export interface NoteRecord {
   path: string;
   title: string;
   body: string; // content minus frontmatter
+  /** `flatBody` with the author-only comments taken out (stripPrivateComments):
+   *  what a visitor's search may match and quote. Filled lazily. */
+  publicFlat?: string;
   /** How many source lines the frontmatter block occupied (0 when none, and 0
    *  for `.tex`, whose `body` IS the full file). Every `lineIdx` in this
    *  record counts inside `body`, but the editor and the reading view count
@@ -832,6 +837,8 @@ async function applyIndexFile(relPath: string): Promise<void> {
     banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
+      // A post that publishes itself is dated by the moment it goes out.
+      publishAtMs(fm.publish) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
       // A numeric `id` is the stamp the template minted when the note was
@@ -861,6 +868,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
   byPathLower.set(relPath.toLowerCase(), relPath);
   addKeys(record);
   if (record.published) publishedSet.add(relPath);
+  setScheduledPublish(relPath, scheduledPublish(fm));
   invalidateDerived();
   if (graphSignature(record) !== wasGraph) graphRev++;
   if (shelfSignature(record) !== wasShelf) shelfRev++;
@@ -1171,6 +1179,8 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     banner: bannerOf(fm),
     dateMs:
       parseFmDate(fm.date) ??
+      // A post that publishes itself is dated by the moment it goes out.
+      publishAtMs(fm.publish) ??
       parseFmDate(fm.created) ??
       parseFmDate(fm.published) ??
       // A numeric `id` is the stamp the template minted when the note was
@@ -1192,6 +1202,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
   byPathLower.set(relPath.toLowerCase(), relPath);
   addKeys(record);
   if (record.published) publishedSet.add(relPath);
+  setScheduledPublish(relPath, scheduledPublish(fm));
   invalidateDerived();
   if (graphSignature(record) !== wasGraph) graphRev++;
   if (shelfSignature(record) !== wasShelf) shelfRev++;
@@ -1226,6 +1237,7 @@ function removeFile(relPath: string, reindexing = false): void {
   removeName(noteTitleOf(relPath), relPath);
   if (byPathLower.get(relPath.toLowerCase()) === relPath) byPathLower.delete(relPath.toLowerCase());
   publishedSet.delete(relPath);
+  if (!reindexing) setScheduledPublish(relPath, null);
   invalidateDerived();
   if (mini.has(relPath)) {
     mini.discard(relPath);

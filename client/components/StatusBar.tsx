@@ -16,7 +16,8 @@ import { createPortal } from "react-dom";
 import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { MetaSep } from "../metaSep.tsx";
-import { isPublishedContent } from "../publish.ts";
+import { isPublishedContent, scheduledAtContent } from "../publish.ts";
+import { goalProgress, wordGoalOf } from "../../shared/wordGoal.ts";
 import { useStore } from "../state.ts";
 import { activeTabOf, isCalendarTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isTodayTab, paneAt, surfaceOf, type PaneSurface } from "../workspace.ts";
 import { titleOf } from "./Tabs.tsx";
@@ -47,6 +48,7 @@ import { relativeDate } from "../dates.ts";
 import { desktop } from "../desktop/bridge.ts";
 import { inAndroidShell, returnToShell } from "../androidShell.ts";
 import { chromeLangSwitch } from "../chromeLangSwitch.ts";
+import { siteDate } from "../dates.ts";
 
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
@@ -70,6 +72,19 @@ const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
  *  vault that was silently opening at 158% every morning because Chromium had
  *  remembered five presses of Ctrl+= under host 127.0.0.1 and nothing in the
  *  app could read them (windows-plan defect G). */
+/** When a scheduled note goes out, in the instance's calendar: the day, and
+ *  the hour unless it is midnight (a bare `publish: 2026-11-02`). */
+function formatWhen(ms: number): string {
+  const d = new Date(ms);
+  const midnight = d.getHours() === 0 && d.getMinutes() === 0;
+  return siteDate(d, useStore.getState().blogLocale, {
+    month: "short",
+    day: "numeric",
+    ...(d.getFullYear() === new Date().getFullYear() ? {} : { year: "numeric" }),
+    ...(midnight ? {} : { hour: "numeric", minute: "2-digit" }),
+  });
+}
+
 function ZoomChip() {
   const zoom = useStore((s) => s.desktopZoom);
   const pct = Math.round(zoom * 100);
@@ -404,6 +419,10 @@ export default function StatusBar() {
   // per note open to read two frontmatter keys would be a request nobody
   // asked for. Re-resolved whenever the site default moves, too.
   const [layout, setLayout] = useState<NoteLayout | null>(null);
+  // Two frontmatter facts the bar draws: the word goal (shared/wordGoal.ts)
+  // and a `publish:` date still to come (shared/publishAt.ts).
+  const [goal, setGoal] = useState<number | null>(null);
+  const [scheduledAt, setScheduledAt] = useState<number | null>(null);
   const [hardWrapped, setHardWrapped] = useState(false);
   const siteDir = useStore((s) => s.textDirection);
   const siteAlign = useStore((s) => s.textAlign);
@@ -434,6 +453,8 @@ export default function StatusBar() {
           );
           setLayout(noteLayout(note.content));
           setHardWrapped(isHardWrapped(note.content));
+          setGoal(wordGoalOf(note.content));
+          setScheduledAt(scheduledAtContent(note.content));
           // Single source for the open note's publish state: its frontmatter.
           const s = useStore.getState();
           if (s.openPath === openPath) s.setOpenPublished(isPublishedContent(note.content));
@@ -1038,7 +1059,24 @@ export default function StatusBar() {
                 </>
               ) : (
                 <>
-                  {countPhrase(live ? live.words : (counts?.words ?? 0), "words")}
+                  {goal !== null ? (
+                    // Against the goal: the count, the target, and a hairline
+                    // that fills toward it — ticked once it is reached.
+                    <span
+                      className={`s-statusbar__goal${(live ? live.words : (counts?.words ?? 0)) >= goal ? " s-statusbar__goal--met" : ""}`}
+                      title={t("statusGoalTitle")}
+                    >
+                      {tf("statusWordsGoal", {
+                        n: localeNum(live ? live.words : (counts?.words ?? 0)),
+                        goal: countPhrase(goal, "words"),
+                      })}
+                      <span className="s-statusbar__goalbar" aria-hidden="true">
+                        <span style={{ inlineSize: `${goalProgress(live ? live.words : (counts?.words ?? 0), goal) * 100}%` }} />
+                      </span>
+                    </span>
+                  ) : (
+                    countPhrase(live ? live.words : (counts?.words ?? 0), "words")
+                  )}
                   <MetaSep />
                   {countPhrase(live ? live.chars : (counts?.chars ?? 0), "chars")}
                   {readingMinutes(live ? live.words : (counts?.words ?? 0)) > 0 && (
@@ -1144,12 +1182,18 @@ export default function StatusBar() {
             // A title is a HOVER affordance. On a finger Chrome raises it on
             // the tap and leaves it standing (Unpublished, stuck over the
             // bar in the 3.24 audit); the words on the button name it.
-            title={window.matchMedia("(hover: hover)").matches ? t(openPublished ? "unpublishTitle" : "publishTitle") : undefined}
+            title={
+              window.matchMedia("(hover: hover)").matches
+                ? t(openPublished ? "unpublishTitle" : scheduledAt !== null && !openPublished ? "publishNowTitle" : "publishTitle")
+                : undefined
+            }
           >
             <span className="s-statusbar__pubstar" aria-hidden="true">
-              {openPublished ? "✦" : "✧"}
+              {openPublished ? "✦" : scheduledAt !== null ? "◷" : "✧"}
             </span>
-            {t(openPublished ? "published" : "publish")}
+            {openPublished || scheduledAt === null
+              ? t(openPublished ? "published" : "publish")
+              : tf("scheduledFor", { when: formatWhen(scheduledAt) })}
           </button>
         </span>
       )}

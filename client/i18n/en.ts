@@ -224,6 +224,8 @@ const en = {
   publish: "Publish",
   publishTitle: "Publish this note for visitors (Ctrl/Cmd+Shift+P)",
   unpublishTitle: "Unpublish this note (Ctrl/Cmd+Shift+P)",
+  publishNowTitle: "Scheduled — publish it now instead (Ctrl/Cmd+Shift+P)",
+  scheduledFor: "Scheduled · {when}",
   filterToPublished: "Filter the sidebar to published notes",
   showFullVault: "Show the full vault in the sidebar",
   // "Settings", full stop. "Site settings" said SITE about a panel that also
@@ -3043,6 +3045,8 @@ const en = {
   statusSelected: "selected",
   // "{sel}" is a bare number, "{total}" a countPhrase ("840 words" / "٨٤٠ كلمة").
   statusWordsOf: "{sel} of {total}",
+  statusWordsGoal: "{n} / {goal}",
+  statusGoalTitle: "Word goal, from goal: in this note's properties",
   statusCarets: "{n} carets",
 
   // ── The sentence: multi-cursor, comments ─────────────────────────────────
@@ -3064,6 +3068,9 @@ const en = {
   rowVimKeys: "Vim keys",
   rowRelativeLines: "Relative line numbers",
   hintRelativeLines: "With vim keys, the margin counts lines out from the caret.",
+  rowTypewriter: "Typewriter scrolling",
+  hintTypewriter: "The line you are writing stays in the middle of the editor.",
+  cmdTypewriter: "Toggle typewriter scrolling",
   hintVimKeys: "Modal editing: Normal, Insert and Visual keys in the editor.",
   rowAppName: "This app's name",
   hintAppName: "What the tray, the window and the launcher call the app here.",
@@ -4911,7 +4918,7 @@ const en = {
   presenceModeActivity: "Activity",
   presenceModeTitle: "With title",
   rowPresenceClientId: "Application id",
-  hintPresenceClientId: "Discord Developer Portal → New Application → copy its Application ID.",
+  hintPresenceClientId: "Optional: your own Discord application's id, in place of the built-in one.",
   errPresenceClientId: "An application id is 17 to 20 digits, nothing else.",
   rowPresenceIdleAfter: "Idle after",
   hintPresenceIdleAfter: "With no input in any open tab for this long, you count as away.",
@@ -4939,7 +4946,6 @@ const en = {
   rowPresenceStatus: "Status",
   hintPresenceStatus: "Who speaks to Discord for this vault, and what it shows.",
   presenceStatOff: "Off: Discord is told nothing.",
-  presenceStatNoId: "Paste the application id above, and save.",
   presenceStatNoHost: "Nothing speaks to Discord yet: switch on the row above, or use the desktop app.",
   presenceStatHostDesktop: "Connected through the desktop app.",
   presenceStatHostServer: "Connected through this server.",

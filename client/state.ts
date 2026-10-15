@@ -19,7 +19,7 @@ import { readEditorLang } from "./langPref.ts";
 import { activeTabOf, allPaths, setPaneMode as setPaneModeIn, fromStoredTabs, isBookPath, isDrawingPath, isVirtualTab, phoneWorkspace, paneAt, parseWorkspace, pruneWorkspace, type Workspace } from "./workspace.ts";
 import { IS_DESKTOP } from "./desktop/bridge.ts";
 import { recentNotes } from "./recents.ts";
-import { clearStoredPreview, persistTabs, persistWorkspace, readReading, readRelativeLines, readSidebarSidePref, readStoredTabs, readStoredWorkspace, readTheme, readVim } from "./state/persistence.ts";
+import { clearStoredPreview, persistTabs, persistWorkspace, readReading, readRelativeLines, readTypewriter, readSidebarSidePref, readStoredTabs, readStoredWorkspace, readTheme, readVim } from "./state/persistence.ts";
 import type { SidebarSide, State } from "./state/types.ts";
 import { applyTheme } from "./state/dom.ts";
 import type { StoreCtx } from "./state/sliceTypes.ts";
@@ -353,6 +353,7 @@ export function reloadPrefsFromStorage(): void {
     theme,
     vimMode: readVim(),
     relativeLines: readRelativeLines(),
+    typewriter: readTypewriter(),
     readingMode: readReading(),
     sidebarSidePref: pref,
     sidebarSide: effectiveSide(pref, useStore.getState().language),
