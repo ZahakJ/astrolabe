@@ -308,11 +308,7 @@ the usual shortcuts work — Ctrl/Cmd+K opens Search, Ctrl/Cmd+P the palette —
 
 **Every target is a finger's width.** Nothing you can tap is smaller than 44 by 44 pixels, and every
 field you type into is set at 16px, below which iOS Safari zooms into the field and leaves it there.
-The notch and the home indicator are kept clear. `npm run check-phone` drives all of this — taps,
-back gestures, sheets, a study session, a tick, a book's slider, a setting saved and a tag written, in
-both languages, on a phone held in the hand, a Galaxy Z Fold's cover screen and its inner screen
-opened, a window with a pen and a tablet both ways up
-([Development](development.md#npm-run-check-phone--the-phone-shell-driven)).
+The notch and the home indicator are kept clear.
 
 **What counts as a phone.** A window narrower than 700px, or any device whose own pointer is a
 finger that cannot hover — which includes a tablet held in the hands, at any width. A laptop with a

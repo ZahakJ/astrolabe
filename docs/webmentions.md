@@ -28,7 +28,7 @@ Everything this page describes talks to other servers about your posts, so all o
 - it is **listed**: in the posts your RSS feed is made of. A template, a lesson of a [library](library.md) path and a designed site's static page have addresses but are not listed, so they are left out;
 - the [language filter](arabic-and-rtl.md) does not hide it **as the site speaks with no particular reader**, which is the site's own language. With the filter on "follow" and the reader switch on, the other language's posts are visible to readers who choose that language, but a follower's timeline has no reader to choose; those posts stay home.
 
-A post that stops meeting the rule (you unpublish it, move it into a template folder, or change the filter) is deleted from followers' timelines within a minute, sends nothing more, and cannot be the target of a new mention. This is tested for each kind of hidden note, for every door this feature has.
+A post that stops meeting the rule (you unpublish it, move it into a template folder, or change the filter) is deleted from followers' timelines within a minute, sends nothing more, and cannot be the target of a new mention.
 
 ## Receiving webmentions
 

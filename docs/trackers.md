@@ -47,9 +47,8 @@ notes: |
 | `started`, `finished` | a date | An ISO date (`2026-07-01`) is formatted in the site's own calendar and numerals; anything else prints as written. |
 | `notes` | a value over several lines (the key, a colon, then a `\|`) | Markdown, rendered the way any note is. |
 
-Unknown keys are ignored. A fence with **neither a title nor a progress** stays a plain code block.
-That is deliberate: content that cannot be parsed should read as its own source rather than vanish
-into an empty card, which is the rule `$$ math $$` already follows.
+Unknown keys are ignored. A fence with **neither a title nor a progress** stays a plain code block,
+so a half-typed fence reads as what you typed rather than vanishing into an empty card.
 
 A note may hold as many trackers as you like.
 
@@ -101,7 +100,7 @@ a chapter, at your page pace or the default one. A line whose estimate rests on 
 `| default pace`, and the calendar's day pane says *estimated* under it; one from your own pace says
 *estimated from your pace*.
 
-The rules, so that a line is never a surprise:
+The rules:
 
 - Only books count: a tracker of `kind: book` (or a word that folds into it, such as `novel`), or a
   fence with no kind that counts pages. A game's hours are not a sitting.
@@ -135,8 +134,8 @@ the button does.
 
 Cross 100% and the bar takes on a soft glow, and Astrolabe's own ✦ appears beside the count.
 
-The reading view and the public site are inert by design: there is no write path for a visitor, and
-buttons that cannot work are furniture that lies.
+The reading view and the public site show the card without buttons: a visitor cannot write to your
+note.
 
 ## The board
 

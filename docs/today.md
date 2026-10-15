@@ -31,8 +31,7 @@ holds it — see the [keymap](keymap.md).
   recordings, a microphone beside it opens the [voice note](capture.md#voice) recorder.
 - **Today's note, rendered.** The note is drawn read-only, as the reading view draws it, with an
   **Open** button that puts it in a pane where you can edit it — or **Start it** when today has no
-  note yet. A dashboard with a second editor inside it would be two editors for one file racing each
-  other's saves; this is one editor, one button away.
+  note yet.
 - **Sigils.** Every task a sigil asks of today, ticked in place. A tick is the Sigil card's own edit, so
   the log line it writes is the one the card would have written. A course's day and a book's pages are answered on the card, where the steps and the page count are: those
   rows open the Sigils page.
@@ -70,13 +69,13 @@ Slow start; the chapter on cities finally moved.
 - Once the section has something in it, Today shows it back to you as *The day, in your words* — the
   next morning too, until the day turns.
 
-The heading is English in every language on purpose, like `## Captured`: it is an address inside
-the note that a template, a query or a search can find, not a label for the eye.
+The heading is `## Reflection` in every language, like `## Captured`, so a template, a query or a
+search can find it.
 
 ## On a phone
 
 The phone's Today is the same page in the phone's own shape: the capture field, a card for today's
-note (it opens the note rather than rendering it — a phone screen is one thing at a time), then the
+note (it opens the note rather than rendering it), then the
 same sections in the same order, with the evening question after the note card. Both shells read
 from one source, so a tick on the laptop is on the phone the next time the vault moves.
 
