@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Astrolabe</title>
-<meta name="description" content="A self-hosted Markdown notes app and blog, in Arabic and English. One Node process over a folder of plain files; publish the notes you choose.">
+<meta name="description" content="A self-hosted, open-source alternative to Obsidian, with publishing built in. One Node process over a folder of plain Markdown; publish the notes you choose.">
 <meta property="og:title" content="Astrolabe">
-<meta property="og:description" content="A self-hosted Markdown notes app and blog, in Arabic and English.">
+<meta property="og:description" content="A self-hosted, open-source alternative to Obsidian, with publishing built in.">
 <meta property="og:image" content="https://zahakj.github.io/astrolabe/gh-hero.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>">
 <style>
@@ -132,7 +132,7 @@
   <div class="wrap">
     <div class="mark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="84" height="84" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><circle cx="50" cy="55" r="16" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/><path d="M68.74 29.99 Q68.74 34.19 69.57 33.36 L72.94 34.19 Q68.74 34.19 69.57 35.02 L68.74 38.39 Q68.74 34.19 67.90 35.02 L64.54 34.19 Q68.74 34.19 67.90 33.36 Z" fill="currentColor" stroke="none"/></svg><i class="ring ring--1"></i><i class="ring ring--2"></i></div>
     <h1><span class="br">[[</span> Astrolabe <span class="br">]]</span></h1>
-    <p class="tagline">A self-hosted Markdown notes app and blog, in Arabic and English.</p>
+    <p class="tagline">A self-hosted, open-source alternative to Obsidian, with publishing built in.</p>
     <div class="cta">
       <a class="btn btn-gold" href="#install">Install</a>
       <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe/releases/latest">Download</a>
@@ -140,14 +140,29 @@
       <a class="btn btn-ghost" href="https://github.com/ZahakJ/astrolabe">Source</a>
     </div>
     <div class="rooms ui">
-      <div class="room"><em>The vault</em><b>Write</b><span>Live preview over a folder of Markdown and LaTeX. Wikilinks, backlinks, graph, search that folds Arabic diacritics.</span></div>
+      <div class="room"><em>The vault</em><b>Write</b><span>Live preview over a folder of Markdown and LaTeX. Wikilinks, backlinks, the graph, search with operators.</span></div>
       <div class="room"><em>The blog</em><b>Publish</b><span>Add <code>publish: true</code> to a note to make it public. Topics, RSS, comments. Unmarked notes stay private.</span></div>
       <div class="room"><em>The designer</em><b>Compose</b><span>Build the home page from sections, or start from one of 81 presets.</span></div>
       <div class="room"><em>The library</em><b>Teach</b><span>Folders of notes published as books and courses, read in order.</span></div>
     </div>
   </div>
-  <div class="hero-shot"><img class="shot" src="screenshots/hero-house.png" alt="A designed site in the Mission Control house, in the graphite theme: a radar opening in gold, a ruled log of entries beneath it"></div>
+  <div class="hero-shot"><img class="shot" src="screenshots/hero-split.png" alt="The editor with the file tree, a note, its outline, local graph and backlinks; beside it, the published site: the blog home, a series and a post with comments"></div>
 </header>
+
+<section>
+  <div class="wrap">
+    <h2>Coming from Obsidian</h2>
+    <div class="rule"></div>
+    <ul class="ledger">
+      <li>Your vault opens as it is: wikilinks, embeds, callouts, properties, highlights and footnotes are read as Obsidian writes them, and the folder keeps working in Obsidian.</li>
+      <li>Publishing is built in. Mark a note <code>publish: true</code> and it is on your blog, with RSS, comments and scheduled posts. No subscription.</li>
+      <li>No sync service to pay for. The server holds the vault; browsers, the desktop app and the Android app all open the same notes, and history is backed up to a git remote you own.</li>
+      <li>A web app, so any device with a browser can reach your notes, at home or behind your own domain.</li>
+      <li>Open source, under the MIT license.</li>
+    </ul>
+    <p class="ui" style="margin-top:18px;text-align:center"><a href="site/en/comparison/">A full comparison with Obsidian, Logseq and Joplin</a></p>
+  </div>
+</section>
 
 <section>
   <div class="wrap">
@@ -184,7 +199,7 @@
     </div>
     <div class="feat">
       <img class="shot" src="screenshots/hero-editor.png" alt="The editor: the file tree and tags on the left, a note in live preview, the outline, local graph and backlinks on the right">
-      <div class="feat-text"><div class="kicker ui">The editor</div><h3>The editor</h3><p>CodeMirror 6 with live preview, wikilinks with autocomplete, backlinks, transclusions, callouts, KaTeX, a command palette and vim mode. A PDF and EPUB reader whose highlights become cited notes. The whole interface in Arabic, mirrored, with Hijri dates.</p></div>
+      <div class="feat-text"><div class="kicker ui">The editor</div><h3>The editor</h3><p>CodeMirror 6 with live preview, wikilinks with autocomplete, backlinks, transclusions, callouts, KaTeX, a command palette and vim mode. A PDF and EPUB reader whose highlights become cited notes. Right-to-left text (Arabic, Persian, Hebrew) edits natively beside English.</p></div>
     </div>
   </div>
 </section>
@@ -193,7 +208,7 @@
   <div class="wrap">
     <div class="numbers ui">
       <div class="num"><b>81</b><span>finished designs</span></div>
-      <div class="num"><b>46</b><span>themes, all WCAG AA</span></div>
+      <div class="num"><b>48</b><span>themes, all WCAG AA</span></div>
       <div class="num"><b>0</b><span>CDN requests</span></div>
       <div class="num"><b>1</b><span>Node process, no database</span></div>
     </div>
@@ -229,7 +244,7 @@ npm run hash-password   <span class="c"># → ADMIN_PASSWORD_HASH in .env</span>
     <ul class="ledger">
       <li>CodeMirror 6 live preview, vim mode, a command palette</li>
       <li>Wikilinks, backlinks, transclusions, aliases</li>
-      <li>Full-text search that folds Arabic diacritics</li>
+      <li>Full-text search with operators, folding case and diacritics</li>
       <li>Selective publishing and a visitor preview</li>
       <li>Self-hosted fonts, and your own uploads</li>
       <li>A library of books and courses with progress</li>

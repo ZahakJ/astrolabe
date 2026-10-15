@@ -336,8 +336,8 @@ function homeBody(lang, summaries) {
   ).join("");
   const intro =
     lang === "ar"
-      ? `<h1>دليل أسطرلاب</h1><p class="strap">ملاحظاتك، على الخريطة.</p><p class="lede">${ui.tagline}</p>`
-      : `<h1>The Astrolabe manual</h1><p class="strap">Your notes, charted.</p><p class="lede">${ui.tagline}</p>`;
+      ? `<h1>دليل أسطرلاب</h1><p class="strap">بديل مفتوح المصدر لـObsidian تستضيفه بنفسك، والنشر مدمج فيه.</p><p class="lede">${ui.tagline}</p>`
+      : `<h1>The Astrolabe manual</h1><p class="strap">A self-hosted, open-source alternative to Obsidian, with publishing built in.</p><p class="lede">${ui.tagline}</p>`;
   return intro + cards;
 }
 

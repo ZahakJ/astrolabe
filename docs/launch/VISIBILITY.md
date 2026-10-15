@@ -4,22 +4,22 @@ Drafts and a checklist. Nothing here is posted or applied automatically; each st
 
 ## 1. Repository metadata
 
-**Description** (GitHub, About box). The current one is a tagline; this says what it is:
+**Description** (GitHub, About box):
 
-> Self-hosted Markdown notes app and blog, in Arabic and English. One Node process over a folder of plain files; edit from any browser, publish the notes you mark.
+> A self-hosted, open-source alternative to Obsidian: notes, graph and a built-in blog. Web, desktop and Android.
 
 **Website:** `https://zahakj.github.io/astrolabe/` (already set).
 
-**Topics.** Keep `markdown`, `note-taking`, `self-hosted`, `wikilinks`, `knowledge-base`,
-`digital-garden`, `arabic`, `rtl`, `latex`, `codemirror6`, `blog-engine`, `publishing`,
-`pdf-reader`. Add:
+**Topics**, in this order (GitHub allows 20):
 
 ```
-obsidian  pkm  second-brain  zettelkasten  spaced-repetition  epub-reader  nodejs  typescript  bilingual
+obsidian-alternative  note-taking  markdown  knowledge-base  pkm  self-hosted  blog
+wikilinks  digital-garden  publishing  second-brain  zettelkasten  latex  rtl
+spaced-repetition  codemirror6  pwa  electron  nodejs  typescript
 ```
 
-GitHub allows 20 topics. The list above is 22; drop `pdf-reader` and `blog-engine` if it has to fit
-(`publishing` and `epub-reader` cover them).
+Right-to-left support is one feature among many: `rtl` covers it, and `arabic` stays out of the
+list.
 
 **Social preview image:** upload `docs/gh-hero.png` under Settings → General → Social preview, so
 links shared on chat apps and forums show the mark instead of a generic card.
@@ -116,6 +116,8 @@ desktop, Android), the interface language and the user agent, in both languages 
   exe: Windows; apk: Android) and keep the `SHA256SUMS` file.
 - Patch releases get a one-paragraph body. Minor releases get a short list.
 - Credit contributors by handle in the release that ships their change.
+- Write for someone choosing a notes app. Lead with what a reader of the notes or the site gets;
+  language support is a feature line like any other, not the headline.
 
 ## 5. The comparison page
 

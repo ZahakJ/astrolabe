@@ -2,6 +2,8 @@
 
 *The full manual. The [project README](../README.md) is the one-minute version.*
 
+Astrolabe is a self-hosted, open-source alternative to Obsidian, with publishing built in: a Markdown notes app on your own server, reached from any browser, the desktop app or the Android app.
+
 You can read this manual as a website, with search, a page outline and both languages: [zahakj.github.io/astrolabe/site/en](https://zahakj.github.io/astrolabe/site/en/) · [العربية](https://zahakj.github.io/astrolabe/site/ar/). The Arabic pages live under [`ar/`](ar/), and `npm run build-docs` builds both languages into `site/`.
 
 **Before you read any of it**, let the app show you around. Press `Ctrl/Cmd P` and choose **Take the tour**. The tour is fifteen short cards, one feature each, and every card has a *Show me* button that opens the real thing instead of a picture of it. The tour is also offered on an empty vault and at the bottom of the `Ctrl/Cmd /` shortcuts sheet. It never opens on its own.
