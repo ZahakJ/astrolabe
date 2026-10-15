@@ -37,18 +37,9 @@
 <p>الصورة الكبيرة شعار أسطرلاب. والصغيرة المستديرة في زاويتها تقول بلمحة ما تفعله: قلم للكتابة، وصفحة لقراءة ملاحظة، وكتاب مفتوح لملف PDF أو EPUB، وبطاقتان لجلسة مدارات، وفرشاة للرسم، ورفّ للمكتبة، وبوصلة لكل ما عدا ذلك (المخطط، والتقويم، واليوم)، وهلال حين تبتعد.</p>
 <div class="table"><table><thead><tr><th>أنت…</th><th>يقول Discord</th></tr></thead><tbody><tr><td>في ملاحظة تحرّرها</td><td>يكتب</td></tr><tr><td>في ملاحظة في عرض القراءة</td><td>يقرأ</td></tr><tr><td>في ملف PDF أو EPUB</td><td>يقرأ كتابًا</td></tr><tr><td>في جلسة مدارات</td><td>يراجع البطاقات، وكم بقي منها</td></tr><tr><td>في رسم</td><td>يرسم</td></tr><tr><td>في المكتبة أو صفحة الوسائط</td><td>في المكتبة</td></tr><tr><td>في أي مكان آخر</td><td>يتصفّح</td></tr><tr><td>بعيدًا أطول من <strong>الخمول بعد</strong></td><td>لا شيء، أو «خامل»</td></tr></tbody></table></div><p>وحين تُفتح عدة تبويبات (حاسوب وهاتف، أو نافذتان) يغلب التبويب الذي لمسته آخر مرة.</p>
 <h2 id="الإعداد"><a class="anchor" href="#الإعداد">الإعداد</a></h2>
-<p>لا يعرض Discord نشاطًا إلا من <em>تطبيق</em> يعرفه، ولا يستطيع أحد غيرك أن ينشئ تطبيقك. ويستغرق ذلك دقيقتين:</p>
-<ol>
-<li>افتح <a href="https://discord.com/developers/applications" target="_blank" rel="noreferrer">بوابة مطوّري Discord</a> واضغط <strong>New Application</strong>.</li>
-<li>سمّه <strong>Astrolabe</strong>. هذا الاسم هو السطر الأول في البطاقة، فسمّه ما تريد أن يقرأه أصدقاؤك.</li>
-<li>في الصفحة التي تُفتح (<strong>General Information</strong>) انسخ <strong>Application ID</strong>، وهو رقم من 17 إلى 20 خانة.</li>
-<li>في أسطرلاب افتح <strong>الإعدادات ← حضور Discord ← معرّف التطبيق</strong>، والصقه، واجعل <strong>الوضع</strong> <em>النشاط</em> أو <em>مع العنوان</em>، ثم اضغط <strong>حفظ</strong>.</li>
-</ol>
+<p>اجعل <strong>الإعدادات ← حضور Discord ← الوضع</strong> <em>النشاط</em> أو <em>مع العنوان</em>، ثم اضغط <strong>حفظ</strong>. يأتي أسطرلاب بتطبيق Discord خاص به، فلا شيء تنشئه ولا شيء تلصقه.</p>
 <p>ويقول صفّ <strong>الحالة</strong> في أسفل الصفحة ما جرى: <em>متصل عبر تطبيق سطح المكتب</em>، وتحته ما يعرضه Discord الآن. فإن قال غير ذلك فانظر <a href="#حين-لا-يظهر">حين لا يظهر</a>.</p>
-<p>وإن كنت تبني أسطرلاب بنفسك وتفضّل أن يعيش المعرّف في الشيفرة، فاستبدل العنصر النائب في <code>shared/presence/config.ts</code>:</p>
-<pre><code class="language-ts">export const PRESENCE_APPLICATION_ID = &quot;123456789012345678&quot;;
-</code></pre>
-<p>ويبقى المعرّف في <strong>الإعدادات ← حضور Discord ← معرّف التطبيق</strong> غالبًا عليه.</p>
+<p>ولتعرض نشاطك تحت تطبيق خاص بك (اسمك أنت في السطر الأول من البطاقة)، أنشئ واحدًا في <a href="https://discord.com/developers/applications" target="_blank" rel="noreferrer">بوابة مطوّري Discord</a> (<strong>New Application</strong>، ثم انسخ <strong>Application ID</strong> من <strong>General Information</strong>) والصقه في <strong>الإعدادات ← حضور Discord ← متقدّم ← معرّف التطبيق</strong>. وفي نسخة تبنيها بنفسك يكون <code>DEFAULT_DISCORD_CLIENT_ID</code> في <code>shared/presence/config.ts</code> هو المعرّف المدمج. وما دام لا هذا ولا ذاك مضبوطًا يبقى الحضور متوقفًا.</p>
 <p>وبقية صفوف الصفحة:</p>
 <ul>
 <li><strong>الخمول بعد</strong>: كم من الوقت بلا مفتاح ولا نقرة ولا تمرير في أي تبويب مفتوح قبل أن تُعدّ غائبًا (من 5 إلى 60 دقيقة، و10 افتراضيًا).</li>
@@ -79,7 +70,7 @@ presence: false
 <h2 id="الصور"><a class="anchor" href="#الصور">الصور</a></h2>
 <p>الشعار والصور الصغيرة الثماني ملفات PNG بحجم 1024 × 1024 بكسل في <a href="https://github.com/ZahakJ/astrolabe/tree/main/docs/brand/presence" target="_blank" rel="noreferrer"><code>docs/brand/presence/</code></a>، ويجلبها Discord من موقع صفحات المشروع نفسه. فلا شيء يُرفع.</p>
 <p>وإن فضّلت أن يحتفظ Discord بنسخه هو، أو كانت شبكتك تمنعه من جلب الصور الخارجية، فارفعها بدلًا من ذلك: افتح تطبيقك في بوابة المطوّرين، ثم <strong>Rich Presence ← Art Assets</strong>، وأضف كل ملف PNG باسم ملفه بلا <code>.png</code> (<code>mark</code> و<code>pen</code> و<code>page</code> و<code>book</code> و<code>cards</code> و<code>brush</code> و<code>shelf</code> و<code>compass</code> و<code>moon</code>). ثم اجعل <strong>الإعدادات ← حضور Discord ← متقدّم ← مصدر الصور</strong> <em>مرفوعة إلى Discord</em>.</p>
-<p>ويرسم الصورَ <code>scripts/shoot-presence-assets.mjs</code> من ملفات SVG التي بجانبها؛ والشعار مولَّد من الهندسة نفسها التي تُرسم بها أيقونة التطبيق.</p>
+<div class="table"><table><thead><tr><th>المفتاح</th><th>يظهر بوصفه</th><th>متى</th></tr></thead><tbody><tr><td><code>mark</code></td><td>الصورة الكبيرة</td><td>دائمًا</td></tr><tr><td><code>pen</code></td><td>الصورة الصغيرة</td><td>حين تكتب ملاحظة</td></tr><tr><td><code>page</code></td><td>الصورة الصغيرة</td><td>حين تقرأ ملاحظة</td></tr><tr><td><code>book</code></td><td>الصورة الصغيرة</td><td>حين تقرأ كتابًا</td></tr><tr><td><code>cards</code></td><td>الصورة الصغيرة</td><td>حين تراجع البطاقات</td></tr><tr><td><code>brush</code></td><td>الصورة الصغيرة</td><td>حين ترسم</td></tr><tr><td><code>shelf</code></td><td>الصورة الصغيرة</td><td>في المكتبة أو صفحة الوسائط</td></tr><tr><td><code>compass</code></td><td>الصورة الصغيرة</td><td>في أي مكان آخر</td></tr><tr><td><code>moon</code></td><td>الصورة الصغيرة</td><td>حين تكون خاملًا</td></tr></tbody></table></div><p>ويرسم الصورَ <code>scripts/shoot-presence-assets.mjs</code> من ملفات SVG التي بجانبها؛ والشعار مولَّد من الهندسة نفسها التي تُرسم بها أيقونة التطبيق.</p>
 <h2 id="كم-مرة-يتغيّر"><a class="anchor" href="#كم-مرة-يتغيّر">كم مرة يتغيّر</a></h2>
 <p>يقبل Discord تغييرًا واحدًا كل 15 ثانية. ولا يرسل أسطرلاب تغييرًا إلا حين يتغيّر ما سيقوله، وحين تقع عدة تغييرات داخل تلك الثواني الخمس عشرة يذهب آخرها. فالتنقّل بين عشر ملاحظات في دقيقة يحدّث ملفك بضع مرات، لا عشرًا.</p>
 <p>ويخبر كل تبويب مفتوح خادمَه بما يعرضه بعد ثانية من استقراره، ثم كل دقيقة، فيعرف الخادم أيّ تبويب قيد الاستعمال ومتى ابتعدت. والتبويب المغلق أو النائم يُنسى بعد دقيقتين ونصف. وحين يُغلق أسطرلاب يمسح السطر عن ملفك.</p>

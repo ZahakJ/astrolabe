@@ -75,7 +75,8 @@ check costs 64 MB of memory by design — so a flood of login attempts cannot st
 that is also serving your notes.</p>
 <h2 id="what-counts-as-published"><a class="anchor" href="#what-counts-as-published">What counts as published</a></h2>
 <p>Exactly one thing: <code>publish: true</code> in a note&#39;s frontmatter. (The <em>frontmatter</em> is the block
-between two <code>---</code> lines at the top of a note, where its properties live.)</p>
+between two <code>---</code> lines at the top of a note, where its properties live.) A date in its place
+publishes the note <em>then</em> — see <a href="#scheduling-a-post">Scheduling a post</a>.</p>
 <pre><code class="language-yaml">---
 title: On Marginalia
 publish: true
@@ -104,6 +105,16 @@ the switch that actually locks the door.</p>
 <a href="../blog-mode/#custom-public-folders">public folders</a> a published note belongs to — collections
 you define on the blog, beside the topics its tags create. It does not affect whether the note
 is published, and it does nothing until you declare a folder with that address in Settings.</p>
+<h3 id="scheduling-a-post"><a class="anchor" href="#scheduling-a-post">Scheduling a post</a></h3>
+<p>Give <code>publish:</code> a date or a time instead of <code>true</code>, and the note publishes itself at that moment:</p>
+<pre><code class="language-yaml">publish: 2026-11-02          # midnight, the server&#39;s time
+publish: 2026-11-02 09:30    # half past nine, the server&#39;s time
+publish: 2026-11-02T09:30+03:00
+</code></pre>
+<p>Until then it is a draft on every surface a visitor can reach; at the minute it goes out to the
+blog, the feed, search and every open page, and it is dated by that minute unless it has a
+<code>date:</code> of its own. The status bar shows <strong>◷ Scheduled · 2 Nov, 9:30</strong>; pressing it (or
+<code>Ctrl/Cmd Shift P</code>) publishes the note now instead.</p>
 <p>Nothing arrives published from outside. An article kept from <a href="../feeds/">Feeds</a> and a note
 brought in by the <a href="../import/">import wizard</a> carry no <code>publish: true</code> — the importer takes
 Obsidian Publish&#39;s out — so they are private until you publish them yourself.</p>
@@ -173,7 +184,7 @@ The shell exists for visitors only.</p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/configuration/"><span class="pager__kicker">Previous</span><span class="pager__title">Configuration</span></a><a class="pager__link pager__link--next" href="../../en/backup-and-sync/"><span class="pager__kicker">Next</span><span class="pager__title">Backup &amp; sync</span></a></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#public-reading-admin-editing">Public reading, admin editing</a><a class="toc__link toc__link--2" href="#what-counts-as-published">What counts as published</a><a class="toc__link toc__link--2" href="#preview-as-visitor">Preview as visitor</a><a class="toc__link toc__link--2" href="#putting-it-on-the-internet">Putting it on the internet</a><a class="toc__link toc__link--2" href="#comments">Comments</a><a class="toc__link toc__link--2" href="#the-three-public-shells">The three public shells</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#public-reading-admin-editing">Public reading, admin editing</a><a class="toc__link toc__link--2" href="#what-counts-as-published">What counts as published</a><a class="toc__link toc__link--3" href="#scheduling-a-post">Scheduling a post</a><a class="toc__link toc__link--2" href="#preview-as-visitor">Preview as visitor</a><a class="toc__link toc__link--2" href="#putting-it-on-the-internet">Putting it on the internet</a><a class="toc__link toc__link--2" href="#comments">Comments</a><a class="toc__link toc__link--2" href="#the-three-public-shells">The three public shells</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>
