@@ -21,8 +21,6 @@ can keep a note open beside it. Its address is `/calendar`, which a bookmark can
 A cell carries the day's number and, under it, what that day held:
 
 - **A dot beside the number** when the day has a [daily note](templates-and-notes.md#periodic-notes).
-  (A dot rather than a line: your daily note is named after its own date, and a cell printing
-  *2026-09-15* under a **15** has spent a line saying nothing.)
 - **Each [sigil](sigils.md) that logged something that day**, by name.
 - **The cards you graded** in [Orbits](orbits.md) that day — *3 cards* — read from this device's
   own log.
@@ -49,8 +47,7 @@ narrow pane or a phone) opens on that day in full:
 
 - **Open the day's note**, or **Create the day's note** when there is none. Creating goes through
   the same door as `Ctrl/Cmd Alt D`, so the note is made in your daily folder, with its template,
-  exactly as it would be from the palette. Nothing is written until you press that button — a
-  calendar that made a file every time you glanced at a day would fill your vault with empty days.
+  exactly as it would be from the palette. Nothing is written until you press that button.
   (Double-clicking a cell is the same door, for when you would rather not travel.)
 - **Sigils** — each one that logged that day, with how much of the day it asked for was done
   (*2 of 2*) coloured the way the card colours it, and the line of prose you wrote in the log.
@@ -90,10 +87,6 @@ vault and your device already hold: the notes in your daily folder, the log fenc
 sigil notes, the `sessions:` lines inside your trackers, and the Orbits log in this browser. Delete
 a line from a note and the day forgets it; write one by hand and the day remembers. The note is the
 state, here as everywhere else.
-
-> Until 3.17 a small month sat at the top of the [Sigils page](sigils.md#the-sigils-page). It is
-> here now, where it has room: that page is a morning checklist, and a month squeezed into its
-> corner could say which days had a note and nothing else about them.
 
 ## The same days, read another way
 

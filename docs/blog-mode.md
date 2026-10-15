@@ -75,7 +75,7 @@ A series is not a [library path](library.md). A library path is a **folder** of 
 
 However many topics your tags add up to, the topic row stays on one line. It measures itself, keeps the topics that fit, and folds the rest into a "More ▾" menu beside them. It measures again on every resize, in both directions, so it never wraps into a ragged second line. Below about 840px of width the topics move into the usual collapsed menu (the ☰ button), which lists all of them at once.
 
-**Collections do not fold.** When the row also carries collection chips (see the next section), Home and those chips stay in the bar at every width; if there are more than fit on a phone, the row scrolls sideways. Only the topics fold away. The reasoning: a collection is something you declared as part of the site's structure, and a structure hidden behind a menu labelled *Topics* would have been demoted to just another topic. A thin line separates the two groups, because otherwise the collection `GAMES` and the topic `games` would look like the same chip twice.
+**Collections do not fold.** When the row also carries collection chips (see the next section), Home and those chips stay in the bar at every width; if there are more than fit on a phone, the row scrolls sideways. Only the topics fold away. A thin line separates the two groups, so the collection `GAMES` and the topic `games` do not look like the same chip twice.
 
 A topic is shown under its [localised label](arabic-and-rtl.md#localised-tag-labels) when it has one; its address keeps the original name.
 
@@ -120,8 +120,8 @@ A `.tex` note declares the same thing in [its own comment block](latex.md), like
 
 Two switches decide where collections *appear*:
 
-- **Show on home page** (on by default) puts a band of collection cards **above** your posts, on either kind of home page. A list of posts is for browsing; a collection is for navigating; and navigation belongs above the thing it navigates. An empty collection still shows here: a collection you made and have not filled yet is an invitation, not a bug, and its card says "0 published notes" on its face.
-- **Show in navigation** (off by default) puts collection chips at the start of the topic row, each wearing its own mark instead of a `#`. They never fold into "More ▾" or into the phone's collapsed menu, because a declared collection is the site's own structure. A collection with *nothing in it* gets no chip, though: the band is an invitation, but a chip in the navigation is a promise of somewhere to go, and on a phone that chip would take a slot the collections with posts in them need.
+- **Show on home page** (on by default) puts a band of collection cards **above** your posts, on either kind of home page. An empty collection still shows here, with "0 published notes" on its card.
+- **Show in navigation** (off by default) puts collection chips at the start of the topic row, each wearing its own mark instead of a `#`. They never fold into "More ▾" or into the phone's collapsed menu, because a declared collection is the site's own structure. A collection with *nothing in it* gets no chip.
 
 Every collection page works either way; the two switches hide doors, not the rooms behind them. Each page lists its posts exactly as a topic page does, under a header carrying the collection's mark, title, description and count. A single collection can be **hidden** without being deleted: it keeps its title, mark and members, no visitor can reach it, and un-hiding brings it back whole.
 

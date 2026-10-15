@@ -54,13 +54,13 @@ The recordings are ordinary attachments, filed by your attachments setting (Sett
 
 **Settings.** Three rows:
 
-- Settings → Read aloud & voice notes → **Voice transcription** chooses the model and where it runs. The default is whisper's **small** model, which any processor runs faster than you speak. **Base** is quicker still and makes more mistakes in Arabic; the **large turbo** (compact, or in full precision) is the most accurate, and the heaviest. Open the list to see what each one downloads on this machine and, when the processor will run it, how long a minute of speech takes on two cores. Beside the list, **Auto** uses the graphics card when there is one that works and the processor otherwise; **Processor only** never touches the graphics card. **Off** keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and which model ran where — "Small last ran on the processor". An instance that never chose a model has Small; one that chose the large turbo keeps it.
+- Settings → Read aloud & voice notes → **Voice transcription** chooses the model and where it runs. The default is whisper's **small** model, which any processor runs faster than you speak. **Base** is quicker still and makes more mistakes in Arabic; the **large turbo** (compact, or in full precision) is the most accurate, and the heaviest. Open the list to see what each one downloads on this machine and, when the processor will run it, how long a minute of speech takes on two cores. Beside the list, **Auto** uses the graphics card when there is one that works and the processor otherwise; **Processor only** never touches the graphics card. **Off** keeps recordings and links them from the inbox without transcribing them. The line under the row says whether the model has been downloaded and which model ran where — "Small last ran on the processor".
 - Settings → Read aloud & voice notes → **Keep voice recordings**. On by default. Off deletes a recording once its words are safely in the vault. A recording whose transcription failed — or heard nothing — is always kept, whatever this says.
 - The **Voice notes: transcription language** row, in Settings → Read aloud & voice notes. **Detect** lets each recording be heard for what it is, which suits a vault that speaks both languages. Pin **Arabic** or **English** if the detector keeps mishearing you. It is only the language recordings are written down in: [Read aloud](read-aloud.md) finds each passage's language by itself.
 
-**What runs where.** Transcription runs on the machine the server runs on, and it does not need a graphics card. On the processor, whisper runs as an ONNX model through onnxruntime on the machine's physical cores (up to eight); on a graphics card it runs as whisper.cpp through Vulkan or CUDA, or Metal on a Mac. With **Auto**, a card whose driver will not load or finds no device is passed over without a word, and the same recording is heard on the processor. The desktop app ships only the processor path — no graphics-card build at all — which keeps its download about 50 MB smaller; a server installed from npm has the card builds too.
+**What runs where.** Transcription runs on the machine the server runs on, and it does not need a graphics card. On the processor, whisper runs as an ONNX model through onnxruntime on the machine's physical cores (up to eight); on a graphics card it runs as whisper.cpp through Vulkan or CUDA, or Metal on a Mac. With **Auto**, a card whose driver will not load or finds no device is passed over without a word, and the same recording is heard on the processor. The desktop app runs transcription on the processor only; a server installed from npm can also use a graphics card.
 
-How long a minute of speech takes on **two cores** of a desktop processor (measured with the other cores busy, so a machine of your own should do at least this well):
+How long a minute of speech takes on **two cores** of a desktop processor:
 
 | Model | Download on the processor | A minute of speech | Memory while it works |
 | --- | --- | --- | --- |
@@ -68,7 +68,7 @@ How long a minute of speech takes on **two cores** of a desktop processor (measu
 | **Small** (the default) | 375 MB | about 15 s | about 1.5 GB |
 | Large turbo | 1.0 GB | about 23 s | about 2.7 GB |
 
-Arabic takes longer than English with Small (its words cost the decoder more steps): about 14 s for a minute of English, 20 s for Arabic. A recording is heard half a minute at a time, and each half-minute's language is detected on its own, so a note that starts in English and goes on in Arabic comes back in both.
+Arabic takes longer than English with Small: about 14 s for a minute of English, 20 s for Arabic. A recording is heard half a minute at a time, and each half-minute's language is detected on its own, so a note that starts in English and goes on in Arabic comes back in both.
 
 The model lives in the data directory, never in the vault, so it is not synced, published or committed. The desktop app is its own server, so on a desktop the words are made on that desktop.
 
@@ -82,7 +82,7 @@ The clipper saves a web page — or just the part of it you selected — as a no
 
 ### Setting it up
 
-Open Settings → New notes & templates → **Clipper** and drag the **Clip to …** button to your browser's bookmarks bar. That is the whole installation: the button is a *bookmarklet*, a bookmark whose address is a line of JavaScript, and the token that lets it write to your vault is already inside it. Clicking the button on the settings page itself does nothing on purpose.
+Open Settings → New notes & templates → **Clipper** and drag the **Clip to …** button to your browser's bookmarks bar. That is the whole installation: the button is a *bookmarklet*, a bookmark whose address is a line of JavaScript, and the token that lets it write to your vault is already inside it. Clicking the button on the settings page itself does nothing.
 
 **Renew token** makes a new token and retires the old one. Every copy of the bookmarklet you ever dragged out stops working the moment you press it, and the button on the page now carries the new one. Do this if a browser you used is lost, or simply once in a while. The token is kept in the server's data directory as `clip-token` (readable only by the user the server runs as) and never enters the vault, so it is never synced, published or committed with your notes.
 
@@ -119,7 +119,7 @@ Share a page from any app to it and the page is clipped into `Clips/`, exactly a
 
 If the browser you share from is not signed in to the site, the share lands on a page that says so, with the way in; sign in there once and share again.
 
-Two honest limits. A share arrives with the page's address and title but not its contents, so a shared page is filed as its title and address, ready for you to add to; the bookmarklet, which runs *on* the page, gets the whole article. And a daily note the share sheet has to create (because you had not opened today's yet) starts bare — the template is applied by the app when it makes the note, and the share sheet reaches the vault without the app. Open today's note once in the morning and neither limit applies.
+Two limits. A share arrives with the page's address and title but not its contents, so a shared page is filed as its title and address, ready for you to add to; the bookmarklet, which runs *on* the page, gets the whole article. And a daily note the share sheet has to create (because you had not opened today's yet) starts bare — the template is applied by the app when it makes the note, and the share sheet reaches the vault without the app. Open today's note once in the morning and the second limit does not apply.
 
 The manifest itself is at `/manifest.webmanifest`; it is generated from your settings, so a renamed site or a changed default theme reaches the phone on its next visit, and the [offline copy](offline.md) keeps it network-first for the same reason.
 

@@ -110,8 +110,7 @@ Press `c` and the passage is **cited into the note beside you**. The quote is re
 the words sit on the page rather than the PDF's internal order: columns are found, lines are grouped, an
 Arabic line runs right to left, and an end-of-line hyphen is rejoined (*sig-* / *nificant*) while
 *Anglo-Saxon* and *1990-1995* survive. The quote appears in an editable field before a single
-character reaches the note, because the assembler is guessing, and a sentence the author never
-wrote must not land in your notes silently. It is appended as a `> [!quote]` callout followed by a
+character reaches the note, so you can correct the reconstruction. It is appended as a `> [!quote]` callout followed by a
 link to the exact spot, `[[Book.pdf#page=42&rect=…|Book, p. 42]]`, in the instance's own numerals.
 The write goes through the open editor when one holds the note, so it is one undoable step and the
 toast carries **Undo**. `C` asks which open note first.
@@ -221,8 +220,7 @@ progress.
 
 A `.epub` in the vault is a book beside a `.pdf`: it is on the same shelf, it opens with the same
 click, its place is kept in the same way, and a sitting in it is logged to the same tracker. What
-is different is what a book IS in that format — and the difference is the reason the feature
-exists.
+is different is what a book is in that format.
 
 **A PDF is a picture of type.** The line breaks were decided once, by whatever made the file; the
 measure is frozen; the shaping is frozen with it. For Arabic that is the whole problem: a PDF of
@@ -264,13 +262,12 @@ its drop caps survive, while the rules that would fight the app (its fonts, its 
 anything that would paint over the interface) are dropped, so a book reads correctly in every
 theme.
 
-What is not here yet: **highlights and margin notes**, which the PDF reader anchors to a rectangle
-on a page — a thing an EPUB does not have. `c` gives you a citation to a passage; marking one is a
-later round.
+An EPUB has no **highlights or margin notes**: the PDF reader anchors those to a rectangle on a
+page, which an EPUB does not have. `c` gives you a citation to a passage instead.
 
 ## Hearing a passage
 
-Select text on a PDF page's text layer or in an EPUB chapter and a **Read aloud** chip appears under it (or press `Ctrl/Cmd Shift .`): the passage is read a sentence at a time, in its own language, by voices on your own machine's processor, with the sentence being read lit on the page. A scanned PDF with no text layer has nothing to select, so nothing to read. See [Read aloud](read-aloud.md).
+Select text on a PDF page's text layer or in an EPUB chapter and a **Read aloud** chip appears under it (or press `Ctrl/Cmd Shift .`): the passage is read a sentence at a time, in its own language, by voices that run on the server's processor, with the sentence being read lit on the page. A scanned PDF with no text layer has nothing to select, so nothing to read. See [Read aloud](read-aloud.md).
 
 ## On a phone
 

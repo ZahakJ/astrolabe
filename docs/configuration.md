@@ -212,8 +212,8 @@ points).
 
 An *attachment* is any file you put into the vault that is not a note — a picture, a PDF, an
 audio clip. **Where new attachments go** is a setting, named the same way Obsidian names it
-(*Default location for new attachments*), so a vault that moved from Obsidian behaves the way
-its owner already expects. It lives in **Settings → Writing → New attachments**, beside the
+(*Default location for new attachments*), so a vault moved from Obsidian behaves as it did
+there. It lives in **Settings → Writing → New attachments**, beside the
 templates folder and the tags folder.
 
 | Mode | An upload lands in |
@@ -254,10 +254,9 @@ up and says how many files are coming. Afterwards a toast names the folder they 
 in and offers **Undo**, which moves them to `.trash/`. If a name is already taken, the new file
 gets the first free `name-2.ext` and the toast says so.
 
-**Deleting tells you what it is really taking.** The sidebar tree shows notes only. So a folder
-that still held four images after its note moved away used to describe itself as "0 notes" —
-and deleting it silently broke a published essay. Now every delete confirmation asks the server
-what is actually inside:
+**Deleting tells you what it is really taking.** The sidebar tree shows notes only, so a folder
+can look empty and still hold attachments that published notes use. Every delete confirmation
+asks the server what is actually inside:
 
 > **Move "Media" to .trash?**
 > 0 notes, 60 attachments — 53 of them referenced by 48 notes. All of it moves to the vault's
@@ -274,9 +273,7 @@ list is a themed popover attached to its button and kept inside the panel: it gr
 than the room available, flips upward when there is no room below, and takes arrow keys and
 type-ahead, `Enter` to confirm and `Esc` to put the old value back. Switches are switches;
 three-way rows (*inherit* / on / off) show all three states at once; numbers carry their unit
-inside the field. The reason: a native `<select>` opens a window drawn by the operating system,
-which no theme can style and no panel can keep inside its bounds — exactly what a font list of
-twenty-seven faces must not do.
+inside the field.
 
 **On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of the same nine sections, in the same order and under the same names — More → **Settings** — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the section any other way with changes unsaved asks first. A row marked **This device** saves itself as you choose and never raises the bar.
 
@@ -370,7 +367,7 @@ defaults.
 The security-sensitive keys are deliberately **`.env` only, forever**. The panel and
 `/api/settings` can neither read nor write them: `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`,
 `TRUSTED_PROXIES`, `PORT`, `HOST`, `ASTROLABE_VAULT`, `ASTROLABE_DATA`, `PUBLIC`. `SITE_URL` is
-`.env` only too, for a duller reason: nothing has ever needed to change it while the server runs.
+`.env` only too.
 
 ## The settings API
 
