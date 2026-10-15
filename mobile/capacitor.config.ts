@@ -38,7 +38,7 @@ const config: CapacitorConfig = {
     // A back gesture that quietly reloaded the page instead of leaving it is
     // the single worst thing a WebView shell does. MainActivity handles back
     // itself; nothing here should second-guess it.
-    backgroundColor: "#0d1117",
+    backgroundColor: "#0f1113",
   },
 
   plugins: {
@@ -53,7 +53,7 @@ const config: CapacitorConfig = {
       splashImmersive: false,
     },
     SystemBars: {
-      // Light glyphs, because every ground this app ever shows is the default room's (#0d1117).
+      // Light glyphs, because every ground this app ever shows is the default room's (#0f1113).
       style: "DARK",
 
       // The plugin still styles the bars; it no longer decides where the

@@ -14,7 +14,7 @@
    it.
 
    The default block is the DARK set, matching tokens.css: no `data-theme`
-   attribute means github-dark, the default. */
+   attribute means astrolabe-dark, the default. */
 
 :root {
   --vc-red: #e79b95;
@@ -29,6 +29,7 @@
 
 /* The lit rooms. Listed by name rather than by a media query: the theme is a
    stored choice, not the operating system's. */
+:root[data-theme="astrolabe-light"],
 :root[data-theme="parchment"],
 :root[data-theme="sandstone"],
 :root[data-theme="linen"],

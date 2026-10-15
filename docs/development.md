@@ -107,7 +107,7 @@ never gets that exception. Each hit is printed as `file:line`, and the script ex
 
 ### `npm run check-contrast` — the accessibility gate
 
-Holds every one of the forty-six themes in `client/styles/tokens.css` to the WCAG contrast
+Holds every one of the forty-eight themes in `client/styles/tokens.css` to the WCAG contrast
 rules on the five text tokens: body text, headings and secondary text against all three
 backgrounds (`--bg`, the raised surfaces, and the hover background the tag pills sit on), the
 accent colour against the page, and `--text-faint` at the 3:1 non-text floor on the two

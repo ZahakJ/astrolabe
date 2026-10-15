@@ -18,7 +18,7 @@ if (!url || !out) {
 }
 mkdirSync(out, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
-const THEMES = { dark: "github-dark", light: "github-light" };
+const THEMES = { dark: "astrolabe-dark", light: "astrolabe-light" };
 
 async function session(host, lang, theme) {
   const viewport = host === "desktop" ? { width: 1280, height: 800 } : { width: 412, height: 915 };

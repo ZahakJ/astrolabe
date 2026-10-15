@@ -11,11 +11,12 @@
 // id below, plus the constant --swatch-<id>-* identity trio. Adding a theme:
 // a row here, a block there, a swatch rule in client/styles/themes.css.
 
-/** Dark themes, in the order the picker lists them. `github-dark` is first
- *  overall because THEMES[0] is the product default — it has been since the
- *  preset rooms landed and tokens.css's :root took its values. `iron-gall`,
- *  the brand room, opens the hand-made half of the list. */
+/** Dark themes, in the order the picker lists them. `astrolabe-dark` is first
+ *  overall because THEMES[0] is the product default and tokens.css's :root
+ *  carries its values; `astrolabe-light`, its ☾/☀ pair, opens the light list.
+ *  `iron-gall`, the brand room, opens the rest of the hand-made rooms. */
 export const DARK_THEMES = [
+  "astrolabe-dark",
   "github-dark",
   "nord",
   "dracula",
@@ -52,6 +53,7 @@ export const DARK_THEMES = [
 
 /** Light themes, same order rule. */
 export const LIGHT_THEMES = [
+  "astrolabe-light",
   "github-light",
   "catppuccin-latte",
   "solarized-light",

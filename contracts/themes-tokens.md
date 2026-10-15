@@ -17,7 +17,7 @@ drives `html { font-size }`; ALL chrome is sized in rem so this one token scales
 `--font-prose` (1.161rem ≈ 18px — editor/reading prose), `--selection-bg` + `--focus-ring`
 (the selection wash and the `:focus-visible` ring — per theme, because an accent tuned for type
 is not always visible as a ring), `--graph-node`/`--graph-edge`/`--graph-vignette` (the graph
-canvas). Default (no attr) = `THEMES[0]` = github-dark: `:root` carries that room's values hex for
+canvas). Default (no attr) = `THEMES[0]` = astrolabe-dark: `:root` carries that room's values hex for
 hex and check-contrast holds the two equal, so the first paint is the default room and an unknown
 id is too. `data-theme` attr lives on `<html>`. app.css: layout grid, sidebar, tabs, panels,
 palette, scrollbars (thin, themed — the standard `scrollbar-width`/`scrollbar-color` pair is served
@@ -49,13 +49,11 @@ Two stylesheets are linked AFTER app.css (`client/index.html`), and the order is
 and the graph vignette, the `--sw-*` swatch machinery, the picker panel) and `styles/settings.css`
 (the settings surface over app.css's base panel rules).
 
-## The theme library (46 rooms: 22 hand-made, 24 generated presets)
+## The theme library (48 rooms: 24 hand-made, 24 generated presets)
 
-- **`shared/themes.ts` is the one list.** `THEMES` (46 ids, `THEMES[0]` = `github-dark` = the
-  product default since the preset rooms landed in 3.16 — the commit that made it so moved
-  `:root` to its values and this paragraph said `iron-gall` for two releases; `iron-gall` is the
-  BRAND room, the icon and the manuscript metaphor, and opens the hand-made half of the dark
-  list), `DARK_THEMES`/`LIGHT_THEMES`, `isTheme()`, `themeGroup()`. Both sides
+- **`shared/themes.ts` is the one list.** `THEMES` (48 ids, `THEMES[0]` = `astrolabe-dark` = the
+  product default, whose values `:root` carries; `LIGHT_THEMES[0]` = `astrolabe-light`, its ☾/☀
+  pair; `iron-gall` is the BRAND room, the icon and the manuscript metaphor), `DARK_THEMES`/`LIGHT_THEMES`, `isTheme()`, `themeGroup()`. Both sides
   validate against it: the client's picker/palette/store and the server's `settings.defaultTheme`
   validator plus `DEFAULT_THEME` at startup (`server/site.ts` warns on an unknown name instead of
   passing it through). `client/themes.ts` re-exports it and adds `THEME_GROUPS` (the picker's
@@ -175,7 +173,7 @@ choice of their own:
 1. **an active design's own theme** (a design that carries one; nothing else may override it);
 2. **the pinned `settings.defaultTheme` / `DEFAULT_THEME`**;
 3. **follow-the-admin** — `settings.adminTheme`, mirrored from the admin's browser;
-4. **the built-in default** (`THEMES[0]`, github-dark).
+4. **the built-in default** (`THEMES[0]`, astrolabe-dark).
 
 And above all four: **a visitor who has explicitly chosen a theme keeps it.** `client/state.ts`
 applies `me.defaultTheme` only when `localStorage["astrolabe.theme"]` is empty, and never persists
@@ -268,7 +266,11 @@ overruled.
   measured against the contrast gate's floors before it is written (`clear()`), so the generator
   and `check-contrast` agree by construction; an accent within 18 ΔE of the text is reported and
   fixed in the spec by hand.
-- `DARK_THEMES[0]` is the product default and is `github-dark` (sky blue on neutral greys). The
+- `DARK_THEMES[0]` is the product default and is the hand-made `astrolabe-dark` (neutral
+  near-black greys, a neutral off-white type, gold only as the accent: links, the active row,
+  the ring, highlights, the selection; headings stay neutral). `LIGHT_THEMES[0]` is its pair,
+  `astrolabe-light` (neutral white, the gold darkened to `#8a6410` for 5.2:1 as text). The
+  presets keep `github-dark`/`github-light` as ordinary rooms. The
   old rooms keep their ids; only their labels changed (Arabic names now say what the room looks
   like rather than naming a pigment).
 - `check-contrast` takes the light list from `shared/themes.ts` — a copy once matched
@@ -286,7 +288,7 @@ overruled.
 window's pre-paint — no `[data-theme="iron-gall"]` block at all, so choosing it computed
 github-dark's blue while the picker marked a gold card CURRENT. The block is the pre-3.16 `:root`
 verbatim plus the three tokens the base has since gained. The desktop pre-paint colour is now the
-DEFAULT room's ground (`DEFAULT_GROUND` in electron/windows.ts, `#0d1117`), not iron-gall's.
+DEFAULT room's ground (`DEFAULT_GROUND` in electron/windows.ts, `#0f1113`), not iron-gall's.
 
 **check-contrast holds the catalogue, not just the blocks it finds** (`scripts/check-contrast.mjs`):
 every id in `shared/themes.ts` has a block and every block has an id; `:root` equals `THEMES[0]`

@@ -1,6 +1,6 @@
 # Theming
 
-*The forty-six built-in themes, the ambient masthead, the custom-theme builder, the CSS variables the app is painted with, and `custom.css`.*
+*The forty-eight built-in themes, the ambient masthead, the custom-theme builder, the CSS variables the app is painted with, and `custom.css`.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -14,7 +14,7 @@ If Astrolabe is replacing your blog, you probably want it to stop saying "Astrol
 
 ## Pick the default look
 
-A **theme** is a complete set of colours for the app: the page background, the text, the accent colour used for links and marks, the selection colour, the focus ring, the graph, the thirteen callout colours, the eight colours of syntax highlighting, and the roundness of the corners. Astrolabe ships **forty-six** themes, thirty-two dark and fourteen light. Every one of them defines the whole set for itself, so none of them is just another theme with a different background. Twenty-four are palettes that code editors and terminals already agree on, under the names people know them by and taken from their published specifications; in those, the sidebar, the tab strip and the panels stand on the darker ground their editors use, so a Dracula theme reads as Dracula from the first glance. **GitHub Dark is the default.**
+A **theme** is a complete set of colours for the app: the page background, the text, the accent colour used for links and marks, the selection colour, the focus ring, the graph, the thirteen callout colours, the eight colours of syntax highlighting, and the roundness of the corners. Astrolabe ships **forty-eight** themes, thirty-three dark and fifteen light. Every one of them defines the whole set for itself, so none of them is just another theme with a different background. Twenty-four are palettes that code editors and terminals already agree on, under the names people know them by and taken from their published specifications; in those, the sidebar, the tab strip and the panels stand on the darker ground their editors use, so a Dracula theme reads as Dracula from the first glance. **Astrolabe Dark is the default**: neutral greys, with gold kept for links, marks, the selection and the focus ring. Astrolabe Light is its daytime pair.
 
 Each theme is called a *room* here, because that is what it feels like to sit in one for an afternoon.
 
@@ -22,7 +22,8 @@ Each theme is called a *room* here, because that is what it feels like to sit in
 
 | Dark | | Light | |
 | --- | --- | --- | --- |
-| `github-dark` | solid neutral greys, sky blue — **the default** | `github-light` | clean white, link blue |
+| `astrolabe-dark` | neutral greys, gold accent — **the default** | `astrolabe-light` | neutral white, deep gold accent |
+| `github-dark` | solid neutral greys, sky blue | `github-light` | clean white, link blue |
 | `nord` | arctic blue-greys, frost cyan | `catppuccin-latte` | soft light grey, mauve |
 | `dracula` | purple-grey night, violet and pink | `solarized-light` | cream paper, blue |
 | `one-dark` | Atom's grey, soft blue | `gruvbox-light` | warm cream, burnt orange |

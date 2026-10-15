@@ -3,11 +3,10 @@
  * ONE ROOM, DELIBERATELY. The web client ships twenty-one themes because a vault
  * is somewhere you live; this is a doorway you pass through, and a doorway that
  * changed colour with the phone's light sensor would be a doorway pretending to
- * be a room. So: the app's DEFAULT room, always — github-dark, the `:root`
+ * be a room. So: the app's DEFAULT room, always — astrolabe-dark, the `:root`
  * block of client/styles/tokens.css and the ground the desktop window paints
- * (electron/windows.ts DEFAULT_GROUND). It was iron-gall until 3.21.1; it
- * now matches the desktop app's default. No `prefers-color-scheme` block, and that is a decision rather
- * than an omission.
+ * (electron/windows.ts DEFAULT_GROUND). No `prefers-color-scheme` block, and
+ * that is a decision rather than an omission.
  *
  * The values are lifted verbatim from client/styles/tokens.css `:root` so the
  * connection screen and the vault behind it are the same object. If those move,
@@ -20,18 +19,18 @@
 :root {
   color-scheme: dark;
 
-  --bg: #0d1117;
-  --bg-raised: #161b22;
-  --bg-hover: #21262d;
-  --text: #e6edf3;
-  --text-muted: #8b949e;
-  --text-faint: #6e7681;
-  --accent: #58a6ff;
-  --accent-soft: rgba(88, 166, 255, 0.16);
-  --border: #30363d;
-  --danger: #f85149;
-  --focus-ring: #58a6ff;
-  --selection-bg: rgba(88, 166, 255, 0.28);
+  --bg: #0f1113;
+  --bg-raised: #16191c;
+  --bg-hover: #1f2327;
+  --text: #e4e6e9;
+  --text-muted: #9da3aa;
+  --text-faint: #737a82;
+  --accent: #d4a942;
+  --accent-soft: rgba(212, 169, 66, 0.14);
+  --border: #2a2e33;
+  --danger: #ef6b63;
+  --focus-ring: #d4a942;
+  --selection-bg: rgba(212, 169, 66, 0.26);
 
   --radius: 6px;
 
@@ -273,7 +272,7 @@ button {
 
 .btn-primary {
   background: var(--accent);
-  color: #0d1117;
+  color: #0f1113;
   font-weight: 600;
   letter-spacing: 0.01em;
   padding-inline: 20px;
@@ -548,7 +547,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #0d1117;
+  color: #0f1113;
   background: var(--accent);
   border: none;
   touch-action: none;

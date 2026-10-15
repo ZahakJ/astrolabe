@@ -50,7 +50,7 @@ Beyond the sections, a design describes the frame around them:
 - **Typography**: base size, modular scale, reading measure in `ch` (the width of the text column, counted in characters), line height, vertical rhythm, heading weight, heading case (`normal`, `smallcaps` or `uppercase`), and serif or sans-serif for headings and body separately. Every one is a dial with a minimum and a maximum, not a free number.
 - **Footer**: columns of entries, each a link, plain text, or a social icon (Mastodon, X, GitHub, LinkedIn, RSS, email).
 - **Article page**: which parts an article keeps: the banner, the meta line, the tags, the related posts, the back link.
-- **Theme**: a design is a look, and a look is a theme plus a layout, so a design names one of the [forty-six themes](theming.md) (or a custom one). It applies to visitors who have not chosen a theme of their own; `null` leaves `settings.defaultTheme` alone.
+- **Theme**: a design is a look, and a look is a theme plus a layout, so a design names one of the [forty-eight themes](theming.md) (or a custom one). It applies to visitors who have not chosen a theme of their own; `null` leaves `settings.defaultTheme` alone.
 - **Site**: the width of the section column in pixels, and `compact`, `regular` or `roomy` density.
 
 ## Presets

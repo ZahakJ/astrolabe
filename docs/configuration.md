@@ -63,7 +63,7 @@ comment explaining it. The table below is the short version.
 | `SITE_FOOTER` | The footer line in blog mode. `{year}` and `{siteName}` are filled in (default `© {year} {siteName}`) |
 | `SITE_URL` | The site's public address, for RSS and canonical links, for example `https://notes.example.com`. When it is not set, it is worked out from each request. **`.env` only — the panel has no field for it** |
 | `LEGACY_HOSTS` | Old hostnames the site used to answer on, comma-separated. A request that arrives on one of them is redirected permanently to the same path on `SITE_URL`, so old links keep working after a rename. Needs `SITE_URL`; `.env` only |
-| `DEFAULT_THEME` | The theme a visitor sees before choosing one: any of the forty-six built-in themes, `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`. Unset means `follow`: visitors get whichever theme *you* are editing in. Case does not matter; an unknown name is ignored with one line on stderr |
+| `DEFAULT_THEME` | The theme a visitor sees before choosing one: any of the forty-eight built-in themes, `custom:<name>` for one you built (see [Theming](theming.md)), or `follow`. Unset means `follow`: visitors get whichever theme *you* are editing in. Case does not matter; an unknown name is ignored with one line on stderr |
 | `EXCLUDE_TAGS` | Comma-separated tags to hide from the public site's topic lists and tag pills — typically workflow tags like `draft,seedling`. Case does not matter and a leading `#` is fine. The admin's own views are not affected |
 | `PUBLIC_LAYOUT` | What a visitor sees: `blog` for a classic blog layout (see [Blog mode](blog-mode.md)), `designed` for a home page you compose yourself (see [Designer](designer.md)), anything else for `app`, the read-only app (the default) |
 | `SITE_LANG` | The site's language: `en` (default) or `ar`. With `ar` every interface string is Arabic and the whole interface is mirrored right-to-left (see [Arabic & RTL](arabic-and-rtl.md)). The language *you* edit in is a separate choice, per browser: Settings → Language → *Your language* |
@@ -288,7 +288,7 @@ above.
 | `siteName` | string, ≤ 80 chars | `SITE_NAME`, else `Astrolabe` |
 | `tagline` | string, ≤ 160 | `SITE_TAGLINE`, else none |
 | `footer` | string, ≤ 200 | `SITE_FOOTER`, else `© {year} {siteName}` |
-| `defaultTheme` | one of the forty-six ids, `custom:<name>` for a theme that exists, or `follow` (visitors track your editor theme) | `DEFAULT_THEME`, else `follow` |
+| `defaultTheme` | one of the forty-eight ids, `custom:<name>` for a theme that exists, or `follow` (visitors track your editor theme) | `DEFAULT_THEME`, else `follow` |
 | `adminTheme` | one theme id — **written by the app, not by hand**: your own editor theme, mirrored from your browser so `follow` has something to serve | none until you pick a theme |
 | `publicLayout` | `app` · `blog` · `designed` | `PUBLIC_LAYOUT`, else `app` |
 | `blogLocale` | language-and-region code (BCP47), ≤ 35 chars, tidied into its standard form on save | `BLOG_LOCALE`, else `ar` when the language is Arabic, else `en` |
