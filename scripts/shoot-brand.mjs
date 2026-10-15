@@ -1,5 +1,6 @@
 // Renders the brand assets that are pictures: docs/brand/hero.html →
-// docs/gh-hero.png (the README banner and the pages site's og:image).
+// docs/brand/hero.png (the brand card; the README banner and the og:image are the
+// editor-and-site composite, docs/media/hero-split-v2.png and docs/gh-hero-v2.png).
 //   CHROMIUM=/usr/bin/chromium node scripts/shoot-brand.mjs
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,6 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || 
 const page = await browser.newPage({ viewport: { width: 1280, height: 640 }, deviceScaleFactor: 1 });
 await page.goto(`file://${root}docs/brand/hero.html`);
 await page.waitForTimeout(200);
-await page.screenshot({ path: `${root}docs/gh-hero.png` });
-console.log("wrote docs/gh-hero.png");
+await page.screenshot({ path: `${root}docs/brand/hero.png` });
+console.log("wrote docs/brand/hero.png");
 await browser.close();
