@@ -81,11 +81,10 @@ from the call sites only: the dictionary file is excluded from the usage scan, b
 whose English value happens to be its own name (`read: { en: "read" }`) would otherwise match
 inside its own definition and report itself as used.
 
-It reads the TypeScript syntax tree, not lines (`scripts/i18nScan.mjs`). The line scan it replaced
-could not see a single word, an attribute expression (`title={open ? "Hide" : "Show"}`), a
-template literal, JSX text split across lines, `aria-description` or `aria-valuetext`, or a string
-child in braces; `tests/i18nScan.test.ts` runs the retired scan beside the new one on each of those
-shapes and shows it missing them. A literal that is not copy — a honeypot field only bots see, a
+It reads the TypeScript syntax tree, not lines (`scripts/i18nScan.mjs`), so it sees what a line
+scan cannot: a single word, an attribute expression (`title={open ? "Hide" : "Show"}`), a
+template literal, JSX text split across lines, `aria-description` or `aria-valuetext`, and a string
+child in braces; `tests/i18nScan.test.ts` covers each of those shapes. A literal that is not copy — a honeypot field only bots see, a
 folder's literal default name — says "not copy" on or just above its line, and says why. The gate
 also reads the Android shell, `mobile/src`, which keeps its own two-language table because its
 screens speak before the client loads: every value present in both languages, the Arabic in
@@ -94,8 +93,8 @@ error bodies its service worker answers with.
 
 ### `npm run check-names` — the names gate
 
-Two features were renamed in 3.15 and again in 3.16: the daily routine is **Sigils**, and **Orbits** <!-- lineage -->
-is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
+Two features were renamed: the daily routine is **Sigils**, and spaced repetition is **Orbits**. <!-- lineage -->
+A rename that leaves one toast, one hint or one heading saying the old word is
 worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
 `client/i18n/en.ts`, `client/i18n/ar.ts` and `client/orbits/copy.ts`, every page of this manual in both languages, the
 README, the seed vault, the what's-new deck and the headings of `CONTRACTS.md` and every `contracts/*.md` — for the words
@@ -159,11 +158,10 @@ image, in English and Arabic, on lines long enough to wrap several times), drive
 over it — single, double and triple click, drag, shift-click, select-all — runs the whole matrix
 once in each shell direction, and reads back what the reader would actually copy
 (`window.getSelection()`), requiring every clicked glyph to take the caret **within one
-character**. Before the fix it reported misses of up to **82 characters**; after it, zero.
+character**.
 
-It exists because that one question has broken four separate ways here (click position, hover
-previews, mod-click navigation, text selection), and the common cause is always a pixel the
-editor's height map cannot see: **nothing inside `.cm-content` may carry a vertical CSS
+Click position, hover previews, mod-click navigation and text selection all rest on that mapping,
+and what breaks it is a pixel the editor's height map cannot see: **nothing inside `.cm-content` may carry a vertical CSS
 margin.** CodeMirror measures every line and block widget by its border box, so padding and
 borders are counted and margins are not — put the air on a wrapper's padding, or in a
 transparent border with `background-clip: padding-box`, never in a margin. The gate restores the
@@ -178,7 +176,7 @@ this one reads ink. For every Arabic line on the page it measures the glyphs the
 overflow edge that no scroll can reveal, comes within 2px of the rule its block draws (the h1
 hairline), or overlaps the next line by more than a pixel.
 
-It writes two notes carrying every shape that broke — a vocalised h1 long enough to wrap, thirty
+It writes two notes carrying the shapes that clip marks — a vocalised h1 long enough to wrap, thirty
 headings so the outline has to scroll, callouts, a table, a link each way so the backlinks panel
 has a vocalised snippet — sets the instance to Arabic, and walks the editor, the reading view and
 the phone shell, and the blog as a signed-out reader at two widths, scrolling each through, in five
@@ -205,39 +203,36 @@ password-protected instance, `ASTROLABE_PASSWORD`; deletes its fixture however t
 
 ### `npm run check-layouts` — the keyboard-layout gate
 
-`KeyboardEvent.key` is the character the *keyboard layout* produced. The shell used to compare
-it to Latin letters, so on an Arabic keyboard — where the key marked `P` reports `ح` — every
-global shortcut in the product was dead, in an app that ships a complete Arabic translation and
-mirrors its whole interface for it. No test caught it, because every test typed Latin letters.
+`KeyboardEvent.key` is the character the *keyboard layout* produced. On an Arabic keyboard the
+key marked `P` reports `ح`, so a shortcut matched against Latin letters never fires there, and a
+test that types Latin letters cannot see it.
 
-So this one does not. It drives the real app through the DevTools Protocol
+This gate drives the real app through the DevTools Protocol
 (`Input.dispatchKeyEvent`, the only way to set `key`, `code` and `keyCode` independently —
 Playwright's own keyboard always sends the US `key` for a `code`) with the keydowns that Arabic
 101, ЙЦУКЕН, Greek, Hebrew, AZERTY, Dvorak and US QWERTY actually send, and asserts that the
 palette, the graph, the shortcut sheet, zen, reading view, search, the pane toggles, bold and
 strikethrough all still fire — including `Ctrl/Cmd K` in the signed-out blog shell, which is an
-anonymous reader's only binding. **72 checks; 46 of them passed before the fix.**
+anonymous reader's only binding.
 
-Its second half keeps the fix from over-correcting: on Dvorak the key that types `b` is physical
+Its second half keeps the layout match from over-reaching: on Dvorak the key that types `b` is physical
 `KeyN`, so `Ctrl Alt` on physical `KeyB` — which types `x` there — must do **nothing**. Layout
 first, physical position only as the fallback. `tests/shortcuts.test.ts` runs the same matrix
 over the resolver with no browser at all, and holds the cases a browser cannot deliver (Chromium
 flattens Arabic's two-code-point lam-alef to an empty `key`). A binding added to the shortcut
-sheet and not to that file is a binding untested on every non-Latin keyboard on earth.
+sheet belongs in that file too, or it goes untested on every non-Latin keyboard.
 
 `node scripts/shoot-layouts.mjs` is the companion picture: the `Ctrl/Cmd /` sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.
 
 ### `npm run check-windows-layout` — the window gate
 
-Every other browser gate here looks at the app at one or two comfortable widths. The app is not
-used at comfortable widths. A Windows laptop panel is 1366 physical pixels, which is 1093 CSS px
-at 125% scaling and 904 at 150%; half of it under `Win+←` is 683. Four release rounds of "resizing
-of panels and windows is clunky and weird on Windows" were four separate defects that no gate
-could see, because each of them is a function of the viewport **and** the pointer together — and
-because the one machine none of us has is the one they all happened on.
+Every other browser gate here looks at the app at one or two comfortable widths. Real windows are
+narrower: a Windows laptop panel is 1366 physical pixels, which is 1093 CSS px at 125% scaling and
+904 at 150%; half of it under `Win+←` is 683. A resize defect there depends on the viewport **and**
+the pointer together, so no single screenshot shows it.
 
-So this gate is a ladder rather than a screenshot. It drives the built app at **1366, 1280, 1024,
+This gate is a ladder rather than a screenshot. It drives the built app at **1366, 1280, 1024,
 900 and 720 CSS px** — the desktop shell's own widths — each at **device pixel ratio 1, 1.25 and
 1.5**, in both directions,
 with the pane widths both empty and seeded to a pair the reader could actually drag them to
@@ -255,8 +250,7 @@ which `setViewportSize` silently drops halfway down a ladder.
 
 **Which shell.** A last rung, `whichShell`, walks each posture down the widths (700 and 600 too) and
 asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
-everywhere else. (Until 3.27.0 the ladder ran in the Classic phone layout, to measure its drawer
-cells; the drawer went with it, so every cell the desktop is mounted in is docked and says so.)
+everywhere else. Every cell the desktop is mounted in is docked.
 
 In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
 wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
@@ -268,18 +262,18 @@ Three rungs after the ladder watch the frames the ladder cannot see, because it 
 each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
 window is being dragged and while a pane is being folded: the note column still has its 320px
 **one frame** after a resize (at two ratios and in both directions), and the reader's own
-`Ctrl/Cmd Alt B` fold is still mid-flight 60ms in, at two widths. Each failed at some point on
-the same flag — the class that says "this width is not the hand's doing" — being up when it should
-have been down, or down when it should have been up.
+`Ctrl/Cmd Alt B` fold is still mid-flight 60ms in, at two widths. All three hang on one flag, the
+class that says "this width is not the hand's doing": up while a window is resized, down while the
+reader folds a pane.
 
 Needs a running instance, `CHROMIUM`, and the instance's password as the second argument.
 
     npm run check-windows-layout -- http://127.0.0.1:8177 <password>
 
-`scratchpad/win/run.sh` is the other half of this and is not a gate: it launches the packaged
-Windows executable under Wine with `--remote-debugging-port=9333`, which is the only way to see
-the real Windows renderer's scrollbars, pointer events and media queries without a Windows
-machine. Run the same assertions over CDP there before a release that touches the shell.
+Without a Windows machine, the real Windows renderer's scrollbars, pointer events and media
+queries can still be checked: run the packaged Windows executable under Wine with
+`--remote-debugging-port=9333` and run the same assertions over CDP. Do this before a release that
+touches the shell.
 
 ### `npm run check-keymap` — the binding ledger
 
@@ -312,15 +306,14 @@ Every row with `keys` must be vouched for by a comment `// keymap: <label>` on t
 answers it — the branch in `client/globalKeys.ts` (the window listener both shells mount), the CodeMirror keymap entry, or a
 component's own listener; a library keymap (history, search, fold) is marked where the editor
 installs it. A row with no mark fails (`NO HANDLER`), and so does a mark naming a label that is no
-longer a row. `Ctrl/Cmd Alt L` (turn a note over to its twin) sat on the sheet, the palette row and
-this manual with no handler at all until 3.26.1, because nothing tied a row to its code.
+longer a row.
 
 ### `npm run check-excerpt` — the tag-in-prose gate
 
 `DESIGN.md`'s hard rule is that a snippet shown outside the editor either STRIPS Markdown or
-RENDERS it. Removing a `#` and leaving the bare word standing in the sentence is neither, and it
-shipped: a post ending "…it buys the reader a breath. #design #typography" printed on the front
-page as "…it buys the reader a breath. design typography". The three surfaces that flow through
+RENDERS it. Removing a `#` and leaving the bare word standing in the sentence is neither: a post
+ending "…a breath. #design #typography" must not reach the front page as "…a breath. design
+typography". The three surfaces that flow through
 one stripper (`stripInlineMd`) are all walked from one fixture whose body **ends** in a tag line:
 the post excerpt (`/api/posts` — blog cards, RSS, `og:description`), the search snippet
 (`/api/search`), and the backlink context line (`/api/backlinks`). It also checks the other
@@ -375,7 +368,7 @@ before every release that adds a slide.
 ### `npm run check-presets` — the preset catalog
 
 Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at least one preset
-per family, and no preset naming a note in somebody's vault. It runs the shared `assertCatalog`
+per family, and no preset naming a note in a particular vault. It runs the shared `assertCatalog`
 rather than reimplementing it.
 
 ### `npm run check-docs` — the manual
@@ -408,7 +401,7 @@ reminder.
 
 ### `npm run check-a11y` — static accessibility
 
-Holds the line an audit drew, from the source alone: no `outline: none` without a replacement
+From the source alone: no `outline: none` without a replacement
 focus ring in the same rule, an accessible name on every icon-only control, and the rest of the
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.
@@ -416,13 +409,11 @@ invisible in review and invisible in a screenshot.
 ### `npm run check-cascade` — no phone rule is undone by a later one
 
 No browser, no server. The phone and the touch shell are `@media` blocks written over the
-desktop's rules, and a block only wins when it comes **after** what it adjusts. Five times a phone
-rule shipped dead because a rule for the same selector and property sat later in the cascade with no
-condition at all: What's-new's position count (shown for a phone, then hidden for everyone eighteen
-lines further down), the library-roots editor's wrapping, three settings declarations (stated in
-app.css, restated for the desktop by settings.css, which loads later), the tag shelf's sort button
-and the unlinked mentions' link buttons. Each file reads correctly on its own; the loser is simply never
-applied, so neither a diff nor a screenshot review can see it.
+desktop's rules, and a block only wins when it comes **after** what it adjusts. A phone rule is
+dead when a rule for the same selector and property sits later in the cascade with no condition at
+all — for example a settings declaration restated for the desktop by `settings.css`, which loads
+after `app.css`. Each file reads correctly on its own; the loser is simply never applied, so
+neither a diff nor a screenshot review can see it.
 
 The gate reads every `client/styles/*.css` in the browser's order — the sheets
 `client/index.html` links, in link order, then every sheet a module imports (those always follow
@@ -450,13 +441,12 @@ against a scratch server. It drives the phone shell (`client/phone/`) the way a 
 does, in English **and** Arabic, on six shapes, and photographs every screen and sheet it passes.
 
 **What it does, as assertions.** A tap on a folder pushes the folder; a tap on a note changes the
-URL and the title (the old gate was green the day a tree tap on a phone opened nothing); the
-note screen has no tab bar; the note sheet takes a history entry and the browser's back closes it
+URL and the title; the note screen has no tab bar; the note sheet takes a history entry and the browser's back closes it
 before it pops the note; Publish asks, and a cancelled publish publishes nothing; the mode icon
 flips the mode it names; back pops the note to its folder; a long press raises the row's action
 sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; a deep
-link opens its note and back from it comes home to Today; no page errors. And, since 3.27.0, each
-of Round 2's screens is asked what a thumb asks of it: Orbits lists its decks, a deck opens, and
+link opens its note and back from it comes home to Today; no page errors. Each page is asked what
+a thumb asks of it: Orbits lists its decks, a deck opens, and
 **Study starts the session full screen** (on a tablet it takes both columns) and back lands on the
 deck; Sigils lists its sigils, a sigil opens and **a tick answers at once and the server has it**;
 Media lists its shelves and a tracker opens its card; **a book wears one bar of its own** (no
@@ -465,8 +455,7 @@ sheet and **back closes it** and keeps the book; the theme picker (a layer on `<
 history entry and back closes it; Settings is a list, a section is a screen, an edit raises the
 save bar, **back with an edit asks** and Cancel keeps the edit, and **Save writes it**; the tag
 picker opens over the note sheet and **writes the tag into the note**; and **a folder comes back
-scrolled where it was left**. Since 3.34, the report of a reader on a Galaxy Z Fold, asked first:
-**two folders down, a reload keeps the folder and its ‹ lands on the parent**, and so it does after
+scrolled where it was left**. Folders: **two folders down, a reload keeps the folder and its ‹ lands on the parent**, and so it does after
 a trip to Today and back, with the OS back going up from there rather than home; the folder's top
 bar is its path as crumbs that end in its own name and go up (through "…" where they fold); the
 Notes tab starts on the Tree on two columns and on Folders on one; the Tree opens a folder in place,
@@ -492,8 +481,7 @@ are a Galaxy Z Fold's two screens as Chrome reports them at its DPR of 2.625 —
 inner one with the note's tabs. `stylus` is 720×820 at DPR 1.5 with a pen — `availablePointerTypes=6,
 primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1`, a blink setting on its own
 browser, because `hasTouch` makes Chromium report a coarse-only device whatever the pointer flags
-say; it is the posture that was once served the desktop shell, and it draws one column, the open
-Fold's width. `tablet` and `tablet-land` are a touch tablet at 820×1180 (one column, with tabs) and
+say; it draws one column, the open Fold's width. `tablet` and `tablet-land` are a touch tablet at 820×1180 (one column, with tabs) and
 1180×820, where the shell draws its rail, its list column and the note, and the note sheet slides
 over from the side. After the matrix, **a note takes the page**: at 344, 690, 829×690, 768, 820, 1024
 and 1180, in both languages, an open note is at least 90% of the viewport under 1000px; above it the
@@ -545,11 +533,11 @@ built on the average is a gate that fails because somebody started a build.
 | --- | --- |
 | **first paint** of the admin app | a static import that drags a lazy surface back into the shell's first request |
 | **keypress → paint** in the 3,000-line note, median and p95 | a per-keystroke pass that has quietly become O(document) |
-| **long-task time** over a 40-keystroke burst | the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them, and the one the purge moved most |
+| **long-task time** over a 40-keystroke burst | the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them |
 | **reading render** of that note | the same, for the one operation whose cost is the whole document at once |
-| **the Sigils page**, door → twelve cards drawn (budget 1,650 ms; 1,241 when set) | a card whose streak, heatmap or week went back to walking the whole log per render |
-| **the Calendar page**, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set) | a day cell that reads the vault instead of the agenda the page computed once |
-| **the phone's Tree**, a tap → a folder of fifty open (100 ms; 70 when set), and the longest main-thread task over sixteen taps (none) | a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document |
+| **the Sigils page**, door → twelve cards drawn (budget 1,650 ms) | a card whose streak, heatmap or week went back to walking the whole log per render |
+| **the Calendar page**, door → the month drawn with its lines and daily-note dots (250 ms) | a day cell that reads the vault instead of the agenda the page computed once |
+| **the phone's Tree**, a tap → a folder of fifty open (100 ms), and the longest main-thread task over sixteen taps (none) | a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document |
 
 Typing latency is the browser's own Event Timing — hardware keydown to the paint that shows the
 letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
@@ -593,8 +581,7 @@ skimmed. A bound that is only asserted by a constant is a bound that silently st
 
 ### `npm run check-designer-nav` — the designer's navigation and alignment
 
-A browser gate born of a bug that shipped past every other check, and only in Arabic:
-a preview scaled with a physical `transform-origin` inside a logical layout sits away from its
+A browser gate for a failure only right-to-left shows: a preview scaled with a physical `transform-origin` inside a logical layout sits away from its
 box in `[dir="rtl"]`. It measures every designer surface in both directions, and walks the
 designer's navigation.
 
@@ -611,19 +598,19 @@ the reader on that page with the word found.
 Both take an AppImage and boot it under Xvfb (a virtual screen) with an isolated config
 directory, from an empty temp directory (never from the checkout: an app started beside a `.env`
 links itself to that deployment), over an empty temp vault named by `ASTROLABE_VAULT`. The
-**boot** gate fails on an uncaught exception or a syntax error in the first 25 seconds — the
-3.1.0–3.3.4 builds crashed at load and nothing said so. The **relaunch** gate sets
-`ASTROLABE_SELFTEST=relaunch`, which makes the app restart itself four seconds after boot
-exactly the way an applied update does, and passes only when the first process is gone *and* a
-second one started from the same file is running — `app.relaunch()` looked like it worked and
-did not, because Electron's relauncher runs from the mounted image after it is unmounted. Every
+**boot** gate fails on an uncaught exception or a syntax error in the first 25 seconds. The
+**relaunch** gate sets `ASTROLABE_SELFTEST=relaunch`, which makes the app restart itself four
+seconds after boot exactly the way an applied update does, and passes only when the first process
+is gone *and* a second one started from the same file is running — a bare `app.relaunch()` is not
+enough from an AppImage, because Electron's relauncher runs from the mounted image after it is
+unmounted. Every
 AppImage release runs both before upload.
 
 ### The parity tests — one rule, every side
 
 Some promises are not a script's but the suite's, because they hold between two pieces of code
 that must agree. `contracts/gates.md` lists every gate; these are the tests that hold one rule
-across the places that used to keep a copy each:
+across every place that applies it:
 
 | Test | What it holds |
 | --- | --- |
@@ -632,135 +619,62 @@ across the places that used to keep a copy each:
 | `tests/byteRange.test.ts` | One `Range:` parser (`shared/byteRange.ts`) behind both `/api/file` routes, and the same five requests answered the same way by each. |
 | `tests/fileTypes.test.ts` | One served-type table, one kind table and one image test (`shared/attachments.ts`), one tree order (`shared/tree.ts`), one local day (`shared/dates.ts`) — and no stray copy of either of the last two in the code. |
 | `tests/breakpoints.test.ts` | One phone width in every stylesheet (above). |
-| `tests/i18nScan.test.ts` | The copy scan sees what the line scan could not (above). |
+| `tests/i18nScan.test.ts` | The copy scan sees every shape of copy listed above. |
 | `tests/rtlGlyphs.test.ts` | A Bidi_Mirrored glyph (‹ › « ») is mirrored once: whether the browser mirrors it depends on the font, so a glyph flipped by hand under RTL must be pinned left-to-right first. |
 | `tests/sourceText.test.ts` | No source file carries a literal control character, so grep never calls it binary. |
 
 ## Performance
 
-*What was measured, on what, what it cost before and after — and what is still slow and why.*
+*The vault performance is measured on, and what is still slow and why.*
 
 ### The fixture
 
-Performance here is measured on a vault nobody has, because the two vaults that exist are both
-useless for it: the seed vault is a dozen notes, where everything is instant, and a real one is
-private and is never served. `scripts/perf-fixture.mjs` generates the third one from a fixed
-seed, so that a number taken today is comparable with one taken next month:
+The seed vault is a dozen notes, where everything is instant, and a real vault is private. So
+`scripts/perf-fixture.mjs` generates a third one from a fixed seed, so that a number taken today is
+comparable with one taken next month:
 
 - **2,000 notes** across 40 folders, each with six frontmatter properties, five `[[wikilinks]]`
   and three `#tags` — 110 distinct tags in a tree, and 2,000 nodes for the graph;
-- a **3,000-line note** (291,000 characters, 54,000 words) — the editor's worst honest case;
+- a **3,000-line note** (291,000 characters, 54,000 words) — the editor's worst realistic case;
 - a note with **fifty `![[embeds]]`**;
 - a **year of daily notes**, so the Calendar page has a month with something in every cell;
-- and, only when `ASTROLABE_SEED_VAULT` names a vault to take them from, a real **665-page PDF**
-  and the real **Sigils** and **Orbits** notes — a reader and two shelves with something of their
-  own to draw. It is opt-in and it says so in its own output, because a fixture that reached into
-  a vault nobody named would be two bad things at once: an unauthenticated scratch server over
-  somebody's private notes, and a budget only one machine could meet. It measurably would have
-  been the second — the generated vault carries 110 tags everywhere and 121 on the laptop the
-  purge was measured on.
+- and, only when `ASTROLABE_SEED_VAULT` names a vault to take them from, a real PDF and the real
+  **Sigils** and **Orbits** notes, so the reader and both shelves have something of their own to
+  draw. It is opt-in and says so in its own output: a fixture must never put somebody's private
+  notes behind an unauthenticated scratch server, and a budget must be one any machine can meet.
 
-The sweep below was run with that variable set, so its vault was 2,376 notes rather than the
-2,367 the generator alone writes. The nine notes are noted, not hidden; nothing in the table
-turns on them.
-
-Every number below was taken through the DevTools protocol against a scratch server over that
-vault, with the CPU throttled to **a quarter speed** — Lighthouse's mid-tier multiplier. The
-throttle is not pessimism: unthrottled on a loopback socket, every surface here lands inside one
-animation frame and there is no headroom left in which a regression could ever show. Typing is
-the browser's own Event Timing (hardware keydown → the paint that shows the letter); "before" is
-3.18.0 and "after" is the same tree with the purge applied, measured back to back on one machine.
-
-One caveat about every millisecond on this page: the machine this was measured on routinely
-carries a load average of 13–17, and throttled numbers move with it. Everything below was taken
-**back to back on the same machine in the same state**, which is what makes a before and an
-after comparable — but the absolute values are a busy laptop's, not a benchmark rig's. Where
-load matters to a budget, `scripts/check-perf.mjs` says so beside that budget.
-
-### The numbers
-
-| | Before | After |
-| --- | ---: | ---: |
-| **Typing, 3,000-line note** — keypress → paint, median | 32 ms | **24 ms** |
-| … p95 | 48 ms | **32 ms** |
-| … main-thread long-task time over a 40-key burst | 571 ms | **184 ms** |
-| **Typing, 50-embed note** — input handler, median | 18.0 ms | **6.5 ms** |
-| **Reading view**, 3,000-line note, render | 1,673 ms | **1,081 ms** |
-| **Admin app** — first paint | 1,008 ms | **936 ms** |
-| … JavaScript in the first request (`check-bundle`) | 1,551.7 kB | **1,048.7 kB** |
-| … time to interactive (end of the last long task) | 1,638 ms | 1,516 ms |
-| **Public site** — first paint | 608 ms | 548 ms |
-| **`GET /api/props`** (the properties shelf) | 28.3 ms | **0.9 ms** |
-| **`GET /api/tags`** | 1.1 ms | 0.9 ms |
-| Sigils page, open | 2,861 ms | 2,628 ms |
-| Calendar page, open | 2,265 ms | 2,182 ms |
-
-Unchanged, and measured so: the tree opening forty folders at once (974 → 963 ms), the tag
-shelf's tab flip (39 → 43 ms), search's per-keystroke paint (16 → 16 ms), a single note's save
-and re-index on the server (7.0 → 7.7 ms), a 300-file watcher burst reaching the index (353 →
-347 ms), and the indexer's cold start over 2,376 notes (1,276 → 1,264 ms). Heap after four
-hundred navigations over ten minutes stayed flat both times (−6.2 MB and +1.2 MB after a forced
-collection — a walk of the whole product retains nothing).
-
-**What the purge actually moved**, in the order it was worth moving:
-
-1. **The whole vault was walked once per wikilink.** `resolveLink` called `collectNotes`, which
-   flattens the tree and sorts it with `localeCompare` — so rendering the 3,000-line note walked
-   2,376 notes and re-sorted 2,000 of them 176 times, once per link. It is memoized on the tree
-   object now (the store replaces it and never mutates it, so identity is an exact stamp), with
-   a name table and a path table built once beside it, and the two loops in `resolveLink` became
-   two map lookups. 6.8% of the reading render and 2.8% of every keystroke, gone.
-2. **Every note's annotations were placed 120 ms after every keystroke — including the notes
-   with no annotations.** The painter reduced the whole document to prose with a per-character
-   offset map, folded it, and placed nothing: an empty list is truthy, so the guard above it
-   never fired. The single largest cost of a keystroke, spent on nothing.
-3. **The status bar re-counted the note on every autosave.** The bar draws the *live* count the
-   buffer publishes; the fetched copy behind it was re-fetched and re-counted every 600 ms of
-   typing to fill a field it never draws. It now counts only when there is no live count to
-   draw, and the buffer's own count is memoized on the document.
-4. **The outline pane was in the admin's first request.** It reaches the section surgery → the
-   editor's sectioning extension → the live-preview decoration engine → the reading renderer →
-   KaTeX. One `lazySurface` boundary took 503 kB and fifteen files out of the first paint.
-5. **`Intl.DateTimeFormat` was constructed per date.** Building a formatter loads ICU data;
-   formatting with one is a lookup. The Sigils page draws one date per card plus one per heatmap
-   cell, twice over where both calendars are shown — 5.9% of opening the page. Formatters are
-   cached by their own arguments now, which is what `shared/calendar.ts` already did for Hijri.
-6. **The tag and property shelves were recomputed on every request.** `props()` walks every note
-   and splits, trims and case-folds every frontmatter value; nothing memoized it. It is now
-   validated against a `shelfRevision()` the index moves — exactly the bargain
-   `server/graphCache.ts` already strikes — which is the 28.3 ms → 0.9 ms above.
+Numbers are taken through the DevTools protocol against a scratch server over that vault, with the
+CPU throttled to **a quarter speed** (see `check-perf` above). Throttled numbers move with the
+machine's load, so measure on a quiet machine and compare only runs taken back to back.
 
 ### Where the time still goes
 
-Measured, and left alone, because the honest answer is that the cost is real:
+Known costs, left as they are on purpose:
 
 - **The tree holds 2,151 rows in the DOM** with forty folders open, and opening all forty at once
-  costs ~960 ms of React reconciliation and DOM creation. Scrolling it is a clean 16.7 ms frame,
-  and nobody opens forty folders in one gesture — one folder is a fortieth of that number. The
-  list is not virtualised: the rows carry drag-and-drop, a roving tab index, `aria-posinset` over
-  the filtered set and a keyboard walk, and a virtualiser under all four would trade correctness
-  for a number no reader produces. The per-folder cap ("Show N more", 300 rows) is the existing
-  answer and it still holds.
-- **The graph's layout is 53% of its own time**, in a hand-written Barnes-Hut force simulation
-  over typed arrays, with another 17% in `drawImage`. That is a simulation doing its work, not a
-  bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.
-- **Search is 91% idle.** The ~950 ms from the first keystroke to the first row is the 200 ms
-  debounce plus the typing itself plus a 6 ms server round trip; each keystroke paints in 16 ms.
-  The debounce is the feature.
-- **The reading render's remaining 1,081 ms is mostly layout** — six thousand nodes of prose
-  being measured by the browser. The JavaScript above it is now a small fraction.
-- **Opening a surface for the first time costs its chunk.** The Sigils, Orbits and Calendar pages
-  are ~2.2–2.6 s on a cold visit, of which two thirds is fetching and parsing the lazy chunk
-  those pages exist inside. That is the split working, not failing.
+  costs about a second of React reconciliation and DOM creation. Scrolling it stays within a
+  frame, and one folder is a fortieth of that cost. The list is not virtualised: the rows carry
+  drag-and-drop, a roving tab index, `aria-posinset` over the filtered set and a keyboard walk,
+  and a virtualiser under all four would trade correctness for a number no reader produces. The
+  per-folder cap ("Show N more", 300 rows) is the answer.
+- **The graph's layout is about half of its own time**, in a hand-written Barnes-Hut force
+  simulation over typed arrays, with most of the rest in `drawImage`. That is a simulation doing
+  its work, not a bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.
+- **Search is mostly idle.** The time from the first keystroke to the first row is the 200 ms
+  debounce plus the typing itself plus a short server round trip; each keystroke paints within a
+  frame. The debounce is the feature.
+- **The reading render is mostly layout** — six thousand nodes of prose being measured by the
+  browser. The JavaScript above it is a small fraction.
+- **Opening a surface for the first time costs its chunk.** On a cold visit, most of the time to
+  open the Sigils, Orbits and Calendar pages is fetching and parsing the lazy chunk those pages
+  live in. That is the split working, not failing.
 
-### Offline, measured properly
+### Testing offline
 
-The service worker installs and takes control in about **250 ms**, and a short read leaves ~88
-entries in its cache. With the **server stopped** — not with the browser's offline emulation,
-which intercepts a navigation above the worker and never lets it answer — a navigation to a note
-renders the cached shell in about **5 s** with the "Reading this device's copy" strip on it. A
-harness that uses the emulation instead reports `net::ERR_FAILED` and has proved nothing; see
-[Offline](offline.md).
+Stop the server to test offline reading. The browser's offline emulation intercepts a navigation
+above the service worker and never lets the worker answer, so a harness that uses it reports
+`net::ERR_FAILED` and has proved nothing. With the server stopped, a navigation to a note renders
+the cached shell with the "Reading this device's copy" strip on it; see [Offline](offline.md).
 
 ## The done bar
 
