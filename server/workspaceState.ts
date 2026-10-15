@@ -5,7 +5,7 @@
 // per vault, but a launch that finds it busy — a previous instance still
 // dying, any other process — moves to the next free one, and the window then
 // opens on a fresh origin: no tabs, no layout, and the first note in the tree
-// (the owner: "why does the app keep opening on 1t-sram"). So the workspace is
+// (reported: "why does the app keep opening on 1t-sram"). So the workspace is
 // also written here, ASTROLABE_DATA/workspace.json, on every change, and a
 // window that finds nothing in its own storage asks for it. Last writer wins;
 // it is a backup of one window's state, not a sync between windows.

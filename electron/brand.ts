@@ -2,7 +2,7 @@
 //
 // Astrolabe is one person's name for it. Someone else running the desktop app
 // over their own vault does not want a tray icon, a launcher entry, a window
-// icon and an About box that all say a name they did not pick (the owner:
+// icon and an About box that all say a name they did not pick (reported:
 // "what if others want their different name.. they prob don't wanna have the
 // executable and its logo have astrolabe in it"). So the name and the icon
 // are read at launch from `<userData>/brand.json`, and everything the desktop

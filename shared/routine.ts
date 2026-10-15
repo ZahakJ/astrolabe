@@ -1,6 +1,6 @@
 // SIGILS — a plan you follow by the day, and the log of what you did.
 //
-// The owner: "some sorta daily tracker. A way to add per-day details on
+// The request: "some sorta daily tracker. A way to add per-day details on
 // specific activities, and just like media we can have templates for specific
 // things to track, for example an exercise tracker". A ```tracker is a card
 // about ONE WORK (a book, a game) and how far through it you are; an
@@ -167,7 +167,7 @@ export interface RoutineField {
 // ── A course ────────────────────────────────────────────────────────────────
 //
 // THE SECOND MODE OF THE SAME FENCE. A weekly sigil says what MONDAY asks;
-// a course says what comes NEXT. The owner: "there has to be a way to
+// a course says what comes NEXT. The request: "there has to be a way to
 // dynamically ask a sigil to keep moving/bumping yesterday's task if not done
 // because future tasks depend on it … if it takes me two days instead of one
 // the schedule handles it by shifting the task to the second day".
@@ -285,7 +285,7 @@ export interface RoutineEntry {
   /** Tasks PUSHED FORWARD from this day: not done, not given up — they keep
    *  showing on the days after until ticked (which writes them into this
    *  day's `done`, so the day it was owed to is the day that gets credit) or
-   *  skipped. The owner: "a task skipped today, or part of one, moves to
+   *  skipped. The request: "a task skipped today, or part of one, moves to
    *  tomorrow". Written as `deferred: evening`. */
   deferred: string[];
   /** Field key (as declared) → value as written. */

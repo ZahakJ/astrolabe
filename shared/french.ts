@@ -1,6 +1,6 @@
 // FRENCH, CORRECTED AS IT IS TYPED — the arithmetic, with no editor in it.
 //
-// The owner: "add auto-correction to French — don't want full French support,
+// The request: "add auto-correction to French — don't want full French support,
 // just auto correction if I write in French". So this is not a dictionary and
 // not a grammar. It is two small, deliberately conservative answers that the
 // editor (client/editor/frenchAutocorrect.ts) and the per-line spellcheck

@@ -9,7 +9,7 @@ import { setTrackerFields, type TrackerFields, type TrackerKind } from "./tracke
 
 export const MEDIA_ROOT = "Media";
 /** The same root, in the language of an Arabic instance. A folder the owner
- *  reads every day should be in their own language (the owner: "default
+ *  reads every day should be in their own language (reported: "default
  *  created folders should have Arabic names if the language is Arabic"). */
 export const MEDIA_ROOT_AR = "وسائط";
 export const MEDIA_ROOTS: readonly string[] = [MEDIA_ROOT, MEDIA_ROOT_AR];

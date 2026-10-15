@@ -8,7 +8,7 @@
 // than the file's birthtime (a save is a rename over the note and gives it a
 // new inode), older than git's first sight of it, and unmoved by a
 // reorganisation of the vault (server/created.ts follows paths; a note the
-// ledger first met after a move was dated by the move). The owner: "make the
+// ledger first met after a move was dated by the move). The request: "make the
 // real source of truth for that time be the time of creation".
 //
 // So the date chain reads it: `date:` → `created:` → `published:` → the id →

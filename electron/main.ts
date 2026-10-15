@@ -139,7 +139,7 @@ for (const scheme of [PROTOCOL, LEGACY_PROTOCOL]) {
   // old directory still exists, COPY it in — entry by entry, never over a
   // file the new directory already holds. Whatever the new app wrote stays;
   // whatever it never had comes back. Then, from 3.5.0, the old directory is
-  // REMOVED (the owner: "copy old to new configs by default and we can delete
+  // REMOVED (reported: "copy old to new configs by default and we can delete
   // it on a future update"; then "feel free to remove any vellum backups
   // now"). Removed only after a carry that threw nothing, so a machine where
   // the copy failed keeps its old directory and a second launch tries again.

@@ -760,7 +760,7 @@ api.delete("/folder", async (c) => {
   // fished back out of `.trash/` by hand comes back unmarked, and that is the
   // right trade: the alternative is a settings.json that accumulates a mark
   // for every folder the vault has ever had, forever, and hits its cap on a
-  // vault the owner would describe as small.
+  // vault anyone would describe as small.
   moveFolderIcons(folderPath, null);
   // The row and the root go with the folder, on the same argument.
   moveLibraryFolders(folderPath, null);

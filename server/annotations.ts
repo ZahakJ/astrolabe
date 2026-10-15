@@ -1,4 +1,4 @@
-// NOTE ANNOTATIONS — what the owner said about a passage, kept beside the
+// NOTE ANNOTATIONS — what the admin wrote about a passage, kept beside the
 // vault and never in it (ASTROLABE_DATA/annotations.json, the books.json idiom).
 //
 // The store is a map from note path to its annotations. A path is the key

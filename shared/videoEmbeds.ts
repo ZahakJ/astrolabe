@@ -62,7 +62,7 @@ export function parseMediaFragment(anchor: string | null): MediaFragment | null 
 
 /** The fragment as a URL hash, `#t=12,30`. With no fragment the player still
  *  asks for `#t=0.001`: a browser that shows nothing before play (Safari)
- *  then draws the first frame, which is the poster the brief promised. */
+ *  then draws the first frame, which is the poster promised. */
 export function mediaFragmentHash(f: MediaFragment | null): string {
   if (f === null) return "#t=0.001";
   const n = (x: number): string => String(Math.round(x * 1000) / 1000);

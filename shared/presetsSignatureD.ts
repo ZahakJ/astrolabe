@@ -74,7 +74,7 @@ import {
 /**
  * ORRERY — the star catalogue, and the house this shelf was built to make.
  *
- * The owner asked for a space design and the honest answer for seventy-one
+ * A space design was asked for, and the answer for seventy-one
  * designs was that they could have a dark room and a narrower column. This is
  * the other answer: the page stands in a `starfield` — two dot fields drifting
  * at 150s and 260s over one faint band of galaxy, all three drawn from
