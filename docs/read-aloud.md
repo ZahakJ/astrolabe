@@ -1,6 +1,6 @@
 # Read aloud
 
-*Select a word or a paragraph in French, Japanese, Arabic or English and hear it, spoken by voices that run on your own machine's processor — no cloud, no graphics card.*
+*Select a word or a paragraph in French, Japanese, Arabic or English and hear it, spoken by voices that run on the processor of the machine running Astrolabe — no cloud, no graphics card.*
 
 ← [Back to the README](../README.md) · [All docs](README.md)
 
@@ -46,21 +46,18 @@ Both are free software, both run on the processor, and both run inside one Pytho
 | Languages | English, French, Arabic | English, French, Japanese, Spanish, Italian, Portuguese |
 | Voices | Lessac (f) · French: Siwis (f), **Pierre (m)**, Jessica (f) · Kareem (m) | five English, four Japanese, two each of Spanish, Italian, Portuguese — men's and women's — and **one French voice, Siwis (f)** |
 | Download | 190 MB at Install (a voice per language); Pierre and Jessica, 77 MB together, when first chosen | 354 MB once, every language and voice |
-| A word, measured (8 / 2 / 1 cores) | 60 / 60 / 90 ms | 270 / 460 / 700 ms |
-| A 4-second sentence | 0.3 s — about 15× faster than speech | 0.9 s on 8 cores, 2.3 s on one — faster than speech even then |
+| Speed | about 15× faster than speech | faster than speech, even on one core |
 | Sounds | clear, a little flat | closer to a person, especially English and Japanese |
 
-Arabic is always read by Light's voice, and Japanese always by Natural's, whichever you choose; the choice decides English and French. The numbers are from an AMD Ryzen 7 7800X3D; the "2 cores" and "1 core" columns were measured with the engine pinned to that many cores, to stand in for an ordinary laptop or a small home server. On an older or low-power processor Natural can come close to real time on long sentences, which is why **Light is the default** and Natural is the choice for a machine that can afford it.
+Arabic is always read by Light's voice, and Japanese always by Natural's, whichever you choose; the choice decides English and French. On an older or low-power processor Natural can come close to real time on long sentences, which is why **Light is the default** and Natural is the choice for a machine that can afford it.
 
-**A machine with no graphics card gets exactly this.** Nothing here uses one, on any machine.
+Nothing here uses a graphics card, on any machine.
 
 ### Which engine speaks which language, on this machine
 
-The table is what each engine *can* speak. What it *does* speak on your machine is checked: after an Install — and once, on its own, for an engine installed before this check existed — each engine speaks **one word per language** (*quotidien*, *mañana*, *giorno*, *coração*, *図書館*, *morning*, *مكتبة*) in a separate, short-lived process, and the app compares the sounds it made with the sounds English rules make of the same word. The row then says it plainly: *Natural speaks Japanese, English, French, Spanish, Italian and Portuguese here.*
+The table is what each engine *can* speak. What it *does* speak on your machine is checked: after an Install, each engine speaks **one word per language** (*quotidien*, *mañana*, *giorno*, *coração*, *図書館*, *morning*, *مكتبة*) in a separate, short-lived process, and the app compares the sounds it made with the sounds English rules make of the same word. The row then says it plainly: *Natural speaks Japanese, English, French, Spanish, Italian and Portuguese here.*
 
 A language that fails — English sounds for a French word, no sound, or a check that stopped partway — is **never read with the English rules**: it goes to the other engine when that one is installed and passed (*Natural could not speak French on this machine; Light takes over*), and otherwise the row says which engine to install. **Check again** runs the test anew.
-
-Why this exists: Natural reads every language but Japanese through espeak-ng, and the copy of espeak-ng it ships with gave up — taking the whole speaker with it — when the folder it was installed in had a long path (160 characters or more, easy to reach under a data folder named after a long vault) or, on Windows, a path with letters outside plain ASCII (a user or vault named in Arabic). Japanese, which does not use espeak, kept speaking. The app now hands espeak-ng a short copy of its data in that case (in the temp folder, or on Windows in ProgramData, 18 MB), and the check is what proves it worked.
 
 ### A man's voice, a woman's voice
 
@@ -68,17 +65,11 @@ Every built-in voice shows **(m)** or **(f)** beside its name in the pickers. Na
 
 Pierre and Jessica are not part of the Install: choosing one downloads it (77 MB), with the same progress line an Install prints — *Downloading Pierre (m) — 40%* — and until it has arrived the language's first voice reads.
 
-### How the engines were chosen
+### How they sound
 
-By listening, not by reading. Kokoro, Piper and MeloTTS each spoke the same ten lines — a French word, a French sentence with liaisons, a Japanese word and sentence, an Arabic word with and without its vowels, an English sentence, a line that mixes English into French, a number and a proper noun — on the processor, and the samples were kept to be compared by ear. Two judges stood beside the ear: every sample was transcribed back by whisper (a voice it cannot understand, a learner cannot either), and scored by UTMOS, a model trained to predict how natural listeners find a voice.
-
-- **Japanese → Kokoro.** MeloTTS sounds comparable but needs about 2 GB of dependencies for one language; Piper has no Japanese. Kokoro misread three short kanji words in ten when they were sent alone, and none once each was closed with 「。」, so the app closes a lone word with its language's full stop before it reaches the engine.
-- **English → Kokoro** when Natural is chosen: the best-scoring line of the whole trial.
-- **French → either.** Kokoro's only French voice and Piper's were trained on the same recordings and scored within a tenth of each other; both take their liaisons from espeak-ng's phonemes. Piper is five times faster.
-- **Arabic → Piper's Jordanian voice (ar_JO-kareem)**, the only offline Arabic voice of the three. Honestly: it is fully intelligible (whisper wrote both lines back exactly) but audibly synthetic, flatter than Google Translate's. Unvowelled text is not left to guesswork: Piper carries a small diacritiser (libtashkeel) that points the text first, keeping any harakat you already wrote.
-- Kokoro's smaller int8 model was four to six times *slower* on the processor, not faster, so the full-precision model is the one installed.
-
-Against Google Translate: for English and Japanese, Natural is in the same class; French is good; Arabic is behind. It is all offline, on your own machine.
+- **English and Japanese**: Natural is the closer to a person of the two.
+- **French**: Natural's only French voice and Light's Siwis were trained on the same recordings and sound much alike; Light is five times faster.
+- **Arabic**: Light's Jordanian voice (ar_JO-kareem) is fully intelligible but audibly synthetic. Unvowelled text is pointed first by a small diacritiser (libtashkeel), which keeps any harakat you already wrote.
 
 ## Installing
 
@@ -90,7 +81,7 @@ Against Google Translate: for English and Japanese, Natural is in the same class
 - a **Python 3.10 to 3.13** already on the machine (`python3`; `python` or `py` on Windows);
 - otherwise it **fetches Python itself**: a standalone CPython 3.12 from [python-build-standalone](https://github.com/astral-sh/python-build-standalone) for your system and processor (Linux, Windows or macOS; 21–34 MB), checked against its exact size and checksum before it is used, into the data folder. The row says *Fetching Python for this machine* with a percentage while it arrives.
 
-The last one is what makes the **desktop app** read on a machine that has never had Python — the usual Windows or Linux laptop. Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Only when Python can be neither found nor fetched (offline, or a system with no standalone build, such as Alpine Linux) does the row say so, and the device's own voices read in the meantime.
+So the **desktop app** reads aloud on a machine that has never had Python. Nothing needs a compiler: the compiled packages arrive as prebuilt wheels (the processor build of onnxruntime; no torch, no CUDA). Only when Python can be neither found nor fetched (offline, or a system with no standalone build, such as Alpine Linux) does the row say so, and the device's own voices read in the meantime.
 
 The same row has a speed (slower, normal, faster) and a **voice picker for every language that has a choice**: French (three Light voices, and Natural's when it is installed), English and Japanese when Natural is installed (five and four voices), and any language you have [your own voices](#your-own-voices) for. Each picker lists a group per installed engine — the one that speaks the language first — and then **Your voices**; a voice not downloaded yet says *downloads when chosen*. The choice is the language's voice everywhere, it wins over the engine choice for that language, and the player's **▾** changes the same setting.
 
@@ -121,7 +112,7 @@ If the app's own voices are not installed for the language — nothing installed
 
 **Which device voice.** The one you chose for that language, on this device: the **▾** beside the voice's name in the player lists every voice the device has for the language, by name and locale, and your choice is remembered (in this browser, for this device — another computer keeps its own). The same choice is in **Settings → Read aloud & voice notes → Read aloud**, under *This device's voices*: one picker per language the device speaks, and a line naming the languages it has none for. Until you choose:
 
-- in the **desktop app on Windows**, the voice you chose in Windows' own speech settings (**Time & language → Speech**) — the app reads it from Windows. A web page cannot: Chromium marks the first voice of the list as the "default" whatever Windows says, which is why a browser on Windows may read with another voice until you pick one with ▾;
+- in the **desktop app on Windows**, the voice you chose in Windows' own speech settings (**Time & language → Speech**) — the app reads it from Windows. A browser on Windows may read with another voice until you pick one with ▾;
 - on macOS and Android, the system's default voice for the language;
 - otherwise a voice in your own locale (French of France before French of Canada), one on the device before one that sends the words to a network service.
 
@@ -131,7 +122,7 @@ How it sounds depends on the device: Windows' Microsoft voices and Android's Goo
 
 If you already have Piper voices on your computer — because LibreOffice's **Read Text** extension installed them, or because you downloaded them yourself — Astrolabe can use them. **Settings → Read aloud & voice notes → Your own voices** takes a folder; the server looks through it and every folder inside it, and every voice it finds joins the pickers under **Your voices**, per language, to be chosen exactly like a built-in one. Nothing is copied or downloaded: the voice is read from where it is.
 
-**Pointing it at the folder.** Type the folder's full path (on the desktop app, **Browse…** opens the system's folder picker) and save. The row then says what it found — *French: 3 voices · Arabic: 1 voice · 2 files skipped: no .json beside the model* — and **Which files, and why** lists anything it could not use. **Rescan** reads the folder again after you add a voice; it is also read when the server starts. The folder must be a full path on the computer the server runs on, and **outside the vault** (the vault is synced and published; a 60 MB voice belongs to this computer). It is kept on this computer only, in the data folder — it does not travel with the vault to your other machines.
+**Pointing it at the folder.** Type the folder's full path (on the desktop app, **Browse…** opens the system's folder picker) and save. The row then says what it found — *French: 3 voices · Arabic: 1 voice · 2 files skipped: no .json beside the model* — and **Which files, and why** lists anything it could not use. **Rescan** reads the folder again after you add a voice; it is also read when the server starts. The folder must be a full path on the computer the server runs on, and **outside the vault**. It is kept on this computer only, in the data folder — it does not travel with the vault to your other machines.
 
 **Where Piper voices usually are.** A Piper voice is always **two files side by side**: `name.onnx` (the voice, 20–120 MB) and `name.onnx.json` (its settings, a few kilobytes). Common places:
 
@@ -145,7 +136,7 @@ Not sure where yours are? The Read Text dialog shows the command it runs, and a 
 
 **A man's or a woman's voice is a different voice file.** Piper has no "male/female" switch: each voice is one person, and choosing another voice is choosing another file. Some files hold several people — `fr_FR-upmc-medium` has two speakers, **jessica** and **pierre** — and those appear as two voices, *Upmc · Jessica* and *Upmc · Pierre*. (That one is also built in: Light's Pierre and Jessica, [above](#a-mans-voice-a-womans-voice).) Kokoro packs (`voices-*.bin` beside a `kokoro-*.onnx`) are read too, one voice per entry in the pack.
 
-**What they need.** Your Piper voices run on the **Light** engine (its runtime: onnxruntime and piper); a Kokoro pack on **Natural**'s. Until that engine is installed the row says so, with its Install button: installing Light downloads Light's own built-in voices once (about 190 MB) — **your voice files are not downloaded again**. A voice in a language Read aloud does not detect yet (German, say) is listed as skipped, with its language.
+**What they need.** Your Piper voices run on the **Light** engine (its runtime: onnxruntime and piper); a Kokoro pack on **Natural**'s. Until that engine is installed the row says so, with its Install button: installing Light downloads Light's own built-in voices once (about 190 MB) — **your voice files are not downloaded again**. A voice in a language Read aloud does not detect (German, say) is listed as skipped, with its language.
 
 **Get more voices** from the [Piper voices catalogue](https://huggingface.co/rhasspy/piper-voices) (listen first on the [samples page](https://rhasspy.github.io/piper-samples/)): download a voice's `.onnx` and `.onnx.json` into your folder and press **Rescan**.
 
@@ -160,7 +151,7 @@ python3 /home/you/my_speaker.py --language {lang} --out {out}
 
 The command is split like a shell line (quotes work) but **not run through a shell**: no pipes, no `$VARIABLES`, and the sentence is never part of the command line. If the program exits with an error, takes longer than 20 seconds, or writes no file, the sentence is **not** read in another voice: the player says *Your external speaker failed*, and the program's own message is in the server's log. It is **never run for visitors** — Readers may listen always uses the app's voices.
 
-> **It runs as the server, so the operator decides.** The program runs with the same user and permissions as the Astrolabe server: whatever that user may do, the command may do. That is more than the admin password should grant, so the guard is the server's own `.env`: **`SPEAK_EXTERNAL=on`** ([Configuration](configuration.md)). Until the operator of the machine sets it, the part says *The operator has not allowed an external speaker on this server* instead of offering the fields, a command cannot be saved, and one saved earlier is never run. The **desktop app** is its own operator and turns it on. Only name a program you trust. Like the folder, the command is kept on this computer only and never travels with the vault — a command that arrived by sync and was then run would be anybody's.
+> **It runs as the server, so the operator decides.** The program runs with the same user and permissions as the Astrolabe server: whatever that user may do, the command may do. That is more than the admin password should grant, so the guard is the server's own `.env`: **`SPEAK_EXTERNAL=on`** ([Configuration](configuration.md)). Until the operator of the machine sets it, the part says *The operator has not allowed an external speaker on this server* instead of offering the fields, a command cannot be saved, and one saved earlier is never run. The **desktop app** is its own operator and turns it on. Only name a program you trust. Like the folder, the command is kept on this computer only and never travels with the vault.
 
 The pocket vault on a phone has neither: it has no server to scan a folder or run a program, and says so.
 
@@ -170,11 +161,7 @@ The pocket vault on a phone has neither: it has no server to scan a folder or ru
 
 ## For developers
 
-- `POST /api/speak` `{ text, lang?, path?, context?, passage?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang` and `X-Speak-Engine`. `context` is the sentence's paragraph, `passage` the whole passage's language (`passageSpeechLang` in `shared/speech.ts`). `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters; the client sends a sentence at a time and fetches the next while one plays.
-- `GET /api/speak/status` — what is installed, the install's progress (`fetch-python` with a `progress` percentage, `python`, `packages`, `models`, `check`), each engine's self-test (`engines.<engine>.check.langs.<lang>` → `ok`, the `phonemes`, and `why` not: `english`, `silent`, `stopped`, `error`), the voices that download on choice (`voices`, by id: `ready`, `downloaded`, `bytes`) and the one downloading (`fetch`), the settings in force, and `own`: the voices folder, what its last scan found (`voices`, by language) and what it skipped (`skipped`, with a `reason`). `POST /api/speak/install` `{ engine }` starts an install (and its self-test); `POST /api/speak/check` `{ engine }` runs the self-test again; `POST /api/speak/voice` `{ voice }` downloads an on-choice voice; `POST /api/speak/voices/rescan` reads the folder again.
-- The self-test is `server/speakWorker.py --selftest`, judged by `server/speakSelfTest.ts` and kept in `ASTROLABE_DATA/tts/selftest.json`; it runs again when the engine is reinstalled or the test itself changes.
-- `PATCH /api/settings` `{ speak: { voicesDir, external: { command, langs } } }` — `external` only where `SPEAK_EXTERNAL=on` (else `400 speakExternalOff`; `GET /api/speak/status` says `externalAllowed`); both are checked (an absolute path outside the vault that the server can read; a command naming `{out}`) and written to `ASTROLABE_DATA/speak-local.json`, never to `settings.json`, which the config mirror carries into the vault. A found voice is stored in `speak.voices` as `own:<path inside the folder>` (`#speaker` for one speaker of a model); the worker loads it by absolute path and keeps it loaded by path and modification time, so a replaced file is loaded again. `X-Speak-Voice` names the voice that spoke.
-
-- The fetched Python is pinned to one python-build-standalone release by size and SHA-256 (`server/standalonePython.ts`); programs are looked up on the `PATH` in-process, never through `which` or `where`.
+- `POST /api/speak` `{ text, lang?, path?, context?, passage?, format? }` → one sentence as Ogg Opus (or WAV), with `X-Speak-Lang`, `X-Speak-Engine` and `X-Speak-Voice`. `context` is the sentence's paragraph, `passage` the whole passage's language. `409 speakNotInstalled` names the engine the language `needs`. One request speaks at most 1,000 characters.
+- `GET /api/speak/status` — what is installed, the install's progress, each engine's language check, the voices that download on choice, the settings in force, and `own`: the voices folder and what its last scan found and skipped. `POST /api/speak/install` `{ engine }` starts an install (and its check); `POST /api/speak/check` `{ engine }` runs the check again; `POST /api/speak/voice` `{ voice }` downloads an on-choice voice; `POST /api/speak/voices/rescan` reads the folder again.
+- `PATCH /api/settings` `{ speak: { voicesDir, external: { command, langs } } }` — `external` only where `SPEAK_EXTERNAL=on` (else `400 speakExternalOff`). Both are kept in `ASTROLABE_DATA/speak-local.json`, never in the vault.
 - `ASTROLABE_TTS_THREADS` pins the engine's thread count (default: half the cores, at most eight).
-- `ASTROLABE_SPEAK_FAKE=1` makes a scratch server answer with a tone, for the browser gates; the row says *Test engine* while it is on.
