@@ -10,7 +10,7 @@
 //
 // It mounts its own React root on demand rather than living in App.tsx: the
 // store is a module-level zustand and i18n is module-level too, so nothing here
-// needs the app's tree — and the shell agent's App.tsx stays untouched.
+// needs the app's tree — and App.tsx stays untouched.
 //
 // Shape follows the command palette (CONTRACTS "Command palette"): filter field
 // on top, 34px rows, selected row on --accent-soft with a gold leading bar,

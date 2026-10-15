@@ -39,7 +39,7 @@
    embed's "Reveal in Files", the palette's reveal). The cursor ring in
    a11y.css draws only while the tree is the focused element, and a reveal
    leaves focus where the reader clicked — so the row was expanded to,
-   scrolled to and shown in no way at all; from the Media page the owner saw
+   scrolled to and shown in no way at all; from the Media page you saw
    nothing happen. The row breathes three times in the accent, like a cited
    passage in the book reader (books.css `.s-book__pulse`), and stops: a mark
    of arrival, never a highlight. useTreeCursor takes the class off after the

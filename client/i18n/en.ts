@@ -733,7 +733,7 @@ const en = {
   collectionPopOpen: "Open on the site",
   // "Publish folder as a topic…" read like it published the notes, and it
   // never did — it writes a topic page whose members are the notes that are
-  // ALREADY published (the owner: "shouldn't publishing the whole folder as a
+  // ALREADY published (reported: "shouldn't publishing the whole folder as a
   // tag publish all the notes automatically?"). The verb is now the one the
   // action performs, and `folderPublishAll` below is the one that publishes.
   collectionTopicMenu: "Create a topic from this folder…",
@@ -3741,7 +3741,7 @@ const en = {
   weekdaySat: "Sat",
   weekdaySun: "Sun",
   // ── A course: the second mode of a sigil (shared/routine.ts) ──
-  // مسار is the course, خطوة the step, وحدة the unit — the owner's words.
+  // مسار is the course, خطوة the step, وحدة the unit — the terms the app uses.
   sigilCourse: "Course",
   sigilCourseWhere: "Step {n} of {of}",
   sigilCourseFinish: "on course to finish {date}",

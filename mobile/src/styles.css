@@ -5,9 +5,8 @@
  * changed colour with the phone's light sensor would be a doorway pretending to
  * be a room. So: the app's DEFAULT room, always — github-dark, the `:root`
  * block of client/styles/tokens.css and the ground the desktop window paints
- * (electron/windows.ts DEFAULT_GROUND). It was iron-gall until 3.21.1; the
- * owner: "make default theme not the disgusting yellow thingy, same as the
- * desktop app". No `prefers-color-scheme` block, and that is a decision rather
+ * (electron/windows.ts DEFAULT_GROUND). It was iron-gall until 3.21.1; it
+ * now matches the desktop app's default. No `prefers-color-scheme` block, and that is a decision rather
  * than an omission.
  *
  * The values are lifted verbatim from client/styles/tokens.css `:root` so the

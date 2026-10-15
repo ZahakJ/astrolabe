@@ -479,7 +479,7 @@ export interface State {
   // never has to remember which of them respects a pin.
   closeOtherTabs(path: string): void;
   closeTabsAfter(path: string): void;
-  /** Every note in this window — the row the owner asked for by name. */
+  /** Every note in this window — a row of its own. */
   closeAllTabs(): void;
   setTabPinned(path: string, pinned: boolean): void;
   moveTabTo(path: string, index: number): void;

@@ -1,6 +1,6 @@
 // FRENCH, CORRECTED AS YOU TYPE — the editor's half.
 //
-// The owner: "add auto-correction to French — don't want full French support,
+// The request: "add auto-correction to French — don't want full French support,
 // just auto correction if I write in French". The arithmetic is
 // shared/french.ts (which word, which spelling, is this line French); this
 // file is when to ask, and how to write the answer into the document so that

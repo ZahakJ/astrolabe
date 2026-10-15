@@ -213,7 +213,7 @@ export function MediaCard({
         </button>
         {/* A work is a note; deleting it is the note's own delete — the same
             dialog and the same trash the tree uses, so the toast's Undo and
-            the trash browser both apply (the owner: "we should have an option
+            the trash browser both apply (reported: "we should have an option
             to delete media entries"). */}
         <button
           type="button"

@@ -66,7 +66,7 @@ export default function LanguageTab() {
           {...field("language")}
         />
       </Row>
-      {/* SPELLCHECK IN — ONE multi-select, not four switches (the owner:
+      {/* SPELLCHECK IN — ONE multi-select, not four switches (reported:
           "wth is this browser dictionaries with like so many on off
           toggles"). Each chip is a language's NAME in the chrome's language;
           what is offered is what this device can honestly check

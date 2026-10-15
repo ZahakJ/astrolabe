@@ -9,10 +9,8 @@ This file is the *shape*: what a row looks like, which control a value gets, and
 
 ## Why a second pass
 
-The purge (3.38.0) sorted the rows by intent and still read badly. The owner: "astrolabe settings
-are still bad if not worse? You should feel free to break stuff out in more categories. Also wth is
-this browser dictionaries with like so many on off toggles. Please make sure things are legit." In
-its screenshots:
+The purge (3.38.0) sorted the rows by intent and still read badly: too few categories, and a
+browser-dictionaries page that was a wall of on/off toggles. In the screenshots of that round:
 
 1. **Browser dictionaries** was four On/Off pills ("French: off · Arabic: off · …") for one
    question — which languages does this browser spellcheck.
@@ -61,8 +59,8 @@ same four groups as headed lists, each page a pushed screen.
 
 **Decisions the list encodes.** *Open on launch* stays the first row of Writing: it is saved in the
 vault (it follows the vault to the next machine), so it cannot sit on a page that says everything
-on it is kept on this device. *Vim keys* moved from Writing › Advanced to This device (the brief's
-"keyboard"): it is a per-device editing key map, and with it there the Writing page is the vault's
+on it is kept on this device. *Vim keys* moved from Writing › Advanced to This device, as a
+keyboard setting: it is a per-device editing key map, and with it there the Writing page is the vault's
 editor rules only. *Offline reading* moved from Reading to This device ("offline copy"). The
 visitors' language filter and switch stay on Language: a reader who wants "Arabic only" looks
 under Language, not under Publishing. There is no zoom row — the desktop's zoom is the View menu's

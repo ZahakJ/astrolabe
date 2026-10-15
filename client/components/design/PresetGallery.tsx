@@ -529,7 +529,7 @@ function PresetCard({
  * It used to be a sheet that unfolded ABOVE the shelf, with the only way out a
  * button called "Close" at the bottom of a column of copy — under the fold on
  * the panel's own height — beside a button that applies the preset to the
- * site. Two problems, and the second is the one the owner hit: nothing at the
+ * site. Two problems, and the second is the one that was hit: nothing at the
  * TOP of the view said where the reader was or how to get back, and the word
  * "Close" in a modal panel reads as "close the panel".
  *

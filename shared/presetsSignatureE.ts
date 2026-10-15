@@ -7,7 +7,7 @@
 // room: a masthead over one column over a footer, which is the shape every
 // design in this catalogue had until `chrome.shell`.
 //
-// WHAT THE SHELF EXISTED TO FIX, in the owner's words and they were right
+// WHAT THE SHELF EXISTED TO FIX, in the words of the report, which was right
 // twice: "these still kinda look lame — you are just changing colours and
 // rearranging things. I don't see some totally different designs with totally
 // different LAYOUTS." Seventy-six houses and one floor plan. A ground, a world,
@@ -49,7 +49,7 @@ import {
 } from "./presets.ts";
 
 /**
- * MISSION CONTROL — the instrument, and the house the owner asked for by name.
+ * MISSION CONTROL — the instrument, and the house asked for by name.
  *
  * `shell: "console"` is the whole design and everything else follows from it: a
  * 216px gutter of raised ground down the reading edge, ruled between every
@@ -137,7 +137,7 @@ const missionControl: Preset = {
  * four layers of stars, each moving at its own rate — 90s, 150s, 260s, 420s —
  * so the depth is four speeds rather than a picture of depth. `starfield` is a
  * clear night; this is the long exposure. On `void`, the deepest room in the
- * building, it is the page the owner asked for in the words "dark and epic and
+ * building, it is the page asked for in the words "dark and epic and
  * deep", and the reason it works is that a dock keeps no margins to hide it in:
  * the world is the whole window and the writing floats in it.
  *

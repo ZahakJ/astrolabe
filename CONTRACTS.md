@@ -28,7 +28,6 @@ feature gets a section in the area it belongs to (or its own file, added to the 
 | [releases.md](contracts/releases.md) | The history: each version, one line, and where its contract lives. |
 
 `scripts/check-names.mjs` reads the headings of every `contracts/*.md` file (a heading is a surface a
-reader of the contracts sees). Agents and tools that open this file find the map here; the words
-live in the files.
+reader of the contracts sees). This page is only the map; the words live in the files.
 - `contracts/settings-audit.md` — the 3.38.0 settings purge: every row of the old index with its verdict (keep, move, merge, demote); `tests/settings-purge.test.ts` holds the sections to it.
 - `contracts/settings-design.md` — the settings' shape: the row anatomy with its measurements, the control catalogue (one component per kind), the four groups and nineteen pages of the rail, the "This device" rule, and what the browser walk proves.

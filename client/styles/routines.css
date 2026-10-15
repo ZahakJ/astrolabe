@@ -61,7 +61,7 @@
   display: grid;
   /* auto-FIT, not auto-fill: one routine spans the row, two share it, and
      the empty second column auto-fill kept open for a card that did not
-     exist is gone (the owner: "the right half seems completely blank"). */
+     exist is gone (reported: "the right half seems completely blank"). */
   /* Columns, not rows: RoutinesView places each card into the shortest
      column (useMasonry), so a short card never leaves a hole above the one
      below it and a card that grows moves nothing but itself. The column

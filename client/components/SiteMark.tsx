@@ -4,7 +4,7 @@
 // desktop app's own icon when the reader gave it one (Settings → Device →
 // This app), else the product's astrolabe. The four-pointed star that used to
 // stand in these places was the old product's wordmark, and a friend's vault
-// wearing a star it had never chosen was the complaint (the owner: "I still
+// wearing a star it had never chosen was the complaint (reported: "I still
 // see the star icon in some places as a leftover from vellum days"). The
 // publish star (✦ on a published note) is a different thing — a glyph with a
 // meaning, not a mark — and stays.

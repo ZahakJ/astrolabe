@@ -328,7 +328,7 @@ export function LibraryPathEditor({
   };
   // What a reader would get: the notes inside, and how many are published.
   // The library only lists published notes, so a path whose notes are all
-  // drafts is a shelf with nothing on it — and the reason the owner asked
+  // drafts is a shelf with nothing on it — and the reason a user asks
   // "how do I see the library on the public site?".
   const tree = useStore((s) => s.tree);
   const publishedPaths = useStore((s) => s.publishedPaths);

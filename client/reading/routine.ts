@@ -67,7 +67,7 @@ export interface RoutineHooks {
   /** The page's own doors, drawn in the card's corner when given. */
   actions?: { label: string; onClick: () => void }[];
   /** The day the card SHOWS instead of today — a heatmap cell or a week-strip
-   *  day the reader clicked (the owner: "click on calendar boxes and visit an
+   *  day the reader clicked (reported: "click on calendar boxes and visit an
    *  old day, change it or just look at the notes"). The page keeps it and
    *  hands it back through `onView`; a surface with no `onView` keeps it
    *  itself. */

@@ -151,7 +151,7 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
         // THE DESKTOP OWNS THIS SESSION. A window that finds itself signed
         // out of a vault whose password the app minted at launch asks main
         // to sign in again rather than showing a modal for a password nobody
-        // can type (the owner: "cannot sign in with my password… at least on
+        // can type (reported: "cannot sign in with my password… at least on
         // the app"). One attempt per load; a restore that fails leaves the
         // visitor view, which is at least honest.
         if (!me.admin && get().desktopOwnsSession && (await desktop()?.sessionRestore?.()) === true) {
@@ -168,12 +168,12 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
         }
         // THE SERVER MAY HAVE MOVED ON. A tab that outlived a deploy still
         // runs the old build and asks for on-demand chunks by names the
-        // server no longer has; the first symptom the owner saw was "Failed
+        // server no longer has; the first symptom seen was "Failed
         // to open <note>". So every /api/me compares the server's version
         // with this build's, and says "reload" once, plainly.
         // ADMINS ONLY. This is a maintenance line — "the server moved on,
         // reload" — and it was going to every visitor, on a page they have no
-        // stake in and often cannot fix by reloading (the owner: "we shouldn't
+        // stake in and often cannot fix by reloading (reported: "we shouldn't
         // print that to visitors"). The reason it exists is the admin's own
         // long-lived tab asking for chunks a deploy has replaced.
         if (me.admin) noticeNewBuild(me.version);

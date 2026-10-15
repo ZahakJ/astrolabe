@@ -37,7 +37,7 @@ The way back is always on screen. If you switched to Arabic by mistake, or someo
 
 Each of these writes the same preference as **Settings → Language → Your language**, and that row shows the result. Two presses always come back to *Follow site* rather than leaving the site's own language pinned. The three palette commands `Editor language: English`, `Editor language: العربية` and `Editor language: follow the site` are still there for choosing one of the three states directly.
 
-> **If you are reading this because you are stuck in Arabic and did not choose it**, this is almost certainly why: before editor language and site language were separated, a visitor's EN/ع choice was applied to *every* session in that browser, the owner's editor included. On an instance whose public site is the app layout, the EN/ع control is never drawn, so there was nothing to click to undo it. Upgrading fixes it on the next reload, with no action from you. On an older build, clear the stored visitor choice by hand: `localStorage.removeItem("astrolabe.lang")` in the browser console.
+> **If you are reading this because you are stuck in Arabic and did not choose it**, this is almost certainly why: before editor language and site language were separated, a visitor's EN/ع choice was applied to *every* session in that browser, the admin's editor included. On an instance whose public site is the app layout, the EN/ع control is never drawn, so there was nothing to click to undo it. Upgrading fixes it on the next reload, with no action from you. On an older build, clear the stored visitor choice by hand: `localStorage.removeItem("astrolabe.lang")` in the browser console.
 
 ## Visitor language switch
 

@@ -5,7 +5,7 @@
 // calendars, the git remote), designs.json (the designer's documents and
 // custom themes), custom.css, and the custom fonts — and ASTROLABE_DATA is per
 // server: the hosted instance has one, the desktop app on each machine has
-// its own, and a site name chosen on one never reached the others. The owner:
+// its own, and a site name chosen on one never reached the others. The request:
 // "do we save a .astrolabe/configs on the vault folder? we prob should and
 // that would be an easy sync across all platforms with all configs and logo
 // and name and all that".
@@ -39,7 +39,7 @@
 // directories (`catalog/`, `custom/`) since 357202c — so the one directory
 // entry matched no file at all, and an uploaded face named by a typography
 // slot arrived on the next machine as a raw `custom:…` id rendering in
-// Georgia (maturity brief §4.1: "it doesn't upload everything"). Type is the
+// Georgia (the report: "it doesn't upload everything"). Type is the
 // most visible part of a look. The entry is `fonts/custom` now, with the
 // index that names each face, under two caps so a hand-dropped 80 MB face
 // never lands in git history. The catalog is NOT mirrored: it is re-fetchable,
@@ -129,7 +129,7 @@ export interface MirrorPass {
  *  FIRST CONTACT IS NOT A RACE. `firstContact` is true the first time this
  *  server compares a file against the vault's copy, and then THE VAULT WINS
  *  whenever it holds one, whatever the clocks say. The vault is the source
- *  of truth the owner asked for; a data directory that has never met it is
+ *  of truth; a data directory that has never met it is
  *  a machine's private defaults, and its mtime says nothing about which is
  *  right. This rule was written after the alternative happened: a desktop
  *  whose settings.json was 31 bytes and a day younger than the site's met

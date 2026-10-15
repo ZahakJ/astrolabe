@@ -310,7 +310,7 @@ export async function mountDesktop(): Promise<void> {
   // this: "cannot sign in with my password" on the desktop app, against a
   // modal that was asking for a credential no human has ever seen.
   // The reader's own app icon stands in for the site's logo wherever the
-  // site has none — the empty state, above all (the owner: "on all versions
+  // site has none — the empty state, above all (reported: "on all versions
   // and in all states the logo on that page is the same app logo the user
   // customized").
   if (typeof hello.brandIconDataUrl === "string") useStore.setState({ desktopBrandIcon: hello.brandIconDataUrl });

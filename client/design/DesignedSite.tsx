@@ -151,7 +151,7 @@ export default function DesignedSite() {
   const [design, setDesign] = useState<DesignDoc | null>(booted.design);
   // LOADING IS NOT FAILURE. `design === null` used to mean both, so a visitor
   // was shown the stock blog — masthead, menu, hero — for the whole life of
-  // the fetch and then watched it replaced. The owner saw it on every
+  // the fetch and then watched it replaced. It showed on every
   // refresh. Until the first answer lands (or arrived in the shell), the site
   // is the page-shaped blank, the same one App's Surface shows for the chunk.
   const [loaded, setLoaded] = useState(booted.design !== null || booted.error !== null);

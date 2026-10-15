@@ -169,7 +169,7 @@ accounted for.
 | ----- | -------------- | --- |
 | `rowWebmentions` | `conversation` | The purge's one new host: webmentions in and out are one row with two parts (rows 49 and 50). |
 | `feedsNoteField` | `reading`, part of `rowFeeds` | The note that lists the feeds was a field beside the Feeds switch, the one row drawn as a side-by-side pair; it is a part under the switch now, and a search lands on it by name. |
-| `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the owner's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
+| `rowPropsCard` | `writing` | Whether the properties card is drawn at all in the admin's views (3.40.0, `settings.propsCard`); the card on a bare note (row 40) means something only while there is a card, so it is this switch's part. |
 | `rowPresenceMode` | `presence` | How much Discord is told (3.42.0, `settings.presence.mode`): the first row of the Discord page, a new page rather than a move — no row of 3.37.0 spoke to Discord. |
 | `rowPresenceClientId` | `presence` | Behind Advanced: an optional Discord application id of one's own, in place of the built-in `DEFAULT_DISCORD_CLIENT_ID` (3.43.0). |
 | `rowPresenceIdleAfter` | `presence` | How long without input before the presence counts as away. |
@@ -212,7 +212,7 @@ foot of their section, which names them, so they are one click from sight and
 one search from the keyboard.
 
 **Why nothing is ENV-ONLY or REMOVED.** Every candidate was weighed and kept
-in reach, because the brief also says *no stored key changes*: a row taken out
+in reach, because the purge also promised *no stored key changes*: a row taken out
 of the app leaves any value already saved in `settings.json` in force with no
 way to see or clear it from the app, which is a trap rather than a purge.
 - *Date locale* (`BLOG_LOCALE`) was the strongest ENV-ONLY case — a BCP-47 tag
@@ -220,7 +220,7 @@ way to see or clear it from the app, which is a trap rather than a purge.
   Arabic-Indic or Latin digits, a real editorial choice made once; it is
   demoted instead.
 - *Design the site* duplicates the palette's "Open the designer", the REMOVE
-  definition exactly — but the owner-facing reason it exists (a reader who
+  definition exactly — but the admin-facing reason it exists (a reader who
   picks *Designed* is otherwise left with no door to the designer) still holds,
   so it survives as the button under Public layout rather than as a row.
 - *Hadith corpus folder* is detected automatically when empty; demoted, not
@@ -236,7 +236,7 @@ section's first screen carries a row a first-day reader has to skip.
 
 ## The new information architecture
 
-By the reader's intent. Nine sections, About included (the brief's ceiling).
+By the reader's intent. Nine sections, About included (the ceiling the purge set).
 The four a first-day reader looks for — theme, language, publishing, sync —
 are the first rows of sections 1, 2, 5 and 7, and each section's name says
 what it is for, never how it is built. Counts are rows (parts not counted),
@@ -255,7 +255,7 @@ as one device sees them.
 | 9 | About (`about`) | This app and this instance | 1 (browser) · 4 (desktop) | *This app:* what's new, and on the desktop its name, icon, launcher and updates — then the version, the paths, the counts and the manual |
 
 **"This device" is gone as a section, and on purpose.** It was a section
-named after a storage mechanism (localStorage), which is the brief's "tab named
+named after a storage mechanism (localStorage), which is the classic "tab named
 after an implementation": a reader looking for the theme had to know it was
 kept per browser to know where to look. Every row it held now sits where its
 question is asked — the theme under Appearance, the reader's language under

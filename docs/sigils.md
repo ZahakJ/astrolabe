@@ -185,8 +185,8 @@ you do not finish it, tomorrow as well.
 
 So a missed day changes nothing in your file. There is no schedule to fall behind. The projection
 is recomputed and **everything after the cursor shifts by a day**, which is what you would have done
-by hand and what you would have got wrong. The owner asked for it in exactly those words: *if it
-takes me two days instead of one the schedule handles it by shifting the task to the second day.*
+by hand and what you would have got wrong: if a step takes two days instead of one, the schedule
+moves it to the second day, and everything after it with it.
 
 The card says where you are and where that is heading — **Step 12 of 96 · Genki I — lesson 1 · on
 course to finish 14 March** — and then lists today's steps with a box each. Tick one and the cursor

@@ -7,7 +7,7 @@
 // folder's own note when it had one and reveal the folder only when it had
 // none, and the reveal moved the tree's cursor without painting it — the
 // cursor ring draws only while the tree holds keyboard focus — and left the
-// folder itself collapsed. So from the Media page the owner saw either a note
+// folder itself collapsed. So from the Media page you saw either a note
 // open with the directory nowhere in sight, or nothing at all ("can you make
 // it possible to open the directory through the media view? like just
 // highlight it on the left bar"). Now the sidebar opens, the folder is

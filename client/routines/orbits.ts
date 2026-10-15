@@ -69,7 +69,7 @@ let shelf: { at: number; p: Promise<DeckMeta[]> } | null = null;
  *  the Sigils page patches a standing card by morphing the fresh draw into
  *  it, and a morph carries only what the fresh draw already holds. Chips
  *  that arrive a tick later landed on a detached card and were lost — every
- *  checkbox tick blanked the counts until a reload (the owner: "all the
+ *  checkbox tick blanked the counts until a reload (reported: "all the
  *  orbits linked items stop showing how many orbits are due"). */
 let lastList: DeckMeta[] | null = null;
 function decks(fresh = false): Promise<DeckMeta[]> {

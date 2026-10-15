@@ -437,7 +437,7 @@ async function wikilinkSource(
 
   // `![[` IS AN EMBED, and an embed is most often a FILE: the vault's
   // pictures, PDFs, sounds and drawings come first, under a header that shows
-  // the three ways to write one (the owner: "I think in md files you can also
+  // the three ways to write one (reported: "I think in md files you can also
   // simply import the picture with some syntax"). Notes follow, as the
   // transclusions they are — the Create row with them.
   if (match.from > 0 && context.state.sliceDoc(match.from - 1, match.from) === "!") {

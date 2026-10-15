@@ -33,7 +33,7 @@ import type { PropertyValue } from "../../shared/types.ts";
 import type { PropRow, PropsCardOpts } from "./noteMeta.ts";
 
 /** THE KEYS THE APP UNDERSTANDS, offered when a property is added: type to
- *  filter, or type nothing and read the whole list (the owner: "if you don't
+ *  filter, or type nothing and read the whole list (reported: "if you don't
  *  type anything you see a scroll of all the options"). Any other key can
  *  still be typed; these are the ones something in Astrolabe reads. */
 interface KnownKey {

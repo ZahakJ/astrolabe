@@ -699,7 +699,7 @@ function buildDecorations(view: EditorView): DecorationSet {
           mark(start, end, "cm-s-embed-src");
           // THE PICTURE STAYS WHILE ITS LINE IS EDITED. Replacing it with
           // the source text shrank the line by the picture's height and the
-          // view jumped (the owner: "click on an image without it changing
+          // view jumped (reported: "click on an image without it changing
           // the location of your view"). So on the active line the picture
           // is drawn as a widget BEFORE its source, the source stays
           // editable beside it, and the line keeps its height.
@@ -1346,7 +1346,7 @@ function buildBlockDecorations(state: EditorState): DecorationSet {
     return false;
   };
 
-  // A NOTE WITH NO FRONTMATTER STILL WEARS THE CARD (the owner: "it should
+  // A NOTE WITH NO FRONTMATTER STILL WEARS THE CARD (reported: "it should
   // prob show by default on all created notes"): one line, "Properties",
   // with Add property and Set banner… on it. Both write through the same
   // route as the full card, which creates the block. Off by the

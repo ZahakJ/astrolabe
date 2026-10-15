@@ -136,7 +136,7 @@
    5.5px before it.
 
    Logical, because the panes follow the reading direction: in Arabic the
-   sidebar is on the RIGHT and its inner edge is its left (the owner: "I still
+   sidebar is on the RIGHT and its inner edge is its left (reported: "I still
    cannot resize panels in arabic mode"), and `.s-app--flip` swaps the two
    panes' ends again on top of that. */
 .s-pane-grip--sidebar {

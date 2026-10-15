@@ -1,7 +1,7 @@
 // THE CALENDAR PAGE. The month, full width, with what every day held.
 //
 // The month used to be a 440px grid at the top of the Sigils page, where it
-// could say which days had a note and nothing else about them — the owner:
+// could say which days had a note and nothing else about them — reported:
 // "I might honestly remove the calendar view from the sigil window… kinda
 // weird and useless in the sigils window". It is a page of its own now
 // (`CALENDAR_TAB`, `/calendar`, a door in the status bar beside the seal and

@@ -167,7 +167,7 @@ each with its own count; click one and the search runs `prop:key=value` (quoted 
 value has a space in it). A second click on either clears the search. A list value counts once per
 item, so `authors: [Ibn Khaldun, Al-Jahiz]` shows both names under `authors`, and "Reading" and
 "reading" are one value, the way the [`prop:` operator](editor.md#live-queries) matches them. The
-`tags` key is not listed here; it has the shelf above. The shelf is the owner's: a visitor's sidebar
+`tags` key is not listed here; it has the shelf above. The shelf is the admin's: a visitor's sidebar
 does not draw it, and its counts are scoped like the tags' — a key seen only on unpublished notes
 never reaches a visitor session. The collapse is remembered per browser.
 

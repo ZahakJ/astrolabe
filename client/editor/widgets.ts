@@ -110,7 +110,7 @@ export class ImageWidget extends WidgetType {
       };
       img.src = url;
       wrap.replaceChildren(img);
-      // THE PICTURE TAKES THE HAND (the owner: "resize them with an actual
+      // THE PICTURE TAKES THE HAND (reported: "resize them with an actual
       // draggable thingy"). A handle on the picture's trailing corner drags
       // the width, and three buttons over it set the block's alignment
       // (`{.left}` / `{.center}` / `{.right}`, shared/blockAlign.ts). Both
@@ -247,7 +247,7 @@ function imageTools(view: EditorView, wrap: HTMLElement, img: HTMLImageElement, 
     // Which way is "wider": away from the picture's centre, on whichever
     // side the handle sits. Reading the editor's `direction` was wrong for
     // an Arabic note whose lines set their own — the drag then shrank the
-    // picture as the hand pulled it open (the owner: "resizing does not
+    // picture as the hand pulled it open (reported: "resizing does not
     // seem to work in arabic mode").
     const imgRect = img.getBoundingClientRect();
     const handleRect = handle.getBoundingClientRect();

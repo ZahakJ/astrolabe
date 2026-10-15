@@ -79,7 +79,7 @@ and the 44px touch floor are real pixels and do not scale.*
 - Tree: 13px UI font, 26px row height (44px on a coarse pointer), rows full-width hover --bg-hover rounded 4px, 8px left pad
   per depth. Folders: chevron (▸ rotates 90° when open, 150ms) + name; files: no icon clutter —
   just the name minus `.md`; active note row: --accent-soft bg + --accent 2px left bar. Smooth.
-- **A folder MAY carry one 14px glyph, and a file never may.** The owner assigns it from the
+- **A folder MAY carry one 14px glyph, and a file never may.** The admin assigns it from the
   folder's own context menu ("Folder icon"), out of a closed set of twenty (shared/folderIcons.ts)
   — the shape of the thing, currentColor, the tree's own stroke. It sits in the attachment
   glyph's slot, between the chevron and the name, at --text-faint full opacity, --accent on
@@ -333,7 +333,7 @@ A third visitor shell, composed from a design config, beside the two that exist.
   to stock is a rescue and going forward again restores the site exactly.
 - **A broken design is a VISITOR'S non-event.** An invalid config, a section pointing at a note
   that is gone, or a section that throws → the visitor gets the stock blog, automatically, with
-  no blank page and no stack trace. The OWNER gets the designed page with the failing section
+  no blank page and no stack trace. The ADMIN gets the designed page with the failing section
   replaced by a card naming it, under a strip carrying one click back to stock. Gated by
   `scripts/shoot-design.mjs`, which breaks the site all three ways and measures both sessions.
 - **One column per page.** `.s-dsn-page` sets the measure (`site.width`, 520–1400px, 24px

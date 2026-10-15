@@ -12,7 +12,7 @@
 // event, because a box ticked in the editor is still this page's business.
 //
 // THE MONTH IS NOT HERE. A month grid sat under this heading until 3.18
-// (the owner: "kinda weird and useless in the sigils window"). This page
+// (reported: "kinda weird and useless in the sigils window"). This page
 // answers what today asks of you; a month of past days is a different
 // question, and it has its own door and its own page now
 // (client/calendar/CalendarView.tsx). The trackers went with it: they only
@@ -261,8 +261,8 @@ function ReviewWeekRow({ today }: { today: string }) {
 }
 
 /** MASONRY, THE HONEST WAY. A row grid made every row as tall as its
- *  tallest card, so a short card left a hole above the card below it (the
- *  owner: "a whole gap between the top-left sigil and the one below it").
+ *  tallest card, so a short card left a hole above the card below it (a
+ *  whole gap between the top-left sigil and the one below it).
  *  CSS columns would close the hole but reflow every card the moment one
  *  expands, so a folded plan opening on the left would send a card to the
  *  right. This places cards once: in title order, each into the shortest
@@ -368,7 +368,7 @@ export default function RoutinesView() {
 
   // In a STABLE order — by title, in the site's language — not the server's
   // newest-touched-first: every tick writes the note, and a card that jumped
-  // to the front each time its box was ticked was the "flash" the owner saw.
+  // to the front each time its box was ticked was the "flash".
   const live = useMemo(
     () => (all ?? []).filter((m) => !m.template).sort((a, b) => a.plan.title.localeCompare(b.plan.title, locale) || a.path.localeCompare(b.path)),
     [all, locale],
@@ -442,7 +442,7 @@ export default function RoutinesView() {
       {/* THE MONTH IS NOT HERE ANY MORE (3.18). A grid of the month sat under
           this heading from 3.17, and it was the wrong page for it: this one
           is the morning's checklist, and a month squeezed to 440px could say
-          which days had a note and nothing else about them (the owner: "kinda
+          which days had a note and nothing else about them (reported: "kinda
           weird and useless in the sigils window"). It is `/calendar` now —
           full width, every day's note, sigils, cards and sittings on it —
           with a door in the status bar beside this page's own. The sidebar's

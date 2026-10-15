@@ -29,7 +29,7 @@ export function findNode(root: TreeNode | null, path: string): TreeNode | null {
 // subtree, not the whole tree — O(subtree) on a 1.4k-note vault — and the
 // state survives tree reloads, search round-trips, and full page reloads.
 // Default: every folder folded. The tree used to open the top level on a
-// first visit, and the owner asked for the opposite: a vault of twelve
+// first visit, and the opposite is wanted: a vault of twelve
 // folders is a wall of files until each one is opened on purpose, and a
 // folder the reader opened stays open (the map remembers) so the cost is
 // one click per folder, once.

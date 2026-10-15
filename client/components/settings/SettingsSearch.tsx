@@ -57,7 +57,7 @@ export default function SettingsSearch({
         // takes its direction from what is typed rather than from the shell —
         // but only once something IS typed. `dir="auto"` over an empty value
         // resolves to LTR, which laid the Arabic placeholder out left-to-right
-        // with its trailing ellipsis on the right (the owner: "the … is to the
+        // with its trailing ellipsis on the right (reported: "the … is to the
         // right of the sentence"). Empty, the field follows the chrome.
         dir={query === "" ? undefined : "auto"}
         spellCheck={false}

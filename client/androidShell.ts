@@ -2,7 +2,7 @@
 // WebView that hands the whole display to an instance — this client, on the
 // owner's host — and has exactly one thing the client cannot do for itself:
 // bring the shell's own connection screen back. Until 3.22.1 nothing did
-// (the owner: "when I sign out it signs me out of my site but it stays
+// (reported: "when I sign out it signs me out of my site but it stays
 // directed there. Should be a way to go back to the original setup menu").
 //
 // Two facts, both spelled once: the shell announces itself in the user agent

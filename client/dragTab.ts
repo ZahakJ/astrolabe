@@ -20,7 +20,7 @@
 // the payload off the DataTransfer (`dropPayload`). The window it came from
 // learns of the move from its own `dragend`: a drop nobody here handled
 // that still reports `dropEffect: "move"` was taken by another window, and
-// the tab leaves the way it leaves a pane. The owner: "I need to be able to
+// the tab leaves the way it leaves a pane. The request: "I need to be able to
 // drag and drop tabs all the time on separate windows".
 
 import { useSyncExternalStore } from "react";

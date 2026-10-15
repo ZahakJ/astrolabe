@@ -7,13 +7,12 @@ Everything that carries the vault somewhere else: settings that travel, git back
 - The Device-tab preferences (an allowlist in `client/prefsSync.ts`, pinned by
   `tests/prefs.test.ts`: theme, site-theme, lang, editorLang, vim, editorWidth, editorWidthCustom,
   headingNumbers, selToolbar, sidebarSide, show-attachments, graph, comment.author, whatsnew,
-  relativeLines, tags-sort, typewriter, frenchAutocorrect — and, since 3.18.0, the three the owner said yes
-  to: `library` (where each course was left), `properties` (the properties panel's choice) and
+  relativeLines, tags-sort, typewriter, frenchAutocorrect — and, since 3.18.0, three more: `library` (where each course was left), `properties` (the properties panel's choice) and
   `reading` (reading mode), by the same argument as a book's page: a position is the reader's,
   not the machine's) are mirrored to `<vault>/.astrolabe/prefs.json` as a map of localStorage
   key → `{ v, t }`. Window state (tabs, workspace, pane widths, tags height,
   recents, folds, every `*-collapsed`, window identity) NEVER travels. Adding a key to the
-  allowlist is a decision about every device the owner has, not a convenience.
+  allowlist is a decision about every device the admin has, not a convenience.
 - Merge is per key, newest `t` wins, ties keep the file's copy, `v: null` is a tombstone. Both
   halves implement the same rule; `tests/prefs.test.ts` pins the server's.
 - The client pulls ONCE, before React mounts (`client/main.tsx`), and writes newer keys into
@@ -23,7 +22,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
   resolves (imports hoist), so when the pull changed any key `main.tsx` calls
   `reloadPrefsFromStorage()` (client/state.ts) before `createRoot` and the store re-reads them.
   Before 3.18.0 a fresh device painted the old side on its first load and the vault's on its
-  second (measured, maturity brief §4.1). `lastPull()` says when the pull ran and how many keys
+  second (measured in the 3.18 maturity audit). `lastPull()` says when the pull ran and how many keys
   it applied, for the travel row. Pushes
   come from a patch on `Storage.prototype.setItem/removeItem`, only for `localStorage` and only
   for travelling keys, debounced 1.2 s, flushed with `keepalive` on `pagehide`. A 401/403 marks
@@ -57,7 +56,7 @@ Everything that carries the vault somewhere else: settings that travel, git back
   at 0600 is set back to 0600 when it arrives from the vault (a git clone lands at 0644).
 - **Fonts, with caps.** `DIRS` was `["fonts"]` from the day the mirror was written, and `fonts/`
   has held only two directories since 357202c, so no uploaded face ever travelled while three
-  documents said it did (maturity brief §4.1). It is `["fonts/custom"]` since 3.18.0;
+  documents said it did (found in the 3.18 maturity audit). It is `["fonts/custom"]` since 3.18.0;
   `fonts/catalog/` NEVER travels — it is re-fetchable, and the receiving side warms it instead
   (below). A file over `FONT_UPLOAD_MAX_BYTES` (5 MB) is skipped, and once a directory's eligible
   bytes pass `DIR_TOTAL_MAX_BYTES` (40 MB, `index.json` counted first) the rest are skipped, so a
@@ -371,7 +370,7 @@ feature, it is silent, and it is one line of convenience away at all times.
   `.trash` — and `.astrolabe` is not one of them, so a data directory beside the
   notes would appear in the reader's own tree and travel into their Dropbox.
 
-### The owner never meets a login screen, and the binary is not a bypass
+### The admin never meets a login screen, and the binary is not a bypass
 
 Two requirements that pull against each other: the person who chose the folder
 and double-clicked the icon should not type a password to prove they are holding
@@ -691,9 +690,8 @@ release must carry the APK (`Astrolabe-<v>.apk`) for the phone to see it.
 
 ## Pocket: a vault from GitHub on the phone (`mobile/src/pocket/`)
 
-The owner asked: *"can you add ability to open app via github sync? I.e., can login into github and
-select some private project and said project will somehow sync locally on phone?"* — a person with
-no server, wanting their notes. This is phase one of the answer.
+The need: sign in to GitHub on the phone, pick a private repository, and have it sync to the phone —
+a person with no server, wanting their notes. This is phase one of the answer.
 
 ### IT IS NOT THE SHAPE THE SHELL REJECTED, AND THE REASON IS THE COMPANY THE CLONE KEEPS
 
@@ -701,7 +699,7 @@ no server, wanting their notes. This is phase one of the answer.
 of it is about a clone **next to a live server** — "the same vault would then have two writers with
 independent histories, one of which spends most of its life asleep in a pocket". The pocket vault
 has no server beside it at all. The repository IS the vault; the phone is one working copy; the
-only other writer is the owner's own laptop through git, which is what git is for and what every
+only other writer is your own laptop through git, which is what git is for and what every
 Obsidian-plus-git user already lives with.
 
 The second rejection stands untouched. Nothing runs a server on the phone: `nodejs-mobile` is still
@@ -747,7 +745,7 @@ memory of a session — the count is recovered from the working tree at every op
 (`standingConflicts`), so a phone closed with two pairs standing and reopened cannot say "synced".
 
 Two things that are deliberately NOT conflicts: a note both sides changed to the same bytes (that is
-agreement, and naming it a conflict teaches the owner to ignore the line), and a note only the phone
+agreement, and naming it a conflict teaches the reader to ignore the line), and a note only the phone
 touched (it is simply kept). A note the phone DELETED and the remote CHANGED comes back — a delete
 is a weaker statement than an edit, and the edit is the thing that would be lost.
 
@@ -838,13 +836,13 @@ request body as a STRING and a push's body is a packfile; a packfile through a U
 not a packfile. So `android/…/GitTransport.java` carries base64 in both directions, follows
 redirects by hand (GitHub answers 301 for a renamed repository, and `HttpURLConnection` drops the
 method and the body on one), and never reads the `Authorization` header it writes through. No proxy
-stands between the owner's phone and the owner's repository.
+stands between your phone and your repository.
 
 ### SIGNING IN IS THE DEVICE FLOW, AND THE TOKEN IS NOT ENCRYPTED AT REST
 
 The web flow needs a client SECRET, and a secret in an APK is a secret published. PKCE needs a
-custom scheme somebody else's app can claim. The device flow needs neither: a code the owner reads
-here and approves on github.com, where they can see what they are authorising. The client id is
+custom scheme somebody else's app can claim. The device flow needs neither: a code you read
+here and approve on github.com, where they can see what they are authorising. The client id is
 public by design and is a build-time constant from `mobile/.env` (`ASTROLABE_GITHUB_CLIENT_ID`); a
 build without one still runs and the door says what is missing. The scope is `repo` and nothing
 else — the narrowest one that reaches a private repository.
@@ -853,10 +851,10 @@ else — the narrowest one that reaches a private repository.
 data directory, readable by this app's uid and no other on an unrooted device, and NOT encrypted at
 rest. The alternative is `EncryptedSharedPreferences` over the Android keystore, which defends
 against an attacker holding the unlocked device or a root shell, and costs a Java plugin plus a
-failure mode — a keystore entry invalidated when the owner's fingerprint enrolment changes — whose
+failure mode — a keystore entry invalidated when the device's fingerprint enrolment changes — whose
 symptom is a vault that will not open and cannot say why. What is being protected is a `repo`-scoped
-token the owner revokes in one click from their account page, and revocation is the mitigation that
-matches that risk. Written down so a later round can change it with the argument in hand rather than
+token you revoke in one click from your GitHub account page, and revocation is the mitigation that
+matches that risk. Written down so a later change can revisit it with the argument in hand rather than
 rediscovering it.
 
 ### `.trash/` IS THIS DEVICE'S, AND THE REPOSITORY IS TOLD SO
@@ -864,7 +862,7 @@ rediscovering it.
 A delete on the phone must reach the laptop as a delete; the copy that can undo it must not. So the
 deleted note's bytes go to `.trash/<percent-encoded path>` and `.trash/` is written into
 `.git/info/exclude` at clone time — the repository's own ignore list, never committed, so the vault's
-`.gitignore` stays the owner's file.
+`.gitignore` stays your file.
 
 ### WHAT IT REFUSES, AND HOW
 
@@ -890,9 +888,8 @@ undefined` inside the command palette, which is what the browser harness found.
 
 ## A pocket vault's settings travel with it, and its Backup & sync tab is its own
 
-A friend of the owner installed the APK, opened a vault from GitHub, and reported (translated from
-Arabic): *"the sync settings don't save — whatever I type and press Save, it doesn't save; the sync
-switch keeps turning itself back off."* Two things were wrong at once, and this release is both.
+A user installed the APK, opened a vault from GitHub, and found the sync settings would not save:
+whatever was typed, Save kept nothing, and the sync switch kept turning itself back off. Two things were wrong at once, and this release is both.
 
 ### THE INSTANCE SETTINGS ARE A FACT ABOUT THE VAULT, SO THEY LIVE IN IT
 

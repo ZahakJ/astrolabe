@@ -1102,7 +1102,7 @@ export interface TrackerMeta {
   folderNote: string | null;
   /** The note under `folder` touched last — a list of at most one, newest
    *  first: the card's and the panel's "where I left off" door. (A list, not
-   *  a nullable, because it carried three until the owner asked for one.) */
+   *  a nullable, because it carried three until one was enough.) */
   folderRecent: { path: string; title: string; mtimeMs: number }[];
   title: string;     // the tracker's own title ("Elden Ring")
   noteTitle: string; // the note's title — the card's tooltip, since one note may hold many
@@ -2410,7 +2410,7 @@ export interface BookOpenResponse {
 // A `.epub` in the vault is a book beside a `.pdf`, and it opens in a reader
 // of its own (client/epub/EpubReader.tsx) because the two formats disagree
 // about what a book IS. A PDF is a stack of pictures with a fixed measure; an
-// EPUB is markup that reflows, which is the entire reason the owner asked for
+// EPUB is markup that reflows, which is the entire reason to support
 // it — Arabic set by the browser, shaped by the browser, at whatever size the
 // reader wants. So there are no pages here and no page numbers: a place is a
 // chapter and a fraction of it (shared/epubAnchor.ts).

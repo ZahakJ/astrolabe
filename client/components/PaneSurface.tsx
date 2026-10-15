@@ -51,7 +51,7 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
 
   const reading = surface === "reading" || !admin;
   return surface === "book" || surface === "library" ? (
-      // A BOOK IS A TAB (the owner: "prob should just treat it like a normal
+      // A BOOK IS A TAB (reported: "prob should just treat it like a normal
       // tab?? so people can open the book while taking notes"). The reader
       // stopped being a full-screen layer over the app; it renders here, in a
       // pane, beside whatever else is open. BooksSurface still takes a route
@@ -92,7 +92,7 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
         />
       </Suspense>
     ) : surface === "graph" ? (
-      // THE GRAPH IS A TAB (the owner: "graph view should have its own
+      // THE GRAPH IS A TAB (reported: "graph view should have its own
       // position in the top tab strip"): it draws in the pane that holds its
       // tab, beside whatever else is open, and clicking a node opens that
       // note as the tab next to it, so a reader flips between the map and

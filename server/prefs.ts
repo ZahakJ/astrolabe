@@ -5,7 +5,7 @@
 // heading numbers, which side the sidebar hangs on. localStorage is per
 // browser profile — so the owner's Windows desktop, Linux desktop and phone
 // each held their own, and a theme chosen on one never reached the others
-// (the owner: "is there a way to sync configs between operating systems? like
+// (reported: "is there a way to sync configs between operating systems? like
 // to phone and between windows and linux").
 //
 // They live here instead, in ONE file inside the vault: `.astrolabe/prefs.json`.

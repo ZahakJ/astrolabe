@@ -6,8 +6,8 @@
 // learned what the design WAS a fetch later still. Measured on the owner's own
 // site: the stock blog's masthead and menu painted at ~204ms and the designed
 // console replaced them at ~259ms — a whole other site, for a twentieth of a
-// second, on every refresh. The owner saw it and called it "a page that is not
-// the layout I have".
+// second, on every refresh. It read as "a page that is not the layout I
+// have".
 //
 // None of that was unknowable. The server is already rewriting the shell
 // (`serveShell`: title, meta, lang/dir, preloads), the layout is configuration,

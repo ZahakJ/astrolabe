@@ -13,7 +13,7 @@ The search box finds the words you type. That is the right tool when you remembe
 - **Suggest links**, passages elsewhere that belong linked to the note you are writing
 - **Ask the vault…**, a question answered from your notes, with every claim pointing at the passage it came from
 
-All four are yours alone. A visitor to your site never sees any of them, and the server refuses every one of their requests from anyone who is not signed in as the owner.
+All four are yours alone. A visitor to your site never sees any of them, and the server refuses every one of their requests from anyone who is not signed in as the admin.
 
 ## Before you start: Ollama
 

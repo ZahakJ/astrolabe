@@ -255,8 +255,8 @@ eleven characters that still occupy positions, `![dot](…)` is one offset weari
 block's client rects. On a row carrying a replaced inline widget that search gives up and returns
 **the end of the line**. Measured on the live vault's "Eppur si muove", on the wrapped row that
 carries one inline formula, x = 500 / 527 / 620 / 700 / 804 all resolved to doc position **606**,
-the line's end, against a truth of 552 / 556 / 570 / 581 / 598. That is the owner's report — "click
-near the start of a line and the caret lands about 25 words in" — and the error IS the distance
+the line's end, against a truth of 552 / 556 / 570 / 581 / 598. That is the reported bug — a click
+near the start of a line put the caret about 25 words in — and the error IS the distance
 from the click to the end of the line, which is why it scales with how much rendered math precedes
 it.
 
@@ -403,7 +403,7 @@ A note is no longer necessarily markdown, and `**bold**` typed into a `.tex` fil
 and that the live preview beside the caret does not render. Measured before this landed: Ctrl+B in
 a `.tex` note wrote `**Typed**`, the menu's "Heading 2" wrote `## ` (invisible to the `\section`
 outline, so the note lost a heading it appeared to gain), and a colour swatch wrote a
-`<span style="color:…">` into a LaTeX document. Three agents each shipped something correct and the
+`<span style="color:…">` into a LaTeX document. Three changes each shipped something correct and the
 seam between them was the defect; this is the rule that closes it.
 
 - **`syntaxOf(state)` is the one question**, answered from `notePathFacet`, which BOTH editors
@@ -695,8 +695,8 @@ window and crosses other links on the way (a crossed link's pending open is canc
 leave), the card takes the pointer, its body scrolls under the wheel with the scrollbar hidden and
 the fade still saying "more", and a click on the card (not a drag that selected its words) opens
 the post the link would have. It waits 480ms rather than 350 before opening, because a veil over
-the page must not be raised by a pointer crossing a list. The owner's first cut had the card
-`pointer-events: none`, which is why "the moment I move to it it disappears". The card carries the shell's
+the page must not be raised by a pointer crossing a list. The first cut had the card
+`pointer-events: none`, which is why it vanished the moment the pointer moved onto it. The card carries the shell's
 `--dsg-head-font` across so a designed site titles it in its own face. Same LRU, same timers, same
 dismissals (leave, scroll, click, Esc, resize), same keyboard route; `check-hovercache` and the
 hover assertions in `check-signatures` stand over both.
@@ -893,8 +893,8 @@ keys nobody touched. Astrolabe's writer is textual. `shared/frontmatterEdit.ts` 
 - **44px on any coarse pointer**, for the row ×, the chip ×, the `+`, the value button, the add
   form and the checkbox — and the row × drops its hover fade there, because an invisible control on
   a touch device is not a quiet control.
-- **HIDDEN BY ITS OWN RIGHT-CLICK, NEVER BY A BUTTON** (3.40.0; the owner: "make it possible to
-  disable the properties block … but ya shouldn't add extra clutter"). `settings.propsCard`
+- **HIDDEN BY ITS OWN RIGHT-CLICK, NEVER BY A BUTTON** (3.40.0: the card can be
+  turned off, without adding clutter to turn it off with). `settings.propsCard`
   (default on; `MeData.propsCard` travels only as `false` and ONLY TO ADMIN SESSIONS) is a vault
   setting beside `emptyPropsCard`, so hiding on the laptop hides on the phone; Settings → Writing →
   *Properties card* is its row and the empty-note card is that row's part. `client/propsCard.ts`
@@ -902,7 +902,7 @@ keys nobody touched. Astrolabe's writer is textual. `shared/frontmatterEdit.ts` 
   optimistic `PATCH /api/settings`, the toasts) own it: `propsCardHidden()` (admin && off) is the
   ONE question all four card builders ask
   (livePreview's `FrontmatterWidget`/`EmptyPropsWidget`, the LaTeX preview, `render.ts`,
-  `texRender.ts`), so a visitor — and the owner previewing as one — always gets the card, because a
+  `texRender.ts`), so a visitor — and the admin previewing as one — always gets the card, because a
   writer's display preference is not an editorial decision. Hidden, the editor folds the
   frontmatter to its banner or to nothing, and the caret still opens it as source (the reveal rule
   every construct keeps), so Ctrl+Home never lands a keystroke above an unseen `---`. Repainted
@@ -1059,7 +1059,7 @@ trailing screen edge: the outline pane lives there in English and the notes side
   is created BEFORE the source is rewritten; the reverse order can leave a note whose section was
   cut and whose replacement was never written.
 - **The ⋯ IS a hover affordance, and that does not contradict the fold chevron's rule.** The
-  chevron is visible at rest because folding had NO other door and the owner could not find it.
+  chevron is visible at rest because folding had NO other door and could not be found.
   This menu has four (heading right-click, outline right-click, Shift+F10, and the keystrokes for
   the commands it holds), so a ⋯ printed at full strength on every heading of a forty-heading note
   is noise in the one column the product exists to keep quiet. On a COARSE pointer there is no
@@ -1293,8 +1293,8 @@ weekday NAME is prose by construction, so its digits follow the numeral policy t
 
 ### Frontmatter hygiene — a fix, not a feature
 
-- **Identity keys are MINTED, never copied.** `id`, `uuid`, `guid`, `permalink`, `slug`. The
-  owner's own template carries `id: 1733593454224005` and every note ever created from it
+- **Identity keys are MINTED, never copied.** `id`, `uuid`, `guid`, `permalink`, `slug`. A
+  real template carries `id: 1733593454224005` and every note ever created from it
   inherited that exact value — a duplicate-key bug that spreads silently and only surfaces when
   something downstream keys on it. The fresh value keeps the SHAPE of the one it replaces: a uuid
   stays a uuid, a 16-digit timestamp stays 16 digits (`mintIdentity`). The key is in the template
@@ -1414,9 +1414,8 @@ Until this round a click on a rendered cell dropped the whole block back to
 pipes. That is fine for a 3×3 table and impossible for a 60×12 one: the grid
 the reader was reading disappears on the gesture that asked to change it, and
 what replaces it is a wall of padded punctuation where the column they wanted
-is 400 characters along a wrapped line. The owner: *"it's nice to be able to
-insert tables in md format but we should be able to edit them with the nice
-table UI."*
+is 400 characters along a wrapped line. Tables should stay Markdown on disk and still be edited in a
+proper table UI.
 
 - **A click opens a native text box INSIDE that cell**, and the table stays
   drawn. A native box rather than a contenteditable cell for the reason
@@ -1429,9 +1428,8 @@ table UI."*
   in for its content, or the column collapses under the reader's pointer.
 - **THE BOX IS THE CELL, NOT A CONTROL OVER IT (3.19.1).** The first cut was
   a single-line `<input>` wearing a 2px accent ring; a three-line cell was
-  squeezed onto one scrolling line inside a lit rectangle, and the owner
-  read it as editing something placed over the table ("it squishes it in
-  some rectangle"). It is a `<textarea>` now with nothing of its own —
+  squeezed onto one scrolling line inside a lit rectangle, and it read
+  as editing something placed over the table, squeezed into a rectangle. It is a `<textarea>` now with nothing of its own —
   `pre-wrap` so it breaks where the rendered text broke, `field-sizing:
   content` plus a measured `blockSize` for engines without it so it grows
   with the text, the cell's font, colour, alignment and line height, no
@@ -1842,7 +1840,7 @@ other. The six inks are the book reader's tokens.
 
 **KEPT BESIDE THE VAULT, NOT IN IT.** `ASTROLABE_DATA/annotations.json`, a map from note path to
 its annotations, on the books.json idiom (cleaned on read, written by rename, 0600). The rename
-and folder-move routes carry entries to the new path. The owner reads and writes every annotation
+and folder-move routes carry entries to the new path. The admin reads and writes every annotation
 of any note; a visitor reads the PUBLIC ones of a PUBLISHED note and never learns the private ones
 exist — the comments gate, line for line. `public` is off by default: a note to self is to self.
 

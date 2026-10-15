@@ -442,7 +442,7 @@
      gap, ran 36px past the dialog's foot, and the dialog's own
      `overflow: hidden` cut "About" in half; its `overflow-y: auto` never
      engaged because it was never shorter than its content. The wheel over the
-     rail then scrolled nothing (the owner: "doesn't work with mouse, would
+     rail then scrolled nothing (reported: "doesn't work with mouse, would
      have to use arrow keys" — ↓ moves focus, and focus can reach what a wheel
      cannot), and the Arabic rail, a few lines shorter, happened to fit, which
      is why it looked like a language bug. As a flex child that may shrink,

@@ -49,7 +49,7 @@ export function isDateCalendar(value: unknown): value is DateCalendar {
   return value === "gregorian" || value === "hijri" || value === "both";
 }
 
-/** How a `both` date is put together (the owner wanted "hijri first and a
+/** How a `both` date is put together (the ask: "hijri first and a
  *  bar separating them"): which half leads — `auto` follows the site
  *  language — and what stands between them. */
 export type DateOrder = "auto" | "hijri-first" | "gregorian-first";

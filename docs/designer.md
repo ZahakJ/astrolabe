@@ -20,7 +20,7 @@ The blog and the designer are two separate programs. The designer never touches 
 
 ## A broken design is your visitors' non-event
 
-Suppose the design file is invalid, or a section points at a note you deleted, or something fails while the page is being drawn. **Visitors are shown the built-in blog instead, automatically.** They never see a blank page or an error dump. You are the one who is told: a notice in the app names the failing section, and one click takes the site back to the stock blog. `npm run check-design` is the check that keeps this promise honest: it breaks the site in all three ways on purpose and measures what a visitor and an owner each see. See [Development](development.md).
+Suppose the design file is invalid, or a section points at a note you deleted, or something fails while the page is being drawn. **Visitors are shown the built-in blog instead, automatically.** They never see a blank page or an error dump. You are the one who is told: a notice in the app names the failing section, and one click takes the site back to the stock blog. `npm run check-design` is the check that keeps this promise honest: it breaks the site in all three ways on purpose and measures what a visitor and the admin each see. See [Development](development.md).
 
 ## Sections
 

@@ -127,7 +127,7 @@ export default function AppearanceTab() {
 
       {/* A width of the reader's own is a PART of this row, not a row: it
           means nothing unless "Custom" is chosen, and it applies as it is
-          typed (the owner: "you see it change real time"). */}
+          typed (reported: "you see it change real time"). */}
       <Row kind="segmented" device label={t("rowEditorWidth")} hint={t("hintEditorWidth")}>
         <Parts>
           <SegmentedControl

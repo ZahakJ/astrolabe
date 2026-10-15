@@ -97,7 +97,7 @@
 }
 
 /* THE STAGE IS THE HERO. It takes every pixel the text leaves, and the
-   drawing scales to fill it — the owner: "so much empty space left at the
+   drawing scales to fill it — reported: "so much empty space left at the
    bottom of the preview card". A drawing keeps its aspect and centres; a
    live demo taller than the stage scrolls inside it. */
 .s-wn-stage {
@@ -213,7 +213,7 @@
      buttons: it shrinks to what is left beside the switch and the nav,
      scrolls sideways, keeps the current group in view (WhatsNew.tsx) and
      fades at the edge with more groups beyond it, so Next never reaches the
-     box's edge (the owner saw it touch the border after ~30 releases). */
+     box's edge (it touched the border after ~30 releases). */
   min-inline-size: 0;
   flex: 0 1 auto;
   /* The row is the offset parent of its groups: WhatsNew.tsx measures a

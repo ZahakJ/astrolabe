@@ -26,7 +26,7 @@
 // and it draws NO box of its own: the first cut was a single-line input with
 // a ring, and a three-line cell squeezed onto one scrolling line inside a lit
 // rectangle is not "editing the cell", it is editing something else placed
-// over it (the owner: "it squishes it in some rectangle"). The textarea
+// over it (reported: "it squishes it in some rectangle"). The textarea
 // wraps exactly where the rendered cell wrapped, grows with the text, and
 // the only signs it is open are the caret and a hairline under the cell.
 //

@@ -120,7 +120,7 @@ export async function renderPage(opts: RenderOptions): Promise<PageRender> {
   // the order they must paint; `ctx.direction` defaults to "inherit", and an
   // RTL-bound book's pages sit under `.s-book__doc[dir="rtl"]`, so Chromium
   // ran the bidi algorithm over those runs and drew an Arabic page as
-  // isolated letters in the wrong places (the owner: "the arabic prints suck
+  // isolated letters in the wrong places (reported: "the arabic prints suck
   // super bad"). Stock pdf.js on an RTL document garbles identically; on an
   // LTR one it is perfect. Pinned here AND in books.css, because this ctx is
   // the visible canvas when nothing is composited and a detached one when it is.

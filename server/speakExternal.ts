@@ -21,7 +21,7 @@
 // Its stderr is logged. A non-zero exit, a timeout, no file, or a file that
 // is not audio is a `speakExternal` failure: the sentence stays unspoken and
 // the player says the program failed (it does not quietly fall back to
-// another voice — the owner asked for this program and should hear that it
+// another voice — someone who asked for this program should hear that it
 // broke). It is NEVER run for a visitor: "Readers may listen" is served by
 // the app's own voices only (server/speak.ts).
 //

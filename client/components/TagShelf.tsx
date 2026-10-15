@@ -20,8 +20,8 @@ const PropsShelf = lazySurface(() => import("./PropsShelf.tsx"));
 // room) — persisted like the tree's folder expansion.
 const TAGS_COLLAPSED_KEY = "astrolabe.tags-collapsed";
 /** Which of the shelf's two faces shows: the tags or the properties. ONE
- *  box under the tree, a tab for each, so neither eats the tree's room (the
- *  owner: "tags and properties in the same box, toggle between them"). */
+ *  box under the tree, a tab for each, so neither eats the tree's room (tags
+ *  and properties in the same box, toggled between). */
 const SHELF_TAB_KEY = "astrolabe.shelf-tab";
 type ShelfTab = "tags" | "props";
 function loadShelfTab(): ShelfTab {
@@ -125,7 +125,7 @@ export function useTagShelf({
     }
   };
   const [tagsHeight, setTagsHeight] = useState<number | null>(loadTagsHeight);
-  // THE SHELF'S TOP EDGE IS A GRIP (the owner: "should def be able to expand
+  // THE SHELF'S TOP EDGE IS A GRIP (reported: "should def be able to expand
   // and contract that"). Drag it up for more pills, down for more tree;
   // double-click for the stylesheet's own height. Pointer capture, like the
   // pane grips, and the height lands on the element itself.

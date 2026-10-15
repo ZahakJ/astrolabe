@@ -138,7 +138,7 @@ function renderOpen(root: HTMLElement, options: PocketDoorOptions, fullName: str
  *  build; the device flow — a code read off this screen and typed on
  *  github.com — needs an OAuth App id baked into the build, so its button is
  *  drawn only when there is one. Both end in the same place: a token the git
- *  transport sends as a password (github.ts gitAuthHeader). The owner:
+ *  transport sends as a password (github.ts gitAuthHeader). The request:
  *  "why can't I get the apk and just sync through git by giving it my git
  *  stuff on phone?" — this is that. */
 async function renderStart(root: HTMLElement, options: PocketDoorOptions): Promise<void> {

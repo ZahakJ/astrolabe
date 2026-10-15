@@ -1,0 +1,21 @@
+name: Feature request
+description: Something Astrolabe does not do yet.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do, and where the app gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like
+      description: How it could work. If another tool does it, say how.
+  - type: textarea
+    id: arabic
+    attributes:
+      label: Arabic and right to left
+      description: Anything particular about how it should behave in Arabic, if you know.

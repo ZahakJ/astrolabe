@@ -1155,8 +1155,8 @@ const LAUNCH_GAP_MS = 5 * 60_000;
 
 /** A sync pass because something OPENED: this server booting, or a window
  *  (a browser, the phone, a desktop window) saying hello as an admin. The
- *  owner: "the first thing we do on all platforms when the app is opened is
- *  try to sync and pull all stuff from remote". Inert unless Backup & sync is
+ *  first thing every platform does when the app opens is try to sync and
+ *  pull from the remote. Inert unless Backup & sync is
  *  enabled with a remote; never while a pass is running here or in another
  *  Astrolabe over this vault; never twice within LAUNCH_GAP_MS. Returns
  *  whether a pass ran; a failed pass is recorded by syncNow and not thrown. */

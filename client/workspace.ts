@@ -112,7 +112,7 @@ export interface Workspace {
   layoutName: string | null;
 }
 
-// Raised from 3 × 2 (six) when the owner asked for "four windows" and found
+// Raised from 3 × 2 (six) when four windows were wanted and found
 // the drop targets gone: a zone the layout would refuse is not drawn, so a
 // full grid looked like a broken drag. Four columns and three rows are as far
 // as a laptop screen goes before a pane cannot show a tab name.
@@ -145,7 +145,7 @@ export const GRAPH_TAB = "~graph";
 export function isGraphTab(path: string): boolean {
   return path === GRAPH_TAB;
 }
-/** The Media page, on the same terms (the owner: "clicking on the media
+/** The Media page, on the same terms (reported: "clicking on the media
  *  tracker icon should open a tab"). */
 export const MEDIA_TAB = "~media";
 export function isMediaTab(path: string): boolean {
@@ -204,7 +204,7 @@ export function isReviewWeekTab(path: string): boolean {
 }
 /** THE CALENDAR — the month as a page of its own, big enough to say what
  *  every day held. It used to be a small grid at the top of the Sigils page,
- *  which is a morning checklist and not a month (the owner: "kinda weird and
+ *  which is a morning checklist and not a month (reported: "kinda weird and
  *  useless in the sigils window"); the sidebar's Calendar section stays where
  *  it is. A tab on the Sigils page's terms, with `/calendar` for an address. */
 export const CALENDAR_TAB = "~calendar";
@@ -721,7 +721,7 @@ function dropTabs(ws: Workspace, id: PaneId, doomed: (t: TabState, i: number) =>
   // others" and "close all" would each need their own answer, and a reader
   // would have to remember which.
   const tabs = pane.tabs.filter((t, i) => t.pinned || !doomed(t, i));
-  // A split pane whose last tab leaves closes with it (the owner: "deleting
+  // A split pane whose last tab leaves closes with it (reported: "deleting
   // the tab from the split window keeps the window even though it would have
   // no tabs left"). An empty pane is a thing you ASK for (a bare split); it is
   // not a thing a close should leave behind. closePane refuses on the last
@@ -765,7 +765,7 @@ export function closeAllIn(ws: Workspace, id: PaneId): Workspace {
   return dropTabs(ws, id, () => true);
 }
 
-/** Every note in this WINDOW — the row the owner asked for by name. Panes and
+/** Every note in this WINDOW — a row of its own. Panes and
  *  layout survive; only their tabs go. */
 export function closeAllPanes(ws: Workspace): Workspace {
   let out = ws;

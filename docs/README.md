@@ -24,7 +24,6 @@ You can read this manual as a website, with search, a page outline and both lang
 | [The Android app](mobile.md) | A door onto your own server from a phone, or [a vault from a private GitHub repository](mobile.md#a-vault-from-github) with no server at all, every save a commit: connecting, the share sheet that captures into the vault, updates, and what it deliberately does not do |
 | [In the terminal](terminal.md) | Astrolabe CLI, a separate program: the same vault opened from a terminal as plain files, with no server — a reader, a Vim-style editor, and `astrolabe add` and `astrolabe find` from the shell; installing it and the first commands |
 | [Discord presence](presence.md) | What Discord shows under your name while you work — Writing · Chapter 3, Reviewing cards · 12 left — switched on in Settings → Discord: the two-minute setup, who speaks to Discord, and exactly what leaves the machine (a title at most, never a path) |
-| [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Writing
 
@@ -64,6 +63,13 @@ You can read this manual as a website, with search, a page outline and both lang
 | [Arabic & RTL](arabic-and-rtl.md) | The whole interface in Arabic and mirrored right-to-left, a language switch for visitors, showing each reader only notes in their language, Hijri dates, Arabic names for your tags, and [a key that switches the interface language back](arabic-and-rtl.md#switching-the-interface-language) from anywhere |
 | [Japanese & furigana](japanese.md) | Readings over kanji with `{漢字|かんじ}`, a right-click that suggests them from the jōyō table, an automatic mode, and a Japanese typeface that only Japanese lines get |
 | [Read aloud](read-aloud.md) | Select a word or a paragraph and hear it in its own language — French, Japanese, Arabic, English — from voices on your own machine's processor; two engines, what each costs, how they were chosen by ear, this device's voices when they are not installed, and your own voices from a folder |
+
+## Deeper
+
+| | |
+| --- | --- |
+| [Compared with other tools](comparison.md) | Astrolabe beside Obsidian, Logseq and Joplin: storage, self-hosting, publishing, Arabic, sync, phones, licences and price |
+| [Development](development.md) | Running the app in dev mode, the check scripts that guard it, the screenshot tools, and how to contribute a change |
 
 ## Also in the repo
 
