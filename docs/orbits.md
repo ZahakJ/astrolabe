@@ -8,9 +8,7 @@
 
 A card you are learning comes back around: tomorrow, then in a week, then in a month, each time a little later than the last. That is an orbit, and it is the picture behind this page. **Orbits** is Astrolabe's own spaced-repetition system. A **deck** is a set of things you want to know by heart, a **card** is one of them, and a **session** is a sitting in which you are asked them and say how well you knew. It does what Anki does, and it needs no second program, no separate database and no export: a deck is a Markdown note, its cards are lines in that note, and the day each card comes back is written into the note beside it.
 
-A vault that never writes a deck still has one. Every highlight, quote and question you already marked in your notes (the forms are listed [below](#what-already-counts-as-a-card)) is gathered into an implicit deck called **Everything else**, grouped by top folder, so nothing you did before this page existed is lost.
-
-> Until 3.15 this page's name belonged to the daily routine, which is now [Sigils](sigils.md). The word moved to where it fits: a routine is something you keep, and a card is something that comes back around. <!-- lineage -->
+A vault that never writes a deck still has one. Every highlight, quote and question you already marked in your notes (the forms are listed [below](#what-already-counts-as-a-card)) is gathered into an implicit deck called **Everything else**, grouped by top folder.
 
 ## The note
 
@@ -83,7 +81,7 @@ Whatever the kind, a line written with three colons, `front:::back`, is always a
 
 ### What already counts as a card
 
-These have been cards since before this page existed and still are, inside a deck note or anywhere else in the vault:
+These are cards wherever they appear, inside a deck note or anywhere else in the vault:
 
 | In the note | The card |
 | --- | --- |
@@ -119,7 +117,7 @@ When you grade a card, the app writes one comment into the note, after the card'
 
 That comment is the whole state of the card: the day it is due, its current wait in days, and its ease times a thousand. A `:::` pair, or any line in a `both` deck, keeps two schedules in one comment, `<!--SR:!d1,i1,e1!d2,i2,e2-->`, which is the plugin's format for a pair too. The reading view hides the comment; the editor shows it as plain text; deleting it makes the card new again.
 
-This is the promise the page keeps: **a vault you study in Astrolabe and in Obsidian's Spaced Repetition plugin is one vault.** The plugin reads every deck note as a deck it wrote itself, and Astrolabe reads the plugin's decks as its own. Nothing about a card is stored anywhere but the note, with two exceptions that are caches rather than state: the learning steps of the open session, and the per-device log the statistics are drawn from.
+**A vault you study in Astrolabe and in Obsidian's Spaced Repetition plugin is one vault.** The plugin reads every deck note as a deck it wrote itself, and Astrolabe reads the plugin's decks as its own. Nothing about a card is stored anywhere but the note, with two exceptions that are caches rather than state: the learning steps of the open session, and the per-device log the statistics are drawn from.
 
 ## Statistics
 
@@ -166,4 +164,4 @@ On a phone ([the phone layout](workspace.md#on-a-phone)) Orbits is a list: More 
 - [The editor & reading view](editor.md) — highlights, callouts and the selection menu
 - [Feeds](feeds.md) — a highlight made in a kept article is a card here like any other
 
-A kanji deck built from [KANJIDIC2](https://www.edrdg.org/kanjidic/kanjd2index.html), as the author's own were, carries the dictionary's meanings and readings, © the Electronic Dictionary Research and Development Group, used under the CC BY-SA 4.0 licence; say so in the note's frontmatter, as they do.
+A kanji deck built from [KANJIDIC2](https://www.edrdg.org/kanjidic/kanjd2index.html) carries the dictionary's meanings and readings, © the Electronic Dictionary Research and Development Group, used under the CC BY-SA 4.0 licence; say so in the note's frontmatter.

@@ -39,10 +39,8 @@ makes even *reading* require a login, and `HOME_NOTE` chooses the note a first-t
 lands on.
 
 **`PUBLIC=false` requires a password, and the server refuses to start without one.** Without
-`ADMIN_PASSWORD_HASH` there is no such thing as "logged in", so "private" would mean the exact
-opposite: every anonymous request would be treated as the admin. Rather than start like that,
-Astrolabe prints the `npm run hash-password` line and exits. (Running deliberately open on a
-trusted network is still fine — just don't also claim to be private.) For the same reason,
+`ADMIN_PASSWORD_HASH` every anonymous request would be treated as the admin, so Astrolabe prints
+the `npm run hash-password` line and exits. For the same reason,
 **[backup & sync](backup-and-sync.md) needs a password in every mode**: without one, anyone who
 can reach the port could point the git remote at their own server and push your whole vault to it.
 
@@ -56,8 +54,7 @@ network over plain http. A session lasts **7 days** and renews itself while you 
 number stored in `ASTROLABE_DATA`, and signing out bumps that number, so every older cookie
 stops working. **Changing `ADMIN_PASSWORD_HASH` does the same** — every cookie issued under the
 old password dies the moment the new one is in place, which is exactly what you want after a
-laptop goes missing. (Upgrading Astrolabe also invalidates existing sessions once; you sign in
-again.)
+laptop goes missing.
 
 **Login rate limit.** Ten failed attempts per minute per IP address, plus a global ceiling across
 all addresses. An attempt is counted *before* the password is checked, so a thousand guesses
@@ -86,8 +83,7 @@ file is untouched. A `.tex` note carries the same flag in [its own comment block
 publishes the same way.
 
 On a phone or tablet, publishing asks first — from the phone layout's note sheet and from a
-long press on a note — because a thumb misses by a button's width and publishing is the one action that reaches
-strangers. A mouse and `Ctrl/Cmd Shift P` publish in one step.
+long press on a note — because publishing is the one action that reaches strangers. A mouse and `Ctrl/Cmd Shift P` publish in one step.
 
 Everything a visitor can see follows from that flag. The tree, search, the graph, backlinks, the
 post list, the RSS feed and the live event stream are all recomputed for each request against
@@ -128,10 +124,9 @@ Obsidian Publish's out — so they are private until you publish them yourself.
 ## Preview as visitor
 
 While signed in, you can see the site exactly as a visitor would, at any time: click the eye
-icon in the status bar, or run **Preview as visitor** from the command palette. This is not a
-client-side imitation. Every request is re-scoped on the server through the same code a
-stranger's request goes through (published-only tree, search, graph, event feed), so what you
-see is byte-for-byte what the public site serves. A slim gold banner marks the mode, and **Exit
+icon in the status bar, or run **Preview as visitor** from the command palette. Every request is
+scoped on the server exactly as a stranger's is (published-only tree, search, graph, event feed),
+so what you see is what the public site serves. A slim gold banner marks the mode, and **Exit
 preview** returns you to the full app on the same note. A page reload always ends the preview.
 
 The note you are on stays on screen. If the public site hides it behind the [language

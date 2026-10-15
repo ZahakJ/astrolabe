@@ -108,7 +108,7 @@ If you would rather Discord kept its own copies — or your network keeps Discor
 | `compass` | small image | anywhere else |
 | `moon` | small image | idle |
 
-The pictures are drawn by `scripts/shoot-presence-assets.mjs` from the SVG files beside them; the mark is generated from the same geometry as the app icon.
+
 
 ## How often it changes
 

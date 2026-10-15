@@ -6,15 +6,15 @@
 
 ---
 
-Astrolabe for Android is an APK on the [releases page](https://github.com/ZahakJ/astrolabe/releases/latest). It is a door onto the vault you already keep — the one your own server serves, or the one that lives in a private GitHub repository. The app has two screens of its own, a connection screen and a capture sheet, and after the first of those it hands the whole display to the reading room, full screen. Everything you know about Astrolabe on a laptop is the same here, because it *is* the same: the web client already lays itself out [for the hand](workspace.md#on-a-phone) — screens, a bar of five doors, sheets, thumb-sized targets — and reads Arabic from the right, and the app ships none of that twice.
+Astrolabe for Android is an APK on the [releases page](https://github.com/ZahakJ/astrolabe/releases/latest). It is a door onto the vault you already keep — the one your own server serves, or the one that lives in a private GitHub repository. The app has two screens of its own, a connection screen and a capture sheet, and after the first of those it hands the whole display to the reading room, full screen. Everything works as it does on a laptop: the web client lays itself out [for the hand](workspace.md#on-a-phone) — screens, a bar of five doors, sheets, thumb-sized targets — and reads Arabic from the right.
 
 ## What it is
 
 The app opens one of two doors, and you choose which on its first screen.
 
-**Your own server.** The phone holds no vault, no repository and no working copy. It reads and writes through the same HTTP API the web client uses, over the same session cookie, so every question about what happens when two places edit one note has the answer the server always gives — a save that would overwrite a version you never saw is refused, not merged, exactly as it is in a browser ([when the file changed under you](workspace.md#when-the-file-changed-under-you)). [Backup & sync](backup-and-sync.md) is the server's job and stays there. This is the door the app was built for and still the one to use if you run an instance; a shell's one job is to open only the address you gave it, and every other link in your notes goes to the phone's browser.
+**Your own server.** The phone holds no vault, no repository and no working copy. It reads and writes through the same HTTP API the web client uses, over the same session cookie, so every question about what happens when two places edit one note has the answer the server always gives — a save that would overwrite a version you never saw is refused, not merged, exactly as it is in a browser ([when the file changed under you](workspace.md#when-the-file-changed-under-you)). [Backup & sync](backup-and-sync.md) is the server's job and stays there. The app opens only the address you gave it; every other link in your notes goes to the phone's browser.
 
-**A private repository on GitHub**, for a person who runs no server at all. The vault is copied into the app's own storage, read and written there, and pushed back — the section below is about that. It carries a real copy of your notes with git under it, which the first version of this app deliberately refused to do; what changed is the company that copy keeps. The refusal was about a phone clone living beside a **live server** writing the same vault, where a week-old copy waking up in a pocket is a merge conflict inside somebody's prose, resolved by a phone. A GitHub vault has no live server: the only other writer is your own laptop, through git, which is the arrangement everybody who keeps notes in a repository already lives with. Running the server itself on a phone is still refused, and on a fact rather than a preference — Astrolabe needs a current Node and phones do not have one.
+**A private repository on GitHub**, for a person who runs no server at all. The vault is copied into the app's own storage, read and written there, and pushed back — the section below is about that. The server itself does not run on a phone: Astrolabe needs a current Node, and phones do not have one.
 
 ## Connecting
 
@@ -27,17 +27,17 @@ Your notes, your theme, your language and everything else are the instance's; th
 
 ## Leaving a vault
 
-Two ways back to the connection screen, from any vault. **More → Change server or vault…** (on a desktop-width screen, **⋯ → Change server or vault…** in the bottom bar), which the web client shows only inside this app, takes you there directly — to type another address, pick a remembered one, or open a vault from GitHub. And the back gesture, once it has walked back through everything the vault had to go back to, lands there too. Signing out of an instance does not do it: you are signed out of that site and still looking at it, which is what signing out means; the door is the row above.
+Two ways back to the connection screen, from any vault. **More → Change server or vault…** (on a desktop-width screen, **⋯ → Change server or vault…** in the bottom bar), which the web client shows only inside this app, takes you there directly — to type another address, pick a remembered one, or open a vault from GitHub. And the back gesture, once it has walked back through everything the vault had to go back to, lands there too. Signing out of an instance does not do it: you are signed out of that site and still looking at it.
 
 ## A vault from GitHub
 
 Choose **or open a vault from GitHub** on the first screen. The app shows a short code; you type it into `github.com/login/device` in any browser — the phone's own, or the laptop you are already signed in on — and approve it there. Nothing asks you for your GitHub password, and the app keeps no secret of its own: this is GitHub's *device flow*, the one designed for a device that cannot safely hold one. It asks for a single permission, **read and write your repositories**, which is the narrowest scope that can reach a private one. You can withdraw it at any time from your GitHub account's applications page.
 
-Then pick the repository your notes are in, and a branch. The app copies it into its own private storage — the newest commit only, not the whole history, because a vault with five years behind it is a minute of network you did not ask for — and opens the reading room on it. It is the same web client you use on a laptop: the editor, wikilinks, the graph, search, tags, properties, [Orbits](orbits.md), [Sigils](sigils.md#the-sigils-page), trackers, the calendar. Everything is on the device, so it opens and searches with no network at all.
+Then pick the repository your notes are in, and a branch. The app copies it into its own private storage — the newest commit only, not the whole history — and opens the reading room on it. It is the same web client you use on a laptop: the editor, wikilinks, the graph, search, tags, properties, [Orbits](orbits.md), [Sigils](sigils.md#the-sigils-page), trackers, the calendar. Everything is on the device, so it opens and searches with no network at all.
 
 ### What travels, and when
 
-Opening the app pulls; coming back to it pulls again; and pulling a list in **Notes** down from its top pulls on the spot — the gesture every phone app uses for "refresh" is this app's *sync now*. Every save is one commit, named after the note. Pushing is held for half a minute, so a paragraph typed in nine saves leaves as one push — and it goes at once when you put the phone down. A small line near the bottom of the screen says what is waiting: *3 changes to send*, *Offline. Your changes are safe on this phone.*, *Sending your changes…*, *2 notes changed in both places.* It never says you are synced while anything is waiting — and once everything is sent it steps aside, because "synced" is not news. It stands clear of the bar of five doors rather than over its last one. Tap it to send immediately.
+Opening the app pulls; coming back to it pulls again; and pulling a list in **Notes** down from its top pulls on the spot — the gesture every phone app uses for "refresh" is this app's *sync now*. Every save is one commit, named after the note. Pushing is held for half a minute, so a paragraph typed in nine saves leaves as one push — and it goes at once when you put the phone down. A small line near the bottom of the screen says what is waiting: *3 changes to send*, *Offline. Your changes are safe on this phone.*, *Sending your changes…*, *2 notes changed in both places.* It never says you are synced while anything is waiting, and once everything is sent it disappears. It stands clear of the bar of five doors rather than over its last one. Tap it to send immediately.
 
 A sync never moves you. The notes that changed are read again under you, and the folder you were in, the folders behind it and the note you were reading stay where they were; so does your place when Android brings the app back from the background. The folder's **‹** goes up to the folder above it, never to Today ([back means up](workspace.md#on-a-phone)).
 
@@ -65,7 +65,7 @@ Your notes go nowhere but your own repository. The app has no server of its own 
 
 ## The share sheet
 
-Share a link, a paragraph or a sentence from any app and choose **Capture to Astrolabe**. The sheet appends it as a timestamped bullet to today's inbox note, `Inbox/YYYY-MM-DD.md`, creating the note and the folder if this is the day's first capture. The write carries the note's modification time as a precondition, the same way the editor's saves do; if the note moved underneath (you were editing it on the laptop), the sheet re-reads and appends again, once. An append is the rare write where that is safe: what is being added was not in the file either time.
+Share a link, a paragraph or a sentence from any app and choose **Capture to Astrolabe**. The sheet appends it as a timestamped bullet to today's inbox note, `Inbox/YYYY-MM-DD.md`, creating the note and the folder if this is the day's first capture. The write carries the note's modification time as a precondition, the same way the editor's saves do; if the note moved underneath (you were editing it on the laptop), the sheet re-reads and appends again, once.
 
 The sheet runs in its own task, so a capture never costs you your place in the app: share, see the confirmation, and you are back where you were.
 
@@ -79,13 +79,13 @@ Inside either, a line is captured from the field at the top of **Today** (a vaul
 
 ## Updates
 
-The phone learns about a new APK the way the desktop learns about a new AppImage: one request to the releases page, once per launch, on a background thread. A sideloaded app cannot update itself — the phone's package installer is the only thing allowed to replace it — so the most the app can honestly do is say that a release exists and hand the APK to the browser, which downloads it and offers **Install**. The new copy is signed with the same key, so Android treats it as the update it is: notes, settings and sign-in are untouched.
+The phone learns about a new APK the way the desktop learns about a new AppImage: one request to the releases page, once per launch, on a background thread. A sideloaded app cannot update itself — the phone's package installer is the only thing allowed to replace it — so the app says that a release exists and hands the APK to the browser, which downloads it and offers **Install**. The new copy is signed with the same key, so Android treats it as the update it is: notes, settings and sign-in are untouched.
 
-Quiet by design: nothing is shown when the app is current, and a release you dismissed with *Later* is not mentioned again for a day. Everything on the web side reaches the phone the moment the server updates; the APK only changes when the wrapper itself does, which is rare.
+Nothing is shown when the app is current, and a release you dismissed with *Later* is not mentioned again for a day. Everything on the web side reaches the phone the moment the server updates; the APK only changes when the wrapper itself does.
 
 ## What it does not do
 
-No camera, no location, no contacts, no storage, no analytics, no push notifications. Its manifest asks for network access and — since 3.24, for [voice notes](capture.md#voice) — the microphone, which Android asks you about the first time you record and never before. Pointed at your own server it has no offline mode of its own: the page it shows keeps the web app's [offline copy](offline.md) the way a browser does, and when there is no copy and no server it says so and stops. A vault from GitHub is the other case entirely — it *is* the copy, and it opens with no network at all.
+No camera, no location, no contacts, no storage, no analytics, no push notifications. Its manifest asks for network access and, for [voice notes](capture.md#voice), the microphone, which Android asks you about the first time you record and never before. Pointed at your own server it has no offline mode of its own: the page it shows keeps the web app's [offline copy](offline.md) the way a browser does, and when there is no copy and no server it says so and stops. A vault from GitHub is the other case entirely — it *is* the copy, and it opens with no network at all.
 
 ## Installing it
 
