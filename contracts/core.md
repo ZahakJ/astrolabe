@@ -21,7 +21,7 @@ Astrolabe, in the app: a candlelit manuscript room. It was designed in two rooms
 (near-black warm ink background, warm off-white text) and light "parchment" (warm paper background),
 with a gold-leaf accent `#c9a227` (dark) / `#7a5f14` (light — darkened from `#8a6d1a`, which sat at
 4.13:1 and therefore failed AA as link text and as the lit mode pill; see the contrast gate). The
-room a new instance OPENS in is `github-dark`, `THEMES[0]` in `shared/themes.ts` — see
+room a new instance OPENS in is `astrolabe-dark` (neutral greys, gold only as the accent), `THEMES[0]` in `shared/themes.ts`, with `astrolabe-light` as its ☾/☀ pair — see
 [themes-tokens.md](themes-tokens.md), "Which theme a reader lands on". Serif display font for headings in rendered markdown
 (Georgia/serif stack), system sans for UI, monospace (ui-monospace stack) for raw markdown/code. No
 external font/CDN fetch ever reaches a VISITOR's browser: the defaults are system stacks, and the
@@ -35,7 +35,7 @@ properties listed in the styles contract; components must use tokens, never hard
 `docs/gh-hero.png` via `scripts/shoot-brand.mjs`), the pages site (`docs/index.html`) and the manual
 (`docs/site/docs.css`) are painted in the `sidereal` theme, starlight `#9aa3ff` on `#070a17`: the
 gold read heavy, and the darker blue is easier on the eye. The in-app
-default stays `github-dark` (`THEMES[0]`); a reader picks a room in the picker, and the product does
+default is `astrolabe-dark` (`THEMES[0]`); a reader picks a room in the picker, and the product does
 not move under them. Screenshots in `docs/screenshots/` are shot in sidereal (`scratchpad/sky/shoot-docs-sidereal.mjs`,
 `check-signatures.mjs` with `THEME=sidereal`) so the pages stay in one room.
 

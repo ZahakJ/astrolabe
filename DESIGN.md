@@ -2,8 +2,8 @@
 
 Reference quality: Obsidian's default theme + Linear's polish. Identity: illuminated manuscript —
 iron-gall ink, parchment light, gold-leaf accent — iron-gall is the BRAND room (the icon, the
-metaphor, the first hand-made room in the picker); the room a reader lands in is `THEMES[0]`,
-github-dark, since the preset rooms arrived in 3.16. Everything below is normative.
+metaphor); the room a reader lands in is `THEMES[0]`, astrolabe-dark — neutral near-black
+greys with gold only as the accent — paired with astrolabe-light. Everything below is normative.
 
 ## Layout (CSS grid, full viewport, no page scroll)
 
@@ -121,7 +121,7 @@ and the 44px touch floor are real pixels and do not scale.*
   --font-mono 85%.
 - Headings (live preview rendered): h1 1.9em serif + hairline bottom border --border padding 0.2em;
   h2 1.5em; h3 1.25em; every level in `--heading`, each room's own heading ink (a warm gold-cream
-  in iron-gall, near-white in github-dark) — not a mix computed from `--accent`. The `#`
+  in iron-gall, a neutral near-white in astrolabe-dark) — not a mix computed from `--accent`. The `#`
   marks when cursor is on the line render --text-faint.
 - Heading fold chevron: in the left padding of every heading line, VISIBLE at rest (--text-faint
   at full strength), --text-muted on line hover, --accent on itself. Never a hover-reveal — same
@@ -257,7 +257,7 @@ searching for it is depth nobody meets.
   floor rather than checked against it afterwards: starlight and body text are the same pale
   blue-white, so its type is held at a neutral silver to keep the pair 29.6 ΔE apart. "No two
   themes share a hex" is likewise satisfiable and
-  meaningless; the test is whether two swatches are separable at a glance. The accent is per theme, and only iron-gall/lapis/parchment
+  meaningless; the test is whether two swatches are separable at a glance. The accent is per theme, and only the astrolabe pair, graphite, iron-gall, lapis and parchment
   are gold — a theme is a room, not a tint: it defines its own ground, type, accent, selection,
   focus ring, graph colors, thirteen callout hues and eight syntax colors, solved against its own
   `--bg`. **A room's syntax palette is part of its identity, not a rainbow it wears**: `phosphor`

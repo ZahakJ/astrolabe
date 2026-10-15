@@ -14,7 +14,7 @@ same themes, the same visitor scoping, in both languages. And `pdflatex` still t
 always did, because everything Astrolabe adds is either a LaTeX comment or a macro (a command you
 define yourself) that you keep beside the file.
 
-- **Live-preview editor.** CodeMirror's `stex` mode, themed to whichever of the forty-six themes you
+- **Live-preview editor.** CodeMirror's `stex` mode, themed to whichever of the forty-eight themes you
   are in, with the same bargain the markdown editor makes: the line the caret is on shows raw TeX,
   and every other line reads as the thing it becomes. Section headings are set in serif;
   `\emph`, `\textbf` and `\texttt` render; `\item` becomes a bullet or its number; `$…$` and display
