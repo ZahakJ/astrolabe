@@ -1575,6 +1575,13 @@ try {
       check(errors.length === 0, tag("no page errors"), errors.slice(0, 4).join("\n        "));
       await ctx.close();
     }
+    // A shape's own browser goes as soon as the shape is done: two headless
+    // browsers alive for the rest of the run is one more than the machine has
+    // room for when other work is running beside it.
+    if (pb !== browser) {
+      await pb.close().catch(() => {});
+      browsers.splice(browsers.indexOf(pb), 1);
+    }
   }
 
   // ── an embed held is its menu, as a sheet (client/phone/embedSheet.ts) ────

@@ -498,9 +498,76 @@ function presenceModesSvg(lang: Lang): string {
 </svg>`;
 }
 
+// ── 3.43.0: Arabic, whole ───────────────────────────────────────────────────
+
+/** The same vocalised heading twice, as real text (an SVG cannot shape it):
+ *  at Latin display leading with its rule close under it, and at the leading
+ *  and clearance a right-to-left heading takes now. */
+function arabicWholeDemo(host: HTMLElement, lang: Lang): void {
+  const wrap = el("div", "s-wn-arw");
+  for (const [mod, label] of [
+    ["before", L(lang, "before", "قبل")],
+    ["now", L(lang, "now", "الآن")],
+  ] as const) {
+    const card = el("div", `s-wn-arw__card s-wn-arw__card--${mod}`);
+    card.appendChild(el("div", "s-wn-arw__label", label));
+    const h = el("div", "s-wn-arw__h", "عُنْوَانٌ طَوِيلٌ بِالتَّشْكِيلِ فِي أُصُولِ اليَقِينِ");
+    h.lang = "ar";
+    h.dir = "rtl";
+    card.appendChild(h);
+    wrap.appendChild(card);
+  }
+  host.replaceChildren(wrap);
+}
+
 // ── The registry ────────────────────────────────────────────────────────────
 
 export const RELEASES: Release[] = [
+  {
+    version: "3.44.0",
+    title: { en: "A new default look", ar: "مظهر افتراضي جديد" },
+    slides: [
+      {
+        // ── Two rooms: neutral grounds, gold only where something can be acted on ──
+        title: { en: "Astrolabe Dark and Astrolabe Light", ar: "أسطرلاب داكن وأسطرلاب فاتح" },
+        body: {
+          en: "Two new themes are now the default. The surfaces are neutral greys and the text is a plain off-white, tuned for long reading in both languages; gold is kept for the logo, links, the active tab and highlights. Generated covers on the blog take a cool night-sky tone instead of a gold wash. Every other theme is still in Settings → Appearance, and a theme you chose before stays chosen.",
+          ar: "صارت سمتان جديدتان هما الافتراضيتين. الأسطح رمادية محايدة والنص أبيض مكسور صافٍ، مضبوطان للقراءة الطويلة باللغتين؛ ويبقى الذهبي للشعار والروابط والتبويب النشط والتظليل. وتأخذ أغلفة المدونة المولّدة لونًا باردًا كسماء الليل بدل الغلالة الذهبية. وكل السمات الأخرى باقية في الإعدادات ← المظهر، والسمة التي اخترتها من قبل تبقى كما هي.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g class="wa-late" style="--i:1">
+    <rect x="32" y="34" width="236" height="154" rx="10" fill="#0f1113" stroke="#2a2e33"/>
+    <rect x="32" y="34" width="62" height="154" rx="10" fill="#16191c"/>
+    <text x="110" y="66" fill="#eef0f2" font-size="15" font-weight="700" font-family="Georgia, serif">${L(lang, "On marginalia", "في الهوامش")}</text>
+    <rect x="110" y="80" width="140" height="6" rx="3" fill="#9da3aa" opacity=".55"/>
+    <rect x="110" y="94" width="120" height="6" rx="3" fill="#9da3aa" opacity=".55"/>
+    <rect x="110" y="108" width="54" height="6" rx="3" fill="#d4a942"/>
+    <rect x="42" y="50" width="42" height="6" rx="3" fill="#d4a942"/>
+    <rect x="42" y="64" width="34" height="5" rx="2.5" fill="#737a82"/>
+    <rect x="42" y="76" width="38" height="5" rx="2.5" fill="#737a82"/>
+    <text x="150" y="176" text-anchor="middle" fill="#9da3aa" font-size="10">${L(lang, "Astrolabe Dark", "أسطرلاب داكن")}</text>
+  </g>
+  <g class="wa-late" style="--i:2">
+    <rect x="292" y="34" width="236" height="154" rx="10" fill="#fcfcfb" stroke="#dcdddb"/>
+    <rect x="292" y="34" width="62" height="154" rx="10" fill="#f4f4f3"/>
+    <text x="370" y="66" fill="#141619" font-size="15" font-weight="700" font-family="Georgia, serif">${L(lang, "On marginalia", "في الهوامش")}</text>
+    <rect x="370" y="80" width="140" height="6" rx="3" fill="#565b62" opacity=".5"/>
+    <rect x="370" y="94" width="120" height="6" rx="3" fill="#565b62" opacity=".5"/>
+    <rect x="370" y="108" width="54" height="6" rx="3" fill="#8a6410"/>
+    <rect x="302" y="50" width="42" height="6" rx="3" fill="#8a6410"/>
+    <rect x="302" y="64" width="34" height="5" rx="2.5" fill="#7b8087"/>
+    <rect x="302" y="76" width="38" height="5" rx="2.5" fill="#7b8087"/>
+    <text x="410" y="176" text-anchor="middle" fill="#565b62" font-size="10">${L(lang, "Astrolabe Light", "أسطرلاب فاتح")}</text>
+  </g>
+</svg>`,
+        },
+        docs: "theming",
+      },
+    ],
+  },
   {
     version: "3.43.0",
     title: { en: "Written now, out later", ar: "يُكتب الآن ويخرج لاحقًا" },
@@ -606,28 +673,7 @@ export const RELEASES: Release[] = [
           en: "Arabic marks sit above and below the line, and now they always get the room they need: the shadda and damma over a tab title or an outline row, the kasra of one heading line above the damma of the next, the descenders under a title's hairline. Headings and titles written right to left take the room their marks need, single-line labels clip only sideways, and a long note's outline keeps its rows full height. English text keeps its own spacing.",
           ar: "تقع علامات العربية فوق السطر وتحته، وصارت تأخذ دائمًا المسافة التي تحتاجها: الشدّة والضمّة فوق عنوان تبويب أو صفّ في المخطط، وكسرة سطر من العنوان فوق ضمّة السطر الذي يليه، والحروف النازلة تحت الخطّ الرفيع للعنوان. فالعناوين المكتوبة من اليمين إلى اليسار تأخذ المسافة التي تحتاجها علاماتها، ولا تُقصّ تسميات السطر الواحد إلا من الجانبين، ويحتفظ مخطط الملاحظة الطويلة بصفوفه كاملة الارتفاع. ويحتفظ النص الإنجليزي بتباعده الخاص.",
         },
-        visual: {
-          kind: "svg",
-          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="'Noto Naskh Arabic', serif" font-size="12">
-  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
-  <g font-family="ui-sans-serif, system-ui, sans-serif" font-size="9" fill="var(--text-faint)">
-    <text x="146" y="34" text-anchor="middle">${L(lang, "before", "قبل")}</text>
-    <text x="414" y="34" text-anchor="middle">${L(lang, "now", "الآن")}</text>
-  </g>
-  <rect x="28" y="42" width="236" height="150" rx="8" fill="var(--bg)" stroke="var(--border)"/>
-  <g direction="rtl" text-anchor="end" font-size="22" font-weight="700" fill="var(--text)">
-    <text x="250" y="88">عُنْوَانٌ طَوِيلٌ بِالتَّشْكِيلِ</text>
-    <text x="250" y="114">فِي أُصُولِ اليَقِينِ</text>
-  </g>
-  <path d="M40 121 h212" stroke="var(--text-muted)" stroke-width="1"/>
-  <rect x="296" y="42" width="236" height="150" rx="8" fill="var(--bg)" stroke="var(--accent)"/>
-  <g class="wa-late" style="--i:1" direction="rtl" text-anchor="end" font-size="22" font-weight="700" fill="var(--text)">
-    <text x="518" y="88">عُنْوَانٌ طَوِيلٌ بِالتَّشْكِيلِ</text>
-    <text x="518" y="126">فِي أُصُولِ اليَقِينِ</text>
-  </g>
-  <path class="wa-draw" d="M308 150 h212" stroke="var(--text-muted)" stroke-width="1"/>
-</svg>`,
-        },
+        visual: { kind: "demo", mount: arabicWholeDemo },
         docs: "arabic-and-rtl",
       },
     ],

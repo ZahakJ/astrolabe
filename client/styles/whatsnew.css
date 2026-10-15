@@ -952,3 +952,43 @@
     transition: none;
   }
 }
+
+/* 3.43.0 · Arabic, whole: one heading at two leadings (releaseNotes.ts). */
+.s-wn-arw {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 18px;
+  inline-size: 100%;
+  box-sizing: border-box;
+}
+.s-wn-arw__card {
+  padding: 12px 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  min-width: 0;
+}
+.s-wn-arw__card--now {
+  border-color: var(--accent);
+}
+.s-wn-arw__label {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-block-end: 8px;
+}
+.s-wn-arw__h {
+  font-family: "Noto Naskh Arabic", var(--font-serif);
+  font-weight: 700;
+  font-size: 22px;
+  color: var(--heading);
+  border-block-end: 1px solid var(--text-muted);
+}
+.s-wn-arw__card--before .s-wn-arw__h {
+  line-height: 1.15;
+  padding-block-end: 0.1em;
+}
+.s-wn-arw__card--now .s-wn-arw__h {
+  line-height: 1.75;
+  padding-block-end: 0.45em;
+}

@@ -318,8 +318,8 @@
 
      Both resolve at the consuming element, so they are safe to override per
      theme and a theme switch repaints live. */
-  --banner-tint: 66%;
-  --banner-hue: 43;
+  --banner-tint: 80%;
+  --banner-hue: 218;
 
   /* Font stacks. Latin-first is the default: a stack is consulted per
      CHARACTER, so on an English instance the Arabic faces are only ever
@@ -540,8 +540,11 @@
 
   --selection-bg: rgba(212, 169, 66, 0.26);
   --focus-ring: #d4a942;
-  --banner-tint: 66%;
-  --banner-hue: 43;
+  /* A generated cover starts from a cool night-sky hue rather than the gold:
+     gold stays the accent, and a gold-hued wash across a whole card or a
+     home hero is the yellow cast these rooms exist to avoid. */
+  --banner-tint: 80%;
+  --banner-hue: 218;
 
   --graph-node: #d4a942;
   --graph-edge: #4a5057;
@@ -594,8 +597,8 @@
 
   --selection-bg: rgba(138, 100, 16, 0.2);
   --focus-ring: #8a6410;
-  --banner-tint: 34%;
-  --banner-hue: 41;
+  --banner-tint: 40%;
+  --banner-hue: 218;
 
   --graph-node: #8a6410;
   --graph-edge: #b4b7bb;
