@@ -24,14 +24,11 @@ up the same way, the site logo and the dashboard hero included:
 | `banner: cover.png` *(note in `Trips/`)* | `Trips/cover.png` — beside the note, where Obsidian keeps a note's own images. `img/cover.png` and `../shared/cover.png` work the same way |
 | `banner: cover.png` *(no such neighbour)* | any `cover.png` in the vault, resolved exactly as `![[cover.png]]` resolves it: case-insensitive, shortest path wins |
 
-A **bare filename is what most people write**, and for a while it was the one form that did not
-work: it was looked for in the vault root alone and not found, even though wikilinks and embeds had
-always found a file by name from anywhere. It works now, and so does the note's own folder.
+
 
 If the value names nothing, **you are told**. As the signed-in admin you see, instead of the hero, a
 dashed card naming the value that failed, with **Set banner…** beside it. Visitors see nothing at
-all: a stranger cannot fix your typo, and blog posts fall back to the generated gradient. (Before
-this, a broken banner deleted itself, which made a typo and "no banner" look identical.)
+all: a stranger cannot fix your typo, and blog posts fall back to the generated gradient.
 
 As admin you rarely write the `banner:` line by hand. **Set banner…** in the command palette (also
 a quiet button on the properties card) opens a dialog to paste a URL, pick from the vault's image
@@ -53,7 +50,7 @@ The folder is `Settings → New notes & templates → Templates folder`. Leave i
 itself, as long as the answer is unambiguous: a folder called `Templates`, `_templates` or `قوالب`,
 with a leading ordering prefix allowed (`4 - Templates`, `04. Templates`). If there are two
 plausible candidates and neither sits at the root to settle it, the setting stays empty rather than
-guessing, because a wrong guess would hide real posts from your blog. **Notes in the templates
+guessing. **Notes in the templates
 folder never appear in the post list** (or in RSS, or on the dashboard), even when they carry
 `publish: true` so that the notes made from them inherit it.
 
@@ -67,11 +64,9 @@ that folder*:
 | **New note from template…** (`Ctrl/Cmd Alt Shift T`) | asks for a name, creates the note with the template applied, and opens it |
 
 Both open a picker that **previews the template with its placeholders already filled**, so you see
-what is about to land, not what the file says. (`Ctrl/Cmd Alt` rather than the obvious `Ctrl/Cmd T`
-because that one is the browser's new tab, and `Ctrl/Cmd Shift T` reopens a closed one. Neither can
-be taken.)
+what is about to land, not what the file says.
 
-**Placeholders**: Obsidian's, plus two of our own:
+**Placeholders**: Obsidian's, plus two more:
 
 | Placeholder | Becomes |
 | --- | --- |
@@ -84,8 +79,6 @@ be taken.)
 | `{{prompt:Label}}` / `{{VALUE:Label}}` | **an answer you type**. Before anything is inserted a small sheet asks for each distinct label once, in the order the template names them; a label used twice is asked once and filled twice. Enter inserts, `Esc` cancels the whole insertion — nothing is written, not even the frontmatter. A bare `{{VALUE}}` is asked under a generic caption. Both spellings are the ones Templater and QuickAdd users already have in their vaults |
 
 Anything else is **left exactly as written**: a Templater expression, a stray `{{`.
-Blanking a token Astrolabe does not implement would destroy text you typed and hide the fact that
-the template expects something we do not do.
 
 Dates follow the site's settings where a reader can see them, and stay in a form a program can read
 where one has to. The named formats (`{{date:long}}`) and `{{hdate}}` use the site's calendar
@@ -100,12 +93,11 @@ key twice, and **the note's own values win** (its `publish:`, its `date:`, its `
 about that note; the template's are only defaults). The keys that tell one note from another
 (`id`, `uuid`, `guid`, `permalink`, `slug`) are **generated fresh**, in the same shape as the
 template's own value: a uuid stays a uuid, a
-16-digit timestamp stays 16 digits. A template carrying `id:` used to hand the same id to every note
-ever made from it.
+16-digit timestamp stays 16 digits.
 
 **Template for new notes** (also in Settings) applies one template to every note created from inside
-Astrolabe: `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. It is off by default: new notes are born
-empty, as they always were.
+Astrolabe: `Ctrl/Cmd N`, the sidebar's `+`, the tree menu. It is off by default: new notes start
+empty.
 
 ## Periodic notes
 
@@ -151,7 +143,7 @@ dates and the trackers' `finished:` lines, with nothing stored. The Sigils page 
 
 ### The calendar
 
-The month lives on its own page: the calendar door in the top bar (or **Open Calendar** in the command palette, and the ⋯ menu on a phone) opens `/calendar`, a full month in the site's calendar where every day lists its note, the sigils logged that day and the cards graded; a click selects the day, and an empty day can create its note from there. The sidebar no longer carries a second copy of the month.
+The month lives on its own page: the calendar door in the top bar (or **Open Calendar** in the command palette, and the ⋯ menu on a phone) opens `/calendar`, a full month in the site's calendar where every day lists its note, the sigils logged that day and the cards graded; a click selects the day, and an empty day can create its note from there.
 
 ## Unique notes
 
@@ -165,14 +157,13 @@ it is called are settings, in Settings → Writing beside the daily rows:
 | Setting | Default | Notes |
 | --- | --- | --- |
 | Unique notes folder | *(the vault root)* | Any folder; `zettel`, say. |
-| Unique note name | `YYYYMMDDHHmm` | The daily tokens plus `HH`, `mm` and `ss`; `[literals]` and `/` work as they do for the daily name. The format must be finer than a day — a "unique" name that repeats every morning is a collision waiting to happen — so at least one of `HH`, `mm`, `ss` is required. |
+| Unique note name | `YYYYMMDDHHmm` | The daily tokens plus `HH`, `mm` and `ss`; `[literals]` and `/` work as they do for the daily name. The format must be finer than a day, so at least one of `HH`, `mm`, `ss` is required. |
 
 ## Linguistic twins
 
 You write a post twice — once in English, once in Arabic — and you would rather the pair behaved
 like one note you can turn over than like two files that happen to be about the same thing. On disk
-they stay two files, because everything here is plain Markdown and nothing is allowed to stop being
-that. Everywhere else they are two **faces** of one note.
+they stay two plain Markdown files. Everywhere else they are two **faces** of one note.
 
 Say so with one line, in either file's frontmatter:
 
@@ -191,7 +182,7 @@ an alias or a full path works too, and renaming either file keeps the pair toget
 
 If both files declare a twin and they disagree — this one names that one, that one names a third —
 each note keeps the twin its own line names, and the pill in the status bar says the pair is
-inconsistent. There is no third place that could decide between two files, so nothing pretends to.
+inconsistent.
 
 **In the editor.** A note with a twin gets a small pill at the bottom of the window, `EN ⇄ ع`,
 showing the face you are on and the one a click would bring. Clicking it — or `Ctrl/Cmd Alt L`, or
@@ -206,7 +197,7 @@ hover.
 own name with `— ar` or `— en` on the end; type over it, an Arabic title is usually better), writes
 the new file beside this one with this note's frontmatter — minus the `id`, which belongs to one
 file only — declares the pair on *both* files, and opens it beside. The words are yours to write;
-nothing is translated for you, and nothing ever will be.
+nothing is translated for you.
 
 **Is the other side out of date?** When the twin has not been touched since this face was, by more
 than a minute, the pill carries a small dot and its tooltip says when the other side was last
@@ -230,18 +221,14 @@ lists, the `hreflang` tags — only makes sense when the two faces are in *diffe
 English faces are two posts, both listed if both are published, each naming the other under its title.
 
 **On the graph and in backlinks.** For a visitor, a twin pair is **one node** on the graph, labelled
-by the face in their language, carrying every link either face drew: the pair is one idea, and two
-half-connected copies of one essay is a picture of the filesystem, not of the writing. In your own
-graph both files stay, because there the graph is a map of files you can open and rename. The
-backlinks panel of either face shows the links to *both*, for the same reason — somebody who linked
-the English side linked this piece.
+by the face in their language, carrying every link either face drew. In your own graph both files
+stay. The backlinks panel of either face shows the links to *both*.
 
 ## Sections: fold, extract, move
 
 A section is a heading and everything under it, up to the next heading of the same level or higher.
 
-- **Heading folding.** A chevron sits beside every heading (visible at rest, not on hover, because a
-  control nobody can see is a control nobody finds, and there is no hover on a phone). Click it, or
+- **Heading folding.** A chevron sits beside every heading, always visible. Click it, or
   press `Ctrl/Cmd Shift [` / `]`, to fold a section down to a "N folded lines" chip.
   `Ctrl/Cmd Alt [` / `]` folds or opens everything.
 - **Section actions on every heading.** A ⋯ beside the fold chevron (and a right-click on any
@@ -252,9 +239,7 @@ A section is a heading and everything under it, up to the next heading of the sa
   subheading travel as one block, and a drop rule shows the depth it will land at *before* you let
   go. Drag toward the reading direction to nest it one level deeper, or rest on a row for a moment
   to drop inside it. It is one step, so `Ctrl/Cmd Z` takes it back, and the toast carries an Undo
-  button too. `npm run check-sections` tests the rewrite against thousands of generated notes with
-  frontmatter, nested headings and code fences containing `###` lines; see
-  [Development](development.md).
+  button too.
 - **Focus one section.** `Ctrl/Cmd Alt F` collapses everything except the section your cursor is in;
   `Esc` puts the note back exactly as it was, folds and all. `Ctrl/Cmd Alt ↑` / `↓` jump to the
   previous or next heading (in the reading view they scroll). Fold state is remembered per note
@@ -300,8 +285,7 @@ the indexer actually knows, so the folder dialog reads "0 notes and 4 files" rat
 markdown and stopping. When something that *survives* the delete still points inside it, the dialog
 says so and names it: "4 files in here — embedded by "The Moved Essay". Those embeds break."
 (Deleting a note names the notes that link to it, the same way.) Attachments have their own "Delete
-file" on their tree row, which they never had before: removing one stale image used to mean
-deleting the folder around it.
+file" on their tree row.
 
 **Trash browser.** `Ctrl/Cmd P` → **Open trash** lists everything in `.trash/`: what is inside each
 entry, how big it is and when it went, with **Restore** and a permanent erase per row, plus "Empty
@@ -320,8 +304,8 @@ you can drill into a nested destination without letting go; the tree auto-scroll
 and dropping onto a folder that is still shut works fine.
 
 **Every link follows**: `[[wikilinks]]` written as paths, `[markdown](links)`, and the relative
-`![embeds](../Media/x.png)` inside the notes that moved. A folder move of 1,214 notes repairs 246
-notes' links and the indexes are updated before the move reports back, so search, the graph and the
+`![embeds](../Media/x.png)` inside the notes that moved. The indexes are updated before the move
+reports back, so search, the graph and the
 public site are correct the moment it lands. A name collision asks for another name instead of overwriting, and every
 move raises a toast naming both ends **with Undo**. No mouse? "Move to…" in a row's right-click menu
 and in the command palette opens a filterable folder picker that does exactly the same thing, and so

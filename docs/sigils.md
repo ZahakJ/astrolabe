@@ -24,11 +24,8 @@ do) and the **log** (what you did). There is no hidden database. Tick a box and 
 your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
 parts are plain, readable code blocks that say exactly what they say here.
 
-> This feature has changed its name twice: it was *routines* until 3.14 (blocks ` ```routine ` and <!-- lineage -->
-> ` ```routine-log `) and *orbits* in 3.15 (` ```orbit ` and ` ```orbit-log `), before 3.16 gave <!-- lineage -->
-> the word Orbits to [spaced repetition](orbits.md), where a card comes back around. Older notes
-> written with `routine` or `orbit` still work, in every note you already have — nothing needs <!-- lineage -->
-> renaming. New sigils are written with the names below.
+> Blocks written as ` ```routine ` and ` ```routine-log `, or ` ```orbit ` and ` ```orbit-log `, <!-- lineage -->
+> are read as sigils too; nothing needs renaming. New sigils are written with the names below.
 
 ## What a sigil looks like in the note
 
@@ -184,9 +181,8 @@ budget runs out. A step longer than the budget still gets taken — it simply ta
 you do not finish it, tomorrow as well.
 
 So a missed day changes nothing in your file. There is no schedule to fall behind. The projection
-is recomputed and **everything after the cursor shifts by a day**, which is what you would have done
-by hand and what you would have got wrong: if a step takes two days instead of one, the schedule
-moves it to the second day, and everything after it with it.
+is recomputed and **everything after the cursor shifts by a day**: if a step takes two days instead
+of one, the schedule moves it to the second day, and everything after it with it.
 
 The card says where you are and where that is heading — **Step 12 of 96 · Genki I — lesson 1 · on
 course to finish 14 March** — and then lists today's steps with a box each. Tick one and the cursor
@@ -217,8 +213,8 @@ words** — so the first time you tick or skip a step, Astrolabe writes its key 
 
 From that moment the step has a name of its own and you may rewrite it as freely as you like. The
 tag is written in the same edit as the tick, so it is one undo step, and every other byte of the
-plan — your comments, your blank lines, your indentation — is left where it was. For a step you
-have never answered there is nothing to lose, which is why nothing is stamped until you answer one.
+plan — your comments, your blank lines, your indentation — is left where it was. Nothing is stamped
+on a step until you answer it.
 
 **On the calendar.** [The Calendar page](calendar.md) draws a course twice over. Days already gone
 carry the steps you actually did, solid, on the days you did them. Days ahead carry what the
@@ -227,7 +223,7 @@ behind. And under the month, **the months ahead** as unit bands — *Japanese ·
 27 Oct – 9 Nov* — so you can see a curriculum laid out in weeks without reading forty cells. All
 three come out of one projection, so they can never disagree.
 
-The streak, the week and the twelve-week grid work as they always did. A day is complete when its
+The streak, the week and the twelve-week grid work as on any sigil. A day is complete when its
 budget's worth of steps is done — or, with no budget, when its one step is.
 
 ## The card
@@ -262,8 +258,8 @@ published site, inside a transclusion — always the same card:
 The log block renders as a table of the days, newest first: the date with its status dot, what was
 done, each field, the note.
 
-Reading view and the public site show the card without its controls. A visitor cannot write to
-your note, and a box that cannot be ticked would be a box that lies.
+Reading view and the public site show the card without its controls: a visitor cannot write to
+your note.
 
 ## The Sigils page
 
@@ -278,9 +274,8 @@ A tick on this page goes to the note the sigil lives in, by the very same edit t
 make, so the page and the editor never disagree about what the log says. The page re-reads on
 every change to the vault, so a box ticked in the editor shows here at once.
 
-**The month is elsewhere.** A small month sat under this heading until 3.17. The month has a page
-of its own now — [the Calendar](calendar.md), at `/calendar`, through the calendar leaf in the top
-bar — where a cell has room to name the sigils you kept that day, the cards you graded and the
+**The month is elsewhere**, on a page of its own — [the Calendar](calendar.md), at `/calendar`,
+through the calendar leaf in the top bar — where a cell has room to name the sigils you kept that day, the cards you graded and the
 pages you read. This page is the morning's checklist, and it keeps its width for the checklists.
 
 **Recently read.** When nothing is due — no sigil asks anything of today, or everything asked has
@@ -312,8 +307,7 @@ Every row is a door to its note. The arrows walk to earlier weeks. **Print** put
 (so does the browser's own print while the review is in the focused pane), without the bar.
 
 Nothing on the page is stored. It is computed, each time it opens, from your notes, your trackers'
-`sessions:` lines, your sigil logs and the Orbits log this browser keeps — a review that kept a
-ledger of its own would be a second truth about the sigils, and the note is the only one.
+`sessions:` lines, your sigil logs and the Orbits log this browser keeps.
 
 ## New sigil — the form
 
@@ -321,8 +315,7 @@ ledger of its own would be a second truth about the sigils, and the note is the 
 
 **Start from.** A row of templates. **Custom** starts from nothing and lets you choose each part
 yourself. The built-in ones fill the sheet in: *Exercise* (a whole week of morning walks and evening
-full-body sessions), *Habits*, *Mindfulness* (a morning sit, a walk without the phone, an evening sit, with minutes and a calm rating
-congregation), *Sleep* (hours, quality, bedtime), *Water*, *Mood* (mood, energy, gratitude),
+full-body sessions), *Habits*, *Mindfulness* (a morning sit, a walk without the phone, an evening sit, with minutes and a calm rating), *Sleep* (hours, quality, bedtime), *Water*, *Mood* (mood, energy, gratitude),
 *Reading*, *Study* — each in your site's language. Under them, **Your templates**: any note in the
 [templates folder](templates-and-notes.md) that carries a ` ```sigil ` block. A template only
 fills the sheet in; everything on it stays yours to change.
@@ -344,10 +337,8 @@ Sigils/Daily exercise.md
 ```
 
 holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
-folder is `سجل`; a vault that already has a `Routines/` or `روتين/` folder from before 3.15 keeps <!-- lineage -->
-filing there. A vault from 3.15 that filed under `Orbits/` does not: that folder is where the study
-decks live now, so the next sigil starts a `Sigils/` folder, and the ones already in `Orbits/` go
-on working where they are. A name that already has a note is refused rather than overwritten.
+folder is `سجل`; a vault that already has a `Routines/` or `روتين/` folder keeps filing there. <!-- lineage -->
+A sigil in any other folder keeps working where it is. A name that already has a note is refused rather than overwritten.
 Editing from the page rewrites **only the plan block** — the log under it and any prose around it
 stay exactly as they were, byte for byte. **Save as template** writes the same note into the
 templates folder instead, so a sigil you drew up once can seed the next.
