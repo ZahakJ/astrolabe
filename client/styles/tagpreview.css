@@ -24,7 +24,8 @@
   font-family: var(--font-serif);
   font-size: 0.95rem;
   color: var(--text);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -33,14 +34,15 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .s-hovercard__tagnote-snippet {
   font-size: 0.86rem;
-  line-height: 1.4;
+  line-height: var(--snippet-leading, 1.4);
   color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;

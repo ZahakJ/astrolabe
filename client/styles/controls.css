@@ -135,7 +135,7 @@
 .s-ctl-select__value {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -292,7 +292,7 @@
 .s-ctl-pop__optlabel {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.893rem;
@@ -313,7 +313,8 @@
   font-size: 1.02rem;
   line-height: 1.65;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -734,13 +735,15 @@
 }
 
 .s-ctl-path__name {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .s-ctl-path__dir {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;

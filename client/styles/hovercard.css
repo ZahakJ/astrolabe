@@ -43,7 +43,8 @@
   color: var(--text);
   text-align: start;
   /* A long title must not stretch the card or hide the body. */
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

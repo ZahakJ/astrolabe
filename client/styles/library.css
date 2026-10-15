@@ -105,7 +105,7 @@
 .s-lib-card__blurb {
   font-family: var(--font-serif);
   font-size: 0.9rem;
-  line-height: 1.45;
+  line-height: var(--snippet-leading, 1.45);
   color: var(--text-muted);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -339,7 +339,8 @@
 .s-lib-lesson-row__title {
   font-family: var(--font-serif);
   font-size: 1rem;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -500,7 +501,8 @@
 }
 
 .s-lib-rail__title {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -580,7 +582,8 @@
 .s-lib-turn__title {
   font-family: var(--font-serif);
   font-weight: 600;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

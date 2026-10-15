@@ -394,7 +394,7 @@
 .s-rv-board__title {
   font-family: var(--font-serif);
   font-size: 0.95rem;
-  line-height: 1.25;
+  line-height: var(--snippet-leading, 1.25);
   color: var(--text);
   overflow: hidden;
   display: -webkit-box;

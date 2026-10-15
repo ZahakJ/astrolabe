@@ -1317,7 +1317,7 @@
   min-width: 0;
   font-size: 13px;
   font-weight: 600;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1469,7 +1469,8 @@
 .s-dsgp-detail__crumbleaf {
   color: var(--text);
   font-weight: 600;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -1635,7 +1636,8 @@
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 

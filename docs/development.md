@@ -169,6 +169,25 @@ borders are counted and margins are not — put the air on a wrapper's padding, 
 transparent border with `background-clip: padding-box`, never in a margin. The gate restores the
 instance language and deletes its fixture however the run ends.
 
+### `npm run check-ink` — Arabic marks, measured
+
+An Arabic line's layout box is the font's content area, and its marks are painted outside it: a
+shadda over the line, a kasra under it. So a gate that reads boxes cannot see a mark being cut, and
+this one reads ink. For every Arabic line on the page it measures the glyphs themselves (canvas
+`measureText` in the line's own font, `scripts/ink-measure.mjs`) and fails when the ink is cut by an
+overflow edge that no scroll can reveal, comes within 2px of the rule its block draws (the h1
+hairline), or overlaps the next line by more than a pixel.
+
+It writes two notes carrying every shape that broke — a vocalised h1 long enough to wrap, thirty
+headings so the outline has to scroll, callouts, a table, a link each way so the backlinks panel
+has a vocalised snippet — sets the instance to Arabic, and walks the editor, the reading view and
+the phone shell, and the blog as a signed-out reader at two widths, scrolling each through, in five
+rooms (`INK_THEMES=all` for every one). The rules it holds are in `contracts/i18n.md`, "Arabic
+marks"; `tests/inkCss.test.ts` holds the stylesheets to them with no browser. Language, layout and
+fixtures are restored however the run ends.
+
+    CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=… npm run check-ink -- http://127.0.0.1:8177
+
 ### `npm run check-french` — the auto-correction gate
 
 `tests/french.test.ts` proves the table (no source is a real French word, no duplicates, every
@@ -752,7 +771,7 @@ The sequence a change runs before it is called finished, in this order: `npm run
 key changed · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` ·
 `npm run check-desktop` when `electron/` or `desktop/` changed ·
 `npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed ·
-`npm run check-cascade` whenever a stylesheet changed.
+`npm run check-cascade` and `npm run check-ink` whenever a stylesheet changed.
 Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a
 piece of the shell moved — with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch
 server over a scratch vault — never the owner's.

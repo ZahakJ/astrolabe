@@ -65,7 +65,8 @@
   /* The pair's two faces read as one unit, so neither half is emphasised
      over the other; the arrow between them carries the meaning. */
   max-inline-size: 12ch;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 
@@ -163,7 +164,8 @@
 }
 
 .s-publist__title {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -243,7 +245,7 @@
 .s-preview-strip__hint {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-muted);

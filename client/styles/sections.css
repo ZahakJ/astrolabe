@@ -29,7 +29,8 @@
   /* One line: the menu is not the place to read a long heading, and a title
      that wraps to four lines moves every row under it away from the pointer. */
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 

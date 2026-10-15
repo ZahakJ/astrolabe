@@ -45,7 +45,8 @@
 .s-tree-iconpick__title {
   padding-inline: 1px;
   padding-block-end: 6px;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.786rem;
@@ -171,7 +172,7 @@
   align-items: center;
   gap: 6px;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-muted);

@@ -873,7 +873,7 @@
 .s-smodal__themename {
   flex: 0 1 auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.857rem;
@@ -1211,7 +1211,8 @@
 .s-smodal__specline {
   line-height: 1.6;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 
@@ -1277,7 +1278,7 @@
 .s-smodal__fontname {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 1.02rem;
@@ -2231,7 +2232,7 @@
 
 .s-smodal__advlist {
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;

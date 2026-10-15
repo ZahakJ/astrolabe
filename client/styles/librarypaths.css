@@ -81,7 +81,7 @@
 .s-libpaths__sumtitle {
   display: block;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
@@ -91,7 +91,7 @@
 .s-libpaths__sumfolder {
   flex: 0 1 auto;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
@@ -210,7 +210,7 @@
      the two halves of one path to opposite ends of the button. */
   flex: 0 1 auto;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text-muted);
@@ -291,7 +291,7 @@
 
 .s-libpaths__url {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
@@ -318,7 +318,8 @@
   flex: 0 0 auto;
   max-inline-size: 100%;
   margin-inline-start: auto;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;
@@ -460,7 +461,8 @@
 
 .s-libpaths__vaulttitle {
   flex: 0 1 auto;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 600;
@@ -468,7 +470,8 @@
 
 .s-libpaths__vaultline .s-libpaths__count {
   flex: 0 1 auto;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.75rem;

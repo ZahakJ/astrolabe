@@ -11,7 +11,7 @@
 
 .s-semantic__title > bdi {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
 }
 
@@ -30,7 +30,8 @@
 .s-semantic__heading {
   display: block;
   margin-bottom: 2px;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   font-size: 0.786rem;
   line-height: 1.4;
   color: var(--accent);

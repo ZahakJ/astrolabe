@@ -69,7 +69,7 @@
   font-weight: 600;
   color: var(--text);
   text-align: center;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -244,7 +244,8 @@
   font-size: 0.786rem;
   color: var(--text-muted);
   background: transparent;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -71,7 +71,8 @@
   font-family: var(--font-ui);
   font-size: 0.929rem;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   pointer-events: none;
 }
@@ -183,7 +184,8 @@
   font-size: 1.071rem;
   font-weight: 600;
   color: var(--text);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -247,7 +249,8 @@
 }
 
 .s-movepick__name {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -257,7 +260,8 @@
 .s-movepick__parent {
   margin-inline-start: auto;
   max-width: 55%;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: end;
@@ -310,7 +314,8 @@
   border-top: 1px solid var(--border);
   font-size: 0.786rem;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -138,7 +138,7 @@
 .s-histrow__subject {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-serif);
@@ -232,7 +232,8 @@
   font-family: var(--font-serif);
   font-size: 1rem;
   color: color-mix(in srgb, var(--accent) 40%, var(--text));
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -252,7 +252,7 @@
 
 .s-ask__srctitle {
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

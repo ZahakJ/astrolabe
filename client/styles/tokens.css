@@ -1746,6 +1746,43 @@
     "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
 }
 
+/* ── Leading for a script with marks above and below ───────────────────────
+   Keyed on the DIRECTION a block resolves, not on the instance language: a
+   fully vocalised Arabic heading in an English vault needs the room as much
+   as one in an Arabic one, and an English heading in an Arabic vault does
+   not. Every block in the editor and the reading view is `dir="auto"`, so
+   `:dir()` reads each line's own script.
+
+   Latin display type is set tight (1.1–1.3), and that is right for Latin.
+   Arabic carries its marks outside that box: a kasra under one line of a
+   wrapped heading met the damma over the next, and the hairline under an h1
+   ran through its descenders. So
+   wrapped display text — headings, post and card titles — reads
+   `var(--display-leading, <its Latin value>)`, and a rule drawn under such
+   text keeps `var(--rule-clearance, …)` between it and the ink. The Latin
+   numbers stay where they were, at each rule; only a right-to-left block
+   sets these. `:dir(ltr)` drops them again, because custom properties
+   inherit and an English heading inside an Arabic page would otherwise take
+   its parent's leading.
+
+   Single-line labels are the other half: a truncating row clips sideways
+   only (`overflow: clip visible`), so a mark above or below the line is
+   painted rather than cut. A CLAMPED snippet cannot do that — the lines it
+   hides sit right under the ones it shows — so it clips at its content box
+   with a hair of margin and takes `var(--snippet-leading, …)`, which is
+   enough room for the marks to stay inside that margin. `npm run check-ink`
+   measures all three. */
+:dir(rtl) {
+  --display-leading: 1.75;
+  --snippet-leading: 1.75;
+  --rule-clearance: 0.45em;
+}
+:dir(ltr) {
+  --display-leading: initial;
+  --snippet-leading: initial;
+  --rule-clearance: initial;
+}
+
 /* ── THE SURFACE LAYER ──────────────────────────────────────────────────────
    One token per painted thing a reader might want to change ON ITS OWN: the
    sidebar's ground, the tab strip, the status bar, the editor page, the

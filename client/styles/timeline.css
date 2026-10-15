@@ -116,7 +116,8 @@
 
 .s-tl__title,
 .s-tl__excerpt {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

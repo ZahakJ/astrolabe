@@ -205,7 +205,8 @@
 .s-tb__basename {
   font-size: 0.7rem;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -341,7 +342,8 @@
 .s-tb__labeltext {
   font-size: 0.857rem;
   color: var(--text);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -350,7 +352,8 @@
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: start;

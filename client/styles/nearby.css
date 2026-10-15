@@ -9,7 +9,7 @@
 }
 .s-nearby__row .s-backlink-title > bdi {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
 }
 .s-nearby__score {

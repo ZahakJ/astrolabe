@@ -310,7 +310,7 @@ select:focus,
   flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -329,7 +329,7 @@ select:focus,
    Arabic name («خيمياء — دفتر القراءة»), which is longer still. */
 .s-title__name {
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -466,7 +466,8 @@ select:focus,
   font-size: 1rem;
   color: var(--text);
   margin-bottom: 2px;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -480,7 +481,8 @@ select:focus,
   font-size: 0.786rem;
   line-height: 1.4;
   color: var(--accent);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-bottom: 2px;
@@ -492,7 +494,7 @@ select:focus,
   -webkit-box-orient: vertical;
   overflow: hidden;
   font-size: 0.857rem;
-  line-height: 1.45;
+  line-height: var(--snippet-leading, 1.45);
   color: var(--text-muted);
 }
 
@@ -1110,7 +1112,7 @@ select:focus,
 .s-tab-title {
   /* `overflow: clip` shows no ellipsis in Chromium; a long title read
      "Block" and, in Arabic, its tail ("nbed"). */
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
@@ -1242,7 +1244,8 @@ select:focus,
   font-family: var(--font-serif);
   font-size: 0.929rem;
   text-align: start;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
@@ -1561,7 +1564,8 @@ select:focus,
 }
 
 .s-graph__nav-name {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1657,7 +1661,8 @@ select:focus,
 }
 
 .s-panel-title {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 
@@ -1805,7 +1810,8 @@ select:focus,
   font-weight: 600;
   color: var(--text);
   margin-bottom: 3px;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1832,9 +1838,15 @@ select:focus,
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
+  /* Clipped at the CONTENT box, not the padding box: a clamped third line
+     sits right under the second, and with `overflow: hidden` its marks
+     showed through the padding as stray dots under the snippet. Two pixels
+     past the content box is room for the first line's marks and the second
+     line's descenders at --snippet-leading, and not enough to show the third. */
+  overflow: clip;
+  overflow-clip-margin: content-box 2px;
   font-size: 0.857rem;
-  line-height: 1.5;
+  line-height: var(--snippet-leading, 1.5);
   color: var(--text-muted);
 }
 
@@ -2072,7 +2084,7 @@ select:focus,
 .s-modebar__text {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   letter-spacing: 0.02em;
@@ -2181,7 +2193,7 @@ select:focus,
   gap: 6px;
   min-width: min(20ch, 32%);
   max-width: min(44ch, 36%);
-  overflow: hidden;
+  overflow: clip visible; /* sideways only: the marks over a vocalised folder name */
   white-space: nowrap;
   color: var(--text-muted);
 }
@@ -2197,7 +2209,7 @@ select:focus,
 .s-statusbar__crumbpath {
   flex: 0 12 auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2257,6 +2269,32 @@ select:focus,
 .s-statusbar__counts {
   white-space: nowrap;
   color: var(--text-muted);
+}
+
+/* The word goal: the count against the target, and a hairline under it
+   that fills toward it in the accent (shared/wordGoal.ts). Met, the words
+   take the accent too. */
+.s-statusbar__goal {
+  position: relative;
+  display: inline-block;
+}
+.s-statusbar__goalbar {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: -3px;
+  block-size: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  overflow: clip;
+}
+.s-statusbar__goalbar > span {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+  transition: inline-size 0.3s ease;
+}
+.s-statusbar__goal--met {
+  color: var(--accent);
 }
 
 .s-statusbar__btn,
@@ -2494,7 +2532,8 @@ select:focus,
   font-size: 0.786rem;
   color: var(--text-muted);
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   /* The title is the row; the hint is a courtesy that must never take more
      than a third of it. On a phone it took half and left "LaTeX: download
@@ -2511,7 +2550,7 @@ select:focus,
 .s-palette-item-snippet {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.786rem;
@@ -2522,7 +2561,8 @@ select:focus,
   flex: none;
   margin-inline-start: auto;
   max-width: 34%;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.786rem;
@@ -3404,7 +3444,8 @@ select:focus,
 }
 
 .s-topic__label {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3552,7 +3593,8 @@ select:focus,
   font-size: 0.857rem;
   text-align: start;
   cursor: pointer;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3569,7 +3611,8 @@ select:focus,
 }
 .s-trackerpanel__notetitle {
   max-inline-size: 100%;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5212,7 +5255,7 @@ button.s-title:hover {
 
 .s-editor-strip__text {
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5818,7 +5861,7 @@ button.s-title:hover {
   flex: 1;
   min-inline-size: 0;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
 }
 .s-fnpanel__text--missing {
@@ -5972,7 +6015,7 @@ button.s-title:hover {
 .s-layouts__name {
   flex: 1;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text);

@@ -247,7 +247,8 @@
   font-style: italic;
   color: var(--text-muted);
   font-size: 0.9rem;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

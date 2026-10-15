@@ -445,7 +445,8 @@
   color: var(--text);
   unicode-bidi: isolate;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   max-width: 40%;
 }
@@ -466,7 +467,8 @@
   color: var(--accent);
   cursor: pointer;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   max-width: 45%;
   transition: color 0.15s ease;

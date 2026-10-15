@@ -292,7 +292,8 @@
   font-size: 0.929rem;
   color: var(--text);
   max-width: min(46ch, 42vw);
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

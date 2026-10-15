@@ -29,7 +29,7 @@
 
 .s-libpop__folder {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   text-transform: none;
@@ -116,7 +116,7 @@
 
 .s-libpop__url {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
@@ -171,7 +171,7 @@
 .s-libpop__rowtitle {
   flex: 1 1 auto;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

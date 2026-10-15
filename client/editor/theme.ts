@@ -223,7 +223,7 @@ export function editorTheme(): Extension {
     ".cm-s-h1, .cm-s-h2, .cm-s-h3, .cm-s-h4, .cm-s-h5, .cm-s-h6": {
       fontFamily: "var(--font-serif)",
       fontWeight: "700",
-      lineHeight: "1.3",
+      lineHeight: "var(--display-leading, 1.3)",
       color: "var(--heading)",
     },
     // NO COLOUR OF ITS OWN. This rule carried
@@ -239,7 +239,7 @@ export function editorTheme(): Extension {
     ".cm-s-h1": {
       fontSize: "1.9em",
       paddingTop: "0.5em",
-      paddingBottom: "0.2em",
+      paddingBottom: "var(--rule-clearance, 0.2em)",
       borderBottom: "1px solid var(--border)",
     },
     ".cm-s-h2": { fontSize: "1.5em", paddingTop: "0.4em" },

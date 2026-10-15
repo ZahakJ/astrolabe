@@ -317,7 +317,7 @@
 }
 .s-session__crumb {
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -903,7 +903,7 @@
   color: var(--text);
   border-radius: var(--radius);
   cursor: pointer;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-block-size: 28px;

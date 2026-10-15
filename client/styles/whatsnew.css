@@ -162,7 +162,7 @@
   grid-area: blurb;
   margin: 0;
   font-size: 0.929rem;
-  line-height: 1.55;
+  line-height: var(--snippet-leading, 1.55);
   color: var(--text-muted);
   /* Three lines, then an ellipsis: the manual carries the rest, and a
      blurb that grows pushes the stage down. */
@@ -775,7 +775,8 @@
   color: var(--text-faint);
   text-align: center;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
 }
 .s-wn-ruby__chips {

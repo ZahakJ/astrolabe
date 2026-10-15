@@ -249,7 +249,7 @@
   display: block;
   font-family: var(--font-serif);
   font-size: 1rem;
-  line-height: 1.3;
+  line-height: var(--snippet-leading, 1.3);
   color: var(--text);
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -386,7 +386,8 @@
   cursor: pointer;
 }
 .s-media__folder span {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -423,7 +424,8 @@
   cursor: pointer;
 }
 .s-media__recenttitle {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -445,7 +447,7 @@
 .s-media__notes {
   margin: 0;
   font-size: 0.821rem;
-  line-height: 1.45;
+  line-height: var(--snippet-leading, 1.45);
   color: var(--text-muted);
   overflow-wrap: anywhere;
   display: -webkit-box;
@@ -694,7 +696,7 @@
 .s-mediaform__folder {
   flex: 1;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);

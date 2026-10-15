@@ -87,7 +87,7 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  line-height: 1.4;
+  line-height: var(--snippet-leading, 1.4);
 }
 
 .s-speak__sentence mark {
@@ -192,7 +192,7 @@
 .s-speak__meta .s-speak__voice .s-ctl-select__note {
   flex: 0 1 auto;
   min-inline-size: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.72rem;

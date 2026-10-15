@@ -747,7 +747,8 @@
   font: inherit;
   font-size: 0.857rem;
   cursor: pointer;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.12s ease, border-color 0.12s ease;

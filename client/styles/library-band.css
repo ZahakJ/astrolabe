@@ -92,7 +92,7 @@
   font-family: var(--font-serif);
   font-weight: 600;
   font-size: clamp(0.95rem, 1.6cqw + 0.6rem, 1.35rem);
-  line-height: 1.15;
+  line-height: var(--snippet-leading, 1.15);
   text-wrap: balance;
   display: -webkit-box;
   -webkit-line-clamp: 4;
@@ -142,7 +142,8 @@
   font-family: var(--font-serif);
   font-size: 0.92rem;
   line-height: 1.3;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

@@ -337,7 +337,7 @@ body:has(.s-tpick-host) .s-smodal-overlay {
 .s-tpick__name {
   flex: 0 1 auto;
   min-width: 0;
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--text);
@@ -430,7 +430,8 @@ body:has(.s-tpick-host) .s-smodal-overlay {
 }
 
 .s-tpick__desc {
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.742rem;

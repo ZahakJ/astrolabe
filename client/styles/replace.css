@@ -167,7 +167,7 @@
   min-width: 0;
   font-size: 0.857rem;
   color: var(--text);
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -267,7 +267,7 @@
   min-width: 0;
   font-size: 0.786rem;
   color: var(--text-muted);
-  overflow: hidden;
+  overflow: clip visible;
   text-overflow: ellipsis;
 }
 

@@ -248,7 +248,8 @@
 .s-calpage__line,
 .s-calpage__more {
   display: block;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 0.714rem;

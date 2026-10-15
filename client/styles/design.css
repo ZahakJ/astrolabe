@@ -272,7 +272,7 @@
      the opposite of a treatment that reads the modular scale. It is still the
      design's own h1, multiplied, never replaced. */
   font-size: clamp(2rem, 6vw, calc(var(--dsg-h1, 2.6rem) * 1.5));
-  line-height: 1.08;
+  line-height: var(--display-leading, 1.08);
 }
 
 .s-dsn-hero--band .s-dsn-hero__sub {
@@ -642,7 +642,7 @@
 :is(.s-dsn-card--bare, .s-dsn-card--masonry, .s-dsn-card--overlay).s-dsn-card--plateless
   .s-dsn-card__title {
   font-size: var(--dsg-h2, 1.6rem);
-  line-height: 1.15;
+  line-height: var(--display-leading, 1.15);
 }
 
 /* OVERLAY — the title on a scrim over the picture. Both children take the same
@@ -783,7 +783,7 @@
 
 .s-dsn-grid > .s-dsn-card--overlay:only-child .s-dsn-card__title {
   font-size: clamp(1.4rem, 6.4vw, var(--dsg-h1, 2.6rem));
-  line-height: 1.08;
+  line-height: var(--display-leading, 1.08);
   /* A cover line breaks where a headline breaks. */
   max-width: 22ch;
 }
@@ -994,11 +994,12 @@
 
 .s-dsn-list--ledger .s-dsn-list__title {
   display: block;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--dsg-h4, 1.02rem);
-  line-height: 1.4;
+  line-height: var(--display-leading, 1.4);
 }
 
 .s-dsn-list__row:hover .s-dsn-list__title {
@@ -1009,7 +1010,8 @@
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.45;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1032,7 +1034,8 @@
 
 .s-dsn-list--index .s-dsn-list__title {
   flex: 0 1 auto;
-  overflow: hidden;
+  overflow: clip visible;
+  min-width: 0;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--dsg-h4, 1.02rem);
@@ -1419,7 +1422,7 @@
   text-transform: var(--dsg-head-transform, none);
   font-variant-caps: var(--dsg-head-variant, normal);
   letter-spacing: var(--dsg-head-tracking, 0);
-  line-height: 1.2;
+  line-height: var(--display-leading, 1.2);
   color: var(--text);
 }
 
@@ -1789,7 +1792,7 @@
   text-transform: var(--dsg-head-transform);
   font-variant-caps: var(--dsg-head-variant);
   letter-spacing: var(--dsg-head-tracking);
-  line-height: 1.2;
+  line-height: var(--display-leading, 1.2);
 }
 
 .s-dsg .s-blog-card__title,
@@ -3444,7 +3447,7 @@
   letter-spacing: var(--dsg-head-tracking);
   text-transform: var(--dsg-head-transform);
   font-variant-caps: var(--dsg-head-variant);
-  line-height: 1.1;
+  line-height: var(--display-leading, 1.1);
   overflow-wrap: break-word;
 }
 
@@ -3760,7 +3763,7 @@
   text-transform: var(--dsg-head-transform);
   font-variant-caps: var(--dsg-head-variant);
   letter-spacing: var(--dsg-head-tracking);
-  line-height: 1.2;
+  line-height: var(--display-leading, 1.2);
   color: var(--text);
 }
 
@@ -4204,7 +4207,7 @@
 }
 .s-dsg-shell--console .s-dsn-hero--band .s-dsn-hero__title {
   font-size: clamp(28px, 3.7vw, 52px);
-  line-height: 1.12;
+  line-height: var(--display-leading, 1.12);
   overflow-wrap: anywhere;
 }
 /* Concentric range rings, crosshairs and a static sweep. No simulated live
@@ -4287,7 +4290,7 @@
 .s-dsg-shell--dock.s-dsg-sky--nebula .s-dsn-hero__title {
   font-size: clamp(42px, 6vw, 78px);
   font-weight: 400;
-  line-height: 1.05;
+  line-height: var(--display-leading, 1.05);
   text-wrap: balance;
   overflow-wrap: anywhere;
 }
@@ -4309,7 +4312,7 @@
 }
 .s-dsg-shell--dock.s-dsg-sky--nebula .s-dsn-list--river .s-dsn-list__title {
   font-size: 1.65em;
-  line-height: 1.2;
+  line-height: var(--display-leading, 1.2);
 }
 @media (min-width: 900px) {
   .s-dsg-shell--dock.s-dsg-sky--nebula .s-dsn-list--river .s-dsn-list__item:nth-child(odd) {
