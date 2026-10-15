@@ -129,7 +129,7 @@ export default function Sidebar() {
   };
   // ESCAPE CLEARS THE FILTER FROM ANYWHERE IN THE SIDEBAR. A tag pill fills
   // the search with `#tag`, and the way out used to be clicking into the
-  // field, selecting the text and deleting it (the owner: "shouldn't need to
+  // field, selecting the text and deleting it (reported: "shouldn't need to
   // manually highlight the search and delete it"). Bubble phase, after the
   // shell's own Escape (capture) has had its say: anything that claimed the
   // key prevented its default, and the editor keeps Escape for itself.
@@ -1077,7 +1077,7 @@ export default function Sidebar() {
             >
               <IconNewNote />
             </button>
-            {/* A drawing one click from the top (the owner: "add a new drawing
+            {/* A drawing one click from the top (reported: "add a new drawing
                 logo on top to start a drawing in the root directory"), in the
                 drawings folder from settings or the root. The folder menu
                 still starts one inside a folder. */}

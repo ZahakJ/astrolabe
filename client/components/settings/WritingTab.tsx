@@ -77,7 +77,7 @@ export default function WritingTab() {
           propsCard.ts); a right-click on the card says the same thing and
           its toast names this row. The card on a note with nothing in its
           frontmatter yet is a PART — it means something only while there is
-          a card to draw — shown by default (the owner: "should prob show by
+          a card to draw — shown by default (reported: "should prob show by
           default on all created notes") for the reader who wants a bare page
           to switch off. */}
       <Row kind="toggle" label={t("rowPropsCard")} hint={t("hintPropsCard")}>
@@ -162,7 +162,7 @@ export default function WritingTab() {
       </Row>
 
       <Advanced tab="writing">
-        {/* Where the sidebar's pencil files a drawing (the owner: "create the
+        {/* Where the sidebar's pencil files a drawing (reported: "create the
             drawing in a specified space in settings or by default the root
             directory"). */}
         <Row kind="path" label={t("drawingsFolderLabel")} hint={t("drawingsFolderHint")}>

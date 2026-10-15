@@ -30,7 +30,7 @@
 //   · STRUCTURE and INSERT became pages (`›`) that open as FLYOUTS beside
 //     their row — toward the trailing edge, flipping when it is out of room —
 //     under the pointer or on →, and fold away on ← / Esc (3.3.1; they used
-//     to replace the box, and the owner wanted them "to open further to the
+//     to replace the box, and they should "open further to the
 //     left or right"). Nothing was dropped: the palette owns the same
 //     commands, and a page a reader opens on purpose costs no height to a
 //     reader who does not;
@@ -572,7 +572,7 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
       }),
     [view, literal],
   );
-  // THE PAGES OPEN BESIDE THE MENU, not in its place (the owner: "they
+  // THE PAGES OPEN BESIDE THE MENU, not in its place (reported: "they
   // should just open further to the left or right, depending on lang").
   // The root box stays where it is; `page` names the flyout open beside its
   // row, `flyActive` the highlighted row inside it, and `where` says which
@@ -819,7 +819,7 @@ function SelectionMenu({ view, x, y, onClose }: MenuProps) {
             );
           }
           if (row.kind === "page") {
-            // A door opens under the pointer (the owner: "those options
+            // A door opens under the pointer (reported: "those options
             // should just appear on hover, shouldn't need to click"):
             // resting on the row for a beat opens the flyout beside it; a
             // click still does at once, and the keyboard's → is unchanged.

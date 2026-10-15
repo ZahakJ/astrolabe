@@ -1,6 +1,6 @@
 // THE TOUR — a deck of illustrated folios, flipped one at a time.
 //
-// The problem, in the owner's words: a real reader never discovered that this
+// The problem: a real reader never discovered that this
 // product has a DESIGNER until they were told. The depth is all there — fifty-
 // nine presets, trackers, collections, LaTeX notes, a book reader, twenty-one
 // themes, templates, split panes, the graph, backup, note history, search

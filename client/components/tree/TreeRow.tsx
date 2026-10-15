@@ -377,7 +377,7 @@ const TreeRow = memo(function TreeRow(props: TreeRowProps) {
     e.dataTransfer.setData("text/plain", node.path);
     e.dataTransfer.setDragImage(makeDragGhost(item), 14, 14);
     rowRef.current?.classList.add("s-tree__item--dragging");
-    // A note or a book lifted off the tree is ALSO a tab drag (the owner:
+    // A note or a book lifted off the tree is ALSO a tab drag (reported:
     // "cannot simply grab a note/book from the filesystem and drop it on one
     // of my split windows"): the panes raise their drop zones, and dropping
     // opens the file there — beside the tree's own drops, which keep meaning

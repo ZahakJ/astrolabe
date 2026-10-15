@@ -494,7 +494,7 @@ export default function ShortcutsHelp({ shell = "app" }: { shell?: Shell }) {
    *  Every row, not only the runnable ones. Five of these rows carry a `run`
    *  and the rest document a chord, so a cursor limited to the runnable five
    *  had nothing to stand on for most queries: the reader typed a word, got
-   *  a dozen matches, and the arrow keys did NOTHING (the owner: "I should be
+   *  a dozen matches, and the arrow keys did NOTHING (reported: "I should be
    *  able to go through options with my arrow keys"). Reading the sheet is
    *  what the sheet is for, so the cursor walks it all; Enter still runs a
    *  row only when the row has something to run. */

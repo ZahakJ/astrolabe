@@ -103,7 +103,7 @@ const FIELD_TYPES: { value: RoutineFieldType; label: I18nKey; hint: I18nKey }[] 
  *  body, the table, the night, the book, the quiet, the house. A free
  *  field beside it takes anything else. */
 /** A standard shelf: the body, the table, the day, the mind, the hands, the
- *  home — nothing that names a faith or a flag (the owner: "it's kinda
+ *  home — nothing that names a faith or a flag (reported: "it's kinda
  *  targeted"). Anything else is one keystroke away in the field beside it,
  *  where the system's own emoji picker works. */
 const EMOJI: readonly string[] = [

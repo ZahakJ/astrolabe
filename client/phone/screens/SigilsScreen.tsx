@@ -71,7 +71,7 @@ export default function SigilsScreen({ onBack }: { onBack?: () => void }) {
 
   // The page's own order: by title in the site's language, never by the
   // newest-touched (a tick writes the note, and a row that jumped to the top
-  // on every tick is the flash the owner saw on the desktop page).
+  // on every tick is the flash seen on the desktop page).
   const live = useMemo(
     () => (all ?? []).filter((m) => !m.template).sort((a, b) => a.plan.title.localeCompare(b.plan.title, locale) || a.path.localeCompare(b.path)),
     [all, locale],

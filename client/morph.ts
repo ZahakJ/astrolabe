@@ -5,7 +5,7 @@
 // For a card that is re-read after each tick that meant the whole thing was
 // torn down and rebuilt: the banner image fetched again, the folded
 // "week's plan" snapped shut, the focused checkbox lost, and the eye saw a
-// flash (the owner: "checking a task makes the cards flash"). Morphing
+// flash (reported: "checking a task makes the cards flash"). Morphing
 // keeps every node whose tag and class still match and touches only what
 // changed — attributes, text, added or removed children — so a tick moves
 // one checkbox and one number.

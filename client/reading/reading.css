@@ -25,7 +25,7 @@
 .s-reading__content {
   /* The writing column's width (client/editorWidth.ts) reaches the reading
      view too — wide, wider, full and a custom width — where it used to be
-     the editor's alone (the owner: "in reading mode it kinda skips over the
+     the editor's alone (reported: "in reading mode it kinda skips over the
      width options"). Absent, the reading measure. */
   max-width: var(--editor-measure, 760px);
   margin: 0 auto;

@@ -15,7 +15,7 @@ import { useStore, workspacePersists } from "../state.ts";
 
 export const THEME_KEY = "astrolabe.theme";
 /** A READER'S choice, made on the public site. A second key, and the whole
- *  reason it exists is the owner: `setTheme` stores the editor's pick in
+ *  reason it exists is the admin: `setTheme` stores the editor's pick in
  *  THEME_KEY, that key survives signing out, and a stored choice outranks the
  *  site's theme by a rule that is right for visitors — so in any browser the
  *  owner had ever signed in from, their EDITOR theme outranked every design

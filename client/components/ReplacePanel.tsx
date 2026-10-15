@@ -237,7 +237,7 @@ export default function ReplacePanel({
       className="s-replace"
       role="region"
       aria-label={t("replaceTitle")}
-      // Escape leaves the panel from any field in it (the owner: "escape
+      // Escape leaves the panel from any field in it (reported: "escape
       // should allow you to exit the global find and replace"). Stopped here
       // so the shell's own Escape does not also clear the search behind it.
       onKeyDown={(e) => {

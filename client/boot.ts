@@ -7,7 +7,7 @@
 // field is optional, every consumer treats it as a hint that /api/me and the
 // shared validator confirm, and an admin's shell carries nothing at all.
 //
-// The alternative was the page the owner reported — a store that boots as an
+// The alternative was the page that was reported — a store that boots as an
 // app, paints the stock blog, and swaps in the real site a fetch later.
 
 export interface Boot {

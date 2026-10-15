@@ -333,7 +333,7 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
   // The decks count their cards: "3 cards due", "١٠ بطاقات".
   cards: { en: ["card", "cards"], ar: { one: "بطاقة واحدة", two: "بطاقتان", few: "بطاقات", many: "بطاقة" } },
   // …but what is DUE is counted in orbits: a card coming back around is an
-  // orbit closing, and the owner wanted the page to say so ("one orbit due").
+  // orbit closing, and the page should say so ("one orbit due").
   orbits: { en: ["orbit", "orbits"], ar: { one: "مدار واحد", two: "مداران", few: "مدارات", many: "مدارًا" } },
   highlights: { en: ["highlight", "highlights"], ar: { one: "اقتباس واحد", two: "اقتباسان", few: "اقتباسات", many: "اقتباسًا" } },
   sessions: { en: ["session", "sessions"], ar: { one: "جلسة واحدة", two: "جلستان", few: "جلسات", many: "جلسة" } },

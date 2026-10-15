@@ -327,7 +327,7 @@ export default function BlogShell() {
       document.title = `${route.tag} · ${siteName}`;
     } else if (route.kind === "folder") {
       // The folder's TITLE, not its slug — the slug is an address and the
-      // title is what the owner called the room. An unknown slug has no title
+      // title is what the admin called the room. An unknown slug has no title
       // to print, so the address is the honest fallback.
       const folder = folders.find((f) => f.slug === route.slug);
       document.title = `${folder ? folder.title : route.slug} · ${siteName}`;

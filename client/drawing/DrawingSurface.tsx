@@ -1,6 +1,6 @@
 // A drawing in a pane: Excalidraw over a file in the vault.
 //
-// The canvas is Excalidraw's, whole — the owner asked for "a cooler, better
+// The canvas is Excalidraw's, whole — the request was for "a cooler, better
 // version of excalidraw" and the honest answer is Excalidraw itself, wearing
 // Astrolabe's theme and language, saving into the vault the way a note saves, and
 // leaving a picture beside the file so every other surface (the reading view,
@@ -59,7 +59,7 @@ export default function DrawingSurface({ path, active }: { path: string; active:
   // WHERE THE CANVAS IS, for the dialogs. Excalidraw portals its modals (the
   // export dialog, help) into a container it appends to <body>, sized to the
   // whole window, so the dialog centred on the WINDOW while the canvas sat
-  // between the sidebar and the panel — "very off centre", the owner said.
+  // between the sidebar and the panel — "very off centre".
   // The canvas publishes its own box as CSS variables on the root, and
   // drawing.css pins that container to it, so a dialog opens over the
   // canvas and the sidebar stays uncovered. The last canvas touched wins,

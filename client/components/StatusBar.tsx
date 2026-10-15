@@ -51,7 +51,7 @@ import { chromeLangSwitch } from "../chromeLangSwitch.ts";
 const RELEASES_URL = "https://github.com/ZahakJ/astrolabe/releases/latest";
 const APP_VERSION = typeof __APP_VERSION__ === "string" ? __APP_VERSION__ : "";
 
-/** The desktop app's version chip, which is the updater's face (the owner:
+/** The desktop app's version chip, which is the updater's face (reported:
  *  "a self-contained updater with an update bar status and all that"). At
  *  rest it is the build and a click checks; when a newer release exists it
  *  reads **3.x available** and a click DOWNLOADS it — the first of the two
@@ -490,7 +490,7 @@ export default function StatusBar() {
   // THE PHONE'S OVERFLOW MENU. The cluster used to keep every control and
   // scroll sideways with no scrollbar, right-aligned — so its first two
   // doors (the library, the Orbits page) sat off-screen to the left with
-  // no hint they existed (the owner: "the APK doesn't show everything on
+  // no hint they existed (reported: "the APK doesn't show everything on
   // the top bar"). In the phone shell the bar keeps the gear, the outline
   // switch and a ⋯; everything else is a LABELLED row here, which on a phone
   // reads better than a strip of thirteen-pixel glyphs anyway. Zen and the
@@ -1281,7 +1281,7 @@ export default function StatusBar() {
           {/* THE DESIGNER'S OWN DOOR, at the foot of the shell beside the
               build number — NOT in the top cluster, where its glyph (a
               masthead over a column) sat next to the pane switches and read
-              as one of them (the owner: "can be mistaken for the close
+              as one of them (reported: "can be mistaken for the close
               panels button"). A door that changes what a visitor sees
               belongs with the publishing controls down here anyway. */}
           <button
@@ -1311,7 +1311,7 @@ export default function StatusBar() {
       {admin && APP_VERSION !== "" && (
         // The build, and the door to the next one, at the END OF THE BOTTOM
         // ROW — not in the top cluster, which is for the things clicked
-        // often (the owner: "I would move it to the bottom status bar; the
+        // often (reported: "I would move it to the bottom status bar; the
         // top one is cluttered"). On the desktop app the chip is the updater
         // (client/desktop): check, "3.x available", a bar while downloading, Restart to update. In a
         // browser it opens the release page, since a hosted instance updates

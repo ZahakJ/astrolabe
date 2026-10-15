@@ -54,7 +54,7 @@ export function caretHome(path: string, content: string): number {
       // one ```tracker block): a caret on the fence line unfolds the card into
       // its source, and a caret on the empty line after the closing fence is
       // drawn by CodeMirror at the block widget's edge — "through the card",
-      // the owner said, twice. So park on the blank line ABOVE the fence when
+      // as it was reported, twice. So park on the blank line ABOVE the fence when
       // the note has one (the Media page always writes one), and only when
       // the fence sits hard against the frontmatter fall through to the line
       // after the closing fence.

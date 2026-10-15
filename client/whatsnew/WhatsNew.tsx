@@ -133,7 +133,7 @@ function Deck({ versions, onClose }: { versions: string[]; onClose: () => void }
     return out;
   }, [versions, lang]);
   // The dots, grouped by release — a walk through several missed releases
-  // shows where each begins (the owner asked for a divider between them).
+  // shows where each begins (a divider between them).
   const groups = useMemo(() => {
     const out: { version: string; indices: number[] }[] = [];
     cards.forEach((c, i) => {

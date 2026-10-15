@@ -133,7 +133,7 @@
 /* Today is RINGED, not filled: the fill is what the marks under the number
    need to read against, and a ring says "here" without shouting. The ring
    goes round the NUMBER, not the cell — a cell-wide ring ran along the
-   bottom edge where the marks sit and touched the dots (the owner: "the
+   bottom edge where the marks sit and touched the dots (reported: "the
    circle around the current day kinda touches the dots"). */
 .s-cal__day.is-today {
   color: var(--accent);

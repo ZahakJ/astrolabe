@@ -98,7 +98,7 @@
 
 /* The main menu drops down over the same corner the tool's properties panel
    stands in. Both were z-index auto, so which one showed came down to DOM
-   order — the owner saw each cover the other. While it is open the menu is
+   order — each covered the other. While it is open the menu is
    the thing the reader asked for: it wins, and closes on any click outside. */
 .s-drawing .excalidraw .dropdown-menu {
   z-index: 6;

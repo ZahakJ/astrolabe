@@ -650,7 +650,7 @@ select:focus,
 }
 /* The row's ground has to cover its own margin above and the shelf's
    padding below, or the pills scrolling underneath show through those two
-   strips and the row reads as floating over half-hidden tags (the owner:
+   strips and the row reads as floating over half-hidden tags (reported:
    "the show more option overlays some tags, clunky"). A pseudo-element
    behind the row paints the sidebar's ground across both. */
 .s-tags__more::before {
@@ -952,7 +952,7 @@ select:focus,
 /* ----------------------------------------------------------------- tabs -- */
 
 /* THE NOTE SITS EVENLY BETWEEN WHATEVER BOUNDS IT — in every fold state.
-   The owner's words: "make sure that the margin between open note and
+   The requirement: "make sure that the margin between open note and
    left/right bar is correct and nice looking even when bar is closed/folded."
    That is a statement about the TWO MARGINS BEING THE SAME, and it is the one
    thing an earlier build did not do.
@@ -5032,7 +5032,7 @@ button.s-title:hover {
    direction — rotating it again would aim it up. */
 /* Arabic letters join; tracking them apart is a typographic error, and on
    the add-property pill it also left the word touching the pill's edge (the
-   owner: "the words seem attached to the border"). */
+   words looked attached to the border). */
 [dir="rtl"] .s-editor .cm-s-props__addprop {
   letter-spacing: 0;
   padding-inline: 12px;
@@ -5279,7 +5279,7 @@ button.s-title:hover {
 
 /* The TAB STRIP stays above the zones while they are up. The overlay used to
    cover it, so a tab dropped on another pane's strip landed on that pane's
-   top edge zone and split a new row instead of joining the strip (the owner:
+   top edge zone and split a new row instead of joining the strip (reported:
    "cannot drag a tab from some window and add it to a window with multiple
    tabs as yet another tab"). The strip has its own drop targets — the caret
    between tabs — and they are the better answer wherever they apply. */

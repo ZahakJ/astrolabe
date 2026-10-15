@@ -1,7 +1,7 @@
 // WHAT'S NEW — the door. First-paint safe: two localStorage keys, a version
 // compare, and a dynamic import of the deck.
 //
-// The owner: "whenever you update to a new version and open that version for
+// The request: "whenever you update to a new version and open that version for
 // the first time you get some super nice looking modern popup with a preview
 // of all the features added in said update" — enabled by default, with a
 // switch in Settings → This device. So:

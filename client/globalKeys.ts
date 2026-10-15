@@ -100,7 +100,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
       // else in the shell claims, and it must beat the browser's.
       // `isKey`, never `e.key`: on an Arabic layout the F key sends "ب" and
       // this chord was the one in the shell still reading the character
-      // (the owner: "all shortcuts must work in both langs").
+      // (reported: "all shortcuts must work in both langs").
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && isKey(e, "f") && store.admin) {
         // keymap: scReplaceVault
         e.preventDefault();
@@ -357,7 +357,7 @@ export function useGlobalKeys(options: GlobalKeysOptions = {}): void {
         // keymap: scSplitPane scSplitPaneDown scClosePane
         // `isKey`, not `key ===`: Shift+\ arrives as "|" on a US keyboard, so
         // the stacked split answered only to the harness that sends "\"
-        // with Shift held (the owner: "ctrl \ works but ctrl shift \ doesn't").
+        // with Shift held (reported: "ctrl \ works but ctrl shift \ doesn't").
         // Ctrl/Cmd+\ splits along the INLINE axis, +Shift stacks instead, and
         // +Alt closes the pane. One key, one mental model: "another one of
         // these", with Shift choosing the direction — the same shape the pane

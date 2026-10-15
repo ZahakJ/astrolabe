@@ -1,6 +1,6 @@
 // THE PROPERTIES CARD, HIDDEN AND BROUGHT BACK.
 //
-// The owner: "make it possible to disable the properties block on notes …
+// The request: "make it possible to disable the properties block on notes …
 // but ya shouldn't add extra clutter for people who don't want it." So there
 // is no new button anywhere. The switch is `settings.propsCard` (Settings →
 // Writing → Properties card), a fact about the VAULT like its sibling

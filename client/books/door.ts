@@ -9,7 +9,7 @@
 // This file used to also BE the reader's mount: a portal element on <body>,
 // a React root of its own, and a `booksAreOpen()` flag the router had to ask
 // before touching the address bar — all because the reader was a full-screen
-// surface layered OVER the app. A book is a WORKSPACE TAB now (the owner:
+// surface layered OVER the app. A book is a WORKSPACE TAB now (reported:
 // "prob should just treat it like a normal tab?? so people can open the book
 // while taking notes"), the pane renders it like any other surface, and the
 // portal, the root and the flag are deleted rather than kept as a second way
