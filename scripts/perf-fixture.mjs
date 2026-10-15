@@ -259,16 +259,20 @@ function dailyNotes() {
   return out;
 }
 
-/** A dozen sigils with a log line for most days of 2026 up to September, so
+/** A dozen sigils with a log line for most of the 262 days up to TODAY, so
  *  the Sigils page draws twelve full cards (streaks, heatmaps, the week) and
- *  the Calendar page has bands and ticks on every day — an empty shelf costs
- *  nothing to draw, and a timing taken on it would be a timing of the wrong
- *  page. The same shape the New sigil form writes (docs/sigils.md). */
+ *  the Calendar page has bands and ticks on every day of the month it opens
+ *  on — an empty shelf costs nothing to draw, and a timing taken on it would
+ *  be a timing of the wrong page. The log ends at the day the gate runs: a
+ *  log pinned to fixed dates leaves the current month empty once the
+ *  calendar moves past it, and the calendar timing then never completes.
+ *  The same shape the New sigil form writes (docs/sigils.md). */
 const SIGIL_KINDS = ["exercise", "study", "reading", "practice"];
 const SIGIL_ICONS = ["🚶", "🗻", "📖", "🎹", "🧘", "✍️"];
 function sigilNotes() {
   const out = [];
-  const start = Date.UTC(2026, 0, 1);
+  const now = new Date();
+  const start = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - 261 * 86400000;
   for (let s = 0; s < FIXTURE_SIGILS; s++) {
     const title = `Practice ${s + 1}`;
     const lines = [
