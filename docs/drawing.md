@@ -9,7 +9,7 @@
 Excalidraw is a free whiteboard tool: shapes, arrows, freehand strokes and text, in a hand-drawn
 style. A drawing in Astrolabe is a file in the vault in a format Excalidraw already speaks: either
 the editor's own `.excalidraw` file (a plain data file), or the shape the Obsidian Excalidraw plugin writes into a
-markdown note, `.excalidraw.md`. Astrolabe did not invent a third format. Both open here as a full
+markdown note, `.excalidraw.md`. Both open here as a full
 Excalidraw canvas in a pane, both save back into the same file, and both keep opening in Obsidian
 afterwards.
 
@@ -75,14 +75,13 @@ A visitor sees the svg of a **published** note's embed exactly as they see any o
 that note: the drawing itself is a note, and an unpublished one is not served at all, but the picture beside
 it walks through the note's own door. Unpublish the note and the door closes.
 
-If the picture is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
-this feature), you, the admin, see it anyway: the reading view draws it with the canvas code, once,
+If the picture is not on disk yet (a drawing made in Obsidian with auto-export off), you, the admin, see it anyway: the reading view draws it with the canvas code, once,
 for that page. Open the drawing and save it once and the picture exists for everyone.
 
 ## What is indexed
 
-The text elements, one per line, and a `[[link]]` set on any shape. Not the file's internal data:
-an element id is not a word anyone searches for. So a drawing appears in search by what is written on it, in the
+The text elements, one per line, and a `[[link]]` set on any shape. Not the file's internal data.
+So a drawing appears in search by what is written on it, in the
 graph by what it links to, and in a note's backlinks when the drawing names that note.
 
 ## In Obsidian
@@ -95,9 +94,3 @@ to a note behave the same way there: a [tracker](trackers.md#in-obsidian) and a
 [sigil](sigils.md#in-obsidian) go back to being labelled code blocks, and an
 [orbit](orbits.md#where-the-schedule-lives) writes its schedule in the Spaced Repetition plugin's own
 format.
-
----
-
-*Under the hood: `shared/drawing.ts` reads and writes both spellings (`tests/drawing.test.ts`);
-`client/drawing/DrawingSurface.tsx` is the pane; `PUT /api/drawing-svg?path=` is the picture's
-door; `scripts/check-bundle.mjs` asserts the canvas is never loaded with a page's first paint.*

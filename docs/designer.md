@@ -14,13 +14,13 @@ Open the designer from the command palette: **Design your site**.
 
 ## The built-in blog does not move
 
-The blog and the designer are two separate programs. The designer never touches the blog's code; it is a *second* renderer (the part of the program that turns your content into a page) that draws its own page, not a restyling of the first. That is what makes switching between them safe:
+The designer draws its own pages beside the blog; it does not restyle or change the blog.
 
-**Switching between the blog and a design is instant, and nothing is lost in either direction.** Your designs live in `ASTROLABE_DATA/designs.json`. While the layout is anything other than `designed`, that file is simply not read. So going back to `blog` deletes nothing, and going forward again brings your site back exactly as it was. Going back to the stock blog is a rescue, not a decision.
+**Switching between the blog and a design is instant, and nothing is lost in either direction.** Your designs live in `ASTROLABE_DATA/designs.json`. While the layout is anything other than `designed`, that file is simply not read. So going back to `blog` deletes nothing, and going forward again brings your site back exactly as it was.
 
 ## A broken design is your visitors' non-event
 
-Suppose the design file is invalid, or a section points at a note you deleted, or something fails while the page is being drawn. **Visitors are shown the built-in blog instead, automatically.** They never see a blank page or an error dump. You are the one who is told: a notice in the app names the failing section, and one click takes the site back to the stock blog. `npm run check-design` is the check that keeps this promise honest: it breaks the site in all three ways on purpose and measures what a visitor and the admin each see. See [Development](development.md).
+Suppose the design file is invalid, or a section points at a note you deleted, or something fails while the page is being drawn. **Visitors are shown the built-in blog instead, automatically.** They never see a blank page or an error dump. You are the one who is told: a notice in the app names the failing section, and one click takes the site back to the stock blog.
 
 ## Sections
 
@@ -39,7 +39,7 @@ A design's home page is an ordered list of sections. Any section can be hidden w
 
 > **A post section cannot skip posts.** `postGrid` and `postList` both read the newest published posts and stop at their limit, so two post sections in one design show the same posts twice. A design should carry **one** post section, or a *feature* of one to four posts above a *long index* of twenty or more, where a reader expects the archive to begin with the piece above it. Two grids of similar size stacked on each other is the arrangement that looks like a bug.
 
-The section board gives you three ways to move a row: the ↑/↓ buttons, dragging with the pointer, or lifting with the keyboard (`Space` to lift, the arrow keys to move, `Space` to drop, `Esc` to cancel). It shows where the row will land before you let go. `Ctrl/Cmd S` saves the draft. `npm run check-board` tests all three.
+The section board gives you three ways to move a row: the ↑/↓ buttons, dragging with the pointer, or lifting with the keyboard (`Space` to lift, the arrow keys to move, `Space` to drop, `Esc` to cancel). It shows where the row will land before you let go. `Ctrl/Cmd S` saves the draft.
 
 ## Site chrome
 
@@ -55,21 +55,17 @@ Beyond the sections, a design describes the frame around them:
 
 ## Presets
 
-A preset is a finished design you start from. The designer ships **81 of them** in nine families: `editorial`, `minimal`, `journal`, `portfolio`, `reference`, `landing`, `gallery`, `letter` and `signature`. A preset is a copy you start from and change freely, not a form to fill in. Three rules govern every one of them, and they are the whole contract for adding another:
+A preset is a finished design you start from. The designer ships **81 of them** in nine families: `editorial`, `minimal`, `journal`, `portfolio`, `reference`, `landing`, `gallery`, `letter` and `signature`. A preset is a copy you start from and change freely, not a form to fill in. Every preset follows three rules:
 
-1. **A preset is pure form.** Every text field it could set (a section heading, a hero's own heading, a call-to-action's words, a footer copyright, a nav label) is left **empty**, and the renderers already know what empty means: a hero with no heading shows the site's name and tagline, an empty copyright falls back to the instance's own footer line, an empty button label becomes the translated "Read more". A preset that typed "Latest writing" into a heading would put an English word into an Arabic site and a stranger's voice into everyone's. The shape is ours; every word on the page is yours.
-2. **A preset names nothing in your vault.** No `note` section, no nav item pointing at a note or a page, no tag filter, no image path. A shipped design cannot know what is in someone else's vault, and a preset that guessed would show up as your very first error card. It leans on the fallbacks that already exist instead.
+1. **A preset is pure form.** Every text field it could set (a section heading, a hero's own heading, a call-to-action's words, a footer copyright, a nav label) is left **empty**, and the renderers already know what empty means: a hero with no heading shows the site's name and tagline, an empty copyright falls back to the instance's own footer line, an empty button label becomes the translated "Read more". Every word on the page is yours.
+2. **A preset names nothing in your vault.** No `note` section, no nav item pointing at a note or a page, no tag filter, no image path. It leans on the fallbacks that already exist instead.
 3. **A preset is a look, so it names a theme**: one of the built-in ones, chosen because the layout was drawn against it. A broadsheet is a broadsheet on `parchment`.
-
-`npm run check-presets` holds the catalog to those rules: unique ids, a name and blurb in both languages with real Arabic, a known family, at least one preset per family, and no preset naming a note.
 
 ### Every signature house has a flourish, and it travels with the design
 
-The 21 `signature` presets are "houses", in the sense of a fashion house: each has a whole character of its own. Each carries a **Signature styling** choice, in the **Header & footer** tab, that travels with the design. It is what makes a house a house rather than just a palette: the broadsheet's nameplate with its ears and dateline strip, the tractor-feed paper and punched tape, the console's radar, the eclipse above Deep Field, the museum wall with a piece hung on wires, the moon phases and star chart of the register. It survives renaming, duplication, and JSON export and import, so a fork of Mission Control that you recolour and reorder is still in the console. Choose **No extra styling** to remove it without touching your sections or typography. Designs saved before this existed carry no signature until you apply a preset that has one.
+The 21 `signature` presets are "houses", in the sense of a fashion house: each has a whole character of its own. Each carries a **Signature styling** choice, in the **Header & footer** tab, that travels with the design. It is what makes a house a house rather than just a palette: the broadsheet's nameplate with its ears and dateline strip, the tractor-feed paper and punched tape, the console's radar, the eclipse above Deep Field, the museum wall with a piece hung on wires, the moon phases and star chart of the register. It survives renaming, duplication, and JSON export and import, so a fork of Mission Control that you recolour and reorder is still in the console. Choose **No extra styling** to remove it without touching your sections or typography.
 
 Every flourish is drawn with the theme's own colours (gradients, rules and shadows, never an image or a fixed colour), so it follows your palette and your light and dark themes. The drawing is a hero section with a blank heading, which is the section that already prints your site's name and tagline, so the masthead above it stays quiet on the front page and returns on every article.
-
-`npm run check-signatures` runs an isolated browser test over the signature collection: desktop and phone layouts, Arabic direction and collection navigation, plus galleries and hover summaries across all 81 presets, keyboard previews, article rendering and designer parity. `SIGNATURES=late-edition,klaxon`, `--houses-only` and `SHOTS=full` narrow it to the houses you are drawing and write screenshots to `shots/signatures/`. It never touches a vault or a saved design.
 
 ### Blog features in every template
 
@@ -83,7 +79,7 @@ You can keep several designs, duplicate one to try something, export any of them
 
 ## The live preview
 
-The designer's preview pane is a real page running the real designed layout, not a mock-up. It uses the instance's stylesheets and theme (including a live theme switch), and it lays the page out at phone, tablet and desktop widths so you can check what a reader will actually see before scrolling. Keys pressed inside the preview do nothing: a preview that reacted to `Enter` would be a second, silent editor. `npm run check-preview` tests it.
+The designer's preview pane is a real page running the real designed layout, not a mock-up. It uses the instance's stylesheets and theme (including a live theme switch), and it lays the page out at phone, tablet and desktop widths so you can check what a reader will actually see before scrolling. Keys pressed inside the preview do nothing.
 
 ## Static pages
 
@@ -96,13 +92,13 @@ page: true
 ---
 ```
 
-`page: true` was chosen over a special folder on purpose. A page stays an **ordinary note**: it keeps its place in the vault next to the writing it belongs with, it keeps its wikilinks and backlinks, and you edit it in the same editor. A `/pages/` folder would have forced a filing decision that rewrites every `[[wikilink]]` pointing at the note and breaks its permanent address, all for a property that has nothing to do with where the file lives. The flag is also the shape the vault already uses for this kind of fact: `publish: true` decides whether a note is visible, and `page: true` decides what *kind* of thing it is.
+A page stays an **ordinary note**: it keeps its place in the vault next to the writing it belongs with, it keeps its wikilinks and backlinks, and you edit it in the same editor. `publish: true` decides whether a note is visible; `page: true` decides what *kind* of thing it is.
 
 A page is still just a note, so it lives at its own clean address (`About.md` becomes `/About`), and it must still carry `publish: true` to be visible to anyone; `page: true` alone publishes nothing.
 
-The flag changes two things, and **only in designed mode**, so the stock blog behaves exactly as it did:
+The flag changes two things, and **only in designed mode**:
 
 - the page leaves the post feed (`/api/posts`, the home list, the topic lists and RSS), because a Contact page is not an article and must not be the newest thing on the front page;
 - it can be offered in the navigation builder, and it is rendered with the designed layout's *page* template (no date, no reading time, no previous/next, no related posts) instead of the article template.
 
-With `publicLayout` at `app` or `blog` the flag does nothing, and a vault full of `page: true` notes behaves exactly as it did before the feature existed. Switching to designed mode is what gives the flag its meaning; switching back gives it up again, losing nothing.
+With `publicLayout` at `app` or `blog` the flag does nothing, and a `page: true` note is listed like any other post. Switching to designed mode is what gives the flag its meaning; switching back gives it up again, losing nothing.
