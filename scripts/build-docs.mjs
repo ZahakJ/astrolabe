@@ -91,13 +91,15 @@ export const SECTIONS = [
   {
     id: "more",
     title: { en: "Deeper", ar: "أعمق" },
-    pages: [{ slug: "development", file: "development.md", title: { en: "Development", ar: "التطوير" } }],
+    pages: [
+      { slug: "comparison", file: "comparison.md", title: { en: "Compared with other tools", ar: "مقارنة بأدوات أخرى" } },
+      { slug: "development", file: "development.md", title: { en: "Development", ar: "التطوير" } },
+    ],
   },
 ];
 // EVERY PAGE SHIPS IN BOTH LANGUAGES. A page without docs/ar/<file> used to
-// render English under a "not translated yet" notice, which the owner does
-// not want to ship ("remember to also update docs with all these features"
-// — and the Arabic edition is half of the docs). The builder now refuses:
+// render English under a "not translated yet" notice, which left half the
+// manual's readers with a page they could not read. The builder now refuses:
 // the missing files are named and the exit code fails the build.
 const missingArabic = [];
 export const PAGES = SECTIONS.flatMap((s) => s.pages.map((p) => ({ ...p, section: s })));
