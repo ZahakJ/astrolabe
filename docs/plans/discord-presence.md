@@ -83,8 +83,8 @@ ACTIVE client (by `receivedAt − idleMs`) and drops any client silent for 150 s
 | `assets` | `site` · `uploaded` | `site` | image URLs on the project's GitHub Pages site, or asset keys uploaded in the portal |
 
 Counts (cards left) carry nothing about the vault and are always allowed. Strings are cut at 128
-characters. Discord's own name for the activity is the application's name, which the owner sets in the
-portal.
+characters. Discord's own name for the activity is the application's name, which is set in the Discord
+developer portal.
 
 ## The Discord card
 

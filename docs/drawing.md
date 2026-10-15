@@ -76,7 +76,7 @@ that note: the drawing itself is a note, and an unpublished one is not served at
 it walks through the note's own door. Unpublish the note and the door closes.
 
 If the picture is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
-this feature), you, the owner, see it anyway: the reading view draws it with the canvas code, once,
+this feature), you, the admin, see it anyway: the reading view draws it with the canvas code, once,
 for that page. Open the drawing and save it once and the picture exists for everyone.
 
 ## What is indexed

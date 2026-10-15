@@ -567,7 +567,7 @@ vocabularies (a TF-IDF cosine over the same folded terms the search index holds,
 Arabic word and its plain spelling are one term). Each row shows the score as a percentage and the
 **two terms that tie** the notes, so you can see *why* before you open it; hover a row to preview,
 click to open. The list follows the vault: an edit to any note moves every score a little, and the
-panel re-reads after each change. It is the owner's panel — a visitor's site never gets it, since
+panel re-reads after each change. It is an admin panel — a visitor's site never gets it, since
 the scoring reads every note's body — and its collapse is remembered per browser.
 
 Under Nearby, two more lists answer the same question by *meaning* rather than by shared words:

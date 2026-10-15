@@ -342,7 +342,7 @@ above.
 | `dateSeparator` | `bar` · `dot` · `parens` — what stands between the two in `both` | `bar` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |
 | `emptyPropsCard` | `true` · `false` — the one-line properties card on notes that have no frontmatter | `true` |
-| `propsCard` | `true` · `false` — the properties card at all, in the owner's editor and reading view (visitors always see it) | `true` |
+| `propsCard` | `true` · `false` — the properties card at all, in the admin's editor and reading view (visitors always see it) | `true` |
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | vault-relative folder holding tag pages | auto-detected, else `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`, ≤ 200 tags — **replaced whole, not merged** | empty |

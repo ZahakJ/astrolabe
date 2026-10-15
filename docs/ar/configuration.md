@@ -200,7 +200,7 @@
 | `dateSeparator` | `bar` · `dot` · `parens`: ما يفصل بين التاريخين في `both` | `bar` |
 | `textDirection` | `auto` · `ltr` · `rtl` | `auto` |
 | `emptyPropsCard` | `true` · `false`: بطاقة الخصائص ذات السطر الواحد في الملاحظات التي لا مقدمة لها | `true` |
-| `propsCard` | `true` · `false`: بطاقة الخصائص أصلًا، في محرر المالك وعرض القراءة عنده (والزوار يرونها دائمًا) | `true` |
+| `propsCard` | `true` · `false`: بطاقة الخصائص أصلًا، في محرر المشرف وعرض القراءة عنده (والزوار يرونها دائمًا) | `true` |
 | `textAlign` | `start` · `left` · `right` · `center` · `justify` | `start` |
 | `tagsFolder` | مجلد نسبي إلى الخزانة يحمل صفحات الوسوم | يُكتشف تلقائيًّا، وإلا `tags` |
 | `tagLabels` | `{ tag: { en, ar } }`، ≤ 200 وسم، **يُستبدل كله ولا يُدمج** | فارغ |

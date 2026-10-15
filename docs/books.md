@@ -204,7 +204,7 @@ operators pick a side:
 | `in:notes` | notes only, the way the box always searched |
 
 A mixed answer holds up to twenty book pages, at most five from one volume, beside the notes;
-`in:books` lists up to fifty. Visitors never get book rows: the shelf is the owner's.
+`in:books` lists up to fifty. Visitors never get book rows: the shelf is the admin's.
 
 The text is read **once**, in the background after the server starts, two books at a time, and kept
 in `ASTROLABE_DATA/pdftext.json` under the same fingerprint as your reading position, so a renamed
@@ -278,7 +278,7 @@ On a phone ([the phone layout](workspace.md#on-a-phone)) the library is a list â
 
 ## What it does not do
 
-It never publishes. Both the shelf and the reader are admin surfaces over the owner's vault; a PDF
+It never publishes. Both the shelf and the reader are admin surfaces over your vault; a PDF
 reaches a visitor only as an attachment of a published note, through the same door every embed
 uses. It treats what a PDF says about itself (its title, its author) as text not to be trusted: cut
 short if long, hidden characters stripped; and it caps marks at 64 per book. Visitors get no shelf.

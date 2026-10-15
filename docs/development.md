@@ -315,7 +315,7 @@ The gate for the [design engine](designer.md)'s one promise that cannot be revie
 the code: that a section which breaks does not take the whole page down with it. It breaks a designed site three ways on purpose (a corrupt `designs.json`, a section
 pointing at a note that is not there, and a section renderer patched to throw and rebuilt) and,
 for each, measures what a VISITOR gets (the built-in blog, a page with real text on it, nothing
-escaping the boundary) against what the OWNER gets (the designed page, the failing section
+escaping the boundary) against what the ADMIN gets (the designed page, the failing section
 named, the revert control present). It also round-trips stock ⇄ designed and asserts the design
 comes back byte-identical. Everything it touched is restored on the way out, including on
 failure: `PORT=6801 ASTROLABE_PASSWORD=… npm run check-design`.
@@ -574,7 +574,7 @@ skimmed. A bound that is only asserted by a constant is a bound that silently st
 
 ### `npm run check-designer-nav` — the designer's navigation and alignment
 
-A browser gate born of a bug that shipped past every other check, in the owner's own language:
+A browser gate born of a bug that shipped past every other check, and only in Arabic:
 a preview scaled with a physical `transform-origin` inside a logical layout sits away from its
 box in `[dir="rtl"]`. It measures every designer surface in both directions, and walks the
 designer's navigation.
@@ -624,7 +624,7 @@ across the places that used to keep a copy each:
 ### The fixture
 
 Performance here is measured on a vault nobody has, because the two vaults that exist are both
-useless for it: the seed vault is a dozen notes, where everything is instant, and the owner's is
+useless for it: the seed vault is a dozen notes, where everything is instant, and a real one is
 private and is never served. `scripts/perf-fixture.mjs` generates the third one from a fixed
 seed, so that a number taken today is comparable with one taken next month:
 
@@ -755,7 +755,7 @@ key changed · `npm run check-names` · `npm run check-shell-seam` · `npm run c
 `npm run check-cascade` whenever a stylesheet changed.
 Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a
 piece of the shell moved — with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch
-server over a scratch vault — never the owner's.
+server over a scratch vault — never a real one.
 
 ## Screenshot harnesses
 

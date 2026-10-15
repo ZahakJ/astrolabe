@@ -70,7 +70,7 @@ Pierre and Jessica are not part of the Install: choosing one downloads it (77 MB
 
 ### How the engines were chosen
 
-By listening, not by reading. Kokoro, Piper and MeloTTS each spoke the same ten lines — a French word, a French sentence with liaisons, a Japanese word and sentence, an Arabic word with and without its vowels, an English sentence, a line that mixes English into French, a number and a proper noun — on the processor, and the samples were kept for the owner to hear. Two judges stood beside the ear: every sample was transcribed back by whisper (a voice it cannot understand, a learner cannot either), and scored by UTMOS, a model trained to predict how natural listeners find a voice.
+By listening, not by reading. Kokoro, Piper and MeloTTS each spoke the same ten lines — a French word, a French sentence with liaisons, a Japanese word and sentence, an Arabic word with and without its vowels, an English sentence, a line that mixes English into French, a number and a proper noun — on the processor, and the samples were kept to be compared by ear. Two judges stood beside the ear: every sample was transcribed back by whisper (a voice it cannot understand, a learner cannot either), and scored by UTMOS, a model trained to predict how natural listeners find a voice.
 
 - **Japanese → Kokoro.** MeloTTS sounds comparable but needs about 2 GB of dependencies for one language; Piper has no Japanese. Kokoro misread three short kanji words in ten when they were sent alone, and none once each was closed with 「。」, so the app closes a lone word with its language's full stop before it reaches the engine.
 - **English → Kokoro** when Natural is chosen: the best-scoring line of the whole trial.
