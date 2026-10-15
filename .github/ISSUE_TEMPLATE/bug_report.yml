@@ -1,0 +1,58 @@
+name: Bug report
+description: Something does not work as the manual describes.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a note with …
+        2. Press …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The `version` in package.json, or the release you installed.
+      placeholder: "3.42.1"
+    validations:
+      required: true
+  - type: dropdown
+    id: client
+    attributes:
+      label: Where
+      options:
+        - Browser
+        - Desktop app (Linux)
+        - Desktop app (Windows)
+        - Android app
+        - Published site, as a visitor
+    validations:
+      required: true
+  - type: dropdown
+    id: language
+    attributes:
+      label: Interface language
+      options:
+        - English
+        - Arabic
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, browser and Node version, if relevant.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Server output or the browser console. Remove anything private from your notes first.

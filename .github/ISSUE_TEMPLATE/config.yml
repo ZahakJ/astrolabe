@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Manual
+    url: https://zahakj.github.io/astrolabe/site/en/
+    about: How each feature works, and every setting.
+  - name: الدليل بالعربية
+    url: https://zahakj.github.io/astrolabe/site/ar/
+    about: The manual in Arabic.
