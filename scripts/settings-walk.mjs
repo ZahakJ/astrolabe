@@ -376,7 +376,7 @@ export async function walkSettings({ page, lang, host, check, tag, press, openSe
             const tr = t.getBoundingClientRect();
             if (tr.width === 0) continue;
             const cs = getComputedStyle(t);
-            if (cs.overflowX !== "hidden" && t.scrollWidth > t.clientWidth + 1) out.push(`"${(t.textContent ?? "").slice(0, 24)}" runs past its box`);
+            if (cs.overflowX !== "hidden" && cs.overflowX !== "clip" && t.scrollWidth > t.clientWidth + 1) out.push(`"${(t.textContent ?? "").slice(0, 24)}" runs past its box`);
             for (const c of ctrls) {
               const cr = c.getBoundingClientRect();
               const w = Math.min(tr.right, cr.right) - Math.max(tr.left, cr.left);

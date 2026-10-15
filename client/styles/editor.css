@@ -597,6 +597,15 @@
   background: var(--accent-soft);
 }
 
+/* A finger's target, like every other button the phone draws. */
+@media (max-width: 700px), (pointer: coarse) {
+  .s-editor .cm-s-banner__missingaction,
+  .s-rv-banner__missingaction {
+    min-block-size: 44px;
+    padding-inline: 14px;
+  }
+}
+
 /* Empty state shown when no note is open.
    The inline padding is load-bearing, not decoration: this pane centres its
    children, and a centred child WIDER than its box overflows equally at both
