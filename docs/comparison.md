@@ -22,7 +22,7 @@ The facts about the other three are as of October 2026, from their own sites and
 | Desktop builds | Linux (AppImage, deb, pacman) and Windows | Windows, macOS, Linux | Windows, macOS, Linux | Windows, macOS, Linux |
 | Licence | MIT | Proprietary | AGPL-3.0 | AGPL-3.0 (apps); Joplin Server under its own personal-use licence |
 | Extensibility | Themes, a theme builder and `custom.css`; no plugin API | Community plugins and themes, a public plugin API | Plugins and themes | Plugins and themes |
-| Price | Free | Free; Sync from $4/month, Publish from $8/month (billed yearly); an optional commercial licence | Free; sync for sponsors | Free; Joplin Cloud from €2.40/month (billed yearly) |
+| Price | Free | Free; Sync from $4/month, Publish from $8/month (billed yearly); an optional commercial licence | Free; Logseq Sync in a limited beta | Free; Joplin Cloud from €2.40/month (billed yearly) |
 
 ## Obsidian
 
