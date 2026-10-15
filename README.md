@@ -12,7 +12,7 @@ that double as the manual.
 Desktop builds (AppImage, deb, pacman, Windows) and the Android app are on the
 [latest release](https://github.com/ZahakJ/astrolabe/releases/latest).
 
-![The editor: a note in live preview with callouts, math, the outline and backlinks](docs/screenshots/hero-editor.png)
+![The graph view, coloured by folder, beside the file tree and tags](docs/screenshots/graph.png)
 
 ## What it is
 
@@ -65,7 +65,7 @@ Set an admin password (`npm run hash-password`, then `ADMIN_PASSWORD_HASH` and `
 in `.env`), add `publish: true` to the notes you want public, and set `PUBLIC_LAYOUT=blog`. Put it
 behind an HTTPS reverse proxy. Details: [Publishing and access](docs/publishing.md).
 
-![A published article with related posts and reader comments](docs/screenshots/blog-article.png)
+![A published site in blog mode: the library shelf and the latest posts](docs/screenshots/blog-dashboard.png)
 
 ## Configuration
 
