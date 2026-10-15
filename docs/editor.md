@@ -33,8 +33,7 @@ those four words freely.
   and you get the whole object: a wikilink, a `#tag`, an inline `$math$` span, a code chip. Inside
   a code fence, double-click takes the whole name, `$jquery` and `snake_case_name` included.
   Triple-click takes the paragraph, dragging extends the selection by character, and shift-click
-  extends from where you were. The gate `npm run check-caret` tests this in both the English and
-  the Arabic shell.
+  extends from where you were.
 - **Frontmatter properties card, editable in place.** While your cursor is outside the frontmatter,
   it collapses to a neat key/value card with clickable tag pills, and you edit it right there: click
   a value to type over it, tick a checkbox for `true`/`false`, pick a date from a calendar, add and
@@ -116,7 +115,7 @@ those four words freely.
   palette turns it back on.
 - **Read aloud.** The selection menu's last row, or `Ctrl/Cmd Shift .` anywhere, reads the selected
   words aloud in the language they are written in — French, Japanese, Arabic, English — with voices
-  that run on your own machine's processor; in the reading view a small chip under the selection
+  that run on the server's processor; in the reading view a small chip under the selection
   does the same. See [Read aloud](read-aloud.md).
 - **Furigana over kanji.** `{漢字|かんじ}` renders as a ruby in every surface; select a word with a
   kanji in it, right-click → Insert → **Furigana…** for suggested readings, or run the automatic
@@ -334,8 +333,8 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   `![](https://youtube.com/watch?v=…)` — becomes that site's player in the reading view and on your
   site, and a card with the video's still in the editor (press play to load the player). The frame
   is the privacy-enhanced one (youtube-nocookie.com; Vimeo is asked not to track) and loads only as
-  it scrolls near — but it is still another site's page inside yours, and it learns who is reading,
-  which is why the switch is yours to turn. Off, the address stays a link.
+  it scrolls near — but it is still another site's page inside yours, and it learns who is reading.
+  Off, the address stays a link.
 - **Diagrams.** A ` ```mermaid ` fence renders as a diagram in the editor, the reading view and on
   your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
   colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives
@@ -353,7 +352,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   to spare, each footnote is set in the outer margin beside the line that cites it — a small serif
   numeral, then the note — and the list at the foot is hidden. Two notes that would collide stack
   downward. Narrower than that, on the site, in a transclusion card and on paper, footnotes stay at
-  the foot as before. A note without footnotes is untouched.
+  the foot. A note without footnotes is untouched.
 - **Reading view.** `Ctrl/Cmd E` flips the note to a fully rendered, read-only page (tables
   included). It resolves links exactly the way the editor does.
 
@@ -427,11 +426,9 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   - **Matching is exact.** Case and diacritics count, and the text is taken letter for letter
     unless you tick *Regular expression* (then it is a pattern in JavaScript's syntax, `$1` capture
     references included, applied one line at a time, so `^` and `$` mean the ends of a line). The search box above folds
-    case and diacritics because finding is a question; replacing is a write, and a replace that
-    stripped the harakat off a word you never typed would be destroying text you never saw.
+    case and diacritics; replace does not, so it never strips harakat you cannot see.
   - **Frontmatter is never touched.** Properties have their own editor, the one that changes only
-    the spot you edited. A blind pattern run over the frontmatter is how other tools eat your quote
-    styles.
+    the spot you edited.
 
   A file that changed on disk between the preview and the press is **skipped and named**, never
   overwritten.
@@ -474,8 +471,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
   [Arabic & RTL](arabic-and-rtl.md#your-editors-language-is-yours).
 - **Command palette.** `Ctrl/Cmd P` searches notes and commands together. A command only appears
   when the query genuinely matches it, at most five of them, and they sit above or below your notes
-  depending on which matched better. (Typing `sort` used to put *Design your site* over the whole
-  vault.) Start the query with `@` or `#` to jump to a heading (or a LaTeX `\label`) inside the note
+  depending on which matched better. Start the query with `@` or `#` to jump to a heading (or a LaTeX `\label`) inside the note
   you are reading instead.
   It is a **quick switcher** too. When no note is called what you typed, the list ends with
   **Create “…”**: Enter makes the note, in the folder of the note you are in (or exactly where a
@@ -523,8 +519,7 @@ by: finished
 show: title, author
 ```
 
-Every other line is the query. `prop:status=reading` is an operator that came with this feature:
-search by any frontmatter property. `prop:author` alone means "has one", and `-prop:draft` excludes.
+Every other line is the query. `prop:status=reading` searches by any frontmatter property. `prop:author` alone means "has one", and `-prop:draft` excludes.
 The list is scoped to the reader (a visitor's fence on a published note lists published notes only)
 and it re-reads when the vault changes. Obsidian renders the same fence language, so the note stays
 readable there.
@@ -561,10 +556,9 @@ that line; **Link all** does every row. This is how small notes get woven into a
 Under the backlinks, **Nearby** lists the ten notes that read most like the open one — without a
 model, without the network, without anything leaving the vault. Two notes are near when they use
 the same *uncommon* words: every word is weighed by how rare it is across your vault (a word in
-every note weighs nothing, which is why no stop list is needed in any language), tags count as
-words somebody chose and weigh more, and the score is the overlap of the two notes' weighted
-vocabularies (a TF-IDF cosine over the same folded terms the search index holds, so a pointed
-Arabic word and its plain spelling are one term). Each row shows the score as a percentage and the
+every note weighs nothing), tags weigh more, and the score is the overlap of the two notes' weighted
+vocabularies, over the same folded terms the search index holds, so a pointed
+Arabic word and its plain spelling are one term. Each row shows the score as a percentage and the
 **two terms that tie** the notes, so you can see *why* before you open it; hover a row to preview,
 click to open. The list follows the vault: an edit to any note moves every score a little, and the
 panel re-reads after each change. It is an admin panel — a visitor's site never gets it, since
@@ -572,7 +566,7 @@ the scoring reads every note's body — and its collapse is remembered per brows
 
 Under Nearby, two more lists answer the same question by *meaning* rather than by shared words:
 **Related**, the notes about the same things (in either language), and **Suggest links**, passages
-elsewhere worth linking from the note you are writing. Both need Ollama on your machine; see
+elsewhere worth linking from the note you are writing. Both need Ollama; see
 [Ask the vault](ask.md#related).
 
 ## Block references
@@ -630,7 +624,7 @@ on disk is never reordered.
 in pixels (`900px`) or as a share of the pane (`70%`), applied as you type. The reading view follows
 the same choice.
 
-**What's new after an update** (Settings → About, on by default). The first time this device
+**What's new after an update** (Settings → This device, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release's features: one
 slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, `←`/`→` on the keyboard. It appears once per *minor* version: a
@@ -646,8 +640,8 @@ purpose, including every earlier release.
 
 Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered per
 browser. Drag it off the window edge and it closes; the slim handle it leaves behind reopens it with
-a click or a drag inward. Double-click the edge to go back to the default width. Ctrl/Cmd+B and the
-collapse buttons still do what they did. The seams between split panes are grips too; see
+a click or a drag inward. Double-click the edge to go back to the default width. The collapse buttons
+work too. The seams between split panes are grips too; see
 [panes](workspace.md#panes).
 
 ## Folder marks
@@ -688,8 +682,7 @@ leave, with a tooltip naming the shortcut). A mode that takes typing away also s
 workspace*: a one-line strip above the note ("Reading — this note is read-only" plus an **Edit**
 button) and an accent rule down the column's leading edge.
 
-Vim gets the same treatment one level deeper, because "vim is on" is not the trap; "the keys under
-your fingers are commands right now" is. So the pill carries the live sub-mode (**VIM │ NORMAL**,
+Vim gets the same treatment one level deeper: the pill carries the live sub-mode (**VIM │ NORMAL**,
 **│ INSERT**, **│ VISUAL**, **│ REPLACE**), vim's own `-- INSERT --` line and its `:` / `/` command
 line sit at the foot of the editor, and in zen, where the status bar has zero height, the strip says
 it instead. [Visitor preview](publishing.md#preview-as-visitor) is a strip at the top that pushes
@@ -698,7 +691,6 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 **Relative line numbers.** With vim keys on, the margin counts lines outward from the caret, so
 `7j` and `3k` can be read straight off it, and the caret's own line shows its absolute number
 (vim's `number relativenumber`). The column sits against the text, not at the window's edge, and it
-follows every caret move, not only edits. It is the only line numbering the editor has: a prose
-editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
+follows every caret move, not only edits. It is the only line numbering the editor has: the gutter exists only while vim is on, and
 **Settings → This device → Relative line numbers** (under Vim keys, on by default) turns it off for
 readers who navigate by search.
