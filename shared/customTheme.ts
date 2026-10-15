@@ -29,7 +29,7 @@
 // `isThemeChoice()` instead.
 
 import { stripBidiControls } from "./bidi.ts";
-import { isTheme, themeGroup, type Theme, type ThemeGroup } from "./themes.ts";
+import { THEMES, isTheme, themeGroup, type Theme, type ThemeGroup } from "./themes.ts";
 
 export const CUSTOM_THEME_PREFIX = "custom:";
 
@@ -320,10 +320,11 @@ export function slugifyThemeName(name: string): string {
 
 /** The BUILT-IN a choice paints with: itself, or a custom theme's base. Used
  *  by everything that must hand `<html data-theme>` a real block — and by the
- *  swatch machinery, which is keyed on built-in ids. */
+ *  swatch machinery, which is keyed on built-in ids. A custom id that names
+ *  no theme this instance has paints the default room. */
 export function baseThemeOf(choice: string, themes: readonly CustomTheme[]): Theme {
   if (isTheme(choice)) return choice;
-  return findCustomTheme(choice, themes)?.base ?? "iron-gall";
+  return findCustomTheme(choice, themes)?.base ?? THEMES[0];
 }
 
 export function findCustomTheme(

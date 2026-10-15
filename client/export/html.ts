@@ -11,7 +11,7 @@
 //   of the stylesheets on screen (every custom property a `:root` or
 //   `[data-theme]` rule declares) and their VALUES out of
 //   `getComputedStyle(document.documentElement)` — the room the reader is
-//   in, whichever of the forty-six it is, resolved.
+//   in, whichever of the forty-eight it is, resolved.
 //
 //   THE READING STYLESHEETS, INLINED. Every same-origin sheet whose text
 //   mentions the reading classes (`.s-rv`, `.s-reading`, KaTeX's `.katex`)

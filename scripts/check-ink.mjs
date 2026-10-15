@@ -181,7 +181,7 @@ try {
   const rooms =
     process.env.INK_THEMES === "all"
       ? [...THEMES]
-      : (process.env.INK_THEMES?.split(",") ?? ["github-dark", "iron-gall", "parchment", "void", "solar"]);
+      : (process.env.INK_THEMES?.split(",") ?? ["astrolabe-dark", "iron-gall", "parchment", "void", "solar"]);
 
   for (const theme of rooms) {
     console.log(`\n${theme}`);

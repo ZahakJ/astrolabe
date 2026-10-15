@@ -42,6 +42,20 @@
    the --swatch-* values). Two hooks, one rule: [data-theme-dot] is the
    command palette's single dot, [data-theme-swatch] the picker's three. */
 
+[data-theme-swatch="astrolabe-dark"],
+[data-theme-dot="astrolabe-dark"] {
+  --sw-bg: var(--swatch-astrolabe-dark-bg);
+  --sw-text: var(--swatch-astrolabe-dark-text);
+  --sw-accent: var(--swatch-astrolabe-dark-accent);
+}
+
+[data-theme-swatch="astrolabe-light"],
+[data-theme-dot="astrolabe-light"] {
+  --sw-bg: var(--swatch-astrolabe-light-bg);
+  --sw-text: var(--swatch-astrolabe-light-text);
+  --sw-accent: var(--swatch-astrolabe-light-accent);
+}
+
 [data-theme-swatch="iron-gall"],
 [data-theme-dot="iron-gall"] {
   --sw-bg: var(--swatch-iron-gall-bg);

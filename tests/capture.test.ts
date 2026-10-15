@@ -111,7 +111,7 @@ describe("the manifest", () => {
     assert.equal(themeSwatch(css, "void"), null);
     assert.equal(themeSwatch(css, "custom:mine"), null);
     assert.equal(themeSwatch(css, ".*"), null);
-    assert.deepEqual(DEFAULT_SWATCH, { bg: "#16130e", accent: "#c9a227" });
+    assert.deepEqual(DEFAULT_SWATCH, { bg: "#0f1113", accent: "#d4a942" });
   });
 });
 

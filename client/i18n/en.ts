@@ -258,8 +258,12 @@ const en = {
   // the one list, and it does not move); what changed is that the PICKER now
   // shows a human label and a one-line description of the room, in both
   // languages, with the id kept in the row's tooltip.
+  thAstrolabeDark: "Astrolabe Dark",
+  thAstrolabeDarkDesc: "Neutral greys, a touch of gold — the default",
+  thAstrolabeLight: "Astrolabe Light",
+  thAstrolabeLightDesc: "Neutral white, a touch of gold",
   thGithubDark: "GitHub Dark",
-  thGithubDarkDesc: "Solid neutral greys, sky blue — the default",
+  thGithubDarkDesc: "Solid neutral greys, sky blue",
   thNord: "Nord",
   thNordDesc: "Arctic blue-greys, frost cyan",
   thDracula: "Dracula",

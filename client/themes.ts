@@ -31,6 +31,8 @@ export type { ThemeChoice } from "../shared/customTheme.ts";
  *  required to be involutive and never was: several dark rooms share one lit
  *  counterpart, because the light set is the smaller half. */
 const COUNTERPART: Record<Theme, Theme> = {
+  "astrolabe-dark": "astrolabe-light",
+  "astrolabe-light": "astrolabe-dark",
   "github-dark": "github-light",
   "nord": "catppuccin-latte",
   "dracula": "catppuccin-latte",
@@ -160,6 +162,8 @@ export function choiceBase(choice: string): Theme {
  *  English and untranslated in Arabic — with nothing anywhere saying what any
  *  of them looks like. */
 export const THEME_LABELS: Record<Theme, { name: I18nKey; desc: I18nKey }> = {
+  "astrolabe-dark": { name: "thAstrolabeDark", desc: "thAstrolabeDarkDesc" },
+  "astrolabe-light": { name: "thAstrolabeLight", desc: "thAstrolabeLightDesc" },
   "github-dark": { name: "thGithubDark", desc: "thGithubDarkDesc" },
   "nord": { name: "thNord", desc: "thNordDesc" },
   "dracula": { name: "thDracula", desc: "thDraculaDesc" },

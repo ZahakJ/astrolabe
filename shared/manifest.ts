@@ -88,7 +88,8 @@ export function themeSwatch(tokensCss: string, themeId: string): { bg: string; a
   return bg && accent ? { bg, accent } : null;
 }
 
-/** The colours the manifest falls back to: the product default (iron-gall)
- *  as tokens.css states it. Spelled here so a missing stylesheet still gives
- *  a phone a splash that matches the app's first paint. */
-export const DEFAULT_SWATCH = { bg: "#16130e", accent: "#c9a227" } as const;
+/** The colours the manifest falls back to: the product default
+ *  (astrolabe-dark, THEMES[0]) as tokens.css states it. Spelled here so a
+ *  missing stylesheet still gives a phone a splash that matches the app's
+ *  first paint. */
+export const DEFAULT_SWATCH = { bg: "#0f1113", accent: "#d4a942" } as const;

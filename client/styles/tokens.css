@@ -25,19 +25,18 @@
   unicode-range: U+0600-06FF, U+0750-077F, U+08A0-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F, U+2010-2011;
 }
 
-/* Astrolabe — design tokens. FORTY-SIX rooms, one list (shared/themes.ts):
-   the twenty-two below plus the twenty-four generated preset rooms at the end
-   of this file. THE DEFAULT IS "github-dark" (THEMES[0], since the presets
-   landed): the :root block carries its values verbatim, so a document with no
-   data-theme attribute — the first paint, an unknown id — IS the default, and
-   check-contrast holds :root and the github-dark block to the same hexes.
-   Every other room is a [data-theme="…"] block, iron-gall included: it is the
-   product's identity (the icon, the manuscript metaphor, the picker's first
-   hand-made room) and no longer the room a reader lands in, and for a while
-   it had no block at all — `data-theme="iron-gall"` computed github-dark's
-   blue and the picker marked a gold card CURRENT over a blue app.
+/* Astrolabe — design tokens. FORTY-EIGHT rooms, one list (shared/themes.ts):
+   the twenty-four below plus the twenty-four generated preset rooms at the end
+   of this file. THE DEFAULT IS "astrolabe-dark" (THEMES[0]): the :root block
+   carries its values verbatim, so a document with no data-theme attribute —
+   the first paint, an unknown id — IS the default, and check-contrast holds
+   :root and the astrolabe-dark block to the same hexes. Every room, the
+   default included, is also a [data-theme="…"] block: a room with no block
+   computes the default's values while the picker marks its own card CURRENT
+   (iron-gall shipped that way for a release).
 
-     dark   iron-gall  warm near-black ink, ivory text, gold leaf (the brand room)
+     dark   astrolabe-dark   neutral near-black greys, gold accent only (the default)
+            iron-gall  warm near-black ink, ivory text, gold leaf (the brand room)
             void       true black, cold signal-cyan accent
             lapis      deep lapis-lazuli blue-black, brightened gold leaf
             cinnabar   neutral graphite ground, vermilion type accent
@@ -52,7 +51,8 @@
             sidereal   blue-violet deep space, starlight accent
             murex      violet-black, Tyrian purple accent
             graphite   neutral graphite (GitHub dark), gold-leaf accent — the brand room
-     light  parchment  warm paper, gold-leaf accent
+     light  astrolabe-light  neutral white, darkened gold accent (the default's pair)
+            parchment  warm paper, gold-leaf accent
             sandstone  dry desert paper, burnt-orange accent
             linen      cool neutral daylight, ink-blue accent
             solar      brightest white paper, burnt-gold accent
@@ -67,7 +67,7 @@
    pane widths, the type scale). A block that leaves one out does not inherit
    "the previous room's" value — the cascade falls back to :root, which is the
    DEFAULT room's value: a green room that forgot --callout-warning would wear
-   github-dark's orange. check-contrast fails a block that is missing one, and
+   astrolabe-dark's amber. check-contrast fails a block that is missing one, and
    a block that defines one the base does not (a typo is a token nobody reads).
    The derived values were solved against each theme's OWN --bg (every callout
    and syntax color clears 4.8:1 there), which is why no two themes share a hex
@@ -86,6 +86,12 @@
      CONSTANT across themes so a preview of a theme is never painted in the
      theme currently on screen. The three-dot swatches in the theme picker and
      the palette's "Theme: …" dots read them. */
+  --swatch-astrolabe-dark-bg: #0f1113;
+  --swatch-astrolabe-dark-text: #e4e6e9;
+  --swatch-astrolabe-dark-accent: #d4a942;
+  --swatch-astrolabe-light-bg: #fcfcfb;
+  --swatch-astrolabe-light-text: #1d1f22;
+  --swatch-astrolabe-light-accent: #8a6410;
   --swatch-iron-gall-bg: #16130e;
   --swatch-iron-gall-text: #eae2d0;
   --swatch-iron-gall-accent: #c9a227;
@@ -227,36 +233,36 @@
   --swatch-rose-pine-dawn-accent: #286983;
   /* ── end of generated preset swatches ── */
 
-  /* github-dark's values, hex for hex — the [data-theme="github-dark"] block
-     at the end of this file is generated from the same spec, and
-     check-contrast fails the build if the two ever drift. */
-  --bg: #0d1117;
-  --bg-raised: #161b22;
-  --bg-hover: #21262d;
-  --text: #e6edf3;
-  --text-muted: #8b949e;
-  --text-faint: #6e7681;
-  --heading: #e6edf3;
-  --accent: #58a6ff;
-  --accent-soft: rgba(88, 166, 255, 0.16);
-  --border: #30363d;
-  --danger: #f85149;
+  /* astrolabe-dark's values, hex for hex — the [data-theme="astrolabe-dark"]
+     block below says the same, and check-contrast fails the build if the two
+     ever drift. */
+  --bg: #0f1113;
+  --bg-raised: #16191c;
+  --bg-hover: #1f2327;
+  --text: #e4e6e9;
+  --text-muted: #9da3aa;
+  --text-faint: #737a82;
+  --heading: #eef0f2;
+  --accent: #d4a942;
+  --accent-soft: rgba(212, 169, 66, 0.14);
+  --border: #2a2e33;
+  --danger: #ef6b63;
 
   /* Selection wash and focus ring. Both used to be spelled as --accent-soft
      and --accent directly in app.css, which meant a theme could not tune
      them: a selection that reads at 14% on iron-gall's near-black is a
      smudge on paper, and an accent that is nearly the ground (sumi's grey)
      makes a focus ring no one can find. Per theme, so both stay findable. */
-  --selection-bg: rgba(88, 166, 255, 0.28);
-  --focus-ring: #58a6ff;
+  --selection-bg: rgba(212, 169, 66, 0.26);
+  --focus-ring: #d4a942;
 
   /* Graph canvas. The node/edge colors are tokens rather than derivations of
      --accent + --border inside GraphView, so a theme whose accent is right
      for text can still choose a different disc color for a 1,400-node
      constellation. The vignette is the theme's own ground driven dark — a
      black wash greys out a paper theme instead of framing it. */
-  --graph-node: #58a6ff;
-  --graph-edge: #4b5158;
+  --graph-node: #d4a942;
+  --graph-edge: #4a5057;
   --graph-vignette: rgba(0, 0, 0, 0.45);
 
   /* THE SIX PAGE INKS (client/books/). Defined on :root ONLY, and no theme
@@ -312,8 +318,8 @@
 
      Both resolve at the consuming element, so they are safe to override per
      theme and a theme switch repaints live. */
-  --banner-tint: 62%;
-  --banner-hue: 212;
+  --banner-tint: 66%;
+  --banner-hue: 43;
 
   /* Font stacks. Latin-first is the default: a stack is consulted per
      CHARACTER, so on an English instance the Arabic faces are only ever
@@ -398,29 +404,29 @@
 
   /* Callout base colors (Obsidian type → hue, muted for the manuscript room).
      Backgrounds derive via color-mix in preview.css. */
-  --callout-note: #58a6ff;
-  --callout-info: #58a6ff;
-  --callout-todo: #58a6ff;
-  --callout-abstract: #39c5cf;
-  --callout-tip: #39c5cf;
-  --callout-success: #3fb950;
-  --callout-question: #d29922;
-  --callout-warning: #f0883e;
-  --callout-failure: #f85149;
-  --callout-danger: #f85149;
-  --callout-bug: #f85149;
-  --callout-example: #a371f7;
-  --callout-quote: #8b949e;
+  --callout-note: #6ea6e0;
+  --callout-info: #6ea6e0;
+  --callout-todo: #6ea6e0;
+  --callout-abstract: #4fb8ae;
+  --callout-tip: #4fb8ae;
+  --callout-success: #5cb46a;
+  --callout-question: #d9944a;
+  --callout-warning: #d9944a;
+  --callout-failure: #ef6b63;
+  --callout-danger: #ef6b63;
+  --callout-bug: #ef6b63;
+  --callout-example: #b291e6;
+  --callout-quote: #9da3aa;
 
   /* Code-fence syntax colors (read by the CM6 highlight style). */
-  --syn-keyword: #a371f7;
-  --syn-string: #3fb950;
-  --syn-number: #f0883e;
-  --syn-comment: #6e7681;
-  --syn-func: #58a6ff;
-  --syn-type: #d29922;
-  --syn-prop: #39c5cf;
-  --syn-operator: #8b949e;
+  --syn-keyword: #c39ae8;
+  --syn-string: #8cc48a;
+  --syn-number: #e0a46b;
+  --syn-comment: #7d848c;
+  --syn-func: #7fb2e5;
+  --syn-type: #67c2b8;
+  --syn-prop: #d79ab8;
+  --syn-operator: #a9afb6;
 
   /* ── MOTION: TWO DURATIONS AND ONE CURVE ───────────────────────────────────
      Every overlay in the shell already agreed on 120ms and every pane on
@@ -504,6 +510,119 @@
   --z-crash: 900;
   --z-skip: 1000;
   --z-eye: 2147483647;
+}
+
+/* "astrolabe-dark" — THE DEFAULT ROOM (THEMES[0]); :root above carries these
+   values hex for hex. Neutral, very slightly cool greys with no hue to speak
+   of, a neutral off-white type held at 15:1 rather than pure white so a long
+   page in Arabic or English does not glare, and gold for the accent channel
+   ONLY: links, the active row, the focus ring, highlights, the selection.
+   Headings stay neutral — a page of gold headings is iron-gall's room, not
+   this one. Callouts and syntax are soft mid-tones solved against #0f1113
+   (all 5:1 or better), none of them gold, so the accent is the one warm thing
+   on the page. Close to `graphite` by design; graphite is GitHub's blue-tinted
+   greys under a brighter gold, this is greys with no blue in them. */
+[data-theme="astrolabe-dark"] {
+  color-scheme: dark;
+
+  --bg: #0f1113;
+  --bg-raised: #16191c;
+  --bg-hover: #1f2327;
+  --text: #e4e6e9;
+  --text-muted: #9da3aa;
+  --text-faint: #737a82;
+  --heading: #eef0f2;
+  --accent: #d4a942;
+  --accent-soft: rgba(212, 169, 66, 0.14);
+  --border: #2a2e33;
+  --danger: #ef6b63;
+  --radius: 6px;
+
+  --selection-bg: rgba(212, 169, 66, 0.26);
+  --focus-ring: #d4a942;
+  --banner-tint: 66%;
+  --banner-hue: 43;
+
+  --graph-node: #d4a942;
+  --graph-edge: #4a5057;
+  --graph-vignette: rgba(0, 0, 0, 0.45);
+
+  --callout-note: #6ea6e0;
+  --callout-info: #6ea6e0;
+  --callout-todo: #6ea6e0;
+  --callout-abstract: #4fb8ae;
+  --callout-tip: #4fb8ae;
+  --callout-success: #5cb46a;
+  --callout-question: #d9944a;
+  --callout-warning: #d9944a;
+  --callout-failure: #ef6b63;
+  --callout-danger: #ef6b63;
+  --callout-bug: #ef6b63;
+  --callout-example: #b291e6;
+  --callout-quote: #9da3aa;
+
+  --syn-keyword: #c39ae8;
+  --syn-string: #8cc48a;
+  --syn-number: #e0a46b;
+  --syn-comment: #7d848c;
+  --syn-func: #7fb2e5;
+  --syn-type: #67c2b8;
+  --syn-prop: #d79ab8;
+  --syn-operator: #a9afb6;
+}
+
+/* "astrolabe-light" — the default room's daylight half (the ☾/☀ pair of
+   astrolabe-dark). A white page with the faintest warmth in it, never
+   paper-yellow; a grey sidebar a step down from it; near-black neutral type.
+   The gold is darkened to #8a6410 so it still reads as gold and holds 5.2:1
+   as text on the page. */
+[data-theme="astrolabe-light"] {
+  color-scheme: light;
+
+  --bg: #fcfcfb;
+  --bg-raised: #f4f4f3;
+  --bg-hover: #e9eae8;
+  --text: #1d1f22;
+  --text-muted: #565b62;
+  --text-faint: #7b8087;
+  --heading: #141619;
+  --accent: #8a6410;
+  --accent-soft: rgba(138, 100, 16, 0.12);
+  --border: #dcdddb;
+  --danger: #b42f28;
+  --radius: 6px;
+
+  --selection-bg: rgba(138, 100, 16, 0.2);
+  --focus-ring: #8a6410;
+  --banner-tint: 34%;
+  --banner-hue: 41;
+
+  --graph-node: #8a6410;
+  --graph-edge: #b4b7bb;
+  --graph-vignette: rgba(60, 62, 66, 0.22);
+
+  --callout-note: #2f64a8;
+  --callout-info: #2f64a8;
+  --callout-todo: #2f64a8;
+  --callout-abstract: #1f6e66;
+  --callout-tip: #1f6e66;
+  --callout-success: #2d6f32;
+  --callout-question: #9a5412;
+  --callout-warning: #9a5412;
+  --callout-failure: #b42f28;
+  --callout-danger: #b42f28;
+  --callout-bug: #b42f28;
+  --callout-example: #6b45a8;
+  --callout-quote: #565b62;
+
+  --syn-keyword: #7a3fb0;
+  --syn-string: #3b6e2a;
+  --syn-number: #a2521a;
+  --syn-comment: #696e75;
+  --syn-func: #2c62a0;
+  --syn-type: #1d6c66;
+  --syn-prop: #9b3a6a;
+  --syn-operator: #4f545b;
 }
 
 /* "iron-gall" — the brand room: iron-gall ink on a warm near-black, ivory

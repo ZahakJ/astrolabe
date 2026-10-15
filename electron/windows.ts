@@ -28,7 +28,7 @@ const DEFAULT_SIZE = { width: 1280, height: 860 };
 /** Astrolabe's own ground colour (`--bg` on the default theme), so the window is
  *  the app's colour for the ~200ms before the first paint rather than white —
  *  which on a dark theme is a flash straight into the reader's eyes. */
-const DEFAULT_GROUND = "#0d1117";
+const DEFAULT_GROUND = "#0f1113";
 
 export interface WindowContext {
   vault: string;

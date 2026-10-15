@@ -180,8 +180,12 @@ const ar = {
   themeTitle: "السمة: {theme} — انقر لتصفح جميع السمات",
 
   // ── Theme picker ────────────────────────────────────────────────────────
+  thAstrolabeDark: "أسطرلاب داكن",
+  thAstrolabeDarkDesc: "رماديات محايدة ولمسة ذهب؛ الافتراضية",
+  thAstrolabeLight: "أسطرلاب فاتح",
+  thAstrolabeLightDesc: "أبيض محايد ولمسة ذهب",
   thGithubDark: "جيت هب داكن",
-  thGithubDarkDesc: "رماديات محايدة صلبة وأزرق سماوي؛ الافتراضية",
+  thGithubDarkDesc: "رماديات محايدة صلبة وأزرق سماوي",
   thNord: "نورد",
   thNordDesc: "رماديات زرقاء قطبية وسماوي ثلجي",
   thDracula: "دراكولا",
