@@ -16,6 +16,7 @@ import { dailyFolder, getSettings } from "../settings.ts";
 import { excludedTags } from "../site.ts";
 import { findAnyMatches, findMatches, foldQuery, foldTerm } from "../../shared/fold.ts";
 import { stripPrivateComments } from "../../shared/privateText.ts";
+import { wikilinkRegex } from "../../shared/noteParse.ts";
 import { snippetOf } from "../../shared/snippet.ts";
 import { isDue } from "../../shared/srs.ts";
 import { linkCandidates, resolveLink, resolveXref, twinOf } from "./resolve.ts";
@@ -829,10 +830,16 @@ function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLa
     if (record === undefined) continue;
     if (publishedOnly && (!record.published || languageHidden(record, lang))) continue;
     let bodyLines: string[] | null = null; // split lazily, once per record
+    // A visitor reads the source without its comments (shared/privateText.ts):
+    // a link that stood only inside one is no backlink, and the context is
+    // cut from the line as the visitor can read it. Lines keep their numbers.
+    const visible = publishedOnly && record.prose === null ? stripPrivateComments(record.body).split("\n") : null;
     for (const link of record.links) {
       if (resolveLink(link.target, publishedOnly, lang) !== targetPath) continue;
       const key = `${record.path}\0${link.line}`;
       if (seen.has(key)) continue;
+      const line = visible === null ? link.line : (visible[link.lineIdx] ?? "");
+      if (visible !== null && ![...line.matchAll(wikilinkRegex())].some((m) => (m[1] ?? "").trim() === link.target)) continue;
       seen.add(key);
       // Strip block prefixes + inline marks but keep [[wikilinks]] — the
       // client renders those as gold spans. Long lines are cut to a
@@ -845,7 +852,7 @@ function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLa
       // The needle is the link itself: inside a table row, the cell holding
       // this link is the cell the card is about (see cleanContextLine).
       const needle = [`[[${link.target.toLowerCase()}`];
-      let context = record.prose !== null ? link.line : cleanContextLine(link.line, needle);
+      let context = record.prose !== null ? link.line : cleanContextLine(line, needle);
       // A line that is little more than the link itself ("- [[History]]")
       // makes a useless card — widen to the surrounding lines so the card
       // reads like Obsidian's backlink context.
@@ -854,9 +861,9 @@ function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLa
       // the header, and gluing those on is the cell-join of F44 wearing the
       // other coat — "Reading table Title worth a reread, see [[Target]]
       // Piranesi". The cell is already the chosen unit.
-      const inTable = /^\s*\|/.test(link.line);
+      const inTable = /^\s*\|/.test(line);
       if (record.prose === null && !inTable && contextProse(context).length < 16) {
-        bodyLines ??= record.body.split("\n");
+        bodyLines ??= visible ?? record.body.split("\n");
         context = expandedContext(bodyLines, link.lineIdx, needle);
       }
       if (context.length > BACKLINK_CONTEXT_MAX) {
