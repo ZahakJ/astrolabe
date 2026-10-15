@@ -29,7 +29,7 @@
 <p>Excalidraw is a free whiteboard tool: shapes, arrows, freehand strokes and text, in a hand-drawn
 style. A drawing in Astrolabe is a file in the vault in a format Excalidraw already speaks: either
 the editor&#39;s own <code>.excalidraw</code> file (a plain data file), or the shape the Obsidian Excalidraw plugin writes into a
-markdown note, <code>.excalidraw.md</code>. Astrolabe did not invent a third format. Both open here as a full
+markdown note, <code>.excalidraw.md</code>. Both open here as a full
 Excalidraw canvas in a pane, both save back into the same file, and both keep opening in Obsidian
 afterwards.</p>
 <p>A drawing is a <strong>note</strong> by every other measure: it sits in the tree with a pencil beside its name,
@@ -76,12 +76,11 @@ exported svg; none of them loads the canvas.</p>
 <p>A visitor sees the svg of a <strong>published</strong> note&#39;s embed exactly as they see any other attachment of
 that note: the drawing itself is a note, and an unpublished one is not served at all, but the picture beside
 it walks through the note&#39;s own door. Unpublish the note and the door closes.</p>
-<p>If the picture is not on disk yet (a drawing made in Obsidian with auto-export off, or a file older than
-this feature), you, the admin, see it anyway: the reading view draws it with the canvas code, once,
+<p>If the picture is not on disk yet (a drawing made in Obsidian with auto-export off), you, the admin, see it anyway: the reading view draws it with the canvas code, once,
 for that page. Open the drawing and save it once and the picture exists for everyone.</p>
 <h2 id="what-is-indexed"><a class="anchor" href="#what-is-indexed">What is indexed</a></h2>
-<p>The text elements, one per line, and a <code>[[link]]</code> set on any shape. Not the file&#39;s internal data:
-an element id is not a word anyone searches for. So a drawing appears in search by what is written on it, in the
+<p>The text elements, one per line, and a <code>[[link]]</code> set on any shape. Not the file&#39;s internal data.
+So a drawing appears in search by what is written on it, in the
 graph by what it links to, and in a note&#39;s backlinks when the drawing names that note.</p>
 <h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
 <p>Everything here is the plugin&#39;s own format, so the plugin sees a drawing Astrolabe made as one of
@@ -92,10 +91,6 @@ to a note behave the same way there: a <a href="../trackers/#in-obsidian">tracke
 <a href="../sigils/#in-obsidian">sigil</a> go back to being labelled code blocks, and an
 <a href="../orbits/#where-the-schedule-lives">orbit</a> writes its schedule in the Spaced Repetition plugin&#39;s own
 format.</p>
-<hr>
-<p><em>Under the hood: <code>shared/drawing.ts</code> reads and writes both spellings (<code>tests/drawing.test.ts</code>);
-<code>client/drawing/DrawingSurface.tsx</code> is the pane; <code>PUT /api/drawing-svg?path=</code> is the picture&#39;s
-door; <code>scripts/check-bundle.mjs</code> asserts the canvas is never loaded with a page&#39;s first paint.</em></p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/drawing.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/orbits/"><span class="pager__kicker">Previous</span><span class="pager__title">Orbits</span></a><a class="pager__link pager__link--next" href="../../en/books/"><span class="pager__kicker">Next</span><span class="pager__title">The book reader</span></a></nav>

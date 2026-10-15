@@ -41,21 +41,15 @@ another window on the current vault — that is how a
 <strong>Close window</strong> is <code>Ctrl/Cmd W</code>. <em>Show the vault in the file manager</em> opens the folder itself.
 The app keeps a tray icon with <em>Show Astrolabe</em> and <em>Quit</em>. For a launcher or a script,
 <code>ASTROLABE_VAULT=/path</code> in the environment opens that folder at launch without asking.</p>
-<p><strong>Your tabs survive a port change.</strong> The window&#39;s tabs and layout are kept in the browser
-storage that belongs to the vault&#39;s port. If a launch finds that port busy, the app moves to
-the next one — which, to the browser storage, is a brand-new place with nothing in it. So the
-desktop also keeps the last workspace beside the vault&#39;s data and restores it when a window
-opens on nothing. It waits a few seconds for the usual port before moving on; and a window with truly
-nothing to restore opens the note you were in most recently, rather than the first name in the
-tree.</p>
+<p><strong>Your tabs survive a port change.</strong> If a launch finds the vault&#39;s usual port busy, the app
+waits a few seconds, then moves to the next port and restores your last workspace, which it
+keeps beside the vault&#39;s data. A window with nothing to restore opens the note you were in most
+recently, rather than the first name in the tree.</p>
 <p><strong>The panes, and the window they are in.</strong> Each side pane — the notes sidebar and the outline
 pane — is resized by the hairline between it and the note: a 12-pixel strip with the divider
-itself down the middle, so the line you aim at is the line that moves, and the pane follows your
-hand from wherever on the strip you took hold. Drag a pane off its edge to fold it; it leaves a
+itself down the middle; the pane follows your hand from wherever on the strip you took hold. Drag a pane off its edge to fold it; it leaves a
 narrow door you can click or drag back open. Double-click the divider for the width it started
-at. The strip is there whatever the window is pointed at — a mouse, a trackpad, a finger on a
-convertible — because whether a pane can be dragged is a question about the pane, not about the
-pointer, and a laptop folded flat still has panes.</p>
+at. The strip works with a mouse, a trackpad or a finger on a touch screen.</p>
 <p>The widths you set are remembered per window; what the window can <em>grant</em> is decided fresh every
 time it is resized. Drag the window narrow and the panes give way so the note keeps a column to
 be in; widen it again and they come back to the widths you chose. Below about 700 points wide the
@@ -66,10 +60,8 @@ window snapped to half the screen, the panes stay docked and stay draggable.</p>
 anything but 100% the status bar shows the percentage in the corner; clicking it is <em>actual
 size</em>, the same as <code>Ctrl/Cmd 0</code>; <code>Ctrl</code> + the mouse wheel steps it too, and <strong>View → Zoom: 120%</strong>
 says where it is. The factor is remembered per vault and <strong>survives closing the app</strong>: set 120%
-once, and every launch opens at 120% from its first frame — and because it is written where you
-can see it, a window that came back smaller than you remember is a window you can put right with
-one click. Over an open book the same three
-keys zoom <strong>the page</strong>, not the app: reaching for the zoom keys over a book means the book.</p>
+once, and every launch opens at 120% from its first frame. Over an open book the same three
+keys zoom <strong>the page</strong>, not the app.</p>
 <p>Windows remember where they were, per vault, and are fitted to the screen they reopen on. A
 window saved on a large monitor and reopened on a laptop is pulled back onto the desk rather than
 left with its title bar off the edge, and a first window on a screen too small for the default
@@ -79,7 +71,7 @@ note, the daily note, save, print, reading view, the graph, zen, the two side pa
 palette, search, publish, the shortcut sheet. The desktop app also claims a few shortcuts the
 browser cannot:</p>
 <div class="table"><table><thead><tr><th>Keys</th><th>Does</th></tr></thead><tbody><tr><td><code>Ctrl/Cmd Shift N</code></td><td>New window on this vault</td></tr><tr><td><code>Ctrl/Cmd O</code></td><td>Open vault…</td></tr><tr><td><code>Ctrl/Cmd W</code></td><td>Close window</td></tr><tr><td><code>Ctrl/Cmd Shift F</code></td><td><strong>Find in page</strong> (below)</td></tr><tr><td><code>Ctrl/Cmd Alt R</code></td><td>Open the note as a reference window</td></tr><tr><td><code>Ctrl/Cmd =</code> / <code>-</code> / <code>0</code>, and the numpad</td><td>Zoom in / out / actual size</td></tr><tr><td><code>Ctrl/Cmd Y</code></td><td>Redo, beside <code>Ctrl/Cmd Shift Z</code></td></tr></tbody></table></div><h2 id="your-own-name-and-icon"><a class="anchor" href="#your-own-name-and-icon">Your own name and icon</a></h2>
-<p>&quot;Astrolabe&quot; is one person&#39;s name for it. <strong>Settings → This device</strong> lets you call the
+<p><strong>Settings → This device</strong> lets you call the
 app whatever you like on this computer and give it your own icon. The tray, its tooltip, the
 window icon, the About box and the launcher entry all follow. The site&#39;s own name and logo are a
 separate thing, under <strong>Site identity</strong> (Settings → Site identity), and they title the window and the sidebar. <strong>An update never
@@ -101,7 +93,7 @@ your own if you publish your own releases.</p>
 <p><strong>Window → Open as reference window</strong> (<code>Ctrl/Cmd Alt R</code>) opens the current note in a second,
 smaller window that stays <strong>always on top</strong>: the source you are quoting, the outline you are
 following, the checklist — kept over the window you are writing in. <em>Always on top</em> is a switch
-on any window. It is the clearest thing a desktop app can do that a browser tab cannot.</p>
+on any window.</p>
 <h2 id="find-in-page"><a class="anchor" href="#find-in-page">Find in page</a></h2>
 <p><code>Ctrl/Cmd F</code> finds and replaces <em>in the note&#39;s text</em>. <code>Ctrl/Cmd Shift F</code> on the desktop app
 opens <strong>Find in page</strong>, the browser engine&#39;s own search over <em>whatever is on screen</em>: the
@@ -133,7 +125,7 @@ has two positions: <em>tell me</em> (the default) and <em>off</em>, which stops 
 The menu item still works when the check is off.</p>
 <p>What &quot;restart&quot; does depends on how the app was installed. The <strong>AppImage</strong> is replaced at its
 own path and relaunched: the app closes, and a moment later the new file starts on its own.
-(Every AppImage build is relaunch-tested before it is published.) The <strong>Windows</strong> install runs
+The <strong>Windows</strong> install runs
 the new installer silently, and the installer relaunches the app. Both downloads are checked
 against the fingerprint published with the release before anything runs, so a file that arrived
 incomplete or altered never starts. The <strong>deb</strong> and <strong>pacman</strong>
@@ -168,12 +160,10 @@ vaults, their ports and, for each, the data directory it uses. Each vault&#39;s 
 the <a href="../configuration/#environment-variables"><code>ASTROLABE_DATA</code></a> that entry names. What is yours
 rather than the machine&#39;s — the site&#39;s settings, the named layouts, the book shelf, your notes to
 self — is also mirrored into the vault&#39;s own <code>.astrolabe/</code> folder, so a second machine over the
-same vault finds it (<a href="../backup-and-sync/#settings-travel-with-the-vault">settings travel with the vault</a>). The Linux build
-is packaged with <code>asar: false</code> deliberately, because the server the app starts reads real files
-from the package.</p>
+same vault finds it (<a href="../backup-and-sync/#settings-travel-with-the-vault">settings travel with the vault</a>).</p>
 <p>The <a href="../read-aloud/">Read aloud</a> voices install into that same data directory (<code>tts/venv/</code> and <code>models/tts/</code>), from the Install button in Settings, exactly as on a server: the bundled server makes the Python environment with <code>uv</code> or the machine&#39;s Python 3.10–3.13 — and on the usual laptop, which has neither, <strong>fetches a standalone Python</strong> into <code>tts/python/</code> first (21–34 MB, checked before use) — and runs the engine on the processor as a child process. Nothing about the app&#39;s permissions changes for it — the page only plays sound.</p>
 <p><strong>On Linux the app reads once the voices are installed.</strong> Electron has no speech engine of its own on Linux, so there are no &quot;device voices&quot; to fall back on: before the Install, the player says <em>No voice on this device speaks …</em> and offers the Install button; after it, the app reads in every language its voices speak. <strong>On Windows</strong>, until the app&#39;s voices are installed, it reads with Windows&#39; own voices — the one you chose in Windows&#39; own speech settings (Time &amp; language → Speech) — and names it, with a ▾ to choose another (<a href="../read-aloud/#this-devices-voices">This device&#39;s voices</a>).</p>
-<p><strong>Voice notes are heard on the processor.</strong> The bundled server transcribes <a href="../capture/#voice">voice notes</a> the way any server does with <strong>Processor only</strong>: whisper as an ONNX model on the machine&#39;s physical cores, up to eight. The package ships no graphics-card build of whisper at all — nothing in the app depends on a GPU — which keeps the download about 50 MB smaller. The model downloads into the vault&#39;s data directory on the first note, as on a server.</p>
+<p><strong>Voice notes are heard on the processor.</strong> The bundled server transcribes <a href="../capture/#voice">voice notes</a> the way any server does with <strong>Processor only</strong>: whisper as an ONNX model on the machine&#39;s physical cores, up to eight. Nothing in the app depends on a graphics card. The model downloads into the vault&#39;s data directory on the first note, as on a server.</p>
 <p><strong>The desktop app is its own operator.</strong> It starts its server with <code>SPEAK_EXTERNAL=on</code>, so the <a href="../read-aloud/#an-external-speaker">external speaker</a> under Settings → Read aloud &amp; voice notes → Your own voices can be set here without editing a <code>.env</code>; on a server someone else runs, that stays the operator&#39;s decision (<a href="../configuration/#environment-variables">Configuration</a>).</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/desktop.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>

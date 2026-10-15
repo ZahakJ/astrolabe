@@ -185,8 +185,8 @@ points).</p>
 <h3 id="attachments"><a class="anchor" href="#attachments">Attachments</a></h3>
 <p>An <em>attachment</em> is any file you put into the vault that is not a note — a picture, a PDF, an
 audio clip. <strong>Where new attachments go</strong> is a setting, named the same way Obsidian names it
-(<em>Default location for new attachments</em>), so a vault that moved from Obsidian behaves the way
-its owner already expects. It lives in <strong>Settings → Writing → New attachments</strong>, beside the
+(<em>Default location for new attachments</em>), so a vault moved from Obsidian behaves as it did
+there. It lives in <strong>Settings → Writing → New attachments</strong>, beside the
 templates folder and the tags folder.</p>
 <div class="table"><table><thead><tr><th>Mode</th><th>An upload lands in</th></tr></thead><tbody><tr><td>Vault root</td><td>the top of the vault</td></tr><tr><td>Same folder as the note</td><td>beside the note being edited</td></tr><tr><td>Subfolder of the note&#39;s folder</td><td><code>&lt;note&#39;s folder&gt;/&lt;name&gt;</code> — e.g. an <code>assets</code> next to each note</td></tr><tr><td>Specified folder <em>(default)</em></td><td>one fixed vault-relative folder — <code>ATTACHMENTS_DIR</code>, else <code>Attachments</code> (<code>مرفقات</code> on an Arabic instance); a vault that already has an <code>attachments</code> folder keeps it</td></tr></tbody></table></div><p>The setting only decides for uploads that did not name a place themselves: a picture pasted
 into a note, or a file dropped into the editor. A file dropped onto a folder in the sidebar
@@ -214,10 +214,9 @@ sidebar (or onto a note — they land beside it) and they are added to the vault
 up and says how many files are coming. Afterwards a toast names the folder they actually landed
 in and offers <strong>Undo</strong>, which moves them to <code>.trash/</code>. If a name is already taken, the new file
 gets the first free <code>name-2.ext</code> and the toast says so.</p>
-<p><strong>Deleting tells you what it is really taking.</strong> The sidebar tree shows notes only. So a folder
-that still held four images after its note moved away used to describe itself as &quot;0 notes&quot; —
-and deleting it silently broke a published essay. Now every delete confirmation asks the server
-what is actually inside:</p>
+<p><strong>Deleting tells you what it is really taking.</strong> The sidebar tree shows notes only, so a folder
+can look empty and still hold attachments that published notes use. Every delete confirmation
+asks the server what is actually inside:</p>
 <blockquote>
 <p><strong>Move &quot;Media&quot; to .trash?</strong>
 0 notes, 60 attachments — 53 of them referenced by 48 notes. All of it moves to the vault&#39;s
@@ -233,9 +232,7 @@ list is a themed popover attached to its button and kept inside the panel: it gr
 than the room available, flips upward when there is no room below, and takes arrow keys and
 type-ahead, <code>Enter</code> to confirm and <code>Esc</code> to put the old value back. Switches are switches;
 three-way rows (<em>inherit</em> / on / off) show all three states at once; numbers carry their unit
-inside the field. The reason: a native <code>&lt;select&gt;</code> opens a window drawn by the operating system,
-which no theme can style and no panel can keep inside its bounds — exactly what a font list of
-twenty-seven faces must not do.</p>
+inside the field.</p>
 <p><strong>On a phone</strong> (<a href="../workspace/#on-a-phone">the phone layout</a>) the panel is a list of the same nine sections, in the same order and under the same names — More → <strong>Settings</strong> — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with <strong>Discard</strong> and <strong>Save</strong>; leaving the section any other way with changes unsaved asks first. A row marked <strong>This device</strong> saves itself as you choose and never raises the bar.</p>
 <h2 id="settings-keys"><a class="anchor" href="#settings-keys">Settings keys</a></h2>
 <p>These are the keys <code>ASTROLABE_DATA/settings.json</code> can hold. The panel writes them, and so does
@@ -253,7 +250,7 @@ defaults.</p>
 <p>The security-sensitive keys are deliberately <strong><code>.env</code> only, forever</strong>. The panel and
 <code>/api/settings</code> can neither read nor write them: <code>ADMIN_PASSWORD_HASH</code>, <code>SESSION_SECRET</code>,
 <code>TRUSTED_PROXIES</code>, <code>PORT</code>, <code>HOST</code>, <code>ASTROLABE_VAULT</code>, <code>ASTROLABE_DATA</code>, <code>PUBLIC</code>. <code>SITE_URL</code> is
-<code>.env</code> only too, for a duller reason: nothing has ever needed to change it while the server runs.</p>
+<code>.env</code> only too.</p>
 <h2 id="the-settings-api"><a class="anchor" href="#the-settings-api">The settings API</a></h2>
 <p>For scripts. Admin only; a visitor gets a 404.</p>
 <ul>

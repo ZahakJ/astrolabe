@@ -50,10 +50,8 @@ unlocks editing on the spot, without reloading the page. Two more keys shape thi
 makes even <em>reading</em> require a login, and <code>HOME_NOTE</code> chooses the note a first-time visitor
 lands on.</p>
 <p><strong><code>PUBLIC=false</code> requires a password, and the server refuses to start without one.</strong> Without
-<code>ADMIN_PASSWORD_HASH</code> there is no such thing as &quot;logged in&quot;, so &quot;private&quot; would mean the exact
-opposite: every anonymous request would be treated as the admin. Rather than start like that,
-Astrolabe prints the <code>npm run hash-password</code> line and exits. (Running deliberately open on a
-trusted network is still fine — just don&#39;t also claim to be private.) For the same reason,
+<code>ADMIN_PASSWORD_HASH</code> every anonymous request would be treated as the admin, so Astrolabe prints
+the <code>npm run hash-password</code> line and exits. For the same reason,
 <strong><a href="../backup-and-sync/">backup &amp; sync</a> needs a password in every mode</strong>: without one, anyone who
 can reach the port could point the git remote at their own server and push your whole vault to it.</p>
 <p><strong>Sessions.</strong> A <em>session</em> is the server&#39;s memory that you logged in; it lives in a cookie in your
@@ -66,8 +64,7 @@ network over plain http. A session lasts <strong>7 days</strong> and renews itse
 number stored in <code>ASTROLABE_DATA</code>, and signing out bumps that number, so every older cookie
 stops working. <strong>Changing <code>ADMIN_PASSWORD_HASH</code> does the same</strong> — every cookie issued under the
 old password dies the moment the new one is in place, which is exactly what you want after a
-laptop goes missing. (Upgrading Astrolabe also invalidates existing sessions once; you sign in
-again.)</p>
+laptop goes missing.</p>
 <p><strong>Login rate limit.</strong> Ten failed attempts per minute per IP address, plus a global ceiling across
 all addresses. An attempt is counted <em>before</em> the password is checked, so a thousand guesses
 fired at once still get only ten checked. And at most two passwords are being verified at any moment — each argon2id
@@ -89,8 +86,7 @@ note</strong> in the command palette. The change is a one-line edit of the front
 file is untouched. A <code>.tex</code> note carries the same flag in <a href="../latex/">its own comment block</a> and
 publishes the same way.</p>
 <p>On a phone or tablet, publishing asks first — from the phone layout&#39;s note sheet and from a
-long press on a note — because a thumb misses by a button&#39;s width and publishing is the one action that reaches
-strangers. A mouse and <code>Ctrl/Cmd Shift P</code> publish in one step.</p>
+long press on a note — because publishing is the one action that reaches strangers. A mouse and <code>Ctrl/Cmd Shift P</code> publish in one step.</p>
 <p>Everything a visitor can see follows from that flag. The tree, search, the graph, backlinks, the
 post list, the RSS feed and the live event stream are all recomputed for each request against
 the set of published notes. So an unpublished note is not merely hidden: to a visitor it is
@@ -120,10 +116,9 @@ brought in by the <a href="../import/">import wizard</a> carry no <code>publish:
 Obsidian Publish&#39;s out — so they are private until you publish them yourself.</p>
 <h2 id="preview-as-visitor"><a class="anchor" href="#preview-as-visitor">Preview as visitor</a></h2>
 <p>While signed in, you can see the site exactly as a visitor would, at any time: click the eye
-icon in the status bar, or run <strong>Preview as visitor</strong> from the command palette. This is not a
-client-side imitation. Every request is re-scoped on the server through the same code a
-stranger&#39;s request goes through (published-only tree, search, graph, event feed), so what you
-see is byte-for-byte what the public site serves. A slim gold banner marks the mode, and <strong>Exit
+icon in the status bar, or run <strong>Preview as visitor</strong> from the command palette. Every request is
+scoped on the server exactly as a stranger&#39;s is (published-only tree, search, graph, event feed),
+so what you see is what the public site serves. A slim gold banner marks the mode, and <strong>Exit
 preview</strong> returns you to the full app on the same note. A page reload always ends the preview.</p>
 <p>The note you are on stays on screen. If the public site hides it behind the <a href="../arabic-and-rtl/#language-filter">language
 filter</a> — an Arabic note previewed on an English site, say —

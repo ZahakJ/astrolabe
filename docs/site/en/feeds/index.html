@@ -57,7 +57,7 @@ https://a-blog.example/
 <li><strong>whenever you press Check now</strong> on the Feeds page.</li>
 </ul>
 <p>It asks politely: each request carries the feed&#39;s last <code>ETag</code> and <code>Last-Modified</code>, so an unchanged feed costs a &quot;not modified&quot; answer and no bytes. A feed that fails (a timeout, a 404, a page that names no feed) is shown with the reason, and asked again next time.</p>
-<p>What was fetched, and which articles you have read, is kept in the server&#39;s data directory (<code>feeds.db</code>), <strong>never in the vault</strong>. A hundred articles an hour from somebody else&#39;s blog would be noise in your notes and your git history, and &quot;I read this&quot; is a fact about you on this machine. It does not travel with the vault (see <a href="../backup-and-sync/">Backup &amp; sync</a>); deleting it loses the read marks and nothing else.</p>
+<p>What was fetched, and which articles you have read, is kept in the server&#39;s data directory (<code>feeds.db</code>), <strong>never in the vault</strong>. It does not travel with the vault (see <a href="../backup-and-sync/">Backup &amp; sync</a>); deleting it loses the read marks and nothing else.</p>
 <h2 id="reading"><a class="anchor" href="#reading">Reading</a></h2>
 <p>Open <strong>Feeds</strong> from the palette, from the feed icon beside the calendar at the top of the window, or at <code>/feeds</code>. Unread articles are listed by feed, newest first; pick one and it opens in the reader beside the list.</p>
 <p>The article is shown as the feed carried it, cleaned first: scripts, styles, forms and embedded frames are taken out, links open in a new tab, and images load only as you scroll to them, from their own site, sending no referrer. When the feed carries only a summary, the reader says so.</p>
@@ -84,7 +84,7 @@ tags: [reading, essays]
 <p>From then on it is a note like any other: link to it, tag it, and highlight in it — a <code>==highlight==</code> you make in a kept article is a card in <a href="../orbits/">Orbits</a>&#39; implicit deck, like a highlight anywhere in the vault.</p>
 <h2 id="on-the-phone-and-in-the-pocket"><a class="anchor" href="#on-the-phone-and-in-the-pocket">On the phone and in the pocket</a></h2>
 <p>On a phone, <strong>Feeds</strong> is a row under <strong>More</strong>. The list is one row per article under its feed&#39;s name; tap one to read it, and <strong>Keep</strong>, <strong>Mark read</strong> and <strong>Open the original</strong> are in its <strong>⋯</strong> sheet. Back returns to the list.</p>
-<p>A <a href="../mobile/">pocket vault</a> fetches no feeds: a round of feeds is a server asking other servers on a timer, and the read marks live in that server&#39;s data directory. The notes you kept are notes, and a pocket vault has them like any others.</p>
+<p>A <a href="../mobile/">pocket vault</a> fetches no feeds. The notes you kept reach it like any others.</p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/feeds.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/capture/"><span class="pager__kicker">Previous</span><span class="pager__title">Capture</span></a><a class="pager__link pager__link--next" href="../../en/import/"><span class="pager__kicker">Next</span><span class="pager__title">Import</span></a></nav>

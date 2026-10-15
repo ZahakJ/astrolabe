@@ -56,19 +56,18 @@ hardcoded English text in JSX <em>and</em> in code that builds DOM elements by h
 from the call sites only: the dictionary file is excluded from the usage scan, because a key
 whose English value happens to be its own name (<code>read: { en: &quot;read&quot; }</code>) would otherwise match
 inside its own definition and report itself as used.</p>
-<p>It reads the TypeScript syntax tree, not lines (<code>scripts/i18nScan.mjs</code>). The line scan it replaced
-could not see a single word, an attribute expression (<code>title={open ? &quot;Hide&quot; : &quot;Show&quot;}</code>), a
-template literal, JSX text split across lines, <code>aria-description</code> or <code>aria-valuetext</code>, or a string
-child in braces; <code>tests/i18nScan.test.ts</code> runs the retired scan beside the new one on each of those
-shapes and shows it missing them. A literal that is not copy — a honeypot field only bots see, a
+<p>It reads the TypeScript syntax tree, not lines (<code>scripts/i18nScan.mjs</code>), so it sees what a line
+scan cannot: a single word, an attribute expression (<code>title={open ? &quot;Hide&quot; : &quot;Show&quot;}</code>), a
+template literal, JSX text split across lines, <code>aria-description</code> or <code>aria-valuetext</code>, and a string
+child in braces; <code>tests/i18nScan.test.ts</code> covers each of those shapes. A literal that is not copy — a honeypot field only bots see, a
 folder&#39;s literal default name — says &quot;not copy&quot; on or just above its line, and says why. The gate
 also reads the Android shell, <code>mobile/src</code>, which keeps its own two-language table because its
 screens speak before the client loads: every value present in both languages, the Arabic in
 Arabic, the same parameters interpolated, every key used, and no English in its builders or in the
 error bodies its service worker answers with.</p>
 <h3 id="npm-run-check-names--the-names-gate"><a class="anchor" href="#npm-run-check-names--the-names-gate"><code>npm run check-names</code> — the names gate</a></h3>
-<p>Two features were renamed in 3.15 and again in 3.16: the daily routine is <strong>Sigils</strong>, and <strong>Orbits</strong> <!-- lineage -->
-is spaced repetition. A rename that leaves one toast, one hint or one heading saying the old word is
+<p>Two features were renamed: the daily routine is <strong>Sigils</strong>, and spaced repetition is <strong>Orbits</strong>. <!-- lineage -->
+A rename that leaves one toast, one hint or one heading saying the old word is
 worse than none, so this gate greps every surface a reader sees — every English and Arabic value in
 <code>client/i18n/en.ts</code>, <code>client/i18n/ar.ts</code> and <code>client/orbits/copy.ts</code>, every page of this manual in both languages, the
 README, the seed vault, the what&#39;s-new deck and the headings of <code>CONTRACTS.md</code> and every <code>contracts/*.md</code> — for the words
@@ -122,10 +121,9 @@ image, in English and Arabic, on lines long enough to wrap several times), drive
 over it — single, double and triple click, drag, shift-click, select-all — runs the whole matrix
 once in each shell direction, and reads back what the reader would actually copy
 (<code>window.getSelection()</code>), requiring every clicked glyph to take the caret <strong>within one
-character</strong>. Before the fix it reported misses of up to <strong>82 characters</strong>; after it, zero.</p>
-<p>It exists because that one question has broken four separate ways here (click position, hover
-previews, mod-click navigation, text selection), and the common cause is always a pixel the
-editor&#39;s height map cannot see: <strong>nothing inside <code>.cm-content</code> may carry a vertical CSS
+character</strong>.</p>
+<p>Click position, hover previews, mod-click navigation and text selection all rest on that mapping,
+and what breaks it is a pixel the editor&#39;s height map cannot see: <strong>nothing inside <code>.cm-content</code> may carry a vertical CSS
 margin.</strong> CodeMirror measures every line and block widget by its border box, so padding and
 borders are counted and margins are not — put the air on a wrapper&#39;s padding, or in a
 transparent border with <code>background-clip: padding-box</code>, never in a margin. The gate restores the
@@ -137,7 +135,7 @@ this one reads ink. For every Arabic line on the page it measures the glyphs the
 <code>measureText</code> in the line&#39;s own font, <code>scripts/ink-measure.mjs</code>) and fails when the ink is cut by an
 overflow edge that no scroll can reveal, comes within 2px of the rule its block draws (the h1
 hairline), or overlaps the next line by more than a pixel.</p>
-<p>It writes two notes carrying every shape that broke — a vocalised h1 long enough to wrap, thirty
+<p>It writes two notes carrying the shapes that clip marks — a vocalised h1 long enough to wrap, thirty
 headings so the outline has to scroll, callouts, a table, a link each way so the backlinks panel
 has a vocalised snippet — sets the instance to Arabic, and walks the editor, the reading view and
 the phone shell, and the blog as a signed-out reader at two widths, scrolling each through, in five
@@ -160,33 +158,30 @@ French line and nothing on the English one, the narrow no-break space before <co
 on a French line only, and a correction in vim&#39;s insert mode. Needs <code>CHROMIUM</code> and, against a
 password-protected instance, <code>ASTROLABE_PASSWORD</code>; deletes its fixture however the run ends.</p>
 <h3 id="npm-run-check-layouts--the-keyboard-layout-gate"><a class="anchor" href="#npm-run-check-layouts--the-keyboard-layout-gate"><code>npm run check-layouts</code> — the keyboard-layout gate</a></h3>
-<p><code>KeyboardEvent.key</code> is the character the <em>keyboard layout</em> produced. The shell used to compare
-it to Latin letters, so on an Arabic keyboard — where the key marked <code>P</code> reports <code>ح</code> — every
-global shortcut in the product was dead, in an app that ships a complete Arabic translation and
-mirrors its whole interface for it. No test caught it, because every test typed Latin letters.</p>
-<p>So this one does not. It drives the real app through the DevTools Protocol
+<p><code>KeyboardEvent.key</code> is the character the <em>keyboard layout</em> produced. On an Arabic keyboard the
+key marked <code>P</code> reports <code>ح</code>, so a shortcut matched against Latin letters never fires there, and a
+test that types Latin letters cannot see it.</p>
+<p>This gate drives the real app through the DevTools Protocol
 (<code>Input.dispatchKeyEvent</code>, the only way to set <code>key</code>, <code>code</code> and <code>keyCode</code> independently —
 Playwright&#39;s own keyboard always sends the US <code>key</code> for a <code>code</code>) with the keydowns that Arabic
 101, ЙЦУКЕН, Greek, Hebrew, AZERTY, Dvorak and US QWERTY actually send, and asserts that the
 palette, the graph, the shortcut sheet, zen, reading view, search, the pane toggles, bold and
 strikethrough all still fire — including <code>Ctrl/Cmd K</code> in the signed-out blog shell, which is an
-anonymous reader&#39;s only binding. <strong>72 checks; 46 of them passed before the fix.</strong></p>
-<p>Its second half keeps the fix from over-correcting: on Dvorak the key that types <code>b</code> is physical
+anonymous reader&#39;s only binding.</p>
+<p>Its second half keeps the layout match from over-reaching: on Dvorak the key that types <code>b</code> is physical
 <code>KeyN</code>, so <code>Ctrl Alt</code> on physical <code>KeyB</code> — which types <code>x</code> there — must do <strong>nothing</strong>. Layout
 first, physical position only as the fallback. <code>tests/shortcuts.test.ts</code> runs the same matrix
 over the resolver with no browser at all, and holds the cases a browser cannot deliver (Chromium
 flattens Arabic&#39;s two-code-point lam-alef to an empty <code>key</code>). A binding added to the shortcut
-sheet and not to that file is a binding untested on every non-Latin keyboard on earth.</p>
+sheet belongs in that file too, or it goes untested on every non-Latin keyboard.</p>
 <p><code>node scripts/shoot-layouts.mjs</code> is the companion picture: the <code>Ctrl/Cmd /</code> sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.</p>
 <h3 id="npm-run-check-windows-layout--the-window-gate"><a class="anchor" href="#npm-run-check-windows-layout--the-window-gate"><code>npm run check-windows-layout</code> — the window gate</a></h3>
-<p>Every other browser gate here looks at the app at one or two comfortable widths. The app is not
-used at comfortable widths. A Windows laptop panel is 1366 physical pixels, which is 1093 CSS px
-at 125% scaling and 904 at 150%; half of it under <code>Win+←</code> is 683. Four release rounds of &quot;resizing
-of panels and windows is clunky and weird on Windows&quot; were four separate defects that no gate
-could see, because each of them is a function of the viewport <strong>and</strong> the pointer together — and
-because the one machine none of us has is the one they all happened on.</p>
-<p>So this gate is a ladder rather than a screenshot. It drives the built app at <strong>1366, 1280, 1024,
+<p>Every other browser gate here looks at the app at one or two comfortable widths. Real windows are
+narrower: a Windows laptop panel is 1366 physical pixels, which is 1093 CSS px at 125% scaling and
+904 at 150%; half of it under <code>Win+←</code> is 683. A resize defect there depends on the viewport <strong>and</strong>
+the pointer together, so no single screenshot shows it.</p>
+<p>This gate is a ladder rather than a screenshot. It drives the built app at <strong>1366, 1280, 1024,
 900 and 720 CSS px</strong> — the desktop shell&#39;s own widths — each at <strong>device pixel ratio 1, 1.25 and
 1.5</strong>, in both directions,
 with the pane widths both empty and seeded to a pair the reader could actually drag them to
@@ -196,8 +191,7 @@ which is what <code>pointer_device_win.cc</code> itself hands the renderer — n
 which <code>setViewportSize</code> silently drops halfway down a ladder.</p>
 <p><strong>Which shell.</strong> A last rung, <code>whichShell</code>, walks each posture down the widths (700 and 600 too) and
 asserts the phone shell below 700 and on a slate at every width, and the desktop — unmoved —
-everywhere else. (Until 3.27.0 the ladder ran in the Classic phone layout, to measure its drawer
-cells; the drawer went with it, so every cell the desktop is mounted in is docked and says so.)</p>
+everywhere else. Every cell the desktop is mounted in is docked.</p>
 <p>In each cell it asserts that the sidebar is a real grid column (not auto-placed, not an overlay)
 wherever a pointer can hit a strip, that each docked pane has a grip whose 12px hit area is
 <strong>centred on the pane&#39;s own 1px divider</strong> — <code>elementFromPoint</code> at the seam must return the grip —
@@ -207,16 +201,16 @@ neither pane&#39;s close button runs off the window, and that the document never
 each resize and a 0.18s transition is over by then. They ask what the reader actually sees while a
 window is being dragged and while a pane is being folded: the note column still has its 320px
 <strong>one frame</strong> after a resize (at two ratios and in both directions), and the reader&#39;s own
-<code>Ctrl/Cmd Alt B</code> fold is still mid-flight 60ms in, at two widths. Each failed at some point on
-the same flag — the class that says &quot;this width is not the hand&#39;s doing&quot; — being up when it should
-have been down, or down when it should have been up.</p>
+<code>Ctrl/Cmd Alt B</code> fold is still mid-flight 60ms in, at two widths. All three hang on one flag, the
+class that says &quot;this width is not the hand&#39;s doing&quot;: up while a window is resized, down while the
+reader folds a pane.</p>
 <p>Needs a running instance, <code>CHROMIUM</code>, and the instance&#39;s password as the second argument.</p>
 <pre><code>npm run check-windows-layout -- http://127.0.0.1:8177 &lt;password&gt;
 </code></pre>
-<p><code>scratchpad/win/run.sh</code> is the other half of this and is not a gate: it launches the packaged
-Windows executable under Wine with <code>--remote-debugging-port=9333</code>, which is the only way to see
-the real Windows renderer&#39;s scrollbars, pointer events and media queries without a Windows
-machine. Run the same assertions over CDP there before a release that touches the shell.</p>
+<p>Without a Windows machine, the real Windows renderer&#39;s scrollbars, pointer events and media
+queries can still be checked: run the packaged Windows executable under Wine with
+<code>--remote-debugging-port=9333</code> and run the same assertions over CDP. Do this before a release that
+touches the shell.</p>
 <h3 id="npm-run-check-keymap--the-binding-ledger"><a class="anchor" href="#npm-run-check-keymap--the-binding-ledger"><code>npm run check-keymap</code> — the binding ledger</a></h3>
 <p>A colliding shortcut is the quietest bug this product can have. One handler answers the key, the
 other never sees the event, and neither knows the other exists — so it surfaces weeks later as
@@ -243,13 +237,12 @@ Every row with <code>keys</code> must be vouched for by a comment <code>// keyma
 answers it — the branch in <code>client/globalKeys.ts</code> (the window listener both shells mount), the CodeMirror keymap entry, or a
 component&#39;s own listener; a library keymap (history, search, fold) is marked where the editor
 installs it. A row with no mark fails (<code>NO HANDLER</code>), and so does a mark naming a label that is no
-longer a row. <code>Ctrl/Cmd Alt L</code> (turn a note over to its twin) sat on the sheet, the palette row and
-this manual with no handler at all until 3.26.1, because nothing tied a row to its code.</p>
+longer a row.</p>
 <h3 id="npm-run-check-excerpt--the-tag-in-prose-gate"><a class="anchor" href="#npm-run-check-excerpt--the-tag-in-prose-gate"><code>npm run check-excerpt</code> — the tag-in-prose gate</a></h3>
 <p><code>DESIGN.md</code>&#39;s hard rule is that a snippet shown outside the editor either STRIPS Markdown or
-RENDERS it. Removing a <code>#</code> and leaving the bare word standing in the sentence is neither, and it
-shipped: a post ending &quot;…it buys the reader a breath. #design #typography&quot; printed on the front
-page as &quot;…it buys the reader a breath. design typography&quot;. The three surfaces that flow through
+RENDERS it. Removing a <code>#</code> and leaving the bare word standing in the sentence is neither: a post
+ending &quot;…a breath. #design #typography&quot; must not reach the front page as &quot;…a breath. design
+typography&quot;. The three surfaces that flow through
 one stripper (<code>stripInlineMd</code>) are all walked from one fixture whose body <strong>ends</strong> in a tag line:
 the post excerpt (<code>/api/posts</code> — blog cards, RSS, <code>og:description</code>), the search snippet
 (<code>/api/search</code>), and the backlink context line (<code>/api/backlinks</code>). It also checks the other
@@ -292,7 +285,7 @@ inside a drawing, or is an Arabic sentence inside a drawing (prose belongs in a 
 before every release that adds a slide.</p>
 <h3 id="npm-run-check-presets--the-preset-catalog"><a class="anchor" href="#npm-run-check-presets--the-preset-catalog"><code>npm run check-presets</code> — the preset catalog</a></h3>
 <p>Unique slug ids, a bilingual name and blurb with real Arabic, a known family, at least one preset
-per family, and no preset naming a note in somebody&#39;s vault. It runs the shared <code>assertCatalog</code>
+per family, and no preset naming a note in a particular vault. It runs the shared <code>assertCatalog</code>
 rather than reimplementing it.</p>
 <h3 id="npm-run-check-docs--the-manual"><a class="anchor" href="#npm-run-check-docs--the-manual"><code>npm run check-docs</code> — the manual</a></h3>
 <p>This page and every other one, in both languages. The gate walks every link in <code>README.md</code>,
@@ -317,19 +310,17 @@ least one slide in <code>releaseNotes.ts</code>, and every slide&#39;s title and
 A patch inherits its minor&#39;s deck. A version bump without a deck fails here, which is the
 reminder.</p>
 <h3 id="npm-run-check-a11y--static-accessibility"><a class="anchor" href="#npm-run-check-a11y--static-accessibility"><code>npm run check-a11y</code> — static accessibility</a></h3>
-<p>Holds the line an audit drew, from the source alone: no <code>outline: none</code> without a replacement
+<p>From the source alone: no <code>outline: none</code> without a replacement
 focus ring in the same rule, an accessible name on every icon-only control, and the rest of the
 list at the top of the script. Like check-i18n, it exists for the class of regression that is
 invisible in review and invisible in a screenshot.</p>
 <h3 id="npm-run-check-cascade--no-phone-rule-is-undone-by-a-later-one"><a class="anchor" href="#npm-run-check-cascade--no-phone-rule-is-undone-by-a-later-one"><code>npm run check-cascade</code> — no phone rule is undone by a later one</a></h3>
 <p>No browser, no server. The phone and the touch shell are <code>@media</code> blocks written over the
-desktop&#39;s rules, and a block only wins when it comes <strong>after</strong> what it adjusts. Five times a phone
-rule shipped dead because a rule for the same selector and property sat later in the cascade with no
-condition at all: What&#39;s-new&#39;s position count (shown for a phone, then hidden for everyone eighteen
-lines further down), the library-roots editor&#39;s wrapping, three settings declarations (stated in
-app.css, restated for the desktop by settings.css, which loads later), the tag shelf&#39;s sort button
-and the unlinked mentions&#39; link buttons. Each file reads correctly on its own; the loser is simply never
-applied, so neither a diff nor a screenshot review can see it.</p>
+desktop&#39;s rules, and a block only wins when it comes <strong>after</strong> what it adjusts. A phone rule is
+dead when a rule for the same selector and property sits later in the cascade with no condition at
+all — for example a settings declaration restated for the desktop by <code>settings.css</code>, which loads
+after <code>app.css</code>. Each file reads correctly on its own; the loser is simply never applied, so
+neither a diff nor a screenshot review can see it.</p>
 <p>The gate reads every <code>client/styles/*.css</code> in the browser&#39;s order — the sheets
 <code>client/index.html</code> links, in link order, then every sheet a module imports (those always follow
 the linked ones, in an order the script cannot know, so two imported sheets are never compared).
@@ -352,13 +343,12 @@ spells a phone query out instead of importing the constant.</p>
 against a scratch server. It drives the phone shell (<code>client/phone/</code>) the way a reader&#39;s thumb
 does, in English <strong>and</strong> Arabic, on six shapes, and photographs every screen and sheet it passes.</p>
 <p><strong>What it does, as assertions.</strong> A tap on a folder pushes the folder; a tap on a note changes the
-URL and the title (the old gate was green the day a tree tap on a phone opened nothing); the
-note screen has no tab bar; the note sheet takes a history entry and the browser&#39;s back closes it
+URL and the title; the note screen has no tab bar; the note sheet takes a history entry and the browser&#39;s back closes it
 before it pops the note; Publish asks, and a cancelled publish publishes nothing; the mode icon
 flips the mode it names; back pops the note to its folder; a long press raises the row&#39;s action
 sheet and back closes it; Search is focused on arrival; a calendar day opens as a sheet; a deep
-link opens its note and back from it comes home to Today; no page errors. And, since 3.27.0, each
-of Round 2&#39;s screens is asked what a thumb asks of it: Orbits lists its decks, a deck opens, and
+link opens its note and back from it comes home to Today; no page errors. Each page is asked what
+a thumb asks of it: Orbits lists its decks, a deck opens, and
 <strong>Study starts the session full screen</strong> (on a tablet it takes both columns) and back lands on the
 deck; Sigils lists its sigils, a sigil opens and <strong>a tick answers at once and the server has it</strong>;
 Media lists its shelves and a tracker opens its card; <strong>a book wears one bar of its own</strong> (no
@@ -367,8 +357,7 @@ sheet and <strong>back closes it</strong> and keeps the book; the theme picker (
 history entry and back closes it; Settings is a list, a section is a screen, an edit raises the
 save bar, <strong>back with an edit asks</strong> and Cancel keeps the edit, and <strong>Save writes it</strong>; the tag
 picker opens over the note sheet and <strong>writes the tag into the note</strong>; and <strong>a folder comes back
-scrolled where it was left</strong>. Since 3.34, the report of a reader on a Galaxy Z Fold, asked first:
-<strong>two folders down, a reload keeps the folder and its ‹ lands on the parent</strong>, and so it does after
+scrolled where it was left</strong>. Folders: <strong>two folders down, a reload keeps the folder and its ‹ lands on the parent</strong>, and so it does after
 a trip to Today and back, with the OS back going up from there rather than home; the folder&#39;s top
 bar is its path as crumbs that end in its own name and go up (through &quot;…&quot; where they fold); the
 Notes tab starts on the Tree on two columns and on Folders on one; the Tree opens a folder in place,
@@ -391,8 +380,7 @@ are a Galaxy Z Fold&#39;s two screens as Chrome reports them at its DPR of 2.625
 344×882 and the inner screen opened at 690×829, both one column (two columns start at 1000px), the
 inner one with the note&#39;s tabs. <code>stylus</code> is 720×820 at DPR 1.5 with a pen — <code>availablePointerTypes=6, primaryPointerType=2, availableHoverTypes=3, primaryHoverType=1</code>, a blink setting on its own
 browser, because <code>hasTouch</code> makes Chromium report a coarse-only device whatever the pointer flags
-say; it is the posture that was once served the desktop shell, and it draws one column, the open
-Fold&#39;s width. <code>tablet</code> and <code>tablet-land</code> are a touch tablet at 820×1180 (one column, with tabs) and
+say; it draws one column, the open Fold&#39;s width. <code>tablet</code> and <code>tablet-land</code> are a touch tablet at 820×1180 (one column, with tabs) and
 1180×820, where the shell draws its rail, its list column and the note, and the note sheet slides
 over from the side. After the matrix, <strong>a note takes the page</strong>: at 344, 690, 829×690, 768, 820, 1024
 and 1180, in both languages, an open note is at least 90% of the viewport under 1000px; above it the
@@ -431,7 +419,7 @@ vault, which is the same vault on every machine.</p>
 regression could show). Best-of, not average: other work on the machine can only ever make a
 round slower, so the fastest round is the one closest to the cost of the work itself, and a gate
 built on the average is a gate that fails because somebody started a build.</p>
-<div class="table"><table><thead><tr><th>Budget</th><th>What it catches</th></tr></thead><tbody><tr><td><strong>first paint</strong> of the admin app</td><td>a static import that drags a lazy surface back into the shell&#39;s first request</td></tr><tr><td><strong>keypress → paint</strong> in the 3,000-line note, median and p95</td><td>a per-keystroke pass that has quietly become O(document)</td></tr><tr><td><strong>long-task time</strong> over a 40-keystroke burst</td><td>the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them, and the one the purge moved most</td></tr><tr><td><strong>reading render</strong> of that note</td><td>the same, for the one operation whose cost is the whole document at once</td></tr><tr><td><strong>the Sigils page</strong>, door → twelve cards drawn (budget 1,650 ms; 1,241 when set)</td><td>a card whose streak, heatmap or week went back to walking the whole log per render</td></tr><tr><td><strong>the Calendar page</strong>, door → the month drawn with its lines and daily-note dots (250 ms; 157 when set)</td><td>a day cell that reads the vault instead of the agenda the page computed once</td></tr><tr><td><strong>the phone&#39;s Tree</strong>, a tap → a folder of fifty open (100 ms; 70 when set), and the longest main-thread task over sixteen taps (none)</td><td>a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document</td></tr></tbody></table></div><p>Typing latency is the browser&#39;s own Event Timing — hardware keydown to the paint that shows the
+<div class="table"><table><thead><tr><th>Budget</th><th>What it catches</th></tr></thead><tbody><tr><td><strong>first paint</strong> of the admin app</td><td>a static import that drags a lazy surface back into the shell&#39;s first request</td></tr><tr><td><strong>keypress → paint</strong> in the 3,000-line note, median and p95</td><td>a per-keystroke pass that has quietly become O(document)</td></tr><tr><td><strong>long-task time</strong> over a 40-keystroke burst</td><td>the same failure, measured as work rather than as which side of a frame boundary it landed on — the sharpest of them</td></tr><tr><td><strong>reading render</strong> of that note</td><td>the same, for the one operation whose cost is the whole document at once</td></tr><tr><td><strong>the Sigils page</strong>, door → twelve cards drawn (budget 1,650 ms)</td><td>a card whose streak, heatmap or week went back to walking the whole log per render</td></tr><tr><td><strong>the Calendar page</strong>, door → the month drawn with its lines and daily-note dots (250 ms)</td><td>a day cell that reads the vault instead of the agenda the page computed once</td></tr><tr><td><strong>the phone&#39;s Tree</strong>, a tap → a folder of fifty open (100 ms), and the longest main-thread task over sixteen taps (none)</td><td>a tree that walks the vault instead of the rows that show, or measures its window after the rows are in the document</td></tr></tbody></table></div><p>Typing latency is the browser&#39;s own Event Timing — hardware keydown to the paint that shows the
 letter — not a frame counter, and the caret is put at line ~1,500 first, because typing at line
 1 of a long note measures a short note. Budgets move like <code>check-bundle</code>&#39;s: by the actual
 overage, with the cause written beside them, or <strong>down</strong> when a round earns it. <code>PERF_ROUNDS=1</code>
@@ -461,8 +449,7 @@ narrows it, <code>THEME=&lt;id&gt;</code> renders every house in one theme, <cod
 keyed by note path, so without <code>CACHE_MAX</code> an evening of skimming links would retain every note
 skimmed. A bound that is only asserted by a constant is a bound that silently stops being true.</p>
 <h3 id="npm-run-check-designer-nav--the-designers-navigation-and-alignment"><a class="anchor" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment"><code>npm run check-designer-nav</code> — the designer&#39;s navigation and alignment</a></h3>
-<p>A browser gate born of a bug that shipped past every other check, and only in Arabic:
-a preview scaled with a physical <code>transform-origin</code> inside a logical layout sits away from its
+<p>A browser gate for a failure only right-to-left shows: a preview scaled with a physical <code>transform-origin</code> inside a logical layout sits away from its
 box in <code>[dir=&quot;rtl&quot;]</code>. It measures every designer surface in both directions, and walks the
 designer&#39;s navigation.</p>
 <h3 id="scriptscheck-pdfsearchmjs--search-inside-a-book"><a class="anchor" href="#scriptscheck-pdfsearchmjs--search-inside-a-book"><code>scripts/check-pdfsearch.mjs</code> — search inside a book</a></h3>
@@ -475,116 +462,63 @@ the reader on that page with the word found.</p>
 <p>Both take an AppImage and boot it under Xvfb (a virtual screen) with an isolated config
 directory, from an empty temp directory (never from the checkout: an app started beside a <code>.env</code>
 links itself to that deployment), over an empty temp vault named by <code>ASTROLABE_VAULT</code>. The
-<strong>boot</strong> gate fails on an uncaught exception or a syntax error in the first 25 seconds — the
-3.1.0–3.3.4 builds crashed at load and nothing said so. The <strong>relaunch</strong> gate sets
-<code>ASTROLABE_SELFTEST=relaunch</code>, which makes the app restart itself four seconds after boot
-exactly the way an applied update does, and passes only when the first process is gone <em>and</em> a
-second one started from the same file is running — <code>app.relaunch()</code> looked like it worked and
-did not, because Electron&#39;s relauncher runs from the mounted image after it is unmounted. Every
+<strong>boot</strong> gate fails on an uncaught exception or a syntax error in the first 25 seconds. The
+<strong>relaunch</strong> gate sets <code>ASTROLABE_SELFTEST=relaunch</code>, which makes the app restart itself four
+seconds after boot exactly the way an applied update does, and passes only when the first process
+is gone <em>and</em> a second one started from the same file is running — a bare <code>app.relaunch()</code> is not
+enough from an AppImage, because Electron&#39;s relauncher runs from the mounted image after it is
+unmounted. Every
 AppImage release runs both before upload.</p>
 <h3 id="the-parity-tests--one-rule-every-side"><a class="anchor" href="#the-parity-tests--one-rule-every-side">The parity tests — one rule, every side</a></h3>
 <p>Some promises are not a script&#39;s but the suite&#39;s, because they hold between two pieces of code
 that must agree. <code>contracts/gates.md</code> lists every gate; these are the tests that hold one rule
-across the places that used to keep a copy each:</p>
-<div class="table"><table><thead><tr><th>Test</th><th>What it holds</th></tr></thead><tbody><tr><td><code>tests/pocketParity.test.ts</code></td><td>The phone&#39;s pocket index and the server&#39;s give the same answers on one fixture vault: link resolution, aliases, tags, banners, backlinks, search and the tree&#39;s order.</td></tr><tr><td><code>tests/headings.test.ts</code></td><td>One heading rule (<code>shared/headings.ts</code>): the editor&#39;s <code>[[Note#</code> offers, the outline, the anchor table and the reading view&#39;s ids are the same list, and a YAML <code># comment</code> is never a heading.</td></tr><tr><td><code>tests/byteRange.test.ts</code></td><td>One <code>Range:</code> parser (<code>shared/byteRange.ts</code>) behind both <code>/api/file</code> routes, and the same five requests answered the same way by each.</td></tr><tr><td><code>tests/fileTypes.test.ts</code></td><td>One served-type table, one kind table and one image test (<code>shared/attachments.ts</code>), one tree order (<code>shared/tree.ts</code>), one local day (<code>shared/dates.ts</code>) — and no stray copy of either of the last two in the code.</td></tr><tr><td><code>tests/breakpoints.test.ts</code></td><td>One phone width in every stylesheet (above).</td></tr><tr><td><code>tests/i18nScan.test.ts</code></td><td>The copy scan sees what the line scan could not (above).</td></tr><tr><td><code>tests/rtlGlyphs.test.ts</code></td><td>A Bidi_Mirrored glyph (‹ › « ») is mirrored once: whether the browser mirrors it depends on the font, so a glyph flipped by hand under RTL must be pinned left-to-right first.</td></tr><tr><td><code>tests/sourceText.test.ts</code></td><td>No source file carries a literal control character, so grep never calls it binary.</td></tr></tbody></table></div><h2 id="performance"><a class="anchor" href="#performance">Performance</a></h2>
-<p><em>What was measured, on what, what it cost before and after — and what is still slow and why.</em></p>
+across every place that applies it:</p>
+<div class="table"><table><thead><tr><th>Test</th><th>What it holds</th></tr></thead><tbody><tr><td><code>tests/pocketParity.test.ts</code></td><td>The phone&#39;s pocket index and the server&#39;s give the same answers on one fixture vault: link resolution, aliases, tags, banners, backlinks, search and the tree&#39;s order.</td></tr><tr><td><code>tests/headings.test.ts</code></td><td>One heading rule (<code>shared/headings.ts</code>): the editor&#39;s <code>[[Note#</code> offers, the outline, the anchor table and the reading view&#39;s ids are the same list, and a YAML <code># comment</code> is never a heading.</td></tr><tr><td><code>tests/byteRange.test.ts</code></td><td>One <code>Range:</code> parser (<code>shared/byteRange.ts</code>) behind both <code>/api/file</code> routes, and the same five requests answered the same way by each.</td></tr><tr><td><code>tests/fileTypes.test.ts</code></td><td>One served-type table, one kind table and one image test (<code>shared/attachments.ts</code>), one tree order (<code>shared/tree.ts</code>), one local day (<code>shared/dates.ts</code>) — and no stray copy of either of the last two in the code.</td></tr><tr><td><code>tests/breakpoints.test.ts</code></td><td>One phone width in every stylesheet (above).</td></tr><tr><td><code>tests/i18nScan.test.ts</code></td><td>The copy scan sees every shape of copy listed above.</td></tr><tr><td><code>tests/rtlGlyphs.test.ts</code></td><td>A Bidi_Mirrored glyph (‹ › « ») is mirrored once: whether the browser mirrors it depends on the font, so a glyph flipped by hand under RTL must be pinned left-to-right first.</td></tr><tr><td><code>tests/sourceText.test.ts</code></td><td>No source file carries a literal control character, so grep never calls it binary.</td></tr></tbody></table></div><h2 id="performance"><a class="anchor" href="#performance">Performance</a></h2>
+<p><em>The vault performance is measured on, and what is still slow and why.</em></p>
 <h3 id="the-fixture"><a class="anchor" href="#the-fixture">The fixture</a></h3>
-<p>Performance here is measured on a vault nobody has, because the two vaults that exist are both
-useless for it: the seed vault is a dozen notes, where everything is instant, and a real one is
-private and is never served. <code>scripts/perf-fixture.mjs</code> generates the third one from a fixed
-seed, so that a number taken today is comparable with one taken next month:</p>
+<p>The seed vault is a dozen notes, where everything is instant, and a real vault is private. So
+<code>scripts/perf-fixture.mjs</code> generates a third one from a fixed seed, so that a number taken today is
+comparable with one taken next month:</p>
 <ul>
 <li><strong>2,000 notes</strong> across 40 folders, each with six frontmatter properties, five <code>[[wikilinks]]</code>
 and three <code>#tags</code> — 110 distinct tags in a tree, and 2,000 nodes for the graph;</li>
-<li>a <strong>3,000-line note</strong> (291,000 characters, 54,000 words) — the editor&#39;s worst honest case;</li>
+<li>a <strong>3,000-line note</strong> (291,000 characters, 54,000 words) — the editor&#39;s worst realistic case;</li>
 <li>a note with <strong>fifty <code>![[embeds]]</code></strong>;</li>
 <li>a <strong>year of daily notes</strong>, so the Calendar page has a month with something in every cell;</li>
-<li>and, only when <code>ASTROLABE_SEED_VAULT</code> names a vault to take them from, a real <strong>665-page PDF</strong>
-and the real <strong>Sigils</strong> and <strong>Orbits</strong> notes — a reader and two shelves with something of their
-own to draw. It is opt-in and it says so in its own output, because a fixture that reached into
-a vault nobody named would be two bad things at once: an unauthenticated scratch server over
-somebody&#39;s private notes, and a budget only one machine could meet. It measurably would have
-been the second — the generated vault carries 110 tags everywhere and 121 on the laptop the
-purge was measured on.</li>
+<li>and, only when <code>ASTROLABE_SEED_VAULT</code> names a vault to take them from, a real PDF and the real
+<strong>Sigils</strong> and <strong>Orbits</strong> notes, so the reader and both shelves have something of their own to
+draw. It is opt-in and says so in its own output: a fixture must never put somebody&#39;s private
+notes behind an unauthenticated scratch server, and a budget must be one any machine can meet.</li>
 </ul>
-<p>The sweep below was run with that variable set, so its vault was 2,376 notes rather than the
-2,367 the generator alone writes. The nine notes are noted, not hidden; nothing in the table
-turns on them.</p>
-<p>Every number below was taken through the DevTools protocol against a scratch server over that
-vault, with the CPU throttled to <strong>a quarter speed</strong> — Lighthouse&#39;s mid-tier multiplier. The
-throttle is not pessimism: unthrottled on a loopback socket, every surface here lands inside one
-animation frame and there is no headroom left in which a regression could ever show. Typing is
-the browser&#39;s own Event Timing (hardware keydown → the paint that shows the letter); &quot;before&quot; is
-3.18.0 and &quot;after&quot; is the same tree with the purge applied, measured back to back on one machine.</p>
-<p>One caveat about every millisecond on this page: the machine this was measured on routinely
-carries a load average of 13–17, and throttled numbers move with it. Everything below was taken
-<strong>back to back on the same machine in the same state</strong>, which is what makes a before and an
-after comparable — but the absolute values are a busy laptop&#39;s, not a benchmark rig&#39;s. Where
-load matters to a budget, <code>scripts/check-perf.mjs</code> says so beside that budget.</p>
-<h3 id="the-numbers"><a class="anchor" href="#the-numbers">The numbers</a></h3>
-<div class="table"><table><thead><tr><th></th><th style="text-align:right">Before</th><th style="text-align:right">After</th></tr></thead><tbody><tr><td><strong>Typing, 3,000-line note</strong> — keypress → paint, median</td><td style="text-align:right">32 ms</td><td style="text-align:right"><strong>24 ms</strong></td></tr><tr><td>… p95</td><td style="text-align:right">48 ms</td><td style="text-align:right"><strong>32 ms</strong></td></tr><tr><td>… main-thread long-task time over a 40-key burst</td><td style="text-align:right">571 ms</td><td style="text-align:right"><strong>184 ms</strong></td></tr><tr><td><strong>Typing, 50-embed note</strong> — input handler, median</td><td style="text-align:right">18.0 ms</td><td style="text-align:right"><strong>6.5 ms</strong></td></tr><tr><td><strong>Reading view</strong>, 3,000-line note, render</td><td style="text-align:right">1,673 ms</td><td style="text-align:right"><strong>1,081 ms</strong></td></tr><tr><td><strong>Admin app</strong> — first paint</td><td style="text-align:right">1,008 ms</td><td style="text-align:right"><strong>936 ms</strong></td></tr><tr><td>… JavaScript in the first request (<code>check-bundle</code>)</td><td style="text-align:right">1,551.7 kB</td><td style="text-align:right"><strong>1,048.7 kB</strong></td></tr><tr><td>… time to interactive (end of the last long task)</td><td style="text-align:right">1,638 ms</td><td style="text-align:right">1,516 ms</td></tr><tr><td><strong>Public site</strong> — first paint</td><td style="text-align:right">608 ms</td><td style="text-align:right">548 ms</td></tr><tr><td><strong><code>GET /api/props</code></strong> (the properties shelf)</td><td style="text-align:right">28.3 ms</td><td style="text-align:right"><strong>0.9 ms</strong></td></tr><tr><td><strong><code>GET /api/tags</code></strong></td><td style="text-align:right">1.1 ms</td><td style="text-align:right">0.9 ms</td></tr><tr><td>Sigils page, open</td><td style="text-align:right">2,861 ms</td><td style="text-align:right">2,628 ms</td></tr><tr><td>Calendar page, open</td><td style="text-align:right">2,265 ms</td><td style="text-align:right">2,182 ms</td></tr></tbody></table></div><p>Unchanged, and measured so: the tree opening forty folders at once (974 → 963 ms), the tag
-shelf&#39;s tab flip (39 → 43 ms), search&#39;s per-keystroke paint (16 → 16 ms), a single note&#39;s save
-and re-index on the server (7.0 → 7.7 ms), a 300-file watcher burst reaching the index (353 →
-347 ms), and the indexer&#39;s cold start over 2,376 notes (1,276 → 1,264 ms). Heap after four
-hundred navigations over ten minutes stayed flat both times (−6.2 MB and +1.2 MB after a forced
-collection — a walk of the whole product retains nothing).</p>
-<p><strong>What the purge actually moved</strong>, in the order it was worth moving:</p>
-<ol>
-<li><strong>The whole vault was walked once per wikilink.</strong> <code>resolveLink</code> called <code>collectNotes</code>, which
-flattens the tree and sorts it with <code>localeCompare</code> — so rendering the 3,000-line note walked
-2,376 notes and re-sorted 2,000 of them 176 times, once per link. It is memoized on the tree
-object now (the store replaces it and never mutates it, so identity is an exact stamp), with
-a name table and a path table built once beside it, and the two loops in <code>resolveLink</code> became
-two map lookups. 6.8% of the reading render and 2.8% of every keystroke, gone.</li>
-<li><strong>Every note&#39;s annotations were placed 120 ms after every keystroke — including the notes
-with no annotations.</strong> The painter reduced the whole document to prose with a per-character
-offset map, folded it, and placed nothing: an empty list is truthy, so the guard above it
-never fired. The single largest cost of a keystroke, spent on nothing.</li>
-<li><strong>The status bar re-counted the note on every autosave.</strong> The bar draws the <em>live</em> count the
-buffer publishes; the fetched copy behind it was re-fetched and re-counted every 600 ms of
-typing to fill a field it never draws. It now counts only when there is no live count to
-draw, and the buffer&#39;s own count is memoized on the document.</li>
-<li><strong>The outline pane was in the admin&#39;s first request.</strong> It reaches the section surgery → the
-editor&#39;s sectioning extension → the live-preview decoration engine → the reading renderer →
-KaTeX. One <code>lazySurface</code> boundary took 503 kB and fifteen files out of the first paint.</li>
-<li><strong><code>Intl.DateTimeFormat</code> was constructed per date.</strong> Building a formatter loads ICU data;
-formatting with one is a lookup. The Sigils page draws one date per card plus one per heatmap
-cell, twice over where both calendars are shown — 5.9% of opening the page. Formatters are
-cached by their own arguments now, which is what <code>shared/calendar.ts</code> already did for Hijri.</li>
-<li><strong>The tag and property shelves were recomputed on every request.</strong> <code>props()</code> walks every note
-and splits, trims and case-folds every frontmatter value; nothing memoized it. It is now
-validated against a <code>shelfRevision()</code> the index moves — exactly the bargain
-<code>server/graphCache.ts</code> already strikes — which is the 28.3 ms → 0.9 ms above.</li>
-</ol>
+<p>Numbers are taken through the DevTools protocol against a scratch server over that vault, with the
+CPU throttled to <strong>a quarter speed</strong> (see <code>check-perf</code> above). Throttled numbers move with the
+machine&#39;s load, so measure on a quiet machine and compare only runs taken back to back.</p>
 <h3 id="where-the-time-still-goes"><a class="anchor" href="#where-the-time-still-goes">Where the time still goes</a></h3>
-<p>Measured, and left alone, because the honest answer is that the cost is real:</p>
+<p>Known costs, left as they are on purpose:</p>
 <ul>
 <li><strong>The tree holds 2,151 rows in the DOM</strong> with forty folders open, and opening all forty at once
-costs ~960 ms of React reconciliation and DOM creation. Scrolling it is a clean 16.7 ms frame,
-and nobody opens forty folders in one gesture — one folder is a fortieth of that number. The
-list is not virtualised: the rows carry drag-and-drop, a roving tab index, <code>aria-posinset</code> over
-the filtered set and a keyboard walk, and a virtualiser under all four would trade correctness
-for a number no reader produces. The per-folder cap (&quot;Show N more&quot;, 300 rows) is the existing
-answer and it still holds.</li>
-<li><strong>The graph&#39;s layout is 53% of its own time</strong>, in a hand-written Barnes-Hut force simulation
-over typed arrays, with another 17% in <code>drawImage</code>. That is a simulation doing its work, not a
-bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.</li>
-<li><strong>Search is 91% idle.</strong> The ~950 ms from the first keystroke to the first row is the 200 ms
-debounce plus the typing itself plus a 6 ms server round trip; each keystroke paints in 16 ms.
-The debounce is the feature.</li>
-<li><strong>The reading render&#39;s remaining 1,081 ms is mostly layout</strong> — six thousand nodes of prose
-being measured by the browser. The JavaScript above it is now a small fraction.</li>
-<li><strong>Opening a surface for the first time costs its chunk.</strong> The Sigils, Orbits and Calendar pages
-are ~2.2–2.6 s on a cold visit, of which two thirds is fetching and parsing the lazy chunk
-those pages exist inside. That is the split working, not failing.</li>
+costs about a second of React reconciliation and DOM creation. Scrolling it stays within a
+frame, and one folder is a fortieth of that cost. The list is not virtualised: the rows carry
+drag-and-drop, a roving tab index, <code>aria-posinset</code> over the filtered set and a keyboard walk,
+and a virtualiser under all four would trade correctness for a number no reader produces. The
+per-folder cap (&quot;Show N more&quot;, 300 rows) is the answer.</li>
+<li><strong>The graph&#39;s layout is about half of its own time</strong>, in a hand-written Barnes-Hut force
+simulation over typed arrays, with most of the rest in <code>drawImage</code>. That is a simulation doing
+its work, not a bug; 2,000 nodes settle in about eight seconds and the canvas is up in two.</li>
+<li><strong>Search is mostly idle.</strong> The time from the first keystroke to the first row is the 200 ms
+debounce plus the typing itself plus a short server round trip; each keystroke paints within a
+frame. The debounce is the feature.</li>
+<li><strong>The reading render is mostly layout</strong> — six thousand nodes of prose being measured by the
+browser. The JavaScript above it is a small fraction.</li>
+<li><strong>Opening a surface for the first time costs its chunk.</strong> On a cold visit, most of the time to
+open the Sigils, Orbits and Calendar pages is fetching and parsing the lazy chunk those pages
+live in. That is the split working, not failing.</li>
 </ul>
-<h3 id="offline-measured-properly"><a class="anchor" href="#offline-measured-properly">Offline, measured properly</a></h3>
-<p>The service worker installs and takes control in about <strong>250 ms</strong>, and a short read leaves ~88
-entries in its cache. With the <strong>server stopped</strong> — not with the browser&#39;s offline emulation,
-which intercepts a navigation above the worker and never lets it answer — a navigation to a note
-renders the cached shell in about <strong>5 s</strong> with the &quot;Reading this device&#39;s copy&quot; strip on it. A
-harness that uses the emulation instead reports <code>net::ERR_FAILED</code> and has proved nothing; see
-<a href="../offline/">Offline</a>.</p>
+<h3 id="testing-offline"><a class="anchor" href="#testing-offline">Testing offline</a></h3>
+<p>Stop the server to test offline reading. The browser&#39;s offline emulation intercepts a navigation
+above the service worker and never lets the worker answer, so a harness that uses it reports
+<code>net::ERR_FAILED</code> and has proved nothing. With the server stopped, a navigation to a note renders
+the cached shell with the &quot;Reading this device&#39;s copy&quot; strip on it; see <a href="../offline/">Offline</a>.</p>
 <h2 id="the-done-bar"><a class="anchor" href="#the-done-bar">The done bar</a></h2>
 <p>The sequence a change runs before it is called finished, in this order: <code>npm run typecheck</code> ·
 <code>node scripts/check-i18n.mjs</code> · <code>npm test</code> · <code>npm run build</code> and then <code>npm run check-bundle</code> · <code>npm run check-perf</code> (on a quiet machine) ·
@@ -629,7 +563,7 @@ patch that changes a rule should move the paragraph that stated it.</li>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/comparison/"><span class="pager__kicker">Previous</span><span class="pager__title">Compared with other tools</span></a><span></span></nav>
     <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
   </main>
-  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#where-the-code-lives">Where the code lives</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n--the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names--the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast--the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections--the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret--the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-ink--arabic-marks-measured">npm run check-ink — Arabic marks, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-french--the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts--the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-windows-layout--the-window-gate">npm run check-windows-layout — the window gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap--the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt--the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design--the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board--the-designers-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview--the-designers-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print--the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck--every-whats-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets--the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#npm-run-check-docs--the-manual">npm run check-docs — the manual</a><a class="toc__link toc__link--3" href="#npm-run-check-settings--the-settings-index">npm run check-settings — the settings index</a><a class="toc__link toc__link--3" href="#npm-run-check-whatsnew--the-deck">npm run check-whatsnew — the deck</a><a class="toc__link toc__link--3" href="#npm-run-check-a11y--static-accessibility">npm run check-a11y — static accessibility</a><a class="toc__link toc__link--3" href="#npm-run-check-cascade--no-phone-rule-is-undone-by-a-later-one">npm run check-cascade — no phone rule is undone by a later one</a><a class="toc__link toc__link--3" href="#npm-run-check-phone--the-phone-shell-driven">npm run check-phone — the phone shell, driven</a><a class="toc__link toc__link--3" href="#npm-run-check-shell-seam--two-shells-no-shared-chrome">npm run check-shell-seam — two shells, no shared chrome</a><a class="toc__link toc__link--3" href="#npm-run-check-bundle--what-each-audience-downloads">npm run check-bundle — what each audience downloads</a><a class="toc__link toc__link--3" href="#npm-run-check-perf--the-performance-gate">npm run check-perf — the performance gate</a><a class="toc__link toc__link--3" href="#npm-run-check-media--the-folder-chip">npm run check-media — the folder chip</a><a class="toc__link toc__link--3" href="#npm-run-check-books--the-reader">npm run check-books — the reader</a><a class="toc__link toc__link--3" href="#npm-run-check-icons--the-folder-marks">npm run check-icons — the folder marks</a><a class="toc__link toc__link--3" href="#npm-run-check-signatures--every-signature-house">npm run check-signatures — every signature house</a><a class="toc__link toc__link--3" href="#npm-run-check-hovercache--the-hover-card-cache">npm run check-hovercache — the hover-card cache</a><a class="toc__link toc__link--3" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment">npm run check-designer-nav — the designer&amp;#39;s navigation and alignment</a><a class="toc__link toc__link--3" href="#scriptscheck-pdfsearchmjs--search-inside-a-book">scripts/check-pdfsearch.mjs — search inside a book</a><a class="toc__link toc__link--3" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--3" href="#the-parity-tests--one-rule-every-side">The parity tests — one rule, every side</a><a class="toc__link toc__link--2" href="#performance">Performance</a><a class="toc__link toc__link--3" href="#the-fixture">The fixture</a><a class="toc__link toc__link--3" href="#the-numbers">The numbers</a><a class="toc__link toc__link--3" href="#where-the-time-still-goes">Where the time still goes</a><a class="toc__link toc__link--3" href="#offline-measured-properly">Offline, measured properly</a><a class="toc__link toc__link--2" href="#the-done-bar">The done bar</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#dev-mode">Dev mode</a><a class="toc__link toc__link--2" href="#the-scripts">The scripts</a><a class="toc__link toc__link--2" href="#where-the-code-lives">Where the code lives</a><a class="toc__link toc__link--2" href="#the-gates">The gates</a><a class="toc__link toc__link--3" href="#npm-run-check-i18n--the-dictionary">npm run check-i18n — the dictionary</a><a class="toc__link toc__link--3" href="#npm-run-check-names--the-names-gate">npm run check-names — the names gate</a><a class="toc__link toc__link--3" href="#npm-run-check-contrast--the-accessibility-gate">npm run check-contrast — the accessibility gate</a><a class="toc__link toc__link--3" href="#npm-run-check-sections--the-section-surgery-gate">npm run check-sections — the section-surgery gate</a><a class="toc__link toc__link--3" href="#npm-run-check-caret--the-click-to-caret-gate">npm run check-caret — the click-to-caret gate</a><a class="toc__link toc__link--3" href="#npm-run-check-ink--arabic-marks-measured">npm run check-ink — Arabic marks, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-french--the-auto-correction-gate">npm run check-french — the auto-correction gate</a><a class="toc__link toc__link--3" href="#npm-run-check-layouts--the-keyboard-layout-gate">npm run check-layouts — the keyboard-layout gate</a><a class="toc__link toc__link--3" href="#npm-run-check-windows-layout--the-window-gate">npm run check-windows-layout — the window gate</a><a class="toc__link toc__link--3" href="#npm-run-check-keymap--the-binding-ledger">npm run check-keymap — the binding ledger</a><a class="toc__link toc__link--3" href="#npm-run-check-excerpt--the-tag-in-prose-gate">npm run check-excerpt — the tag-in-prose gate</a><a class="toc__link toc__link--3" href="#npm-run-check-design--the-error-boundary">npm run check-design — the error boundary</a><a class="toc__link toc__link--3" href="#npm-run-check-board--the-designers-section-board">npm run check-board — the designer&amp;#39;s section board</a><a class="toc__link toc__link--3" href="#npm-run-check-preview--the-designers-live-preview">npm run check-preview — the designer&amp;#39;s live preview</a><a class="toc__link toc__link--3" href="#npm-run-check-print--the-printed-page">npm run check-print — the printed page</a><a class="toc__link toc__link--3" href="#npm-run-check-deck--every-whats-new-slide-measured">npm run check-deck — every what&amp;#39;s-new slide, measured</a><a class="toc__link toc__link--3" href="#npm-run-check-presets--the-preset-catalog">npm run check-presets — the preset catalog</a><a class="toc__link toc__link--3" href="#npm-run-check-docs--the-manual">npm run check-docs — the manual</a><a class="toc__link toc__link--3" href="#npm-run-check-settings--the-settings-index">npm run check-settings — the settings index</a><a class="toc__link toc__link--3" href="#npm-run-check-whatsnew--the-deck">npm run check-whatsnew — the deck</a><a class="toc__link toc__link--3" href="#npm-run-check-a11y--static-accessibility">npm run check-a11y — static accessibility</a><a class="toc__link toc__link--3" href="#npm-run-check-cascade--no-phone-rule-is-undone-by-a-later-one">npm run check-cascade — no phone rule is undone by a later one</a><a class="toc__link toc__link--3" href="#npm-run-check-phone--the-phone-shell-driven">npm run check-phone — the phone shell, driven</a><a class="toc__link toc__link--3" href="#npm-run-check-shell-seam--two-shells-no-shared-chrome">npm run check-shell-seam — two shells, no shared chrome</a><a class="toc__link toc__link--3" href="#npm-run-check-bundle--what-each-audience-downloads">npm run check-bundle — what each audience downloads</a><a class="toc__link toc__link--3" href="#npm-run-check-perf--the-performance-gate">npm run check-perf — the performance gate</a><a class="toc__link toc__link--3" href="#npm-run-check-media--the-folder-chip">npm run check-media — the folder chip</a><a class="toc__link toc__link--3" href="#npm-run-check-books--the-reader">npm run check-books — the reader</a><a class="toc__link toc__link--3" href="#npm-run-check-icons--the-folder-marks">npm run check-icons — the folder marks</a><a class="toc__link toc__link--3" href="#npm-run-check-signatures--every-signature-house">npm run check-signatures — every signature house</a><a class="toc__link toc__link--3" href="#npm-run-check-hovercache--the-hover-card-cache">npm run check-hovercache — the hover-card cache</a><a class="toc__link toc__link--3" href="#npm-run-check-designer-nav--the-designers-navigation-and-alignment">npm run check-designer-nav — the designer&amp;#39;s navigation and alignment</a><a class="toc__link toc__link--3" href="#scriptscheck-pdfsearchmjs--search-inside-a-book">scripts/check-pdfsearch.mjs — search inside a book</a><a class="toc__link toc__link--3" href="#scriptscheck-desktop-bootsh-and-check-desktop-relaunchsh--the-desktop-gates">scripts/check-desktop-boot.sh and check-desktop-relaunch.sh — the desktop gates</a><a class="toc__link toc__link--3" href="#the-parity-tests--one-rule-every-side">The parity tests — one rule, every side</a><a class="toc__link toc__link--2" href="#performance">Performance</a><a class="toc__link toc__link--3" href="#the-fixture">The fixture</a><a class="toc__link toc__link--3" href="#where-the-time-still-goes">Where the time still goes</a><a class="toc__link toc__link--3" href="#testing-offline">Testing offline</a><a class="toc__link toc__link--2" href="#the-done-bar">The done bar</a><a class="toc__link toc__link--2" href="#screenshot-harnesses">Screenshot harnesses</a><a class="toc__link toc__link--2" href="#contributing-a-change">Contributing a change</a></aside>
 </div>
 <script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
 <script src="../../docs.js" defer></script>

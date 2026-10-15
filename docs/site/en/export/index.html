@@ -32,10 +32,9 @@ you want <em>this folder</em> and only the pictures <em>it</em> uses; or every n
 a copy whose <code>[[wikilinks]]</code> still work in a tool that does not understand them; or one note as
 a single page you can email to someone who has no vault at all.</p>
 <p>Press <code>Ctrl/Cmd P</code> and run <strong>Export…</strong>, or right-click a folder in the tree and pick <strong>Export
-folder…</strong>. Both open the same small sheet. Export is for the admin only. A visitor to your site
-has the site; the archive never leaves your own server except into your own downloads folder.</p>
+folder…</strong>. Both open the same small sheet. Export is for the admin only.</p>
 <h2 id="the-archive"><a class="anchor" href="#the-archive">The archive</a></h2>
-<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>What to export</strong></td><td><strong>This note</strong>, <strong>A folder</strong> (the tree&#39;s right-click starts here, on that folder; <strong>Choose…</strong> picks another, or the vault root), <strong>A tag</strong> (every note carrying it — inline <code>#tag</code> or frontmatter <code>tags:</code>, nested tags included), or <strong>The whole vault</strong>.</td></tr><tr><td><strong>Attachments</strong></td><td><strong>Included</strong> takes every file the exported notes point at, by every route the reader honours: <code>![[embeds]]</code>, <code>![alt](Media/x.png)</code>, a note&#39;s <code>banner:</code>, a tracker&#39;s <code>cover:</code>, the svg beside an embedded drawing. Nothing else — an image no exported note uses stays behind. <strong>Notes only</strong> leaves them all out.</td></tr><tr><td><strong>The paths inside</strong></td><td>The vault&#39;s own: <code>Folder/Note.md</code>, <code>Media/cover.png</code>, whatever the scope. Unzip two exports into one folder and you have the vault&#39;s layout, not two competing ones. Arabic names survive — the archive marks every name as UTF-8.</td></tr><tr><td><strong>The bytes</strong></td><td>As on disk, unless you asked for standard links (below). Modification times are kept to the second. The archive is stored, not compressed: a vault&#39;s bulk is its pictures, which are already compressed, and the point of an export is fidelity.</td></tr><tr><td><strong>The line under the controls</strong></td><td>Before you download, the sheet asks the server what the same download would hold and prints it — <em>12 notes, 4 files · 3.2 MB</em> — so a refusal is a sentence here rather than a failed download in your browser&#39;s list.</td></tr><tr><td><strong>The cap</strong></td><td>Two gigabytes. Above it the sheet says so and asks you to export a folder or a tag at a time.</td></tr></tbody></table></div><p>The download is your browser&#39;s own — its progress bar, its downloads folder — and is named after
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>What to export</strong></td><td><strong>This note</strong>, <strong>A folder</strong> (the tree&#39;s right-click starts here, on that folder; <strong>Choose…</strong> picks another, or the vault root), <strong>A tag</strong> (every note carrying it — inline <code>#tag</code> or frontmatter <code>tags:</code>, nested tags included), or <strong>The whole vault</strong>.</td></tr><tr><td><strong>Attachments</strong></td><td><strong>Included</strong> takes every file the exported notes point at, by every route the reader honours: <code>![[embeds]]</code>, <code>![alt](Media/x.png)</code>, a note&#39;s <code>banner:</code>, a tracker&#39;s <code>cover:</code>, the svg beside an embedded drawing. Nothing else — an image no exported note uses stays behind. <strong>Notes only</strong> leaves them all out.</td></tr><tr><td><strong>The paths inside</strong></td><td>The vault&#39;s own: <code>Folder/Note.md</code>, <code>Media/cover.png</code>, whatever the scope. Unzip two exports into one folder and you have the vault&#39;s layout, not two competing ones. Arabic names survive — the archive marks every name as UTF-8.</td></tr><tr><td><strong>The bytes</strong></td><td>As on disk, unless you asked for standard links (below). Modification times are kept to the second. The archive is stored without compression.</td></tr><tr><td><strong>The line under the controls</strong></td><td>Before you download, the sheet asks the server what the same download would hold and prints it — <em>12 notes, 4 files · 3.2 MB</em> — so a refusal is a sentence here rather than a failed download in your browser&#39;s list.</td></tr><tr><td><strong>The cap</strong></td><td>Two gigabytes. Above it the sheet says so and asks you to export a folder or a tag at a time.</td></tr></tbody></table></div><p>The download is your browser&#39;s own — its progress bar, its downloads folder — and is named after
 what you exported and the day: <code>Ideas 2026-09-14.zip</code>, <code>Reading 2026-09-14.zip</code>,
 <code>vault 2026-09-14.zip</code>.</p>
 <h2 id="links-in-the-copies"><a class="anchor" href="#links-in-the-copies">Links in the copies</a></h2>
@@ -53,11 +52,10 @@ Headings are turned into anchors the same way the reading view does it, so <code
 becomes <code>#my-heading</code>. An embedded <em>note</em> (<code>![[Other]]</code>) has no standard equivalent and becomes
 a link to it.</li>
 </ul>
-<p>Two honest limits. <strong>Your vault is never touched</strong> — the rewrite happens in the archive and
-nowhere else. And <strong>a link to a note that is not in the export stays exactly as written</strong>: a
-<code>[Note](Note.md)</code> pointing at a file that is not there would be worse than the <code>[[Note]]</code> you
-wrote, which at least says what it was. Code blocks and inline code are left alone for the same
-reason: a wikilink inside them is text <em>about</em> wikilinks, not a link.</p>
+<p>Two limits. <strong>Your vault is never touched</strong>: the rewrite happens in the archive and nowhere
+else. And <strong>a link to a note that is not in the export stays exactly as written</strong>, as a
+<code>[[wikilink]]</code>. Code blocks and inline code are left alone: a wikilink inside them is text
+<em>about</em> wikilinks, not a link.</p>
 <h2 id="one-note-as-an-html-page"><a class="anchor" href="#one-note-as-an-html-page">One note as an HTML page</a></h2>
 <p>With <strong>This note</strong> selected, the sheet offers a second button, <strong>Export as HTML</strong>. It builds one
 <code>.html</code> file in your browser — nothing is asked of the server that reading the note does not
@@ -71,7 +69,7 @@ Open it anywhere and it looks like your Astrolabe.</li>
 <li><strong>Pictures inside the file.</strong> Every image the note shows is fetched and written into the page
 itself as text (a data URI), so the page is complete on its own. One that cannot be fetched — or one
 above 25 MB — keeps its address instead, as an absolute URL: it still shows next to a running
-instance, and is an honest broken image away from one. It is never silently dropped.</li>
+instance, and as a broken image anywhere else. It is never silently dropped.</li>
 <li><strong>Right-to-left when the note is.</strong> The page&#39;s direction follows the note&#39;s prose, or the
 <code>dir:</code> its frontmatter pins.</li>
 </ul>

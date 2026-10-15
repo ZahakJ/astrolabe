@@ -113,14 +113,11 @@ remote holds).</p>
 <p>To <em>stage</em> a file is to mark it for the next commit (the list of staged files is called the
 <em>index</em>). Two paths are taken out of the index on every single sync, before anything is
 committed, <strong>whatever your vault&#39;s own <code>.gitignore</code> says about them</strong>:</p>
-<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it would make every deletion permanent remote history, which is the opposite guarantee. The small <code>.astrolabe-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>ASTROLABE_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is done with <code>git rm --cached</code> against the index, not with an ignore rule, and the
-difference matters. An ignore rule is your file and your opinion: git&#39;s <em>last matching rule</em>
-wins, so a <code>.gitignore</code> that says <code>.trash/</code> and later <code>!.trash/</code> un-ignores it again, and an
-older build that only checked &quot;is there a <code>.trash/</code> line?&quot; saw nothing to do and pushed the
-trash. Removing it from the index asks no ignore file anything. It also <strong>repairs</strong> a vault an
-older build already pushed: the first sync after upgrading stages the removal, so the trash
-leaves the latest commit on your branch on its own. (It stays in the <em>history</em> — the older
-commits — see the note about rewriting below.)</p>
+<div class="table"><table><thead><tr><th>Path</th><th>Why</th></tr></thead><tbody><tr><td><code>.trash/</code></td><td>Deleting a note, an attachment or a folder <em>moves</em> it here, and the whole promise of that is that it is a <strong>local</strong> bin — something you dig through, restore from, or empty without consequence (the trash browser is the door: <code>Ctrl/Cmd P</code> → Open trash). Committing it would make every deletion permanent remote history, which is the opposite guarantee. The small <code>.astrolabe-trash.json</code> inside it — which records where each entry came from, so Restore is a restore — is local bookkeeping and is covered by the same rule.</td></tr><tr><td><code>ASTROLABE_DATA</code>, when it is inside the vault</td><td>It holds <code>settings.json</code>, the comments database and your git <strong>access token</strong>.</td></tr></tbody></table></div><p>This is done with <code>git rm --cached</code> against the index, not with an ignore rule, so no
+<code>.gitignore</code> can override it (git&#39;s <em>last matching rule</em> wins, and a later <code>!.trash/</code> would
+un-ignore the trash). If the trash was ever committed, the next sync stages its removal and it
+leaves the latest commit on your branch. (It stays in the <em>history</em> — the older commits — see
+the note about rewriting below.)</p>
 <p>Astrolabe still <em>adds</em> <code>.trash/</code> and <code>.obsidian/workspace*.json</code> to your <code>.gitignore</code> if they are
 missing, so that <code>git status</code> in a terminal is quiet too — but that is a courtesy, not the
 mechanism.</p>
@@ -140,8 +137,8 @@ default, and this repository&#39;s own <code>.gitignore</code> already excludes 
 and all four work on an existing repository with an existing <code>.gitignore</code>, which is the normal
 case, not a special one. <strong>Initialize repository</strong> creates <code>.gitignore</code>, or <em>appends</em> the
 data-directory rule to the one you already have. Every sync re-checks the rule with
-<code>git check-ignore</code> and <strong>refuses to run</strong> if the directory is still not ignored. Anything an
-older build already committed is dropped from the index (<code>git rm --cached</code>). And that same
+<code>git check-ignore</code> and <strong>refuses to run</strong> if the directory is still not ignored. Anything
+already committed is dropped from the index (<code>git rm --cached</code>). And that same
 removal runs again after <code>git add -A</code> on every sync, so the directory is out of the index no
 matter which ignore rule matched last. A sync never stages your credentials. One caveat: files
 already pushed stay in the remote&#39;s <em>history</em>. If that happened, rotate the token and rewrite
@@ -173,12 +170,11 @@ turning on Backup &amp; sync (step 3 above) is what starts keeping history in th
 <p>History is admin-only: a visitor cannot see that a published note went through eleven drafts,
 and cannot read any of them.</p>
 <h2 id="versions-before-and-beside-git"><a class="anchor" href="#versions-before-and-beside-git">Versions, before and beside git</a></h2>
-<p>A note&#39;s history used to begin the day the vault became a git repository, and not a minute
-before. Backup &amp; sync is off by default, and on most instances it stays off for weeks. In that
-time the editor&#39;s autosave — which writes about 600 ms after you stop typing — could turn a bad
-paste, or a select-all-and-type, into the only copy of the note within a second. The trash
-catches deletes; nothing caught overwrites.</p>
-<p>Now every save keeps a <strong>version</strong>. Before the vault writes a note, it puts the text the note
+<p>Git history begins only once the vault is a repository, and Backup &amp; sync is off by default.
+The editor&#39;s autosave writes about 600 ms after you stop typing, so a bad paste or a
+select-all-and-type becomes the saved note within a second. The trash catches deletes; versions
+catch overwrites.</p>
+<p>Every save keeps a <strong>version</strong>. Before the vault writes a note, it puts the text the note
 held a moment ago in the data directory, at
 <code>ASTROLABE_DATA/versions/&lt;sha1 of the note&#39;s path&gt;/&lt;time&gt;.md</code>, beside a small <code>index.json</code> that
 names the path in clear and lists each version: when it was replaced, when that text was last
@@ -235,13 +231,8 @@ no longer that one. Nothing is lost when this happens: your text stays in the ed
 pauses so the next keystroke cannot overwrite the newer version, and a strip above the note
 offers the two ways out — <strong>Keep my version</strong> (write yours over the newer file) or <strong>Use the
 disk version</strong> (take theirs, undoably).</p>
-<p>This needed saying out loud because of a real incident. A note was published from the browser;
-the desktop app had been open for days with that note loaded from <em>before</em> the publish. Each
-server watches the vault for its own connected clients, so the &quot;this file changed&quot; message never
-reached the sleeping desktop app — and a browser&#39;s event stream replays nothing it missed while
-the laptop was shut. The refusal above is what kept the note safe. What was missing was any way
-to find out <em>before</em> trying to save.</p>
-<p>So Astrolabe now <strong>re-checks when it wakes up</strong>: when its connection to the server comes back,
+<p>Each server tells only its own clients that a file changed, and a window that was asleep misses
+those messages. So Astrolabe also <strong>re-checks when it wakes up</strong>: when its connection to the server comes back,
 or when you return to a window that had been hidden, it asks the server for the current state of
 the notes you have open. Ones you have not touched reload silently; one with unsaved edits gets
 the same resolution strip immediately, while you are looking at it, instead of interrupting you
@@ -253,7 +244,7 @@ The refusal above is a check made at the moment of writing, not a reservation ma
 Backup &amp; sync is the one deliberate exception, for the reason in the next section: a commit is
 a whole-vault operation with a single git index, so two cannot run at once.</li>
 <li><strong>Scripts and older clients still work.</strong> A write with no modification time attached — <code>curl</code>,
-a script of your own, an older desktop build — behaves exactly as it always did: the last
+a script of your own, an older desktop build — is not checked: the last
 writer wins. The check is opt-in, and only clients that can handle a refusal ask for one.</li>
 </ul>
 <p>If you run two servers, point both at the same vault directory and give them <strong>different data
@@ -263,8 +254,7 @@ directories</strong> (<code>ASTROLABE_DATA</code>) — unless you also want them
 through a single <code>.git/index</code> that git guards with a lock of its own. Two Astrolabes committing
 the same folder in the same second do not produce two backups: one of them dies with <em>&quot;Another
 git process seems to be running in this repository&quot;</em>, possibly having already staged half the
-vault. That is not hypothetical. It is why sync used to be worth running only by hand on a
-machine that also ran the desktop app.</p>
+vault.</p>
 <p>So every pass that changes the repository — <strong>Sync now</strong>, <strong>Snapshot now</strong>, <strong>Initialize
 repository</strong>, and every scheduled tick — first takes a lock file at <code>.git/astrolabe-sync.lock</code>,
 and holds it until the pass is over. Only one such file can exist, so only one pass runs at a
@@ -286,8 +276,8 @@ records its process id and hostname, checked against the machine&#39;s own proce
 naming the dead holder. A pass that is merely slow is never mistaken for a dead one: a live
 holder refreshes the lock every minute while it works.</li>
 <li><strong>What it does not cover.</strong> The lock is advisory — it only stops programs that look for it —
-so your own <code>git commit</code> in a terminal is unaffected; that has always been git&#39;s own
-<code>index.lock</code> to arbitrate. And two <em>machines</em> sharing one vault over a network filesystem is
+so your own <code>git commit</code> in a terminal is unaffected; git&#39;s own
+<code>index.lock</code> arbitrates that. And two <em>machines</em> sharing one vault over a network filesystem is
 outside what this lock guarantees: whether one side or both can create the lock file at the
 same instant depends on the network filesystem, and the fifteen-minute age check is the only
 recovery there.</li>

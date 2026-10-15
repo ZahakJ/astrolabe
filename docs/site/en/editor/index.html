@@ -51,8 +51,7 @@ invisible joiner) stay inside the word rather than splitting it. Double-click a 
 and you get the whole object: a wikilink, a <code>#tag</code>, an inline <code>$math$</code> span, a code chip. Inside
 a code fence, double-click takes the whole name, <code>$jquery</code> and <code>snake_case_name</code> included.
 Triple-click takes the paragraph, dragging extends the selection by character, and shift-click
-extends from where you were. The gate <code>npm run check-caret</code> tests this in both the English and
-the Arabic shell.</li>
+extends from where you were.</li>
 <li><strong>Frontmatter properties card, editable in place.</strong> While your cursor is outside the frontmatter,
 it collapses to a neat key/value card with clickable tag pills, and you edit it right there: click
 a value to type over it, tick a checkbox for <code>true</code>/<code>false</code>, pick a date from a calendar, add and
@@ -134,7 +133,7 @@ used actions floats over every selection; the last row of the menu turns it off,
 palette turns it back on.</li>
 <li><strong>Read aloud.</strong> The selection menu&#39;s last row, or <code>Ctrl/Cmd Shift .</code> anywhere, reads the selected
 words aloud in the language they are written in — French, Japanese, Arabic, English — with voices
-that run on your own machine&#39;s processor; in the reading view a small chip under the selection
+that run on the server&#39;s processor; in the reading view a small chip under the selection
 does the same. See <a href="../read-aloud/">Read aloud</a>.</li>
 <li><strong>Furigana over kanji.</strong> <code>{漢字|かんじ}</code> renders as a ruby in every surface; select a word with a
 kanji in it, right-click → Insert → <strong>Furigana…</strong> for suggested readings, or run the automatic
@@ -310,8 +309,8 @@ external video</strong> on, a YouTube, Vimeo or PeerTube address on a line of it
 <code>![](https://youtube.com/watch?v=…)</code> — becomes that site&#39;s player in the reading view and on your
 site, and a card with the video&#39;s still in the editor (press play to load the player). The frame
 is the privacy-enhanced one (youtube-nocookie.com; Vimeo is asked not to track) and loads only as
-it scrolls near — but it is still another site&#39;s page inside yours, and it learns who is reading,
-which is why the switch is yours to turn. Off, the address stays a link.</li>
+it scrolls near — but it is still another site&#39;s page inside yours, and it learns who is reading.
+Off, the address stays a link.</li>
 <li><strong>Diagrams.</strong> A <code>```mermaid</code> fence renders as a diagram in the editor, the reading view and on
 your site — flowcharts, sequence diagrams, Gantt charts, everything Mermaid draws — in the
 colours of whatever theme is on screen, redrawn when the theme changes. The renderer arrives
@@ -329,7 +328,7 @@ foot puts the caret on the reference; in the reading view the ↩ does the same.
 to spare, each footnote is set in the outer margin beside the line that cites it — a small serif
 numeral, then the note — and the list at the foot is hidden. Two notes that would collide stack
 downward. Narrower than that, on the site, in a transclusion card and on paper, footnotes stay at
-the foot as before. A note without footnotes is untouched.</li>
+the foot. A note without footnotes is untouched.</li>
 <li><strong>Reading view.</strong> <code>Ctrl/Cmd E</code> flips the note to a fully rendered, read-only page (tables
 included). It resolves links exactly the way the editor does.</li>
 </ul>
@@ -395,11 +394,9 @@ not, so a replace you regret tomorrow is still recoverable through
 <li><strong>Matching is exact.</strong> Case and diacritics count, and the text is taken letter for letter
 unless you tick <em>Regular expression</em> (then it is a pattern in JavaScript&#39;s syntax, <code>$1</code> capture
 references included, applied one line at a time, so <code>^</code> and <code>$</code> mean the ends of a line). The search box above folds
-case and diacritics because finding is a question; replacing is a write, and a replace that
-stripped the harakat off a word you never typed would be destroying text you never saw.</li>
+case and diacritics; replace does not, so it never strips harakat you cannot see.</li>
 <li><strong>Frontmatter is never touched.</strong> Properties have their own editor, the one that changes only
-the spot you edited. A blind pattern run over the frontmatter is how other tools eat your quote
-styles.</li>
+the spot you edited.</li>
 </ul>
 <p>A file that changed on disk between the preview and the press is <strong>skipped and named</strong>, never
 overwritten.</p>
@@ -451,8 +448,7 @@ the interface is in a language you cannot read. See
 </li>
 <li><p><strong>Command palette.</strong> <code>Ctrl/Cmd P</code> searches notes and commands together. A command only appears
 when the query genuinely matches it, at most five of them, and they sit above or below your notes
-depending on which matched better. (Typing <code>sort</code> used to put <em>Design your site</em> over the whole
-vault.) Start the query with <code>@</code> or <code>#</code> to jump to a heading (or a LaTeX <code>\label</code>) inside the note
+depending on which matched better. Start the query with <code>@</code> or <code>#</code> to jump to a heading (or a LaTeX <code>\label</code>) inside the note
 you are reading instead.
 It is a <strong>quick switcher</strong> too. When no note is called what you typed, the list ends with
 <strong>Create “…”</strong>: Enter makes the note, in the folder of the note you are in (or exactly where a
@@ -485,8 +481,7 @@ as: timeline
 by: finished
 show: title, author
 </code></pre>
-<p>Every other line is the query. <code>prop:status=reading</code> is an operator that came with this feature:
-search by any frontmatter property. <code>prop:author</code> alone means &quot;has one&quot;, and <code>-prop:draft</code> excludes.
+<p>Every other line is the query. <code>prop:status=reading</code> searches by any frontmatter property. <code>prop:author</code> alone means &quot;has one&quot;, and <code>-prop:draft</code> excludes.
 The list is scoped to the reader (a visitor&#39;s fence on a published note lists published notes only)
 and it re-reads when the vault changes. Obsidian renders the same fence language, so the note stays
 readable there.</p>
@@ -513,17 +508,16 @@ that line; <strong>Link all</strong> does every row. This is how small notes get
 <p>Under the backlinks, <strong>Nearby</strong> lists the ten notes that read most like the open one — without a
 model, without the network, without anything leaving the vault. Two notes are near when they use
 the same <em>uncommon</em> words: every word is weighed by how rare it is across your vault (a word in
-every note weighs nothing, which is why no stop list is needed in any language), tags count as
-words somebody chose and weigh more, and the score is the overlap of the two notes&#39; weighted
-vocabularies (a TF-IDF cosine over the same folded terms the search index holds, so a pointed
-Arabic word and its plain spelling are one term). Each row shows the score as a percentage and the
+every note weighs nothing), tags weigh more, and the score is the overlap of the two notes&#39; weighted
+vocabularies, over the same folded terms the search index holds, so a pointed
+Arabic word and its plain spelling are one term. Each row shows the score as a percentage and the
 <strong>two terms that tie</strong> the notes, so you can see <em>why</em> before you open it; hover a row to preview,
 click to open. The list follows the vault: an edit to any note moves every score a little, and the
 panel re-reads after each change. It is an admin panel — a visitor&#39;s site never gets it, since
 the scoring reads every note&#39;s body — and its collapse is remembered per browser.</p>
 <p>Under Nearby, two more lists answer the same question by <em>meaning</em> rather than by shared words:
 <strong>Related</strong>, the notes about the same things (in either language), and <strong>Suggest links</strong>, passages
-elsewhere worth linking from the note you are writing. Both need Ollama on your machine; see
+elsewhere worth linking from the note you are writing. Both need Ollama; see
 <a href="../ask/#related">Ask the vault</a>.</p>
 <h2 id="block-references"><a class="anchor" href="#block-references">Block references</a></h2>
 <p>You can link to one paragraph or one list item, not only to a whole note. End it with a space and
@@ -571,7 +565,7 @@ on disk is never reordered.</p>
 <em>Full</em> let a table or a code-heavy note use the screen, and <em>Custom</em> takes a width of your own,
 in pixels (<code>900px</code>) or as a share of the pane (<code>70%</code>), applied as you type. The reading view follows
 the same choice.</p>
-<p><strong>What&#39;s new after an update</strong> (Settings → About, on by default). The first time this device
+<p><strong>What&#39;s new after an update</strong> (Settings → This device, on by default). The first time this device
 opens a new version of Astrolabe as an admin, a short deck walks through the release&#39;s features: one
 slide per feature, a live piece of the product on each (a sigil card you can tick, a warmth slider
 you can drag), next and back, <code>←</code>/<code>→</code> on the keyboard. It appears once per <em>minor</em> version: a
@@ -585,8 +579,8 @@ purpose, including every earlier release.</p>
 <h2 id="the-two-side-panes"><a class="anchor" href="#the-two-side-panes">The two side panes</a></h2>
 <p>Drag the inner edge of the notes sidebar or the side panel to resize it; the width is remembered per
 browser. Drag it off the window edge and it closes; the slim handle it leaves behind reopens it with
-a click or a drag inward. Double-click the edge to go back to the default width. Ctrl/Cmd+B and the
-collapse buttons still do what they did. The seams between split panes are grips too; see
+a click or a drag inward. Double-click the edge to go back to the default width. The collapse buttons
+work too. The seams between split panes are grips too; see
 <a href="../workspace/#panes">panes</a>.</p>
 <h2 id="folder-marks"><a class="anchor" href="#folder-marks">Folder marks</a></h2>
 <p>Right-click a folder and choose <strong>Folder icon</strong>: a search field (it already has focus, so type
@@ -619,8 +613,7 @@ Off (the default), it is yours alone, and a visitor never learns it exists. Six 
 leave, with a tooltip naming the shortcut). A mode that takes typing away also states itself <em>in the
 workspace</em>: a one-line strip above the note (&quot;Reading — this note is read-only&quot; plus an <strong>Edit</strong>
 button) and an accent rule down the column&#39;s leading edge.</p>
-<p>Vim gets the same treatment one level deeper, because &quot;vim is on&quot; is not the trap; &quot;the keys under
-your fingers are commands right now&quot; is. So the pill carries the live sub-mode (<strong>VIM │ NORMAL</strong>,
+<p>Vim gets the same treatment one level deeper: the pill carries the live sub-mode (<strong>VIM │ NORMAL</strong>,
 <strong>│ INSERT</strong>, <strong>│ VISUAL</strong>, <strong>│ REPLACE</strong>), vim&#39;s own <code>-- INSERT --</code> line and its <code>:</code> / <code>/</code> command
 line sit at the foot of the editor, and in zen, where the status bar has zero height, the strip says
 it instead. <a href="../publishing/#preview-as-visitor">Visitor preview</a> is a strip at the top that pushes
@@ -628,8 +621,7 @@ the page down, so it never covers the layout you opened it to judge, and it neve
 <p><strong>Relative line numbers.</strong> With vim keys on, the margin counts lines outward from the caret, so
 <code>7j</code> and <code>3k</code> can be read straight off it, and the caret&#39;s own line shows its absolute number
 (vim&#39;s <code>number relativenumber</code>). The column sits against the text, not at the window&#39;s edge, and it
-follows every caret move, not only edits. It is the only line numbering the editor has: a prose
-editor wants no column of numbers beside a paragraph, so the gutter exists only while vim is on, and
+follows every caret move, not only edits. It is the only line numbering the editor has: the gutter exists only while vim is on, and
 <strong>Settings → This device → Relative line numbers</strong> (under Vim keys, on by default) turns it off for
 readers who navigate by search.</p>
 </article>

@@ -29,15 +29,14 @@
 <p><code>Ctrl/Cmd Alt P</code> prints the open note, or exports it to PDF, through your browser&#39;s own print
 dialog. The command palette carries the same row, <strong>Print / Export PDF…</strong>, and on the desktop app it
 is <strong>File → Print / Export PDF…</strong>.</p>
-<p>It is <code>Alt P</code> and not the <code>Ctrl/Cmd P</code> every other application prints with, because in Astrolabe
-that chord has been the command palette since the first release, and <code>Ctrl/Cmd Shift P</code> publishes
-the open note. Neither of those was worth moving. On the <strong>public blog</strong> nothing is swallowed at
-all: a visitor&#39;s own <code>Ctrl/Cmd P</code> is the browser&#39;s, and it produces the same pages.</p>
+<p>It is <code>Alt P</code> rather than <code>Ctrl/Cmd P</code> because in Astrolabe <code>Ctrl/Cmd P</code> is the command palette
+and <code>Ctrl/Cmd Shift P</code> publishes the open note. On the <strong>public blog</strong> nothing is swallowed: a
+visitor&#39;s own <code>Ctrl/Cmd P</code> is the browser&#39;s, and it produces the same pages.</p>
 <h2 id="what-comes-out"><a class="anchor" href="#what-comes-out">What comes out</a></h2>
-<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>The document, whole</strong></td><td>Not the screen. The app prints a freshly rendered copy of the note, so what lands on the page is the whole note — including the part you had scrolled past, and the body of a callout you had folded shut.</td></tr><tr><td><strong>Paper colours</strong></td><td>A light, parchment-cast palette, whatever theme you read in. Your theme is a property of the screen; the page is white because paper is.</td></tr><tr><td><strong>A real serif page</strong></td><td>11pt serif (the kind of type printed books use) on A4 or Letter with 20/25mm margins. The page is the full width of the text — there is no narrower column drawn inside it.</td></tr><tr><td><strong>Sensible breaks</strong></td><td>A heading never ends a page on its own, callouts, tables, figures, tracker cards and equations do not split, paragraphs keep three lines on either side of a break, and a table that runs over repeats its header row.</td></tr><tr><td><strong>Footnotes at the end</strong>, under a hairline, as they are on screen.</td><td></td></tr><tr><td><strong>Links that make sense on paper</strong></td><td>An external link prints its address beside it. A <code>[[wikilink]]</code> prints as the words you wrote — it points into a vault the person holding the sheet does not have.</td></tr><tr><td><strong>A right-to-left page for a right-to-left note</strong></td><td>Margins, list markers, quotation bars and table column order all mirror, from an English instance as readily as from an Arabic one.</td></tr></tbody></table></div><h2 id="what-a-pdf-gets-that-most-exports-do-not"><a class="anchor" href="#what-a-pdf-gets-that-most-exports-do-not">What a PDF gets that most exports do not</a></h2>
+<div class="table"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td><strong>The document, whole</strong></td><td>Not the screen. The app prints a freshly rendered copy of the note, so what lands on the page is the whole note — including the part you had scrolled past, and the body of a callout you had folded shut.</td></tr><tr><td><strong>Paper colours</strong></td><td>A light, parchment-cast palette, whatever theme you read in.</td></tr><tr><td><strong>A real serif page</strong></td><td>11pt serif (the kind of type printed books use) on A4 or Letter with 20/25mm margins. The page is the full width of the text — there is no narrower column drawn inside it.</td></tr><tr><td><strong>Sensible breaks</strong></td><td>A heading never ends a page on its own, callouts, tables, figures, tracker cards and equations do not split, paragraphs keep three lines on either side of a break, and a table that runs over repeats its header row.</td></tr><tr><td><strong>Footnotes at the end</strong>, under a hairline, as they are on screen.</td><td></td></tr><tr><td><strong>Links that make sense on paper</strong></td><td>An external link prints its address beside it. A <code>[[wikilink]]</code> prints as the words you wrote — it points into a vault the person holding the sheet does not have.</td></tr><tr><td><strong>A right-to-left page for a right-to-left note</strong></td><td>Margins, list markers, quotation bars and table column order all mirror, from an English instance as readily as from an Arabic one.</td></tr></tbody></table></div><h2 id="what-a-pdf-gets-that-most-exports-do-not"><a class="anchor" href="#what-a-pdf-gets-that-most-exports-do-not">What a PDF gets that most exports do not</a></h2>
 <ul>
 <li><strong>Bookmarks.</strong> Your headings become the PDF&#39;s outline, the contents a reader shows in its side
-panel, because the reading view writes real headings (<code>h1</code>–<code>h6</code>) and every one carries an id.</li>
+panel.</li>
 <li><strong>Working internal links.</strong> A footnote number, its return arrow, and a <code>[[#Heading]]</code> link
 inside the same note are real links to places on the page, which Chrome turns into links inside
 the PDF. Click
@@ -49,24 +48,17 @@ want the callout tints, the highlight marks and the banner in the file, leave <s
 graphics</strong> on; Astrolabe only asks the printer for ink where the colour is carrying meaning.</p>
 <h2 id="what-is-left-off"><a class="anchor" href="#what-is-left-off">What is left off</a></h2>
 <p>The frontmatter properties card. It is the note&#39;s filing card, not its content (<code>id</code>, <code>publish</code> and
-the <code>dg-*</code> keys say nothing to somebody holding paper), and the published blog has always hidden it
-for the same reason. A <code>banner:</code> picture is the note&#39;s own and stays, clamped to 55mm so it does not
+the <code>dg-*</code> keys say nothing to somebody holding paper). A <code>banner:</code> picture is the note&#39;s own and stays, clamped to 55mm so it does not
 eat a third of the first sheet. A blog article&#39;s <em>generated</em> gradient banner, the placeholder for a
 picture the author never chose, is dropped.</p>
 <h2 id="printing-a-published-article"><a class="anchor" href="#printing-a-published-article">Printing a published article</a></h2>
 <p>Nothing to configure. Open the piece on your site and print it: the masthead, the topic nav, the
 share row, previous/next, related writings, the comment thread and the back-to-top button all step
-aside, and the title, byline, hero and body print exactly as the reader sees them. That page needs
-no JavaScript from us to do it, which is the point: the person printing your writing is usually not
-you.</p>
+aside, and the title, byline, hero and body print exactly as the reader sees them. It works with
+JavaScript off, so any visitor can print your writing.</p>
 <h2 id="if-nothing-seems-to-print"><a class="anchor" href="#if-nothing-seems-to-print">If nothing seems to print</a></h2>
 <p>Printing from the graph view or the empty state prints one line saying so, because there is no
 document on screen to print. Open a note first.</p>
-<hr>
-<p><em>Under the hood: <code>client/reading/print.css</code> is the whole <code>@media print</code> answer, and
-<code>client/print.ts</code> decides which document is on the paper. <code>npm run check-print</code>
-(<a href="../development/">Development</a>) is the gate that keeps both honest — a print stylesheet is the one
-surface no screenshot ever shows.</em></p>
 </article>
     <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/printing.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
     <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/workspace/"><span class="pager__kicker">Previous</span><span class="pager__title">Panes, tabs &amp; windows</span></a><a class="pager__link pager__link--next" href="../../en/keymap/"><span class="pager__kicker">Next</span><span class="pager__title">Keymap</span></a></nav>

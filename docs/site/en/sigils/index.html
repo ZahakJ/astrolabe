@@ -42,11 +42,8 @@ do) and the <strong>log</strong> (what you did). There is no hidden database. Ti
 your file; edit the line by hand and the card follows. Open the same vault in Obsidian and both
 parts are plain, readable code blocks that say exactly what they say here.</p>
 <blockquote>
-<p>This feature has changed its name twice: it was <em>routines</em> until 3.14 (blocks <code>```routine</code> and <!-- lineage -->
-<code>```routine-log</code>) and *orbits* in 3.15 (<code>```orbit</code> and <code>```orbit-log</code>), before 3.16 gave <!-- lineage -->
-the word Orbits to <a href="../orbits/">spaced repetition</a>, where a card comes back around. Older notes
-written with <code>routine</code> or <code>orbit</code> still work, in every note you already have — nothing needs <!-- lineage -->
-renaming. New sigils are written with the names below.</p>
+<p>Blocks written as <code>```routine</code> and <code>```routine-log</code>, or <code>```orbit</code> and <code>```orbit-log</code>, <!-- lineage -->
+are read as sigils too; nothing needs renaming. New sigils are written with the names below.</p>
 </blockquote>
 <h2 id="what-a-sigil-looks-like-in-the-note"><a class="anchor" href="#what-a-sigil-looks-like-in-the-note">What a sigil looks like in the note</a></h2>
 <p>Two blocks. The first is the plan; Astrolabe writes the second, the log, right under it the first
@@ -147,9 +144,8 @@ Astrolabe walks forward from today over the days you allowed, filling each one w
 budget runs out. A step longer than the budget still gets taken — it simply takes the day, and if
 you do not finish it, tomorrow as well.</p>
 <p>So a missed day changes nothing in your file. There is no schedule to fall behind. The projection
-is recomputed and <strong>everything after the cursor shifts by a day</strong>, which is what you would have done
-by hand and what you would have got wrong: if a step takes two days instead of one, the schedule
-moves it to the second day, and everything after it with it.</p>
+is recomputed and <strong>everything after the cursor shifts by a day</strong>: if a step takes two days instead
+of one, the schedule moves it to the second day, and everything after it with it.</p>
 <p>The card says where you are and where that is heading — <strong>Step 12 of 96 · Genki I — lesson 1 · on
 course to finish 14 March</strong> — and then lists today&#39;s steps with a box each. Tick one and the cursor
 moves on. <strong>Skip</strong> moves it on without you: the step is given up, not owed. There is no <em>tomorrow →</em>
@@ -172,15 +168,15 @@ words</strong> — so the first time you tick or skip a step, Astrolabe writes i
 </code></pre>
 <p>From that moment the step has a name of its own and you may rewrite it as freely as you like. The
 tag is written in the same edit as the tick, so it is one undo step, and every other byte of the
-plan — your comments, your blank lines, your indentation — is left where it was. For a step you
-have never answered there is nothing to lose, which is why nothing is stamped until you answer one.</p>
+plan — your comments, your blank lines, your indentation — is left where it was. Nothing is stamped
+on a step until you answer it.</p>
 <p><strong>On the calendar.</strong> <a href="../calendar/">The Calendar page</a> draws a course twice over. Days already gone
 carry the steps you actually did, solid, on the days you did them. Days ahead carry what the
 projection puts there, faint and in italic, because it has not happened and will move if you fall
 behind. And under the month, <strong>the months ahead</strong> as unit bands — <em>Japanese · Genki I — lesson 3 ·
 27 Oct – 9 Nov</em> — so you can see a curriculum laid out in weeks without reading forty cells. All
 three come out of one projection, so they can never disagree.</p>
-<p>The streak, the week and the twelve-week grid work as they always did. A day is complete when its
+<p>The streak, the week and the twelve-week grid work as on any sigil. A day is complete when its
 budget&#39;s worth of steps is done — or, with no budget, when its one step is.</p>
 <h2 id="the-card"><a class="anchor" href="#the-card">The card</a></h2>
 <p>The plan turns into a card wherever the note is shown — in the editor, in reading view, on your
@@ -212,8 +208,8 @@ Hatched cells are rest days; today is ringed.</li>
 </ul>
 <p>The log block renders as a table of the days, newest first: the date with its status dot, what was
 done, each field, the note.</p>
-<p>Reading view and the public site show the card without its controls. A visitor cannot write to
-your note, and a box that cannot be ticked would be a box that lies.</p>
+<p>Reading view and the public site show the card without its controls: a visitor cannot write to
+your note.</p>
 <h2 id="the-sigils-page"><a class="anchor" href="#the-sigils-page">The Sigils page</a></h2>
 <p>The seal button in the status bar (a ring with a small mark inside, beside the settings gear;
 admins only — or <strong>Open Sigils</strong> in the command palette, or <strong>Sigils</strong> in the phone&#39;s ⋯ menu)
@@ -224,9 +220,8 @@ the shelf.</p>
 <p>A tick on this page goes to the note the sigil lives in, by the very same edit the editor would
 make, so the page and the editor never disagree about what the log says. The page re-reads on
 every change to the vault, so a box ticked in the editor shows here at once.</p>
-<p><strong>The month is elsewhere.</strong> A small month sat under this heading until 3.17. The month has a page
-of its own now — <a href="../calendar/">the Calendar</a>, at <code>/calendar</code>, through the calendar leaf in the top
-bar — where a cell has room to name the sigils you kept that day, the cards you graded and the
+<p><strong>The month is elsewhere</strong>, on a page of its own — <a href="../calendar/">the Calendar</a>, at <code>/calendar</code>,
+through the calendar leaf in the top bar — where a cell has room to name the sigils you kept that day, the cards you graded and the
 pages you read. This page is the morning&#39;s checklist, and it keeps its width for the checklists.</p>
 <p><strong>Recently read.</strong> When nothing is due — no sigil asks anything of today, or everything asked has
 been ticked, and no cards wait in Orbits — the page opens instead with a row of the notes you were last in, the palette&#39;s own
@@ -253,14 +248,12 @@ store kept when <a href="../backup-and-sync/">note history</a> is on, by the las
 <p>Every row is a door to its note. The arrows walk to earlier weeks. <strong>Print</strong> puts the sheet on paper
 (so does the browser&#39;s own print while the review is in the focused pane), without the bar.</p>
 <p>Nothing on the page is stored. It is computed, each time it opens, from your notes, your trackers&#39;
-<code>sessions:</code> lines, your sigil logs and the Orbits log this browser keeps — a review that kept a
-ledger of its own would be a second truth about the sigils, and the note is the only one.</p>
+<code>sessions:</code> lines, your sigil logs and the Orbits log this browser keeps.</p>
 <h2 id="new-sigil--the-form"><a class="anchor" href="#new-sigil--the-form">New sigil — the form</a></h2>
 <p><strong>New sigil</strong> opens a sheet in four parts.</p>
 <p><strong>Start from.</strong> A row of templates. <strong>Custom</strong> starts from nothing and lets you choose each part
 yourself. The built-in ones fill the sheet in: <em>Exercise</em> (a whole week of morning walks and evening
-full-body sessions), <em>Habits</em>, <em>Mindfulness</em> (a morning sit, a walk without the phone, an evening sit, with minutes and a calm rating
-congregation), <em>Sleep</em> (hours, quality, bedtime), <em>Water</em>, <em>Mood</em> (mood, energy, gratitude),
+full-body sessions), <em>Habits</em>, <em>Mindfulness</em> (a morning sit, a walk without the phone, an evening sit, with minutes and a calm rating), <em>Sleep</em> (hours, quality, bedtime), <em>Water</em>, <em>Mood</em> (mood, energy, gratitude),
 <em>Reading</em>, <em>Study</em> — each in your site&#39;s language. Under them, <strong>Your templates</strong>: any note in the
 <a href="../templates-and-notes/">templates folder</a> that carries a <code>```sigil</code> block. A template only
 fills the sheet in; everything on it stays yours to change.</p>
@@ -279,10 +272,8 @@ own fields</strong>. Tick only what you actually want to write down.</li>
 <pre><code>Sigils/Daily exercise.md
 </code></pre>
 <p>holding the name as frontmatter, the plan block and an empty log block. On an Arabic site the
-folder is <code>سجل</code>; a vault that already has a <code>Routines/</code> or <code>روتين/</code> folder from before 3.15 keeps <!-- lineage -->
-filing there. A vault from 3.15 that filed under <code>Orbits/</code> does not: that folder is where the study
-decks live now, so the next sigil starts a <code>Sigils/</code> folder, and the ones already in <code>Orbits/</code> go
-on working where they are. A name that already has a note is refused rather than overwritten.
+folder is <code>سجل</code>; a vault that already has a <code>Routines/</code> or <code>روتين/</code> folder keeps filing there. <!-- lineage -->
+A sigil in any other folder keeps working where it is. A name that already has a note is refused rather than overwritten.
 Editing from the page rewrites <strong>only the plan block</strong> — the log under it and any prose around it
 stay exactly as they were, byte for byte. <strong>Save as template</strong> writes the same note into the
 templates folder instead, so a sigil you drew up once can seed the next.</p>

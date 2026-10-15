@@ -66,11 +66,11 @@
 </ul>
 <p>Attachments move into the attachments folder; <code>![[embeds]]</code> are renamed where a file had to take a new name, and Markdown image and link paths are re-resolved from the note&#39;s new folder to the file&#39;s new home, the same way a folder drag in the sidebar rewrites them.</p>
 <h2 id="import-and-undo"><a class="anchor" href="#import-and-undo">Import, and undo</a></h2>
-<p><strong>Import</strong> writes the plan and shows its progress as it goes. When it is done, <strong>Undo the import</strong> moves every file it wrote to the trash and removes the folders it made, <strong>unless you have edited a file since</strong>: an edited file is left where it is and listed, because an undo that threw away your later work would be worse than no undo. The trash keeps what the undo moved (see <a href="../backup-and-sync/">Backup &amp; sync</a> for the trash and note history).</p>
+<p><strong>Import</strong> writes the plan and shows its progress as it goes. When it is done, <strong>Undo the import</strong> moves every file it wrote to the trash and removes the folders it made, <strong>unless you have edited a file since</strong>: an edited file is left where it is and listed. The trash keeps what the undo moved (see <a href="../backup-and-sync/">Backup &amp; sync</a> for the trash and note history).</p>
 <p>The undo is kept by the server for a day, and a restart forgets it; after that, the trash and your git history are the way back.</p>
 <p><strong>Nothing imported is published.</strong> No note arrives with <code>publish: true</code>; every imported note is private until you publish it yourself (see <a href="../publishing/">Publishing &amp; access</a>).</p>
 <h2 id="limits"><a class="anchor" href="#limits">Limits</a></h2>
-<p>An export may be up to 256 MB, hold up to 20,000 files, and unpack to at most a gigabyte. A <a href="../mobile/">pocket vault</a> does not import: unpacking and converting an export is work for a server&#39;s own disk. Import on the instance, and the pocket has the notes on its next sync.</p>
+<p>An export may be up to 256 MB, hold up to 20,000 files, and unpack to at most a gigabyte. A <a href="../mobile/">pocket vault</a> does not import. Import on the instance, and the pocket has the notes on its next sync.</p>
 <h2 id="related"><a class="anchor" href="#related">Related</a></h2>
 <ul>
 <li><a href="../capture/">Capture</a> — the clipper, whose converter the Evernote and Notion HTML imports use</li>
