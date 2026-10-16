@@ -66,12 +66,32 @@ editor, autosave pauses, and a strip above the note offers **Keep my version** o
 version** (undoably). The full story, including the two-server case, is in
 [Backup & sync](backup-and-sync.md#two-servers-one-vault).
 
+## The side panel
+
+The panel beside the note holds everything about the open note, one section under another:
+**Outline**, **Footnotes**, **Local graph**, **History**, **Backlinks**, **Nearby**, **Related**,
+**Suggest links**, **Unlinked mentions** and **On this day**, each shown only when it has something
+to say. Every section has a header with a count; click it, or press Enter on it, to fold or open
+the section.
+
+- **Nothing hides behind a list.** The sections share the panel's height and each one scrolls inside
+  itself, so every header stays in view however long the backlinks get. Short sections take only
+  the room they need, and the long lists split the rest.
+- **Drag the line between two sections** to give one more room and the other less. Double-click the
+  line to share the height evenly again. With the keyboard, focus the line and use the arrow keys.
+- **Drag a header** up or down to move its section, or press Alt+↑ / Alt+↓ on it.
+- The two arrows at the top fold every section, or open them all.
+
+The order, the folds, the heights and the panel's width are kept in this browser for this vault.
+On a phone the same sections are the **This note** page of the note's sheet, each folding under its
+own header.
+
 ## The local graph
 
 The right panel carries a **local graph**: the open note in the centre with the notes it links to
 and the notes that link to it, moving as if hung on springs you can grab. Drag and let go and it keeps moving a little, click to
-open, double-click to open in place. It stays live as you write and link, collapses with the panel's
-other sections, and remembers whether it was open. The whole-vault graph is
+open, double-click to open in place. It stays live as you write and link, and it is the one section
+that grows with whatever height you give it. The whole-vault graph is
 [the graph view](editor.md#navigating).
 
 ## The command palette, beyond notes
@@ -225,9 +245,10 @@ rides on top of the keyboard with `[[`, `#`, a task box, bold, a heading, undo, 
 puts the keyboard away. Tap anywhere in the note's text and the caret lands there and the row comes up; tap a
 **#tag** and its page opens instead: every note that carries it.
 
-**The note's sheet.** ⋯ opens a sheet with four parts: **Outline** (tap a heading to jump there; the
-sheet gets out of the way), **Backlinks**, **Properties** (tap one to change it, or add one) and
-**Actions** — publish, the other face of a bilingual pair, share, move, history and delete. Publishing
+**The note's sheet.** ⋯ opens a sheet with three parts: **This note** (the side panel's sections,
+each folding under its header: the outline, where a tapped heading jumps there and the sheet gets
+out of the way, the backlinks, the local graph, history, Nearby and the rest), **Properties** (tap
+one to change it, or add one) and **Actions** — publish, the other face of a bilingual pair, share, move, history and delete. Publishing
 asks first: it is the one action that reaches other people. The properties of a note show above it
 as a single line, *3 properties ›*, which opens the same sheet. **Tags** in Properties opens the tag
 picker: every tag in the vault, the note's own ticked, a field that finds one or adds a new one — a

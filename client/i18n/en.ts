@@ -393,6 +393,15 @@ const en = {
   // keystroke, in both languages.
   paneNotes: "Notes sidebar",
   paneOutline: "Outline & backlinks",
+  // The side panel's stack (client/components/PanelStack.tsx): the bar over
+  // it, each section's fold, and the splitters between sections.
+  panelThisNote: "This note",
+  sectionShow: "Show {name}",
+  sectionHide: "Hide {name}",
+  sectionResize: "Resize {name}",
+  sectionResizeHint: "Drag to resize · double-click to share the height evenly",
+  sectionCollapseAll: "Fold every section",
+  sectionExpandAll: "Open every section",
   // The keystrokes moved: Ctrl/Cmd+B is BOLD in the editor now (every reader
   // arrives with that binding), so the two pane toggles took one more
   // modifier and kept their shape — same key, Shift picks the second pane.
@@ -447,8 +456,6 @@ const en = {
   // panel a different shape on every note.
   noHeadings: "No headings yet.",
   localGraph: "Local graph",
-  showLocalGraph: "Show local graph",
-  hideLocalGraph: "Hide local graph",
   // F6: this used to be "No links yet — link to or from this note with [[…]]",
   // sitting two inches above the backlinks list's "No backlinks yet — link to
   // this note with [[…]]". Two near-identical sentences in one panel teach
@@ -463,8 +470,6 @@ const en = {
   // repository Backup & sync has been writing all along. The section starts
   // collapsed and asks git nothing until it is opened — see HistoryPanel.tsx.
   history: "History",
-  showHistory: "Show history",
-  hideHistory: "Hide history",
   historyAria: "Revisions of this note",
   historyLoading: "Reading history…",
   historyFailed: "Could not read this note's history.",
@@ -2997,7 +3002,6 @@ const en = {
   chooseImageFile: "Choose an image file",
   chooseFontFile: "Choose a font file",
   statusBarAria: "Status bar",
-  backlinksPanelAria: "Note context",
   siteNav: "Site sections",
   articleContent: "Article",
 
@@ -3511,8 +3515,6 @@ const en = {
   panelWorkNotes: "Notes of this work",
   panelWorkNoNotes: "No notes in its folder yet.",
   panelOpenTracker: "Open the tracker",
-  showTrackerPanel: "Show the tracker",
-  hideTrackerPanel: "Hide the tracker",
   mediaFormFolderHint: "A folder of your own notes on this work. The card counts them and opens the folder.",
   mediaFormFolderChoose: "Choose a folder…",
   mediaFormFolderNone: "No folder linked",
@@ -3960,8 +3962,6 @@ const en = {
   cmdRandomNoteHint: "Somewhere you have not looked in a while",
   // ── On this day (client/components/OnThisDayPanel.tsx) ──
   onThisDay: "On this day",
-  showOnThisDay: "Show on this day",
-  hideOnThisDay: "Hide on this day",
   onThisDayAgo: "{n}y ago",
   onThisDayWrote: "you wrote “{title}”",
   onThisDayFinished: "you finished “{title}”",
@@ -3981,8 +3981,6 @@ const en = {
   routinesTasksHead: "Due by today",
   // ── Unlinked mentions (client/components/MentionsPanel.tsx) ──
   unlinkedMentions: "Unlinked mentions",
-  showMentions: "Show unlinked mentions",
-  hideMentions: "Hide unlinked mentions",
   mentionLink: "Link",
   mentionLinkTitle: "Wrap these words as a link to this note",
   mentionLinkAll: "Link all",
@@ -4007,8 +4005,6 @@ const en = {
   timelineUndated: "Undated",
   // ── Footnotes (client/components/FootnotesPanel.tsx, reading/sidenotes.ts) ──
   footnotes: "Footnotes",
-  showFootnotes: "Show footnotes",
-  hideFootnotes: "Hide footnotes",
   footnoteGoRef: "Go to the reference in the text",
   footnoteGoDef: "Go to the definition",
   footnoteUndefined: "(no definition yet)",
@@ -4233,14 +4229,10 @@ const en = {
   searchMeaningPending: "Still reading {n} passages; results may be missing some.",
   related: "Related",
   relatedHint: "Notes about the same things as this one, by meaning, from the model on this machine.",
-  showRelated: "Show related notes",
-  hideRelated: "Hide related notes",
   relatedNone: "Nothing related yet.",
   relatedAllNearby: "Everything related is already under Nearby.",
   suggestLinks: "Suggest links",
   suggestHint: "Passages elsewhere that read like this note and are not linked with it.",
-  showSuggest: "Show suggested links",
-  hideSuggest: "Hide suggested links",
   suggestNone: "No unlinked passages nearby.",
   suggestLinked: "Inserted {link}",
   suggestLinkFailed: "Could not insert the link",
@@ -4293,8 +4285,6 @@ const en = {
   askReindex: "Read again now",
   // Nearby: related notes by shared vocabulary, in the outline pane.
   nearby: "Nearby",
-  showNearby: "Show nearby notes",
-  hideNearby: "Hide nearby notes",
   nearbyHint: "Notes that use the same uncommon words and tags as this one, with the two that tie them. No model, nothing leaves the vault.",
   nearbyNone: "Nothing nearby yet.",
   nearbyTerms: "Tied by {terms}",

@@ -579,7 +579,7 @@ try {
       await settle();
       const sheet = await state();
       check(sheet.sheets.includes("note") && sheet.depth === onNote.depth + 1, tag("the note sheet takes a history entry"), JSON.stringify(sheet));
-      await measure("sheet-outline", ".s-ph-sheet");
+      await measure("sheet-note", ".s-ph-sheet");
       // THE OUTLINE AND THE BACKLINKS ARE MEASURED WITH ROWS IN THEM. The
       // 3.23 audit found the outline's backlink rows 35px tall because the
       // gate never opened that pane; a 44px check over an empty pane passes
@@ -592,17 +592,35 @@ try {
         const headings = String(noteBody.content ?? "").split("\n").filter((l) => /^ {0,3}#{1,6}[ \t]+\S/.test(l)).length;
         return { headings, backlinks: Array.isArray(links) ? links.length : 0 };
       }, note);
+      // The note page is the side panel's stack: the outline and the
+      // backlinks are two of its sections, both open by default, and every
+      // section folds under a header.
       if (facts.headings > 0) {
-        const rows = await page.locator(".s-ph-sheet .s-ph-toc button, .s-ph-sheet .s-ph-toc a").count();
-        check(rows > 0, tag("the outline pane lists the note's headings as targets"), `${facts.headings} headings, ${rows} rows`);
+        const rows = await page.locator(".s-ph-sheet .s-ph-toc .s-toc__item").count();
+        check(rows > 0, tag("the outline section lists the note's headings as targets"), `${facts.headings} headings, ${rows} rows`);
       }
-      for (const seg of ["backlinks", "properties", "actions"]) {
+      if (facts.backlinks > 0) {
+        const rows = await page.locator(".s-ph-sheet .s-ph-backlink__line").count();
+        check(rows > 0, tag("the backlinks section lists its lines as targets"), `${facts.backlinks} backlinks, ${rows} rows`);
+      }
+      {
+        const heads = page.locator('.s-ph-sheet .s-psec__toggle[aria-expanded]');
+        const count = await heads.count();
+        check(count >= 2, tag("the note page's sections each have a folding header"), `${count} headers`);
+        const outlineHead = page.locator('.s-ph-sheet [data-section="outline"] .s-psec__toggle');
+        if ((await outlineHead.count()) > 0) {
+          await press(outlineHead);
+          await settle(350);
+          const folded = await outlineHead.first().getAttribute("aria-expanded");
+          const rows = await page.locator(".s-ph-sheet .s-ph-toc .s-toc__item").count();
+          check(folded === "false" && rows === 0, tag("a section header folds its section"), `aria-expanded=${folded}, ${rows} rows`);
+          await press(outlineHead);
+          await settle(350);
+        }
+      }
+      for (const seg of ["properties", "actions"]) {
         await press(page.locator(`.s-ph-seg__btn[data-segment="${seg}"]`));
         await settle(450);
-        if (seg === "backlinks" && facts.backlinks > 0) {
-          const rows = await page.locator(".s-ph-sheet .s-ph-backlink__line").count();
-          check(rows > 0, tag("the backlinks pane lists its lines as targets"), `${facts.backlinks} backlinks, ${rows} rows`);
-        }
         await measure(`sheet-${seg}`, ".s-ph-sheet");
       }
       // PUBLISH ASKS — and "no" leaves it private.

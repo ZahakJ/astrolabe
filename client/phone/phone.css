@@ -1104,6 +1104,30 @@
   padding: 0 8px;
 }
 
+/* THE NOTE PAGE'S SECTIONS: the desktop panel's stack, flowing. The sheet
+   is the one scroller; each section folds under a header a thumb can hit,
+   and every control inside is a 44px target like the rest of the shell. */
+.s-ph-stack {
+  width: auto;
+}
+
+/* The wrappers carry the phone's gutter; the section inside them does not
+   add the panel's again. */
+.s-ph-stack .s-ph-toc,
+.s-ph-stack .s-ph-history {
+  padding: 0;
+}
+
+.s-ph-stack .s-psec > .s-psec__head {
+  height: 48px;
+  padding-inline: 8px;
+}
+
+.s-ph-stack button {
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+
 .s-ph-backlink {
   border-bottom: 1px solid var(--border);
 }

@@ -6,7 +6,7 @@
 
 ---
 
-![The live-preview editor](screenshots/hero-editor.png)
+![The live-preview editor](screenshots/editor-panel.png)
 
 A quick word on the words. Your **vault** is the folder of files Astrolabe opens; every note in it
 is a plain text file. **Markdown** is the light markup those files use: `**bold**`, `# Heading`,

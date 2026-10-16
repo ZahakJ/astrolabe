@@ -65,7 +65,7 @@ const listed = await api(`/api/versions?path=${note}.md`);
 console.log("[versions]", listed.status, JSON.stringify(listed.body?.versions?.map((v) => [v.reason, v.size])));
 
 // Open the History section (collapsed by default) and read the timeline.
-await page.locator(".s-history__toggle").click();
+await page.locator("[data-section=\"history\"] .s-psec__toggle").click();
 await page.waitForSelector(".s-histrow--version", { timeout: 10_000 });
 const rows = await page.locator(".s-histrow").allTextContents();
 console.log("[rows]", JSON.stringify(rows));

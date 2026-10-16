@@ -84,8 +84,7 @@ import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { confirmModal, isConfirmOpen } from "./Confirm.tsx";
 import "../styles/history.css";
-
-const COLLAPSED_KEY = "astrolabe.history-collapsed";
+import { PanelSection, usePanelSection } from "./PanelStack.tsx";
 
 /** "Open the history section." Rung by any surface that wants to SHOW this
  *  list rather than merely reveal the pane around it — the tour's history
@@ -93,16 +92,6 @@ const COLLAPSED_KEY = "astrolabe.history-collapsed";
  *  outside this chunk dispatch the literal rather than import it, so pressing
  *  a button never fetches the revision reader. */
 export const HISTORY_REVEAL_EVENT = "astrolabe:history-reveal";
-
-/** Collapsed BY DEFAULT — see decision 1 above. An unreadable stored value is
- *  the default, not a crash: private windows throw on the accessor. */
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) !== "false";
-  } catch {
-    return true;
-  }
-}
 
 /** One row of the timeline: a commit, or a version the write path kept.
  *  `when` is the moment the row is SORTED and PRINTED by — a commit's author
@@ -423,7 +412,10 @@ export default function HistoryPanel() {
   const locale = useStore((s) => s.blogLocale);
   useStore((s) => s.language); // re-render the chrome strings on a language change
   const openSettingsAt = useStore((s) => s.openSettingsAt);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  // Folded by default (decision 1 above); the fold is the stack's
+  // (client/sidePanel.ts). Outside a stack — the phone's history page — it
+  // is simply open.
+  const { collapsed, setCollapsed } = usePanelSection("history");
   const [feed, setFeed] = useState<Feed>({ state: "idle" });
   const [viewing, setViewing] = useState<Entry | null>(null);
 
@@ -474,34 +466,14 @@ export default function HistoryPanel() {
     };
   }, [active, load]);
 
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // storage unavailable — the collapse still works for this session
-    }
-  };
-
-  // "Show me the history" from somewhere that is not this header. The section
-  // is collapsed by default and its collapse is component-local (decision 1
-  // above), so there is no store flag another surface could set — and a
-  // caller that wrote `COLLAPSED_KEY` itself would be a second copy of this
-  // component's state living in another file. A bus instead: the tour's
-  // history folio rings it, and anything else that grows a door can too.
+  // "Show me the history" from somewhere that is not this header. A bus,
+  // so a caller never needs this chunk: the tour's history folio rings it,
+  // and anything else that grows a door can too.
   useEffect(() => {
-    const onReveal = () => {
-      setCollapsed(false);
-      try {
-        localStorage.setItem(COLLAPSED_KEY, "false");
-      } catch {
-        // storage unavailable — it still opens for this session
-      }
-    };
+    const onReveal = () => setCollapsed(false);
     window.addEventListener(HISTORY_REVEAL_EVENT, onReveal);
     return () => window.removeEventListener(HISTORY_REVEAL_EVENT, onReveal);
-  }, []);
+  });
 
   // A visitor has no history at all (every route 401s or 404s to one), and an
   // admin PREVIEWING as a visitor must see exactly what a stranger would.
@@ -514,31 +486,13 @@ export default function HistoryPanel() {
   const versionsOff = ready?.versions?.enabled === false;
 
   return (
-    <section className="s-history">
-      <header className="s-panel-header s-history__header">
-        <button
-          type="button"
-          className="s-history__toggle"
-          onClick={toggle}
-          aria-expanded={!collapsed}
-          title={t(collapsed ? "showHistory" : "hideHistory")}
-        >
-          <span
-            className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`}
-            aria-hidden="true"
-          >
-            ›
-          </span>
-          <span className="s-panel-title">{t("history")}</span>
-          {entries.length > 0 && (
-            <span className="s-panel-count">
-              {localeNum(entries.length)}
-              {ready?.git?.truncated ? "+" : ""}
-            </span>
-          )}
-        </button>
-      </header>
-      {!collapsed && (
+    <>
+    <PanelSection
+      id="history"
+      className="s-history"
+      title={t("history")}
+      count={entries.length > 0 ? `${localeNum(entries.length)}${ready?.git?.truncated ? "+" : ""}` : null}
+    >
         <div className="s-history__body">
           {feed.state === "loading" && <p className="s-history__note">{t("historyLoading")}</p>}
           {failed && <p className="s-history__note">{t("historyFailed")}</p>}
@@ -628,10 +582,10 @@ export default function HistoryPanel() {
             <p className="s-history__note s-history__note--foot">{t("historyOlder")}</p>
           )}
         </div>
-      )}
-      {viewing !== null && (
-        <RevisionModal path={openPath} entry={viewing} onClose={() => setViewing(null)} />
-      )}
-    </section>
+    </PanelSection>
+    {viewing !== null && (
+      <RevisionModal path={openPath} entry={viewing} onClose={() => setViewing(null)} />
+    )}
+    </>
   );
 }

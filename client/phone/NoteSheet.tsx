@@ -1,15 +1,17 @@
 // THE NOTE SHEET — what the desktop keeps in its outline pane and its status
 // bar, behind the note screen's ⋯.
 //
-// Four segments: OUTLINE (the outline itself — TocPanel, unchanged — and a
-// jump closes the sheet, because the reader asked to GO somewhere), BACKLINKS
-// (one card per note, each line a door to the mention), PROPERTIES (the
-// frontmatter, editable a row at a time), and ACTIONS (publish — asking
-// first — the twin, share, move, history, delete). Opens at half height; a
+// Three segments: THIS NOTE (the desktop side panel's sections — outline,
+// backlinks, graph, history, Nearby and the rest — each folding under its
+// own header, in the same stack the desktop draws, client/components/
+// PanelStack.tsx; an outline jump closes the sheet, because the reader asked
+// to GO somewhere), PROPERTIES (the frontmatter, editable a row at a time),
+// and ACTIONS (publish — asking first — the twin, share, move, history,
+// delete). Opens at half height; a
 // drag up takes it to 90%. On two columns it is a 360px slide-over from the
 // trailing edge that never narrows the note.
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import type { Backlink } from "../../shared/types.ts";
 import { noteLabelOf } from "../../shared/noteFormat.ts";
 import { splitFrontmatter } from "../../shared/noteParse.ts";
@@ -25,6 +27,12 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { chromeLangSwitch } from "../chromeLangSwitch.ts";
 import { createTwinFlow, switchToTwin, twinOf, twinPillLabels } from "../twins.ts";
+import { PanelSection, PanelStack, type StackSection } from "../components/PanelStack.tsx";
+import FootnotesPanel from "../components/FootnotesPanel.tsx";
+import LocalGraph from "../components/LocalGraph.tsx";
+import MentionsPanel from "../components/MentionsPanel.tsx";
+import OnThisDayPanel from "../components/OnThisDayPanel.tsx";
+import TrackerPanel from "../components/TrackerPanel.tsx";
 import { usePhone } from "./context.ts";
 import { MOVE_SHEET, NOTE_SHEET, TAG_SHEET } from "./sheetIds.ts";
 import { publishWithConfirmation } from "./publish.ts";
@@ -32,10 +40,17 @@ import Sheet from "./Sheet.tsx";
 
 const TocPanel = lazySurface(() => import("../reading/TocPanel.tsx"));
 const HistoryPanel = lazySurface(() => import("../components/HistoryPanel.tsx"));
+const NearbyPanel = lazySurface(() => import("../components/NearbyPanel.tsx"));
+const RelatedSection = lazySurface((): Promise<{ default: ComponentType }> => import("../components/NearbyPanel.tsx").then((m) => ({ default: m.RelatedSection })));
+const SuggestSection = lazySurface((): Promise<{ default: ComponentType }> => import("../components/NearbyPanel.tsx").then((m) => ({ default: m.SuggestSection })));
+
+/** The phone keeps its own folds and order: a phone and a desktop in the
+ *  same browser are two screens, and a fold is a habit of the screen. */
+const STACK_KEY = "astrolabe.sidepanel-phone";
 
 /** What an emptied property field resolves to: remove the key. */
 const CLEAR = "\u0000";
-export type NoteSegment = "outline" | "backlinks" | "properties" | "actions" | "history";
+export type NoteSegment = "note" | "properties" | "actions" | "history";
 
 interface Group {
   path: string;
@@ -60,8 +75,9 @@ function Backlinks({ path }: { path: string }) {
   const land = (to: string, line: number): void => {
     void import("../landing.ts").then((m) => m.landOnLine(to, line));
   };
-  if (groups.length === 0) return <p className="s-ph-empty">{t("noBacklinks")}</p>;
   return (
+    <PanelSection id="backlinks" title={t("backlinks")} count={groups.length}>
+    {groups.length === 0 ? <p className="s-ph-empty">{t("noBacklinks")}</p> : (
     <ul className="s-ph-list s-ph-backlinks" aria-label={t("backlinks")} data-note={path}>
       {groups.map((g) => (
         <li key={g.path} className="s-ph-backlink">
@@ -79,6 +95,8 @@ function Backlinks({ path }: { path: string }) {
         </li>
       ))}
     </ul>
+    )}
+    </PanelSection>
   );
 }
 
@@ -270,25 +288,50 @@ export default function NoteSheet({ leaving }: { leaving: boolean }) {
   const phone = usePhone();
   const data = phone.sheetData(NOTE_SHEET) as { path?: string; segment?: NoteSegment } | undefined;
   const openPath = useStore((s) => s.openPath);
-  const backlinks = useStore((s) => s.backlinks.length);
+  const admin = useStore((s) => s.admin);
   useStore((s) => s.language);
   const path = data?.path ?? openPath;
-  const [segment, setSegment] = useState<NoteSegment>(data?.segment ?? "outline");
+  const [segment, setSegment] = useState<NoteSegment>(data?.segment ?? "note");
 
   // AN OUTLINE JUMP CLOSES THE SHEET: the row asked to GO somewhere, and a
   // sheet left standing over the place it went to is the old outline drawer
   // the audit found still open after every jump.
   useEffect(() => {
-    if (segment !== "outline") return;
+    if (segment !== "note") return;
     const onGoto = (): void => phone.closeSheet(NOTE_SHEET);
     window.addEventListener("astrolabe:goto-heading", onGoto);
     return () => window.removeEventListener("astrolabe:goto-heading", onGoto);
   }, [segment, phone]);
 
+  // The same sections as the desktop's side panel, in the same order by
+  // default; the components read the store, so this is built once a path.
+  const sections = useMemo<StackSection[]>(
+    () =>
+      path === null
+        ? []
+        : [
+            { id: "outline", node: <Suspense fallback={null}><div className="s-ph-toc"><TocPanel /></div></Suspense> },
+            { id: "footnotes", node: <FootnotesPanel /> },
+            { id: "localgraph", node: <LocalGraph /> },
+            { id: "tracker", node: <TrackerPanel /> },
+            { id: "history", node: <Suspense fallback={null}><div className="s-ph-history"><HistoryPanel /></div></Suspense> },
+            { id: "backlinks", node: <Backlinks path={path} /> },
+            ...(admin
+              ? ([
+                  { id: "nearby", node: <Suspense fallback={null}><NearbyPanel /></Suspense> },
+                  { id: "related", node: <Suspense fallback={null}><RelatedSection /></Suspense> },
+                  { id: "suggest", node: <Suspense fallback={null}><SuggestSection /></Suspense> },
+                ] as StackSection[])
+              : []),
+            { id: "mentions", node: <MentionsPanel /> },
+            { id: "onthisday", node: <OnThisDayPanel /> },
+          ],
+    [path, admin],
+  );
+
   if (!path) return null;
   const SEGS: { id: NoteSegment; label: string; count?: number }[] = [
-    { id: "outline", label: t("outline") },
-    { id: "backlinks", label: t("backlinks"), count: backlinks },
+    { id: "note", label: t("panelThisNote") },
     { id: "properties", label: t("properties") },
     { id: "actions", label: t("phActions") },
   ];
@@ -312,14 +355,7 @@ export default function NoteSheet({ leaving }: { leaving: boolean }) {
       }
     >
       <div className="s-ph-notesheet__body" role="tabpanel" data-segment={segment}>
-        {segment === "outline" && (
-          <Suspense fallback={<p className="s-ph-empty">{t("loading")}</p>}>
-            <div className="s-ph-toc">
-              <TocPanel />
-            </div>
-          </Suspense>
-        )}
-        {segment === "backlinks" && <Backlinks path={path} />}
+        {segment === "note" && <PanelStack storageKey={STACK_KEY} resizable={false} sections={sections} className="s-ph-stack" />}
         {segment === "properties" && <Properties path={path} />}
         {segment === "actions" && <Actions path={path} onHistory={() => setSegment("history")} />}
         {segment === "history" && (

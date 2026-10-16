@@ -39,6 +39,7 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
 | `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
+| `npm run check-sidepanel` | The right panel's stack of sections: no header out of reach, splitters that keep a minimum, folds, order and heights kept (below) |
 | `npm run check-windows-layout` | The desktop shell at five window widths × three device pixel ratios × its pointer postures, and which shell each width gets (below) |
 
 ## Where the code lives
@@ -224,6 +225,17 @@ sheet belongs in that file too, or it goes untested on every non-Latin keyboard.
 
 `node scripts/shoot-layouts.mjs` is the companion picture: the `Ctrl/Cmd /` sheet with the
 layout map stubbed to Arabic and to Russian, which is how the annotated keycaps are reviewed.
+
+### `npm run check-sidepanel` — the side panel
+
+`CHROMIUM=/usr/bin/chromium npm run check-sidepanel -- <url> <password>`, against a scratch server.
+It opens the note with the most backlinks with every section of the right panel open, at 900, 700
+and 520px tall, and asserts what no screenshot shows: every header is inside the panel and the
+panel does not scroll as a whole; every splitter, dragged past both window edges and pushed with
+End and Home, leaves no section below its minimum, measured while the button is still held (the
+splitter's own arithmetic) and after it is let go (the layout's); and a drag, a fold and a reorder
+come back after a reload. Run it whenever `client/sidePanel.ts`, `PanelStack.tsx` or a section of
+the panel changes.
 
 ### `npm run check-windows-layout` — the window gate
 
@@ -685,6 +697,7 @@ The sequence a change runs before it is called finished, in this order: `npm run
 key changed · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` ·
 `npm run check-desktop` when `electron/` or `desktop/` changed ·
 `npm run check-windows-layout` when the shell's layout, the panes or their breakpoints changed ·
+`npm run check-sidepanel` when the right panel or one of its sections changed ·
 `npm run check-cascade` and `npm run check-ink` whenever a stylesheet changed.
 Then the browser gates the change touches — `npm run check-phone` whenever a stylesheet or a
 piece of the shell moved — with `CHROMIUM` and `ASTROLABE_PASSWORD` set, against a scratch

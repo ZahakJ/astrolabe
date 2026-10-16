@@ -21,37 +21,6 @@
   border-bottom: 1px solid var(--border);
 }
 
-.s-history__header {
-  border-bottom: none;
-  padding-inline-start: 8px;
-}
-
-.s-history__toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  padding: 0 2px;
-  border-radius: 4px;
-  text-align: start;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-.s-history__toggle:hover {
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.s-history__toggle .s-panel-count {
-  margin-inline-start: auto;
-}
-
 .s-history__body {
   padding: 0 8px 10px;
   max-height: 260px;
@@ -320,7 +289,6 @@
 /* Every target clears the 44px floor DESIGN.md sets for a coarse pointer, and
    these are read on a phone at exactly the moment something has gone wrong. */
 @media (max-width: 700px), (pointer: coarse) {
-  .s-history__toggle,
   .s-histrow,
   .s-history__door {
     min-height: 44px;

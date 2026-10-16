@@ -37,6 +37,7 @@ npm run dev
 | `npm run check-docs` | كل رابط ومرساة وصورة ومسار إعدادات في هذا الدليل يصل إلى مقصده، باللغتين (أدناه) |
 | `npm run gen-icons` | يعيد رسم طقم علامات المجلدات من كتالوجه؛ ويفشل `npm run check-icons` حين يكون الرسم قديمًا |
 | `npm run check-desktop` | فحوص غلاف سطح المكتب نفسه، ثم `tsc` الخاص به |
+| `npm run check-sidepanel` | أقسام اللوحة اليمنى المتراكبة: لا رأس بعيد المنال، وفواصل تحفظ حدًّا أدنى، والطيّ والترتيب والارتفاعات محفوظة (أدناه) |
 | `npm run check-windows-layout` | هيكل سطح المكتب عند خمسة عروض نافذة × ثلاث نسب بكسل × أوضاع مؤشّره، وأيّ هيكل يأخذه كل عرض (أدناه) |
 
 ## أين يسكن الكود
@@ -113,6 +114,10 @@ npm run dev
 ونصفها الثاني يمنع المطابقة بالتخطيط من أن تتجاوز حدّها: فعلى Dvorak المفتاح الذي يكتب `b` هو `KeyN` الفيزيائي، فيجب أن يفعل `Ctrl Alt` على `KeyB` الفيزيائي، الذي يكتب `x` هناك، **لا شيء**. التخطيط أولًا، والموضع الفيزيائي احتياطًا فقط. ويشغّل `tests/shortcuts.test.ts` المجموعة نفسها على المحلّل من غير متصفح إطلاقًا، ويحمل الحالات التي لا يستطيع متصفح تقديمها (فـChromium يسطّح لام ألف العربية ذات النقطتين الرمزيتين إلى `key` فارغ). والاختصار الذي يُضاف إلى ورقة الاختصارات يُضاف إلى ذلك الملف أيضًا، وإلا بقي غير مختبَر على كل لوحة مفاتيح غير لاتينية.
 
 و`node scripts/shoot-layouts.mjs` هو الصورة المرافقة: ورقة `Ctrl/Cmd /` مع خريطة التخطيط مثبّتة على العربية وعلى الروسية، وهكذا تُراجع أغطية المفاتيح المشروحة.
+
+### `npm run check-sidepanel`: اللوحة الجانبية
+
+`CHROMIUM=/usr/bin/chromium npm run check-sidepanel -- <url> <password>`، على خادم تجريبي. تفتح الملاحظة التي لها أكثر الروابط الراجعة وكل أقسام اللوحة اليمنى مفتوحة، بارتفاع 900 و700 و520 بكسلًا، وتتحقق مما لا تُظهره لقطة شاشة: كل رأس داخل اللوحة واللوحة لا تمرَّر كلها؛ وكل فاصل، إذا سُحب إلى ما بعد حافتي النافذة ودُفع بـEnd وHome، لا يترك قسمًا تحت حدّه الأدنى، مقيسًا والزر لا يزال مضغوطًا (حساب الفاصل نفسه) وبعد إفلاته (حساب التخطيط)؛ والسحب والطيّ والترتيب تعود بعد إعادة التحميل. شغّلها كلما تغيّر `client/sidePanel.ts` أو `PanelStack.tsx` أو قسم من أقسام اللوحة.
 
 ### `npm run check-windows-layout`: بوابة النافذة
 
@@ -322,7 +327,7 @@ npm run dev
 
 ## شريط الإنجاز
 
-التسلسل الذي يمرّ به التغيير قبل أن يُسمّى منجزًا، بهذا الترتيب: `npm run typecheck` · `node scripts/check-i18n.mjs` · `npm test` · `npm run build` ثم `npm run check-bundle` · `npm run check-perf` (على جهاز هادئ) · `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (وقبله `node scripts/gen-settings-index.mjs` حين يتغير صف) · `npm run check-keymap` حين يتغير مفتاح · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` · `npm run check-desktop` حين يتغير `electron/` أو `desktop/` · `npm run check-windows-layout` حين يتغير تخطيط القشرة أو اللوحتان أو نقاط انكسارهما · `npm run check-cascade` و`npm run check-ink` كلما تغيّرت ورقة أنماط. ثم بوابات المتصفح التي يمسّها التغيير — و`npm run check-phone` كلما تحرّكت ورقة أنماط أو قطعة من الهيكل — مع ضبط `CHROMIUM` و`ASTROLABE_PASSWORD`، على خادم تجريبي فوق خزانة تجريبية، لا خزانة حقيقية أبدًا.
+التسلسل الذي يمرّ به التغيير قبل أن يُسمّى منجزًا، بهذا الترتيب: `npm run typecheck` · `node scripts/check-i18n.mjs` · `npm test` · `npm run build` ثم `npm run check-bundle` · `npm run check-perf` (على جهاز هادئ) · `npm run check-a11y` · `npm run check-contrast` · `npm run check-settings` (وقبله `node scripts/gen-settings-index.mjs` حين يتغير صف) · `npm run check-keymap` حين يتغير مفتاح · `npm run check-names` · `npm run check-shell-seam` · `npm run check-docs` · `npm run build-docs` · `npm run check-desktop` حين يتغير `electron/` أو `desktop/` · `npm run check-windows-layout` حين يتغير تخطيط القشرة أو اللوحتان أو نقاط انكسارهما · `npm run check-sidepanel` حين تتغير اللوحة اليمنى أو قسم من أقسامها · `npm run check-cascade` و`npm run check-ink` كلما تغيّرت ورقة أنماط. ثم بوابات المتصفح التي يمسّها التغيير — و`npm run check-phone` كلما تحرّكت ورقة أنماط أو قطعة من الهيكل — مع ضبط `CHROMIUM` و`ASTROLABE_PASSWORD`، على خادم تجريبي فوق خزانة تجريبية، لا خزانة حقيقية أبدًا.
 
 ## أدوات لقطات الشاشة
 

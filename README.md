@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/media/hero-split-v2.png" width="820" alt="Astrolabe: the editor on the left, the published site on the right"></p>
+<p align="center"><img src="docs/media/hero-split-v3.png" width="820" alt="Astrolabe: the editor on the left, the published site on the right"></p>
 
 <p align="center">A self-hosted, open-source alternative to Obsidian, with publishing built in.</p>
 

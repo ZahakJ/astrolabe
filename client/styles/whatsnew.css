@@ -992,3 +992,171 @@
   line-height: 1.75;
   padding-block-end: 0.45em;
 }
+
+/* ── 3.45.0: the side panel as a stack ──────────────────────────────────────
+   A small panel whose headers really fold. The line above Backlinks hands
+   height from the graph to the list and back, on a loop; it rests when the
+   reader asks for less motion. */
+.s-wn-sp {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 12px;
+  inline-size: 100%;
+  box-sizing: border-box;
+}
+.s-wn-sp__panel {
+  flex: none;
+  inline-size: 236px;
+  block-size: 258px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-bg, var(--bg-raised));
+  overflow: hidden;
+}
+.s-wn-sp__sec {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-block-end: 1px solid var(--border);
+}
+.s-wn-sp__sec:last-child {
+  border-block-end: none;
+}
+.s-wn-sp__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  block-size: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--panel-heading, var(--text-muted));
+  cursor: pointer;
+}
+.s-wn-sp__chev {
+  display: inline-block;
+  direction: ltr;
+  color: var(--text-faint);
+  transform: rotate(90deg);
+  transition: transform 0.15s ease;
+}
+.s-wn-sp__sec--folded .s-wn-sp__chev {
+  transform: none;
+}
+[dir="rtl"] .s-wn-sp__sec--folded .s-wn-sp__chev {
+  transform: scaleX(-1);
+}
+.s-wn-sp__count {
+  margin-inline-start: auto;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 9px;
+  letter-spacing: 0;
+}
+.s-wn-sp__body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 2px 10px 8px;
+  overflow: hidden;
+  block-size: 34px;
+  transition: block-size 0.17s ease;
+}
+.s-wn-sp__sec--outline .s-wn-sp__body { block-size: 34px; }
+.s-wn-sp__sec--graph .s-wn-sp__body { block-size: 64px; animation: s-wn-sp-graph 4.8s ease-in-out infinite; }
+.s-wn-sp__sec--backlinks .s-wn-sp__body { block-size: 52px; animation: s-wn-sp-list 4.8s ease-in-out infinite; }
+.s-wn-sp__sec--nearby .s-wn-sp__body { block-size: 30px; }
+.s-wn-sp__sec--folded .s-wn-sp__body {
+  block-size: 0;
+  padding-block: 0;
+  animation: none;
+}
+.s-wn-sp__row {
+  flex: none;
+  block-size: 6px;
+  border-radius: 3px;
+  background: var(--bg-hover);
+}
+.s-wn-sp__row:nth-child(2n) {
+  inline-size: 72%;
+}
+.s-wn-sp__sky {
+  position: relative;
+  flex: 1;
+}
+.s-wn-sp__star {
+  position: absolute;
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.8;
+}
+.s-wn-sp__star:nth-child(1) { inset-inline-start: 46%; inset-block-start: 40%; inline-size: 11px; block-size: 11px; opacity: 1; }
+.s-wn-sp__star:nth-child(2) { inset-inline-start: 22%; inset-block-start: 12%; }
+.s-wn-sp__star:nth-child(3) { inset-inline-start: 70%; inset-block-start: 18%; }
+.s-wn-sp__star:nth-child(4) { inset-inline-start: 30%; inset-block-start: 72%; }
+.s-wn-sp__star:nth-child(5) { inset-inline-start: 64%; inset-block-start: 70%; }
+.s-wn-sp__star:nth-child(6) { inset-inline-start: 84%; inset-block-start: 46%; }
+/* The splitter: the seam above Backlinks, lit while it moves. */
+.s-wn-sp__split {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-start: -1px;
+  block-size: 2px;
+  background: var(--accent);
+  opacity: 0;
+  animation: s-wn-sp-split 4.8s ease-in-out infinite;
+  z-index: 1;
+}
+@keyframes s-wn-sp-graph {
+  0%, 20% { block-size: 64px; }
+  45%, 70% { block-size: 30px; }
+  95%, 100% { block-size: 64px; }
+}
+@keyframes s-wn-sp-list {
+  0%, 20% { block-size: 52px; }
+  45%, 70% { block-size: 86px; }
+  95%, 100% { block-size: 52px; }
+}
+@keyframes s-wn-sp-split {
+  0%, 15% { opacity: 0; }
+  22%, 48% { opacity: 0.9; }
+  55%, 70% { opacity: 0; }
+  76%, 96% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+.s-wn-sp__notes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+.s-wn-sp__note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  padding-inline-start: 12px;
+  border-inline-start: 2px solid var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  .s-wn-sp__body,
+  .s-wn-sp__split,
+  .s-wn-sp__chev {
+    animation: none;
+    transition: none;
+  }
+}

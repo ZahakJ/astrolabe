@@ -1,5 +1,6 @@
 // RELATED and SUGGEST LINKS — the Nearby section's two meaning lists
-// (docs/ask.md). Rendered by NearbyPanel.tsx, inside its lazy chunk.
+// (docs/ask.md). Rendered through NearbyPanel.tsx, inside its lazy chunk,
+// each as a section of the side panel's stack of its own.
 //
 // RELATED is the open note's nearest notes by embedding (GET
 // /api/semantic/related): not the words it shares — Nearby, above, already
@@ -26,25 +27,9 @@ import { askErrorLine, relatedNotes, suggestLinks } from "../askApi.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
+import { PanelSection, usePanelSection } from "./PanelStack.tsx";
 
 const VAULT_EVENT = "astrolabe:vault";
-
-function readFlag(key: string, fallback: boolean): boolean {
-  try {
-    const v = localStorage.getItem(key);
-    return v === null ? fallback : v === "true";
-  } catch {
-    return fallback;
-  }
-}
-
-function writeFlag(key: string, value: boolean): void {
-  try {
-    localStorage.setItem(key, String(value));
-  } catch {
-    // storage unavailable
-  }
-}
 
 /** Load `fetcher(openPath)` now and again after every burst of vault events. */
 function useLive<T>(openPath: string | null, enabled: boolean, fetcher: (path: string, signal: AbortSignal) => Promise<T[]>) {
@@ -98,25 +83,13 @@ export function RelatedList({ lexical }: { lexical: readonly NearbyHit[] }) {
   const openPath = useStore((s) => s.openPath);
   const openNote = useStore((s) => s.openNote);
   const preview = useStore((s) => s.previewVisitor);
-  const [collapsed, setCollapsed] = useState(() => readFlag("astrolabe.related-collapsed", false));
+  const { collapsed } = usePanelSection("related");
   const { rows, error } = useLive<SemanticHit>(openPath, !collapsed && !preview, relatedNotes);
   // Previewing as a visitor: a visitor has no meaning index to ask.
   if (preview) return null;
   const shown = rows.filter((r) => !lexical.some((l) => l.path === r.path));
-  const toggle = (): void => {
-    setCollapsed(!collapsed);
-    writeFlag("astrolabe.related-collapsed", !collapsed);
-  };
   return (
-    <section className="s-related" title={t("relatedHint")}>
-      <header className="s-panel-header s-mentions__header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showRelated" : "hideRelated")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">›</span>
-          <span className="s-panel-title">{t("related")}</span>
-          {!collapsed && error === null && <span className="s-panel-count">{localeNum(shown.length)}</span>}
-        </button>
-      </header>
-      {!collapsed && (
+    <PanelSection id="related" className="s-related" hint={t("relatedHint")} title={t("related")} count={!collapsed && error === null ? shown.length : null}>
         <div className="s-panel-body s-nearby__body">
           {error !== null ? (
             <p className="s-panel-empty">{error}</p>
@@ -135,8 +108,7 @@ export function RelatedList({ lexical }: { lexical: readonly NearbyHit[] }) {
             ))
           )}
         </div>
-      )}
-    </section>
+    </PanelSection>
   );
 }
 
@@ -166,13 +138,9 @@ async function insertLink(path: string, link: string): Promise<void> {
 export function SuggestList() {
   const openPath = useStore((s) => s.openPath);
   const preview = useStore((s) => s.previewVisitor);
-  const [collapsed, setCollapsed] = useState(() => readFlag("astrolabe.suggest-collapsed", false));
+  const { collapsed } = usePanelSection("suggest");
   const { rows, setRows, error } = useLive<LinkSuggestion>(openPath, !collapsed && !preview, suggestLinks);
   if (!openPath || error !== null || preview) return null;
-  const toggle = (): void => {
-    setCollapsed(!collapsed);
-    writeFlag("astrolabe.suggest-collapsed", !collapsed);
-  };
   const link = async (row: LinkSuggestion): Promise<void> => {
     try {
       await insertLink(openPath, row.link);
@@ -184,15 +152,7 @@ export function SuggestList() {
     }
   };
   return (
-    <section className="s-suggest" title={t("suggestHint")}>
-      <header className="s-panel-header s-mentions__header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showSuggest" : "hideSuggest")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">›</span>
-          <span className="s-panel-title">{t("suggestLinks")}</span>
-          {!collapsed && <span className="s-panel-count">{localeNum(rows.length)}</span>}
-        </button>
-      </header>
-      {!collapsed && (
+    <PanelSection id="suggest" className="s-suggest" hint={t("suggestHint")} title={t("suggestLinks")} count={collapsed ? null : rows.length}>
         <div className="s-panel-body s-mentions__body">
           {rows.length === 0 ? (
             <p className="s-panel-empty">{t("suggestNone")}</p>
@@ -227,7 +187,6 @@ export function SuggestList() {
             ))
           )}
         </div>
-      )}
-    </section>
+    </PanelSection>
   );
 }

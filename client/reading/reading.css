@@ -1102,10 +1102,6 @@ span.s-rv-math-live {
   border-bottom: 1px solid var(--border);
 }
 
-.s-toc__header {
-  border-bottom: none;
-}
-
 .s-toc__list {
   min-height: 0;
   overflow-y: auto;

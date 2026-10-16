@@ -10,16 +10,7 @@ import { isoDate } from "../../shared/routine.ts";
 import { getOnThisDay } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
-
-const COLLAPSED_KEY = "astrolabe.onthisday-collapsed";
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
+import { PanelSection } from "./PanelStack.tsx";
 
 export function useOnThisDay(): OnThisDayHit[] {
   const admin = useStore((s) => s.admin);
@@ -72,31 +63,12 @@ export function OnThisDayList({ rows }: { rows: OnThisDayHit[] }) {
 export default function OnThisDayPanel() {
   const rows = useOnThisDay();
   const preview = useStore((s) => s.previewVisitor);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
   if (preview || rows.length === 0) return null;
-  const toggle = (): void => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // storage unavailable
-    }
-  };
   return (
-    <section className="s-otd">
-      <header className="s-panel-header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showOnThisDay" : "hideOnThisDay")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">›</span>
-          <span className="s-panel-title">{t("onThisDay")}</span>
-          <span className="s-panel-count">{localeNum(rows.length)}</span>
-        </button>
-      </header>
-      {!collapsed && (
-        <div className="s-panel-body">
-          <OnThisDayList rows={rows} />
-        </div>
-      )}
-    </section>
+    <PanelSection id="onthisday" className="s-otd" title={t("onThisDay")} count={rows.length}>
+      <div className="s-panel-body">
+        <OnThisDayList rows={rows} />
+      </div>
+    </PanelSection>
   );
 }

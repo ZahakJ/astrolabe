@@ -153,9 +153,11 @@ answers with `{ kind: "tag" }` (`client/phone/tagTap.ts`; through 3.35.0 nothing
 tap was swallowed with no caret either). check-phone walks a generated long note in both chromes,
 after Read aloud stops: a prose, heading, fenced, quote, list and far-down line each raise the
 bar; a pill opens its tag.
-**The note sheet**: Outline (TocPanel; a jump closes the sheet) | Backlinks | Properties
-(editable a row at a time, an emptied value removes the key) | Actions (publish WITH a
-confirmation, the twin, share, move, history, delete).
+**The note sheet**: This note (the side panel's stack, flowing — `PanelStack` with
+`resizable={false}` and its own key `astrolabe.sidepanel-phone`; every section folds, none is
+sized, the sheet is the one scroller; an outline jump closes the sheet) | Properties (editable a
+row at a time, an emptied value removes the key) | Actions (publish WITH a confirmation, the twin,
+share, move, history — the history section on its own, open, with a plain header — delete).
 
 **SHEETS** (`client/phone/Sheet.tsx`): from the bottom edge; detents half (the 92dvh panel
 translated 42dvh) and full, auto for action sheets; follow-finger drag on the handle and header
@@ -1148,6 +1150,52 @@ moves and commits ONCE on release through `resizeCols(gap, share)` / `resizeRows
 store actions over the pure reducers of the same name in workspace.ts. Double-click commits 0.5.
 The root wears `.s-app--split-drag` (+ `-x`/`-y`) mid-drag: no selection, one cursor, and the panes
 under it lose pointer events so a canvas or an iframe cannot steal the drag.
+
+## The side panel's stack (client/components/PanelStack.tsx, client/sidePanel.ts, 3.45.0)
+
+**ONE STACK, AND IT DOES NOT SCROLL.** The right panel is a bar (what it is about, fold-all,
+hide) over a stack of `PanelSection`s — outline, footnotes, local graph, tracker, history,
+backlinks, Nearby, Related, Suggest links, unlinked mentions, on this day. A section is a header
+(a `<button>` with `aria-expanded` and `aria-controls`, its title and count) and a body that is a
+`role="region"` labelled by that button. Each open body is GIVEN a height by `layoutStack` and
+scrolls inside itself with the shared `.s-scrollfade`; the stack never scrolls, so no header is
+ever below somebody else's list (the 3.44 panel was one scroller, and Nearby sat under a
+backlinks list the reader had to scroll past). The one exception: a panel too short for every
+open section's minimum gets `.s-pstack--overflow` and scrolls as a whole.
+
+**HOW THE HEIGHT IS SHARED.** Each open section asks for its stored height or its content's
+(the graph, `fill`, asks FILL_NATURAL and has no cap). Asks that fit are granted, and the space
+under the last section stays empty rather than being forced on anyone. Asks that do not fit come
+down by ONE LEVEL that every taller ask is cut to, so a short outline keeps its rows while long
+lists split the rest. Nothing goes below `BODY_MIN` (64px, or the content when shorter), which
+gives way to an even share, never under `BODY_FLOOR` (32), only when the panel cannot hold every
+minimum. Pure and unit-tested (`tests/sidePanel.test.ts`).
+
+**SPLITTERS.** A `role="separator"` above every open section that has an open section above it:
+9px straddling the seam, focusable, `aria-valuenow` the share above it. A drag is `dragSplit`
+live (the side it moves into shrinks nearest-first and cascades past a section at its minimum;
+the other side grows up to each section's content; the total never changes), and on release
+EVERY open section's height is stored — a section left to size itself would ask for its whole
+content next time and the sharing would hand back what the reader just took. Arrows move 16px
+(Shift 64), PageUp/PageDown 64, Home/End to the end, Enter or a double-click forgets every
+stored height. `check-sidepanel` drags each splitter both ways and measures while the button is
+held.
+
+**ORDER IS DOM ORDER.** The stack renders its sections in the stored order, so the tab order is
+the order the eye sees. A header dragged more than 6px (a mouse or a pen; a finger is a tap or a
+scroll) moves its section, with an accent line where it will land and Escape to cancel; Alt+↑/↓
+on a focused header does it from the keyboard and keeps the focus. Hidden sections keep their
+places beside their neighbours (`moveSection`).
+
+**WHAT IS KEPT.** `astrolabe.sidepanel` (localStorage: this browser, this vault) holds the
+order, the folds and the heights; it is window state and does not travel. Read TOTALLY
+(`parseStackPrefs`): garbage is the defaults. The first read takes each section's old fold key
+(`astrolabe.<section>-collapsed`, through 3.44) once. History starts folded; everything else
+open. A component reads its own fold through `usePanelSection(id)` — the graph stops simulating
+and history stops fetching while folded, and `astrolabe:history-reveal` opens history.
+
+**MOTION.** A body's height moves in 170ms and a folding body keeps its content until it has
+closed; the first layout, a drag and `prefers-reduced-motion` do not animate.
 
 ## The status bar keeps the note; the shell's tools moved up
 

@@ -85,7 +85,7 @@
 .s-tags__toggle:focus-visible,
 .s-tag:focus-visible,
 .s-palette-item:focus-visible,
-.s-localgraph__toggle:focus-visible,
+.s-psec__toggle:focus-visible,
 .s-localgraph__canvas:focus-visible {
   outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: -2px;

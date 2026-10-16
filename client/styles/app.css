@@ -1598,33 +1598,14 @@ select:focus,
   display: flex;
   flex-direction: column;
   min-height: 0;
-  /* Six sections now stack here (outline, local graph, tracker, history,
-     backlinks, mentions, on this day); with several open the backlinks list
-     was squeezed to twenty pixels and nothing below it could be reached.
-     The SCROLLER is the inner wrapper (.s-panel__scroll), not the aside:
-     the grip is absolutely positioned against the aside, and an aside that
-     scrolled carried the grip up with its content — a long backlinks list
-     scrolled the resize handle out of the window (the other half of "I
-     cannot resize the panel"). */
+  /* Eleven sections stack here (.s-pstack below). The aside never scrolls:
+     the grip is absolutely positioned against it, and an aside that scrolled
+     carried the grip up with its content. */
   overflow: hidden;
   background: var(--panel-bg);
   color: var(--panel-text);
   border-inline-start: 1px solid var(--panel-border);
   transition: width 0.18s ease, border-color 0.18s ease;
-}
-.s-panel__scroll {
-  flex: 1;
-  min-block-size: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
-  /* A DRAWER'S SCROLL ENDS AT THE DRAWER (3.23.0). On a phone this pane is a
-     fixed drawer over the note, and scrolling past the end of its list handed
-     the rest of the gesture to the page underneath — the note scrolled behind
-     an open drawer, which no native sheet does. The notes drawer has said
-     `contain` since it became one; this is its twin. */
-  overscroll-behavior: contain;
 }
 
 /* Same collapse mechanics as the sidebar, including the delayed
@@ -1688,6 +1669,227 @@ select:focus,
 
 .s-panel-toggle:hover {
   color: var(--text);
+}
+
+/* ── The panel's stack of sections (client/components/PanelStack.tsx) ──────
+   One bar on top (what the panel is about, fold-all, hide), then the
+   sections. The stack does not scroll: each open body is given a height
+   (client/sidePanel.ts) and scrolls inside itself with the shared edge fade,
+   so a header is never below somebody else's list. A section root keeps its
+   old class (.s-toc, .s-history, …) for what is inside it, and the rules here
+   win over the box those classes used to draw (fixed widths, a 42% cap). */
+
+.s-panel-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  width: var(--panel-w);
+  height: 2.25rem;
+  padding-block: 0;
+  padding-inline: 14px 6px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.s-panel-bar__title {
+  flex: 1;
+  min-width: 0;
+  overflow: clip visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-panel-bar .s-panel-toggle {
+  margin-inline-start: 0;
+}
+
+.s-pstack__foldall {
+  color: var(--text-faint);
+}
+
+.s-pstack__foldall:hover {
+  color: var(--text);
+}
+
+.s-pstack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: var(--panel-w);
+}
+
+.s-pstack--sized {
+  flex: 1;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* Too short for every open section's minimum: the one case the stack
+   scrolls as a whole, so no header is ever out of reach. */
+.s-pstack--sized.s-pstack--overflow {
+  overflow-y: auto;
+}
+
+.s-pstack .s-psec {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: auto;
+  max-width: none;
+  max-height: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.s-psec > .s-psec__head {
+  width: auto;
+  height: 2.125rem;
+  padding-block: 0;
+  padding-inline: 8px;
+  gap: 6px;
+  border-bottom: none;
+}
+
+.s-psec__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* A real pointer only: on a finger the hover sticks after the tap and a
+   folded header would stay lit. */
+@media (hover: hover) {
+  .s-psec__toggle:hover {
+    color: var(--text);
+  }
+}
+
+.s-psec__toggle .s-panel-count {
+  margin-inline-start: auto;
+}
+
+.s-psec__toggle--static {
+  cursor: default;
+}
+
+.s-pstack--sized .s-psec__body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  /* A scrollbar that comes and goes would rewrap the list, change its
+     height, and move the bar again. */
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  transition: height 0.17s ease;
+}
+
+.s-pstack--still .s-psec__body,
+.s-pstack--drag .s-psec__body {
+  transition: none;
+}
+
+/* The graph fills whatever height its body is given. */
+.s-pstack--sized .s-psec--fill .s-psec__content,
+.s-pstack--sized .s-psec--fill .s-localgraph__body {
+  height: 100%;
+}
+
+/* The lists inside used to be scrollers of their own (and the backlinks
+   body a 120px-minimum flex child); inside a section the BODY scrolls. */
+.s-psec__content .s-panel-body {
+  width: auto;
+  min-height: 0;
+  flex: none;
+  overflow: visible;
+}
+
+.s-psec__content .s-history__body,
+.s-psec__content .s-toc__list {
+  max-height: none;
+  overflow: visible;
+}
+
+/* The splitter straddles the seam above a section: 9px to aim at, a 2px
+   accent line once the pointer or the focus is on it. */
+.s-psec__split {
+  position: absolute;
+  inset-inline: 0;
+  top: -5px;
+  height: 9px;
+  z-index: 3;
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.s-psec__split::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 3px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.s-psec__split:hover::after,
+.s-psec__split:focus-visible::after,
+.s-pstack--drag .s-psec__split:active::after {
+  opacity: 0.9;
+}
+
+.s-psec__split:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+/* Reordering: the section in hand dims, a line marks where it will land. */
+.s-pstack--reorder,
+.s-pstack--reorder .s-psec__toggle {
+  cursor: grabbing;
+}
+
+.s-psec--lifted {
+  opacity: 0.55;
+}
+
+.s-pstack__drop {
+  position: absolute;
+  inset-inline: 8px;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: var(--accent);
+  pointer-events: none;
+  z-index: 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-pstack .s-psec__body,
+  .s-psec__split::after {
+    transition: none;
+  }
 }
 
 /* ---------------------------------------------------- reopen handles ----- */
@@ -3487,20 +3689,7 @@ select:focus,
 }
 
 /* The tracker section: a Media work above the note you are in, or the notes
-   under the work you are on. Same header row as the local graph. */
-.s-trackerpanel__toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  inline-size: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  text-align: start;
-}
+   under the work you are on. */
 .s-trackerpanel__work {
   padding: 8px 14px 12px;
   display: flex;
@@ -3645,37 +3834,6 @@ select:focus,
   font-size: 0.857rem;
   color: var(--text-muted);
   font-style: italic;
-}
-
-.s-localgraph__header {
-  border-bottom: none;
-  padding-inline-start: 8px;
-}
-
-.s-localgraph__toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  padding: 0 2px;
-  border-radius: 4px;
-  text-align: start;
-  font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-
-.s-localgraph__toggle:hover {
-  background: transparent;
-  color: var(--text-muted);
-}
-
-.s-localgraph__toggle .s-panel-count {
-  margin-inline-start: auto;
 }
 
 .s-localgraph__body {
@@ -4590,8 +4748,7 @@ button.s-title:hover {
    the outline list itself, which is drawn by the reading bundle. */
 @media (max-width: 700px), (pointer: coarse) {
   .s-fnpanel__ref,
-  .s-mentions__toggle,
-  .s-localgraph__toggle,
+  .s-psec__toggle,
   .s-localgraph__altitem {
     min-block-size: 44px;
   }
@@ -5749,25 +5906,6 @@ button.s-title:hover {
 /* ── Unlinked mentions (client/components/MentionsPanel.tsx) ─────────────
  * The backlinks list's twin, under it: the same card and context rows, plus
  * one Link button per mention that stays quiet until hovered. */
-.s-mentions__header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.s-mentions__toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-inline-size: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  text-align: start;
-}
 .s-mentions__linkall,
 .s-mentions__link {
   flex: none;

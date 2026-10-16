@@ -21,20 +21,11 @@ import { useEffect, useState } from "react";
 import { getNote } from "../api.ts";
 import { footnotesOf, type Footnote } from "../../shared/footnotes.ts";
 import { gotoFootnote } from "../footnoteNav.ts";
-import { localeNum, t } from "../i18n.ts";
+import { t } from "../i18n.ts";
 import { stripInline } from "../reading/toc.ts";
 import { liveContent } from "../sectionActions.ts";
 import { useStore } from "../state.ts";
-
-const COLLAPSED_KEY = "astrolabe.footnotes-collapsed";
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
+import { PanelSection } from "./PanelStack.tsx";
 
 export default function FootnotesPanel() {
   const openPath = useStore((s) => s.openPath);
@@ -42,7 +33,6 @@ export default function FootnotesPanel() {
   const reloadTick = useStore((s) => s.reloadTick);
   useStore((s) => s.language); // re-render the chrome strings on language change
   const [notes, setNotes] = useState<Footnote[]>([]);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
 
   useEffect(() => {
     if (!openPath) {
@@ -70,28 +60,8 @@ export default function FootnotesPanel() {
 
   if (!openPath || notes.length === 0) return null;
 
-  const toggle = (): void => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // the preference lasts the session
-    }
-  };
-
   return (
-    <section className="s-fnpanel">
-      <header className="s-panel-header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showFootnotes" : "hideFootnotes")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">
-            ›
-          </span>
-          <span className="s-panel-title">{t("footnotes")}</span>
-          <span className="s-panel-count">{localeNum(notes.length)}</span>
-        </button>
-      </header>
-      {!collapsed && (
+    <PanelSection id="footnotes" className="s-fnpanel" title={t("footnotes")} count={notes.length}>
         <ol className="s-fnpanel__list" aria-label={t("footnotes")}>
           {notes.map((note) => {
             // `stripInline` is the outline's (it drops a mark only at a word's
@@ -132,7 +102,6 @@ export default function FootnotesPanel() {
             );
           })}
         </ol>
-      )}
-    </section>
+    </PanelSection>
   );
 }

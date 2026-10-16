@@ -12,7 +12,7 @@
 // notes is a click either way and nothing has to be typed into any note.
 //
 // Admin only, like the Media page: the trackers route is the owner's shelf.
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { TrackerMeta } from "../../shared/types.ts";
 import { updateTracker } from "../api.ts";
 import { loadShelf, useTrackerShelf } from "../trackerShelf.ts";
@@ -24,16 +24,7 @@ import { foldKind } from "../../shared/tracker.ts";
 import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import FolderGlyph from "./FolderGlyph.tsx";
-
-const COLLAPSED_KEY = "astrolabe.trackerpanel-collapsed";
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
+import { PanelSection } from "./PanelStack.tsx";
 
 function countText(meta: TrackerMeta): string | null {
   if (meta.done === null) return null;
@@ -53,7 +44,6 @@ export default function TrackerPanel() {
   const locale = useStore((s) => s.blogLocale);
   useStore((s) => s.language);
   const list = useTrackerShelf();
-  const [collapsed, setCollapsed] = useState(readCollapsed);
 
   // The longest folder that holds the open note wins, so a work whose folder
   // is inside another work's folder claims its own notes.
@@ -75,15 +65,6 @@ export default function TrackerPanel() {
 
   if (!admin || preview || !openPath || (!parent && !own)) return null;
 
-  const toggle = (): void => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // the preference lasts the session
-    }
-  };
   const go = (path: string): void => {
     openNote(path);
     setView("editor");
@@ -100,17 +81,8 @@ export default function TrackerPanel() {
   const title = parent ? t("panelTrackedIn") : t("panelWorkNotes");
   const count = parent ? null : (own?.folderNotes ?? 0);
   return (
-    <section className="s-trackerpanel">
-      <header className="s-panel-header s-trackerpanel__header">
-        <button type="button" className="s-trackerpanel__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showTrackerPanel" : "hideTrackerPanel")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">
-            ›
-          </span>
-          <span className="s-panel-title">{title}</span>
-          {count !== null && <span className="s-panel-count">{localeNum(count)}</span>}
-        </button>
-      </header>
-      {!collapsed && parent && (
+    <PanelSection id="tracker" className="s-trackerpanel" title={title} count={count}>
+      {parent && (
         <div className="s-trackerpanel__work" dir={autoDir(parent.title)}>
           <button type="button" className="s-trackerpanel__open" onClick={() => go(parent.path)} title={t("panelOpenTracker")}>
             <span className="s-trackerpanel__glyph">
@@ -140,7 +112,7 @@ export default function TrackerPanel() {
           </div>
         </div>
       )}
-      {!collapsed && !parent && own && (
+      {!parent && own && (
         <div className="s-trackerpanel__notes">
           {last === null && <div className="s-trackerpanel__empty">{t("panelWorkNoNotes")}</div>}
           {last !== null && (
@@ -156,6 +128,6 @@ export default function TrackerPanel() {
           </button>
         </div>
       )}
-    </section>
+    </PanelSection>
   );
 }

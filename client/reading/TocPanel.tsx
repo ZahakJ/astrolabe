@@ -39,13 +39,14 @@
 
 import { useEffect, useMemo, useRef, useState, type DragEvent as RDragEvent } from "react";
 import { getNote } from "../api.ts";
-import { localeNum, t } from "../i18n.ts";
+import { t } from "../i18n.ts";
 import { labelTagsInText, useTagLabels } from "../tagLabels.ts";
 import { applySectionMove, liveContent } from "../sectionActions.ts";
 import { openEditorSectionMenu } from "../editor/sectioning.ts";
 import { openSectionMenu } from "../sectionMenu.ts";
 import { levelRange, sectionsOf, type Section } from "../sections.ts";
 import { useStore } from "../state.ts";
+import { PanelSection } from "../components/PanelStack.tsx";
 import { isTexPath } from "../../shared/noteFormat.ts";
 import {
   frontmatterNumbering,
@@ -299,26 +300,29 @@ export default function TocPanel() {
   const empty = headings.length === 0;
 
   return (
-    <section className="s-toc">
-      <header className="s-panel-header s-toc__header">
-        <span className="s-panel-title">{t("outline")}</span>
-        {!empty && <span className="s-panel-count">{localeNum(headings.length)}</span>}
-        {/* Numbering is a READING affordance and it lives here, over the list
-            it numbers: the outline is where a reader looks at the shape of the
-            document, so it is where they decide whether that shape is
-            numbered. The note's own frontmatter still outranks it. */}
-        {!empty && (
-            <button
-              type="button"
-              className={`s-toc__numbtn s-iconbtn${numbers ? " s-toc__numbtn--on" : ""}`}
-              aria-pressed={numbers !== null}
-              title={t(numbers ? "unnumberHeadings" : "numberHeadings")}
-              onClick={() => setHeadingNumbersPref(!headingNumbersPref())}
-            >
-              1.
-            </button>
-          )}
-        </header>
+    <PanelSection
+      id="outline"
+      className="s-toc"
+      title={t("outline")}
+      count={empty ? null : headings.length}
+      actions={
+        // Numbering is a READING affordance and it lives here, over the list
+        // it numbers: the outline is where a reader looks at the shape of the
+        // document, so it is where they decide whether that shape is
+        // numbered. The note's own frontmatter still outranks it.
+        !empty && (
+          <button
+            type="button"
+            className={`s-toc__numbtn s-iconbtn${numbers ? " s-toc__numbtn--on" : ""}`}
+            aria-pressed={numbers !== null}
+            title={t(numbers ? "unnumberHeadings" : "numberHeadings")}
+            onClick={() => setHeadingNumbersPref(!headingNumbersPref())}
+          >
+            1.
+          </button>
+        )
+      }
+    >
         {empty && <p className="s-panel-empty">{t("noHeadings")}</p>}
         {!empty && (
         <nav
@@ -440,6 +444,6 @@ export default function TocPanel() {
           })}
         </nav>
       )}
-    </section>
+    </PanelSection>
   );
 }

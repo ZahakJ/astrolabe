@@ -32,8 +32,8 @@ subtle 1px borders using `var(--border)`, minimal chrome. Everything themeable v
 properties listed in the styles contract; components must use tokens, never hard-coded colors.
 
 **The public pictures are the product in its default room (3.44).** The README banner
-(`docs/media/hero-split-v2.png`), the og:image (`docs/gh-hero-v2.png`) and the landing hero
-(`docs/screenshots/hero-split-v2.png`) are one composite: the editor beside the site it publishes,
+(`docs/media/hero-split-v3.png`), the og:image (`docs/gh-hero-v3.png`) and the landing hero
+(`docs/screenshots/hero-split-v3.png`) are one composite: the editor beside the site it publishes,
 captured from a sample vault in `astrolabe-dark` (`THEMES[0]`), neutral grounds with gold only as
 the accent. The README gallery (`docs/media/`) and the manual's captures (`docs/screenshots/`) are
 taken the same way. A picture whose content changes gets a new file name, because GitHub and the

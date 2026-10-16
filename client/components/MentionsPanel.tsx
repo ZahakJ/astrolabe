@@ -14,24 +14,15 @@ import type { Mention } from "../../shared/types.ts";
 import { getMentions, linkMention } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
+import { PanelSection } from "./PanelStack.tsx";
 import { toast } from "../toast.ts";
 
-const COLLAPSED_KEY = "astrolabe.mentions-collapsed";
 const VAULT_EVENT = "astrolabe:vault";
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
 
 export default function MentionsPanel() {
   const openPath = useStore((s) => s.openPath);
   const admin = useStore((s) => s.admin);
   const preview = useStore((s) => s.previewVisitor);
-  const [collapsed, setCollapsed] = useState(readCollapsed);
   const [rows, setRows] = useState<Mention[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -60,16 +51,6 @@ export default function MentionsPanel() {
   }, [load]);
 
   if (!admin || preview || !openPath || rows.length === 0) return null;
-
-  const toggle = (): void => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // storage unavailable
-    }
-  };
 
   const link = async (m: Mention): Promise<void> => {
     const key = `${m.path}:${m.line}:${m.start}`;
@@ -107,20 +88,18 @@ export default function MentionsPanel() {
   };
 
   return (
-    <section className="s-mentions">
-      <header className="s-panel-header s-mentions__header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showMentions" : "hideMentions")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">›</span>
-          <span className="s-panel-title">{t("unlinkedMentions")}</span>
-          <span className="s-panel-count">{localeNum(rows.length)}</span>
-        </button>
-        {!collapsed && rows.length > 1 && (
+    <PanelSection
+      id="mentions"
+      title={t("unlinkedMentions")}
+      count={rows.length}
+      actions={
+        rows.length > 1 && (
           <button type="button" className="s-mentions__linkall" disabled={busy !== null} onClick={() => void linkAll()}>
             {t("mentionLinkAll")}
           </button>
-        )}
-      </header>
-      {!collapsed && (
+        )
+      }
+    >
         <div className="s-panel-body s-mentions__body">
           {rows.map((m) => {
             const key = `${m.path}:${m.line}:${m.start}`;
@@ -153,7 +132,6 @@ export default function MentionsPanel() {
             );
           })}
         </div>
-      )}
-    </section>
+    </PanelSection>
   );
 }

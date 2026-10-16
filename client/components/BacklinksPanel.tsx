@@ -1,11 +1,13 @@
-// Right panel: backlinks into the open note (store keeps them fresh via
-// openNote + SSE). Collapses to zero width; a slim handle on the panel's own
-// edge reopens it. Clicking an entry opens that note AND lands on the mention
-// (client/landing.ts); resting the pointer on a card previews the note.
+// Right panel: the open note's outline, graph, history, backlinks, Nearby and
+// the rest, as one stack of folding, resizable sections (PanelStack.tsx;
+// the arithmetic is client/sidePanel.ts). Collapses to zero width; a slim
+// handle on the panel's own edge reopens it. Clicking a backlink opens that
+// note AND lands on the mention (client/landing.ts); resting the pointer on a
+// card previews the note.
 
 import { reopenDragProps } from "./PaneGrip.tsx";
-import { Suspense, useEffect, useRef } from "react";
-import type { ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
+import type { ComponentType, ReactNode } from "react";
 import type { Backlink } from "../../shared/types.ts";
 import { localeNum, t } from "../i18n.ts";
 // client/landing.ts is reached by DYNAMIC import throughout this file: the
@@ -14,6 +16,8 @@ import { localeNum, t } from "../i18n.ts";
 // of the same module keeps it a single instance.
 import { lazySurface } from "../lazySurface.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
+import type { SectionId } from "../sidePanel.ts";
+import { PanelSection, PanelStack, StackFoldAll, usePanelSection, type StackSection } from "./PanelStack.tsx";
 import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
@@ -44,6 +48,38 @@ const TocPanel = lazySurface(() => import("../reading/TocPanel.tsx"));
 // stylesheet, and a visitor's first paint must not fetch a list the server
 // would refuse them anyway.
 const NearbyPanel = lazySurface(() => import("./NearbyPanel.tsx"));
+// Related and Suggest links live in the same chunk and read Nearby's rows,
+// but each is its own section, so each can be folded and moved on its own.
+const RelatedSection = lazySurface((): Promise<{ default: ComponentType }> => import("./NearbyPanel.tsx").then((m) => ({ default: m.RelatedSection })));
+const SuggestSection = lazySurface((): Promise<{ default: ComponentType }> => import("./NearbyPanel.tsx").then((m) => ({ default: m.SuggestSection })));
+
+/** Where the stack keeps its order, folds and heights. */
+const STACK_KEY = "astrolabe.sidepanel";
+
+/** Each section's fold from before the sections shared one key: read once,
+ *  the first time the stack has nothing of its own stored. */
+const LEGACY_FOLDS: Partial<Record<SectionId, string>> = {
+  footnotes: "astrolabe.footnotes-collapsed",
+  localgraph: "astrolabe.localgraph-collapsed",
+  tracker: "astrolabe.trackerpanel-collapsed",
+  history: "astrolabe.history-collapsed",
+  nearby: "astrolabe.nearby-collapsed",
+  related: "astrolabe.related-collapsed",
+  suggest: "astrolabe.suggest-collapsed",
+  mentions: "astrolabe.mentions-collapsed",
+  onthisday: "astrolabe.onthisday-collapsed",
+};
+
+function legacyFold(id: SectionId): boolean | null {
+  const key = LEGACY_FOLDS[id];
+  if (!key) return null;
+  try {
+    const v = localStorage.getItem(key);
+    return v === "true" ? true : v === "false" ? false : null;
+  } catch {
+    return null;
+  }
+}
 
 const WIKILINK_SPLIT_RE =
   /(!?\[\[[^\]|#]+(?:#[^\]|]*)?(?:\|[^\]]*)?\]\])/g;
@@ -112,17 +148,21 @@ function groupBacklinks(backlinks: Backlink[]): BacklinkGroup[] {
 // persists, and the auto-collapse never overrides it.
 const NARROW_QUERY = "(max-width: 1360px)";
 
-export default function BacklinksPanel() {
+/** The backlinks list, as a section of its own. */
+function BacklinksSection() {
   const backlinks = useStore((s) => s.backlinks);
   const openPath = useStore((s) => s.openPath);
   const language = useStore((s) => s.language); // re-render the chrome strings on language change
   const bodyRef = useRef<HTMLDivElement | null>(null);
+  const { collapsed } = usePanelSection("backlinks");
 
   // Hover previews over the cards: the blog shell's engine, the admin wiring
-  // (client/landing.ts). One delegated install on the list's scroll container;
-  // re-installed when the language flips because a rendered card carries t()
-  // chrome — the same contract the blog install states.
+  // (client/landing.ts). One delegated install on the list; re-installed when
+  // the language flips because a rendered card carries t() chrome — the same
+  // contract the blog install states — and when the section opens again,
+  // because a fold unmounts the list it was installed on.
   useEffect(() => {
+    if (collapsed) return;
     let dispose: (() => void) | null = null;
     let dead = false;
     void import("../landing.ts").then((m) => {
@@ -133,7 +173,71 @@ export default function BacklinksPanel() {
       dead = true;
       dispose?.();
     };
-  }, [language]);
+  }, [language, openPath, collapsed]);
+
+  if (!openPath) return null;
+  const groups = groupBacklinks(backlinks);
+  return (
+    <PanelSection id="backlinks" title={t("backlinks")} count={groups.length}>
+      <div className="s-panel-body" ref={bodyRef}>
+        {groups.length === 0 ? (
+          <p className="s-panel-empty">{t("noBacklinks")}</p>
+        ) : (
+          groups.map((group) => (
+            // A div, not the single <button> it used to be: every context
+            // line is now its own click target (a button may not contain
+            // buttons), and each landing goes to ITS mention's line — the
+            // title row lands on the first mention. `data-preview-path` is
+            // what the hover install above resolves a card through.
+            <div key={group.path} className="s-backlink" data-preview-path={group.path}>
+              <button
+                type="button"
+                className="s-backlink-open"
+                onClick={() =>
+                  void import("../landing.ts").then((m) => m.landOnLine(group.path, group.contexts[0].line))
+                }
+                title={group.path}
+              >
+                {/* Note-derived text inside chrome: direction per note — but
+                    per NOTE, not per card. The title line is a chrome block
+                    (it also carries the mention-count badge), so it keeps the
+                    shell's direction and start-alignment and only the title
+                    itself is isolated; `dir="auto"` on the block would have
+                    left-aligned an English title inside an otherwise
+                    right-aligned Arabic card and moved the badge with it. */}
+                <span className="s-backlink-title">
+                  <bdi>{group.title}</bdi>
+                  {group.contexts.length > 1 && (
+                    <span className="s-backlink-count">
+                      {localeNum(group.contexts.length)}
+                    </span>
+                  )}
+                </span>
+              </button>
+              {group.contexts.map((context) => (
+                <button
+                  key={context.line}
+                  type="button"
+                  className="s-backlink-context"
+                  dir="auto"
+                  onClick={() =>
+                    void import("../landing.ts").then((m) => m.landOnLine(group.path, context.line))
+                  }
+                >
+                  {renderContext(context.text)}
+                </button>
+              ))}
+            </div>
+          ))
+        )}
+      </div>
+    </PanelSection>
+  );
+}
+
+export default function BacklinksPanel() {
+  const openPath = useStore((s) => s.openPath);
+  useStore((s) => s.language); // re-render the chrome strings on language change
   // Collapse lives in the store now: Ctrl/Cmd+Alt+Shift+B and the palette toggle
   // the same flag this header button does, and it persists across reloads.
   const collapsed = useStore((s) => s.panelCollapsed);
@@ -168,114 +272,68 @@ export default function BacklinksPanel() {
     return () => mq.removeEventListener("change", onChange);
   }, [collapseForViewport]);
 
+  // Each entry is mounted in the stack's order; a section with nothing to
+  // say for this note (no footnotes, not a tracker) renders nothing and the
+  // stack closes up around it. Built once: the components read the store.
+  const sections = useMemo<StackSection[]>(
+    () => [
+      // Its own boundary, and a null fallback: a skeleton where a heading
+      // list is about to be would be the only thing in the pane that flickered.
+      { id: "outline", node: <Suspense fallback={null}><TocPanel /></Suspense> },
+      // Under the outline by default: the note's footnotes are part of its
+      // shape, and a reader who came for the outline wants them beside it.
+      { id: "footnotes", node: <FootnotesPanel /> },
+      { id: "localgraph", node: <LocalGraph /> },
+      { id: "tracker", node: <TrackerPanel /> },
+      { id: "history", node: <Suspense fallback={null}><HistoryPanel /></Suspense> },
+      { id: "backlinks", node: <BacklinksSection /> },
+      ...(admin
+        ? ([
+            { id: "nearby", node: <Suspense fallback={null}><NearbyPanel /></Suspense> },
+            { id: "related", node: <Suspense fallback={null}><RelatedSection /></Suspense> },
+            { id: "suggest", node: <Suspense fallback={null}><SuggestSection /></Suspense> },
+          ] as StackSection[])
+        : []),
+      { id: "mentions", node: <MentionsPanel /> },
+      { id: "onthisday", node: <OnThisDayPanel /> },
+    ],
+    [admin],
+  );
+
   return (
     <>
       <aside
         className={`s-panel${collapsed ? " s-panel--collapsed" : ""}`}
         // Named by what it holds, not by the edge it happens to sit on — the
-        // same rule the toggles and the palette follow. (The a11y round reached
-        // for a "backlinksPanelAria" key here; main had already given the panel
-        // a truer name, since it now carries the outline and the local graph
-        // above the backlinks list.)
+        // same rule the toggles and the palette follow.
         aria-label={t("paneOutline")}
         aria-hidden={collapsed || zen}
       >
-        {/* The sections scroll inside this wrapper so the grip, positioned
-            against the aside, stays put (app.css, .s-panel__scroll). */}
-        <div className="s-panel__scroll">
-        <Suspense fallback={null}>
-          <TocPanel />
-        </Suspense>
-        {/* Under the outline, before the graph: the note's footnotes are part
-            of its shape, and a reader who came to the pane for the outline is
-            the reader who wants them beside it. */}
-        <FootnotesPanel />
-        <LocalGraph />
-        <TrackerPanel />
-        {/* Its own boundary, and a null fallback: the section is a collapsed
-            header row until somebody opens it, so a skeleton where a one-line
-            header is about to be would be the only thing that flickered. */}
-        <Suspense fallback={null}>
-          <HistoryPanel />
-        </Suspense>
-        <header className="s-panel-header">
-          <span className="s-panel-title">{t("backlinks")}</span>
-          <span className="s-panel-count">{localeNum(backlinks.length)}</span>
-          <button
-            type="button"
-            className="s-panel-toggle s-iconbtn"
-            onClick={() => setCollapsed(true)}
-            aria-expanded={!collapsed}
-            title={t("hidePaneOutline")}
-            tabIndex={collapsed || zen ? -1 : 0}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M9 6l6 6-6 6" />
-            </svg>
-          </button>
-        </header>
-        <div className="s-panel-body" ref={bodyRef}>
-          {!openPath ? (
-            <p className="s-panel-empty">{t("noNoteOpenDot")}</p>
-          ) : backlinks.length === 0 ? (
-            <p className="s-panel-empty">{t("noBacklinks")}</p>
-          ) : (
-            groupBacklinks(backlinks).map((group) => (
-              // A div, not the single <button> it used to be: every context
-              // line is now its own click target (a button may not contain
-              // buttons), and each landing goes to ITS mention's line — the
-              // title row lands on the first mention. `data-preview-path` is
-              // what the hover install above resolves a card through.
-              <div key={group.path} className="s-backlink" data-preview-path={group.path}>
-                <button
-                  type="button"
-                  className="s-backlink-open"
-                  onClick={() =>
-                    void import("../landing.ts").then((m) => m.landOnLine(group.path, group.contexts[0].line))
-                  }
-                  title={group.path}
-                >
-                  {/* Note-derived text inside chrome: direction per note — but
-                      per NOTE, not per card. The title line is a chrome block
-                      (it also carries the mention-count badge), so it keeps the
-                      shell's direction and start-alignment and only the title
-                      itself is isolated; `dir="auto"` on the block would have
-                      left-aligned an English title inside an otherwise
-                      right-aligned Arabic card and moved the badge with it. */}
-                  <span className="s-backlink-title">
-                    <bdi>{group.title}</bdi>
-                    {group.contexts.length > 1 && (
-                      <span className="s-backlink-count">
-                        {localeNum(group.contexts.length)}
-                      </span>
-                    )}
-                  </span>
-                </button>
-                {group.contexts.map((context) => (
-                  <button
-                    key={context.line}
-                    type="button"
-                    className="s-backlink-context"
-                    dir="auto"
-                    onClick={() =>
-                      void import("../landing.ts").then((m) => m.landOnLine(group.path, context.line))
-                    }
-                  >
-                    {renderContext(context.text)}
-                  </button>
-                ))}
-              </div>
-            ))
-          )}
-        </div>
-        {admin && (
-          <Suspense fallback={null}>
-            <NearbyPanel />
-          </Suspense>
-        )}
-        <MentionsPanel />
-        <OnThisDayPanel />
-        </div>
+        <PanelStack
+          storageKey={STACK_KEY}
+          legacy={legacyFold}
+          resizable
+          sections={sections}
+          head={
+            <div className="s-panel-bar">
+              <span className="s-panel-bar__title">{openPath ? t("panelThisNote") : t("noNoteOpenDot")}</span>
+              <StackFoldAll />
+              <button
+                type="button"
+                className="s-panel-toggle s-iconbtn"
+                onClick={() => setCollapsed(true)}
+                aria-expanded={!collapsed}
+                aria-label={t("hidePaneOutline")}
+                title={t("hidePaneOutline")}
+                tabIndex={collapsed || zen ? -1 : 0}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" />
+                </svg>
+              </button>
+            </div>
+          }
+        />
       </aside>
       {collapsed && !zen && (
         <button

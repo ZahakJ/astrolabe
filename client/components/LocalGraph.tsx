@@ -11,16 +11,15 @@
 // stays fresh through SSE because the shared graph cache is invalidated on
 // vault events (client/graphCache.ts).
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { GraphData, GraphNode } from "../../shared/types.ts";
 import { prefersReducedMotion } from "../a11y.ts";
 import { useNoteNeighborhood } from "../graphCache.ts";
-import { autoDir, localeNum, t } from "../i18n.ts";
+import { autoDir, t } from "../i18n.ts";
 import { Lru } from "../lru.ts";
 import { useStore } from "../state.ts";
+import { PanelSection, usePanelSection } from "./PanelStack.tsx";
 import { mixColors, readThemeColors } from "./graphColors.ts";
-
-const COLLAPSED_KEY = "astrolabe.localgraph-collapsed";
 
 // Physics — deliberately soft: a ~200px pane should breathe, not jitter.
 const SPRING_K = 0.055; // neighbor ↔ center pull
@@ -47,14 +46,6 @@ const PULSE_MS = 900; // one-shot center pulse on note switch
  *  "clear the whole map at 800": eviction should cost the OLDEST note its
  *  remembered layout, not every note its layout at once. */
 const lastOffsets = new Lru<{ x: number; y: number }>({ max: 800 });
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
 
 interface Hood {
   center: GraphNode;
@@ -645,7 +636,7 @@ export default function LocalGraph() {
   const openPath = useStore((s) => s.openPath);
   const admin = useStore((s) => s.admin);
   useStore((s) => s.language); // re-render the chrome strings on language change
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const { collapsed } = usePanelSection("localgraph");
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const simRef = useRef<MiniSim | null>(null);
@@ -683,40 +674,11 @@ export default function LocalGraph() {
     if (hood) simRef.current?.setData(hood);
   }, [hood, collapsed]);
 
-  const toggle = () => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // storage unavailable — collapse still works for this session
-    }
-  };
-
   if (!openPath || !hood) return null;
 
   return (
-    <section className="s-localgraph">
-      <header className="s-panel-header s-localgraph__header">
-        <button
-          type="button"
-          className="s-localgraph__toggle"
-          onClick={toggle}
-          aria-expanded={!collapsed}
-          title={t(collapsed ? "showLocalGraph" : "hideLocalGraph")}
-        >
-          <span
-            className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`}
-            aria-hidden="true"
-          >
-            ›
-          </span>
-          <span className="s-panel-title">{t("localGraph")}</span>
-          <span className="s-panel-count">{localeNum(hood.neighborCount)}</span>
-        </button>
-      </header>
-      {!collapsed &&
-        (isEmpty ? (
+    <PanelSection id="localgraph" className="s-localgraph" title={t("localGraph")} count={hood.neighborCount} fill={!isEmpty}>
+      {isEmpty ? (
           // A lone unlabeled disc with a 0 badge reads as broken — say why
           // the pane is quiet instead of drawing an empty sky.
           <p className="s-localgraph__empty">
@@ -749,7 +711,7 @@ export default function LocalGraph() {
               ))}
             </nav>
           </div>
-        ))}
-    </section>
+        )}
+    </PanelSection>
   );
 }

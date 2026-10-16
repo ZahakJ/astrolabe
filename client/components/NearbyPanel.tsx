@@ -14,23 +14,44 @@
 // be an oracle for the unpublished ones. Re-read on every vault event, like
 // the mentions list under it: an edit to any note moves every score a little.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { NearbyHit } from "../../shared/types.ts";
 import { getNearby } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
 import "../styles/nearby.css";
 import { RelatedList, SuggestList } from "./MeaningPanels.tsx";
+import { PanelSection, usePanelSection } from "./PanelStack.tsx";
 
-const COLLAPSED_KEY = "astrolabe.nearby-collapsed";
 const VAULT_EVENT = "astrolabe:vault";
 
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
+// Nearby's rows, for Related: that list leaves out every note Nearby already
+// named, and the two are separate sections now (each folds and moves on its
+// own), so the rows travel through this rather than a prop.
+let shared: NearbyHit[] = [];
+const listeners = new Set<() => void>();
+function share(rows: NearbyHit[]): void {
+  shared = rows;
+  for (const fn of listeners) fn();
+}
+function useSharedNearby(): NearbyHit[] {
+  return useSyncExternalStore(
+    (fn) => {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+    () => shared,
+  );
+}
+
+/** Related, as its own section. */
+export function RelatedSection() {
+  return <RelatedList lexical={useSharedNearby()} />;
+}
+
+/** Suggest links, as its own section. */
+export function SuggestSection() {
+  return <SuggestList />;
 }
 
 export default function NearbyPanel() {
@@ -38,7 +59,7 @@ export default function NearbyPanel() {
   const admin = useStore((s) => s.admin);
   const openNote = useStore((s) => s.openNote);
   useStore((s) => s.language); // the chrome strings follow the language
-  const [collapsed, setCollapsed] = useState(readCollapsed);
+  const { collapsed } = usePanelSection("nearby");
   const [rows, setRows] = useState<NearbyHit[]>([]);
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
@@ -94,29 +115,12 @@ export default function NearbyPanel() {
     };
   }, [collapsed, rows.length]);
 
+  useEffect(() => share(rows), [rows]);
+
   if (!admin || !openPath) return null;
 
-  const toggle = (): void => {
-    const next = !collapsed;
-    setCollapsed(next);
-    try {
-      localStorage.setItem(COLLAPSED_KEY, String(next));
-    } catch {
-      // storage unavailable
-    }
-  };
-
   return (
-    <>
-    <section className="s-nearby" title={t("nearbyHint")}>
-      <header className="s-panel-header s-mentions__header">
-        <button type="button" className="s-mentions__toggle" onClick={toggle} aria-expanded={!collapsed} title={t(collapsed ? "showNearby" : "hideNearby")}>
-          <span className={`s-tree__chevron${collapsed ? "" : " s-tree__chevron--open"}`} aria-hidden="true">›</span>
-          <span className="s-panel-title">{t("nearby")}</span>
-          <span className="s-panel-count">{localeNum(rows.length)}</span>
-        </button>
-      </header>
-      {!collapsed && (
+    <PanelSection id="nearby" className="s-nearby" hint={t("nearbyHint")} title={t("nearby")} count={rows.length}>
         <div className="s-panel-body s-nearby__body" ref={bodyRef}>
           {rows.length === 0 ? (
             <p className="s-panel-empty">{t("nearbyNone")}</p>
@@ -142,13 +146,6 @@ export default function NearbyPanel() {
             ))
           )}
         </div>
-      )}
-    </section>
-    {/* The meaning lists (docs/ask.md), under their own headings: what the
-        note is ABOUT, less what Nearby already named, then passages worth
-        linking. Same chunk, so the pane pays one download for all three. */}
-    <RelatedList lexical={rows} />
-    <SuggestList />
-    </>
+    </PanelSection>
   );
 }

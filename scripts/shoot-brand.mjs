@@ -1,6 +1,6 @@
 // Renders the brand assets that are pictures: docs/brand/hero.html →
 // docs/brand/hero.png (the brand card; the README banner and the og:image are the
-// editor-and-site composite, docs/media/hero-split-v2.png and docs/gh-hero-v2.png).
+// editor-and-site composite, docs/media/hero-split-v3.png and docs/gh-hero-v3.png).
 //   CHROMIUM=/usr/bin/chromium node scripts/shoot-brand.mjs
 import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";

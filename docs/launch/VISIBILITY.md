@@ -21,7 +21,7 @@ spaced-repetition  codemirror6  pwa  electron  nodejs  typescript
 Right-to-left support is one feature among many: `rtl` covers it, and `arabic` stays out of the
 list.
 
-**Social preview image:** upload `docs/gh-hero-v2.png` under Settings → General → Social preview, so
+**Social preview image:** upload `docs/gh-hero-v3.png` under Settings → General → Social preview, so
 links shared on chat apps and forums show the mark instead of a generic card.
 
 ## 2. Labels
