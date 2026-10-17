@@ -522,9 +522,9 @@ function arabicWholeDemo(host: HTMLElement, lang: Lang): void {
 
 // ── 3.45.0: the side panel as a stack ───────────────────────────────────────
 
-/** A small side panel: four sections whose headers really fold, the line
- *  between two of them handing height across on a loop, and the three
- *  gestures named beside it. Real text, so both languages shape. */
+/** A small side panel: four sections whose headers really fold, each as tall
+ *  as what it holds, a long list cut at "Show more", and the gestures named
+ *  beside it. Real text, so both languages shape. */
 function sidePanelDemo(host: HTMLElement, lang: Lang): () => void {
   const wrap = el("div", "s-wn-sp");
   const panel = el("div", "s-wn-sp__panel");
@@ -549,18 +549,18 @@ function sidePanelDemo(host: HTMLElement, lang: Lang): () => void {
       body.appendChild(sky);
     }
     for (let i = 0; i < rows; i++) body.appendChild(el("span", "s-wn-sp__row"));
+    if (id === "backlinks") body.appendChild(el("span", "s-wn-sp__more", L(lang, "Show 6 more", "عرض 6 إضافية")));
     head.addEventListener("click", () => {
       const open = sec.classList.toggle("s-wn-sp__sec--folded");
       head.setAttribute("aria-expanded", String(!open));
     });
-    if (id === "backlinks") sec.appendChild(el("span", "s-wn-sp__split"));
     sec.append(head, body);
     panel.appendChild(sec);
   }
   const notes = el("ul", "s-wn-sp__notes");
   for (const [en, ar] of [
     ["Click a header to fold its section", "انقر رأس القسم ليُطوى"],
-    ["Drag the line between two to resize", "اسحب الخط بين قسمين لتغيير الارتفاع"],
+    ["Every open section shows all of itself", "كل قسم مفتوح يُظهر محتواه كله"],
     ["Drag a header to move its section", "اسحب الرأس لتنقل قسمه"],
   ]) notes.appendChild(el("li", "s-wn-sp__note", L(lang, en, ar)));
   wrap.append(panel, notes);
@@ -576,10 +576,10 @@ export const RELEASES: Release[] = [
     title: { en: "The side panel, rebuilt", ar: "اللوحة الجانبية من جديد" },
     slides: [
       {
-        title: { en: "Every section folds, and none hides", ar: "كل قسم ينطوي، ولا قسم يختبئ" },
+        title: { en: "Every section folds under its header", ar: "كل قسم ينطوي تحت رأسه" },
         body: {
-          en: "The panel beside the note is now a stack: Outline, Local graph, History, Backlinks, Nearby and the rest each sit under a header with its count, and a click folds or opens it. The sections share the panel's height and each scrolls inside itself, so Nearby is never stuck below a long list. Drag the line between two sections to give one more room, double-click it to share the height evenly, and drag a header to put its section where you want it. The order, the folds and the sizes are remembered. On a phone, the same sections are the note sheet's This note page.",
-          ar: "صارت اللوحة التي بجانب الملاحظة أقسامًا بعضها فوق بعض: المحتويات والمخطط المحلي والسجل والروابط الراجعة وبالجوار وغيرها، كلٌّ تحت رأس عليه عدده، ونقرة تطويه أو تفتحه. وتتقاسم الأقسام ارتفاع اللوحة ويمرّر كل منها داخل نفسه، فلا يعلق «بالجوار» تحت قائمة طويلة أبدًا. اسحب الخط بين قسمين لتعطي أحدهما مساحة أكبر، وانقره مرتين ليتوزّع الارتفاع بالتساوي، واسحب رأس القسم لتضعه حيث تريد. ويُحفظ الترتيب والطيّ والأحجام. وعلى الهاتف، الأقسام نفسها هي صفحة «هذه الملاحظة» في ورقة الملاحظة.",
+          en: "The panel beside the note is now a stack: Outline, Local graph, History, Backlinks, Nearby and the rest each sit under a header with its count, and a click folds or opens it. Every open section shows all of itself and the panel scrolls as a whole, as before; fold what you are not reading and the rest moves up. A long list shows its first 20 rows and a Show more button for the rest. Drag a header to put its section where you want it, and the two arrows at the top fold or open them all. The order and the folds are remembered. On a phone, the same sections are the note sheet's This note page.",
+          ar: "صارت اللوحة التي بجانب الملاحظة أقسامًا بعضها فوق بعض: المحتويات والمخطط المحلي والسجل والروابط الراجعة وبالجوار وغيرها، كلٌّ تحت رأس عليه عدده، ونقرة تطويه أو تفتحه. ويُظهر كل قسم مفتوح محتواه كله وتمرّر اللوحة كلها كما كانت؛ اطوِ ما لا تقرؤه فيصعد الباقي. والقائمة الطويلة تُظهر أول 20 صفًّا وزر «عرض المزيد» لما بعدها. اسحب رأس القسم لتضعه حيث تريد، والسهمان في أعلى اللوحة يطويان الأقسام كلها أو يفتحانها. ويُحفظ الترتيب والطيّ. وعلى الهاتف، الأقسام نفسها هي صفحة «هذه الملاحظة» في ورقة الملاحظة.",
         },
         visual: { kind: "demo", mount: sidePanelDemo },
         docs: "workspace",

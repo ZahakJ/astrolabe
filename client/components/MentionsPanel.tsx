@@ -14,7 +14,7 @@ import type { Mention } from "../../shared/types.ts";
 import { getMentions, linkMention } from "../api.ts";
 import { localeNum, t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
-import { PanelSection } from "./PanelStack.tsx";
+import { PanelSection, useShowMore } from "./PanelStack.tsx";
 import { toast } from "../toast.ts";
 
 const VAULT_EVENT = "astrolabe:vault";
@@ -50,6 +50,7 @@ export default function MentionsPanel() {
     };
   }, [load]);
 
+  const { shown, more } = useShowMore(rows, openPath);
   if (!admin || preview || !openPath || rows.length === 0) return null;
 
   const link = async (m: Mention): Promise<void> => {
@@ -101,7 +102,7 @@ export default function MentionsPanel() {
       }
     >
         <div className="s-panel-body s-mentions__body">
-          {rows.map((m) => {
+          {shown.map((m) => {
             const key = `${m.path}:${m.line}:${m.start}`;
             return (
               <div key={key} className="s-backlink s-mentions__row" data-preview-path={m.path}>
@@ -131,6 +132,7 @@ export default function MentionsPanel() {
               </div>
             );
           })}
+          {more}
         </div>
     </PanelSection>
   );

@@ -6,7 +6,9 @@
 //                                without an admin session half these screens
 //                                do not exist and the run refuses loudly
 //                                rather than "passing".
-// Exits 1 on any miss. Run it like check-fidelity / check-a11y.
+//        CHECK_PHONE_STALL_MS / CHECK_PHONE_DEADLINE_MS — the watchdog
+//                                (4 min without a check, 75 min in all).
+// Exits 1 on any miss, and on a stall. Run it like check-fidelity / check-a11y.
 //
 // WHY IT WAS REWRITTEN (3.26.0). The gate this replaces measured four
 // properties — 44px targets, 16px fields, nothing sideways, nothing covered —
@@ -255,13 +257,49 @@ const ONLY = (process.env.CHECK_PHONE_SHAPES ?? "").split(",").map((x) => x.trim
 
 const fail = [];
 const pass = [];
+let lastCheck = "(none yet)";
+let lastProgress = Date.now();
 function check(ok, what, detail = "") {
   (ok ? pass : fail).push(what);
+  lastCheck = what;
+  lastProgress = Date.now();
   console.log(`${ok ? "  ok  " : "  MISS"} ${what}${ok || detail === "" ? "" : `\n        ${detail}`}`);
 }
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM });
 const browsers = [browser];
+
+// THE RUN NEVER HANGS. A stalled run holds the machine's one browser lock
+// (one-browser) and blocks every other session, so the gate fails fast
+// instead. Playwright's own timeouts cover an action that never lands, but
+// not a browser connection that stops answering (a run sat 33 minutes on a
+// goBack with Chromium idle): the watchdog below lives in Node, outside the
+// browser, and ends the run when no check has landed for STALL_MS, and
+// whatever happens, at DEADLINE_MS.
+const STALL_MS = Number(process.env.CHECK_PHONE_STALL_MS ?? 4 * 60_000);
+const DEADLINE_MS = Number(process.env.CHECK_PHONE_DEADLINE_MS ?? 75 * 60_000);
+const started = Date.now();
+// Progress on stderr every 15 s: the elapsed time and the last step, so a
+// run that stops shows WHERE. A heartbeat that stops printing means Node's
+// own loop is blocked, which no timeout inside the run can catch — the outer
+// guard (`timeout … one-browser node scripts/check-phone.mjs`) is for that.
+let lastBeat = 0;
+const watchdog = setInterval(() => {
+  if (Date.now() - lastBeat >= 15_000) {
+    lastBeat = Date.now();
+    console.error(`[check-phone +${Math.round((Date.now() - started) / 1000)}s] ${pass.length + fail.length} checks; last: ${lastCheck} (${Math.round((Date.now() - lastProgress) / 1000)}s ago)`);
+  }
+  const stalled = Date.now() - lastProgress > STALL_MS;
+  const late = Date.now() - started > DEADLINE_MS;
+  if (!stalled && !late) return;
+  clearInterval(watchdog);
+  console.error(
+    `\ncheck-phone: ${stalled ? `no check landed for ${Math.round(STALL_MS / 1000)} s` : `past the ${Math.round(DEADLINE_MS / 60_000)} min deadline`}; the last was "${lastCheck}". Failing instead of hanging.`,
+  );
+  const closing = Promise.all(browsers.map((b) => b.close().catch(() => {})));
+  void Promise.race([closing, new Promise((r) => setTimeout(r, 5000))]).then(() => process.exit(1));
+}, 5000);
+watchdog.unref();
 
 /** THE DEVICE'S VOICES, as a phone might list them (client/speech/
  *  deviceVoices.ts): a fake `speechSynthesis` put in before the page's first
@@ -467,11 +505,28 @@ try {
       }, lang);
       await ctx.addInitScript(FAKE_SPEECH);
       const page = await ctx.newPage();
+      page.setDefaultTimeout(15_000);
+      page.setDefaultNavigationTimeout(20_000);
+      // An evaluate that awaits an in-page promise has no Playwright timeout
+      // at all; every one in this run (and in settings-walk.mjs, which gets
+      // this page) gives up after 15 s instead.
+      const evaluate = page.evaluate.bind(page);
+      page.evaluate = (fn, arg) => {
+        let timer;
+        return Promise.race([
+          evaluate(fn, arg),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error(`page.evaluate did not answer in 15 s (last check: ${lastCheck})`)), 15_000);
+          }),
+        ]).finally(() => clearTimeout(timer));
+      };
       const errors = [];
       page.on("pageerror", (e) => errors.push(e.message));
       const tag = (what) => `${shape.name} ${lang}: ${what}`;
       const press = (loc) => (shape.touch ? loc.first().tap() : loc.first().click());
-      const settle = (ms = 700) => page.waitForTimeout(ms);
+      // A Node timer, not the browser's: a wait must end even when the
+      // browser connection does not answer.
+      const settle = (ms = 700) => new Promise((r) => setTimeout(r, ms));
       const state = () =>
         page.evaluate(() => ({
           path: location.pathname,

@@ -61,7 +61,7 @@
 //    question with its size. The whole text is one tap away for the reader
 //    who needs more than a number.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useDialog } from "../a11y.ts";
 import { noteLabelOf } from "../../shared/noteFormat.ts";
@@ -84,7 +84,7 @@ import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { confirmModal, isConfirmOpen } from "./Confirm.tsx";
 import "../styles/history.css";
-import { PanelSection, usePanelSection } from "./PanelStack.tsx";
+import { PanelSection, usePanelSection, useShowMore } from "./PanelStack.tsx";
 
 /** "Open the history section." Rung by any surface that wants to SHOW this
  *  list rather than merely reveal the pane around it — the tour's history
@@ -475,12 +475,14 @@ export default function HistoryPanel() {
     return () => window.removeEventListener(HISTORY_REVEAL_EVENT, onReveal);
   });
 
+  const ready = feed.state === "ready" ? feed : null;
+  const entries = useMemo(() => (ready ? merge(ready.git, ready.versions) : []), [ready]);
+  const { shown, more } = useShowMore(entries, openPath);
+
   // A visitor has no history at all (every route 401s or 404s to one), and an
   // admin PREVIEWING as a visitor must see exactly what a stranger would.
   if (!openPath || !admin || preview) return null;
 
-  const ready = feed.state === "ready" ? feed : null;
-  const entries = ready ? merge(ready.git, ready.versions) : [];
   const failed = ready !== null && ready.git === null && ready.versions === null;
   const noRepo = ready?.git !== null && ready?.git !== undefined && !ready.git.repo;
   const versionsOff = ready?.versions?.enabled === false;
@@ -498,7 +500,7 @@ export default function HistoryPanel() {
           {failed && <p className="s-history__note">{t("historyFailed")}</p>}
           {entries.length > 0 && (
             <ol className="s-history__list" aria-label={t("historyAria")}>
-              {entries.map((entry) => (
+              {shown.map((entry) => (
                 <li key={entry.key}>
                   <button
                     type="button"
@@ -533,6 +535,7 @@ export default function HistoryPanel() {
               ))}
             </ol>
           )}
+          {more}
           {/* The empty states and the footnotes get DOORS. "Backup is off"
               with nothing to press is the sentence this panel exists to stop
               printing. With rows above them these read as footnotes: the

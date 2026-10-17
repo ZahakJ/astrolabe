@@ -27,7 +27,7 @@ import { useStore } from "../state.ts";
 import { toast } from "../toast.ts";
 import { chromeLangSwitch } from "../chromeLangSwitch.ts";
 import { createTwinFlow, switchToTwin, twinOf, twinPillLabels } from "../twins.ts";
-import { PanelSection, PanelStack, type StackSection } from "../components/PanelStack.tsx";
+import { PanelSection, PanelStack, useShowMore, type StackSection } from "../components/PanelStack.tsx";
 import FootnotesPanel from "../components/FootnotesPanel.tsx";
 import LocalGraph from "../components/LocalGraph.tsx";
 import MentionsPanel from "../components/MentionsPanel.tsx";
@@ -72,6 +72,7 @@ function group(backlinks: Backlink[]): Group[] {
 function Backlinks({ path }: { path: string }) {
   const backlinks = useStore((s) => s.backlinks);
   const groups = useMemo(() => group(backlinks), [backlinks]);
+  const { shown, more } = useShowMore(groups, path);
   const land = (to: string, line: number): void => {
     void import("../landing.ts").then((m) => m.landOnLine(to, line));
   };
@@ -79,7 +80,7 @@ function Backlinks({ path }: { path: string }) {
     <PanelSection id="backlinks" title={t("backlinks")} count={groups.length}>
     {groups.length === 0 ? <p className="s-ph-empty">{t("noBacklinks")}</p> : (
     <ul className="s-ph-list s-ph-backlinks" aria-label={t("backlinks")} data-note={path}>
-      {groups.map((g) => (
+      {shown.map((g) => (
         <li key={g.path} className="s-ph-backlink">
           <button type="button" className="s-ph-row s-ph-backlink__title" onClick={() => land(g.path, g.lines[0].line)}>
             <bdi className="s-ph-row__name" dir="auto">{g.title}</bdi>
@@ -96,6 +97,7 @@ function Backlinks({ path }: { path: string }) {
       ))}
     </ul>
     )}
+    {more}
     </PanelSection>
   );
 }
@@ -355,7 +357,7 @@ export default function NoteSheet({ leaving }: { leaving: boolean }) {
       }
     >
       <div className="s-ph-notesheet__body" role="tabpanel" data-segment={segment}>
-        {segment === "note" && <PanelStack storageKey={STACK_KEY} resizable={false} sections={sections} className="s-ph-stack" />}
+        {segment === "note" && <PanelStack storageKey={STACK_KEY} sections={sections} className="s-ph-stack" />}
         {segment === "properties" && <Properties path={path} />}
         {segment === "actions" && <Actions path={path} onHistory={() => setSegment("history")} />}
         {segment === "history" && (

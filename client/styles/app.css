@@ -1598,9 +1598,10 @@ select:focus,
   display: flex;
   flex-direction: column;
   min-height: 0;
-  /* Eleven sections stack here (.s-pstack below). The aside never scrolls:
-     the grip is absolutely positioned against it, and an aside that scrolled
-     carried the grip up with its content. */
+  /* Eleven sections stack here. The aside never scrolls — the stack inside
+     it does (.s-panel .s-pstack below): the grip is absolutely positioned
+     against the aside, and an aside that scrolled carried the grip up with
+     its content. */
   overflow: hidden;
   background: var(--panel-bg);
   color: var(--panel-text);
@@ -1673,11 +1674,12 @@ select:focus,
 
 /* ── The panel's stack of sections (client/components/PanelStack.tsx) ──────
    One bar on top (what the panel is about, fold-all, hide), then the
-   sections. The stack does not scroll: each open body is given a height
-   (client/sidePanel.ts) and scrolls inside itself with the shared edge fade,
-   so a header is never below somebody else's list. A section root keeps its
-   old class (.s-toc, .s-history, …) for what is inside it, and the rules here
-   win over the box those classes used to draw (fixed widths, a 42% cap). */
+   sections. Every open section is as tall as its content; nothing inside
+   scrolls on its own. The stack under the bar is the panel's one scroller,
+   so the bar and the grip (positioned against the aside) stay put. A
+   section root keeps its old class (.s-toc, .s-history, …) for what is
+   inside it, and the rules here win over the box those classes used to draw
+   (fixed widths, a 42% cap, a list that scrolled in place). */
 
 .s-panel-bar {
   display: flex;
@@ -1724,16 +1726,15 @@ select:focus,
   width: var(--panel-w);
 }
 
-.s-pstack--sized {
+/* The desktop panel: the stack fills what the bar leaves and scrolls as a
+   whole. A drawer's scroll ends at the drawer (3.23.0): on a phone-width
+   window this pane is a fixed drawer over the note, and a gesture past the
+   end of its list must not scroll the note behind it. */
+.s-panel .s-pstack {
   flex: 1;
-  overflow: hidden;
-  overscroll-behavior: contain;
-}
-
-/* Too short for every open section's minimum: the one case the stack
-   scrolls as a whole, so no header is ever out of reach. */
-.s-pstack--sized.s-pstack--overflow {
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .s-pstack .s-psec {
@@ -1794,74 +1795,42 @@ select:focus,
   cursor: default;
 }
 
-.s-pstack--sized .s-psec__body {
-  overflow-x: hidden;
-  overflow-y: auto;
-  /* A scrollbar that comes and goes would rewrap the list, change its
-     height, and move the bar again. */
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
-  transition: height 0.17s ease;
-}
-
-.s-pstack--still .s-psec__body,
-.s-pstack--drag .s-psec__body {
-  transition: none;
-}
-
-/* The graph fills whatever height its body is given. */
-.s-pstack--sized .s-psec--fill .s-psec__content,
-.s-pstack--sized .s-psec--fill .s-localgraph__body {
-  height: 100%;
-}
-
 /* The lists inside used to be scrollers of their own (and the backlinks
-   body a 120px-minimum flex child); inside a section the BODY scrolls. */
-.s-psec__content .s-panel-body {
+   body a 120px-minimum flex child); inside a section each is its own
+   height, and the panel is what scrolls. */
+.s-psec__body .s-panel-body {
   width: auto;
   min-height: 0;
   flex: none;
   overflow: visible;
 }
 
-.s-psec__content .s-history__body,
-.s-psec__content .s-toc__list {
+.s-psec__body .s-toc__list {
   max-height: none;
   overflow: visible;
 }
 
-/* The splitter straddles the seam above a section: 9px to aim at, a 2px
-   accent line once the pointer or the focus is on it. */
-.s-psec__split {
-  position: absolute;
-  inset-inline: 0;
-  top: -5px;
-  height: 9px;
-  z-index: 3;
-  cursor: row-resize;
-  touch-action: none;
+/* A long list's first rows, then this: the rest is a press away, never a
+   box to scroll inside the panel's own scroll. */
+.s-psec__more {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  text-align: start;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
 }
 
-.s-psec__split::after {
-  content: "";
-  position: absolute;
-  inset-inline: 0;
-  top: 3px;
-  height: 2px;
-  background: var(--accent);
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-
-.s-psec__split:hover::after,
-.s-psec__split:focus-visible::after,
-.s-pstack--drag .s-psec__split:active::after {
-  opacity: 0.9;
-}
-
-.s-psec__split:focus-visible {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: -2px;
+.s-psec__more:hover {
+  color: var(--accent);
+  border-color: var(--accent);
 }
 
 /* Reordering: the section in hand dims, a line marks where it will land. */
@@ -1883,13 +1852,6 @@ select:focus,
   background: var(--accent);
   pointer-events: none;
   z-index: 4;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .s-pstack .s-psec__body,
-  .s-psec__split::after {
-    transition: none;
-  }
 }
 
 /* ---------------------------------------------------- reopen handles ----- */

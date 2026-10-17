@@ -1,6 +1,7 @@
 // Right panel: the open note's outline, graph, history, backlinks, Nearby and
-// the rest, as one stack of folding, resizable sections (PanelStack.tsx;
-// the arithmetic is client/sidePanel.ts). Collapses to zero width; a slim
+// the rest, as one stack of folding sections at their own heights
+// (PanelStack.tsx; the stored order and folds are client/sidePanel.ts), in one
+// panel that scrolls as a whole. Collapses to zero width; a slim
 // handle on the panel's own edge reopens it. Clicking a backlink opens that
 // note AND lands on the mention (client/landing.ts); resting the pointer on a
 // card previews the note.
@@ -17,7 +18,7 @@ import { localeNum, t } from "../i18n.ts";
 import { lazySurface } from "../lazySurface.tsx";
 import { hasPanelPreference, useStore } from "../state.ts";
 import type { SectionId } from "../sidePanel.ts";
-import { PanelSection, PanelStack, StackFoldAll, usePanelSection, type StackSection } from "./PanelStack.tsx";
+import { PanelSection, PanelStack, StackFoldAll, usePanelSection, useShowMore, type StackSection } from "./PanelStack.tsx";
 import FootnotesPanel from "./FootnotesPanel.tsx";
 import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
@@ -53,7 +54,7 @@ const NearbyPanel = lazySurface(() => import("./NearbyPanel.tsx"));
 const RelatedSection = lazySurface((): Promise<{ default: ComponentType }> => import("./NearbyPanel.tsx").then((m) => ({ default: m.RelatedSection })));
 const SuggestSection = lazySurface((): Promise<{ default: ComponentType }> => import("./NearbyPanel.tsx").then((m) => ({ default: m.SuggestSection })));
 
-/** Where the stack keeps its order, folds and heights. */
+/** Where the stack keeps its order and folds. */
 const STACK_KEY = "astrolabe.sidepanel";
 
 /** Each section's fold from before the sections shared one key: read once,
@@ -175,15 +176,16 @@ function BacklinksSection() {
     };
   }, [language, openPath, collapsed]);
 
+  const groups = useMemo(() => groupBacklinks(backlinks), [backlinks]);
+  const { shown, more } = useShowMore(groups, openPath);
   if (!openPath) return null;
-  const groups = groupBacklinks(backlinks);
   return (
     <PanelSection id="backlinks" title={t("backlinks")} count={groups.length}>
       <div className="s-panel-body" ref={bodyRef}>
         {groups.length === 0 ? (
           <p className="s-panel-empty">{t("noBacklinks")}</p>
         ) : (
-          groups.map((group) => (
+          shown.map((group) => (
             // A div, not the single <button> it used to be: every context
             // line is now its own click target (a button may not contain
             // buttons), and each landing goes to ITS mention's line — the
@@ -230,6 +232,7 @@ function BacklinksSection() {
             </div>
           ))
         )}
+        {more}
       </div>
     </PanelSection>
   );
@@ -312,7 +315,6 @@ export default function BacklinksPanel() {
         <PanelStack
           storageKey={STACK_KEY}
           legacy={legacyFold}
-          resizable
           sections={sections}
           head={
             <div className="s-panel-bar">

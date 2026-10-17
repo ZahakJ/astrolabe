@@ -74,15 +74,15 @@ The panel beside the note holds everything about the open note, one section unde
 to say. Every section has a header with a count; click it, or press Enter on it, to fold or open
 the section.
 
-- **Nothing hides behind a list.** The sections share the panel's height and each one scrolls inside
-  itself, so every header stays in view however long the backlinks get. Short sections take only
-  the room they need, and the long lists split the rest.
-- **Drag the line between two sections** to give one more room and the other less. Double-click the
-  line to share the height evenly again. With the keyboard, focus the line and use the arrow keys.
+- **Every open section shows all of itself.** Nothing inside the panel scrolls on its own; when the
+  open sections are taller than the window, the panel scrolls as a whole. Fold the ones you are not
+  reading and the rest move up.
+- **Long lists show their first 20 rows** (backlinks, unlinked mentions, history). **Show N more**
+  under the list adds the next ones, up to 50 at a time.
 - **Drag a header** up or down to move its section, or press Alt+↑ / Alt+↓ on it.
 - The two arrows at the top fold every section, or open them all.
 
-The order, the folds, the heights and the panel's width are kept in this browser for this vault.
+The order, the folds and the panel's width are kept in this browser for this vault.
 On a phone the same sections are the **This note** page of the note's sheet, each folding under its
 own header.
 
@@ -90,8 +90,8 @@ own header.
 
 The right panel carries a **local graph**: the open note in the centre with the notes it links to
 and the notes that link to it, moving as if hung on springs you can grab. Drag and let go and it keeps moving a little, click to
-open, double-click to open in place. It stays live as you write and link, and it is the one section
-that grows with whatever height you give it. The whole-vault graph is
+open, double-click to open in place. It stays live as you write and link, and folds with the
+panel's other sections. The whole-vault graph is
 [the graph view](editor.md#navigating).
 
 ## The command palette, beyond notes

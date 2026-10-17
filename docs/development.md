@@ -39,7 +39,7 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
 | `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
-| `npm run check-sidepanel` | The right panel's stack of sections: no header out of reach, splitters that keep a minimum, folds, order and heights kept (below) |
+| `npm run check-sidepanel` | The right panel's stack of sections: nothing scrolls but the panel, long lists cut with "Show more", folds and order kept (below) |
 | `npm run check-windows-layout` | The desktop shell at five window widths × three device pixel ratios × its pointer postures, and which shell each width gets (below) |
 
 ## Where the code lives
@@ -229,12 +229,12 @@ layout map stubbed to Arabic and to Russian, which is how the annotated keycaps 
 ### `npm run check-sidepanel` — the side panel
 
 `CHROMIUM=/usr/bin/chromium npm run check-sidepanel -- <url> <password>`, against a scratch server.
-It opens the note with the most backlinks with every section of the right panel open, at 900, 700
-and 520px tall, and asserts what no screenshot shows: every header is inside the panel and the
-panel does not scroll as a whole; every splitter, dragged past both window edges and pushed with
-End and Home, leaves no section below its minimum, measured while the button is still held (the
-splitter's own arithmetic) and after it is let go (the layout's); and a drag, a fold and a reorder
-come back after a reload. Run it whenever `client/sidePanel.ts`, `PanelStack.tsx` or a section of
+It opens the note with the most backlinks with every section of the right panel open, at 900 and
+520px tall, and asserts what no screenshot shows: no section, and nothing inside one, scrolls on
+its own; when the sections are taller than the window the panel scrolls as a whole and reaches
+every header; the backlinks list draws at most 20 cards and its **Show more** adds rows; each header
+is a button controlling a labelled region; and a fold and a reorder (by pointer and by Alt+↑) come
+back after a reload, and fold-all folds every section. Run it whenever `client/sidePanel.ts`, `PanelStack.tsx` or a section of
 the panel changes.
 
 ### `npm run check-windows-layout` — the window gate

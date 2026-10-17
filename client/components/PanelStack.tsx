@@ -2,18 +2,14 @@
 //
 // Every section of the panel is a <PanelSection>: a header that folds it (a
 // button with aria-expanded, its title and its count) and a body that is a
-// labelled region. The stack around them owns what used to be eleven separate
-// collapse flags, the order, and the heights:
+// labelled region. The stack around them owns the folds and the order:
 //
-//   · The stack itself never scrolls. Each open body gets a height from
-//     `layoutStack` and scrolls inside itself, with the shared edge fade, so no
-//     header is ever below somebody else's list. (The one exception is a panel
-//     too short for every open section's minimum; then the stack scrolls as a
-//     whole, which is still better than a section nobody can reach.)
-//   · A splitter sits above each open section that has an open section above
-//     it. Dragging it hands height across (`dragSplit`); double-clicking it
-//     forgets every dragged height; it is a focusable separator, so the arrow
-//     keys do the same.
+//   · Every open section shows its whole content at its own height. Nothing
+//     inside the panel scrolls on its own; when the open sections are taller
+//     than the window, the panel scrolls as a whole, and a section that is in
+//     the way folds under its header. A list that can run long (backlinks,
+//     unlinked mentions, history) shows its first rows and a "Show N more"
+//     button (`useShowMore`), never a box of its own to scroll.
 //   · A header dragged up or down moves its section; Alt+↑/↓ on a focused
 //     header does it from the keyboard. The DOM order IS the order, so the tab
 //     order follows what the eye sees.
@@ -37,51 +33,21 @@ import {
   type ReactNode,
 } from "react";
 import { localeNum, t, tf } from "../i18n.ts";
-import { attachScrollFade } from "../scrollFade.ts";
-import {
-  dragSplit,
-  isCollapsed,
-  layoutStack,
-  moveSection,
-  parseStackPrefs,
-  serializeStackPrefs,
-  splitValue,
-  type SectionId,
-  type StackPrefs,
-} from "../sidePanel.ts";
+import { isCollapsed, moveSection, parseStackPrefs, serializeStackPrefs, type SectionId, type StackPrefs } from "../sidePanel.ts";
 
-/** How long a folding body keeps its content while it animates shut. */
-const FOLD_MS = 170;
 /** Pointer travel before a press on a header becomes a reorder. */
 const REORDER_AT = 6;
-const KEY_STEP = 16;
-const KEY_STEP_BIG = 64;
 
 interface Parts {
   root: HTMLElement;
-  body: HTMLElement;
-  content: HTMLElement;
   toggle: HTMLElement | null;
-  fill: boolean;
-}
-
-interface Placed {
-  ids: SectionId[];
-  heights: number[];
-  mins: number[];
-  caps: number[];
 }
 
 interface StackApi {
-  resizable: boolean;
   collapsed: (id: SectionId) => boolean;
   setCollapsed: (id: SectionId, value: boolean) => void;
   register: (id: SectionId, parts: Parts) => () => void;
-  splitAbove: (id: SectionId) => boolean;
   dragging: SectionId | null;
-  onSplitDown: (id: SectionId, e: ReactPointerEvent<HTMLElement>) => void;
-  onSplitKey: (id: SectionId, e: ReactKeyboardEvent<HTMLElement>) => void;
-  resetSizes: () => void;
   onHeadDown: (id: SectionId, e: ReactPointerEvent<HTMLElement>) => void;
   onHeadKey: (id: SectionId, e: ReactKeyboardEvent<HTMLElement>) => void;
   takeClick: () => boolean;
@@ -107,14 +73,6 @@ export function usePanelSection(id: SectionId): { collapsed: boolean; setCollaps
   };
 }
 
-function reducedMotion(): boolean {
-  try {
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  } catch {
-    return false;
-  }
-}
-
 function readStored(key: string, legacy?: (id: SectionId) => boolean | null): StackPrefs {
   let raw: string | null = null;
   try {
@@ -133,18 +91,14 @@ export interface StackSection {
 export function PanelStack({
   storageKey,
   legacy,
-  resizable,
   sections,
   head,
   className,
 }: {
-  /** Where the order, the folds and the heights are kept (this browser, this
-   *  vault: localStorage is per origin, and every vault is its own). */
+  /** Where the order and the folds are kept (this browser, this vault:
+   *  localStorage is per origin, and every vault is its own). */
   storageKey: string;
   legacy?: (id: SectionId) => boolean | null;
-  /** Splitters and shared height (the desktop pane). Without it the sections
-   *  simply flow, and whatever holds the stack scrolls (the phone's sheet). */
-  resizable: boolean;
   sections: StackSection[];
   head?: ReactNode;
   className?: string;
@@ -168,99 +122,27 @@ export function PanelStack({
   const stackRef = useRef<HTMLDivElement | null>(null);
   const reg = useRef(new Map<SectionId, Parts>());
   const [present, setPresent] = useState<SectionId[]>([]);
-  const [splits, setSplits] = useState("");
   const [dragging, setDragging] = useState<SectionId | null>(null);
   const [dropY, setDropY] = useState<number | null>(null);
-  const placed = useRef<Placed | null>(null);
   const suppressClick = useRef(false);
   const refocus = useRef<SectionId | null>(null);
-  const frame = useRef(0);
-  const ro = useRef<ResizeObserver | null>(null);
 
   const visible = useCallback((): SectionId[] => prefsRef.current.order.filter((id) => reg.current.has(id)), []);
 
-  const apply = useCallback((ids: SectionId[], heights: number[]) => {
-    ids.forEach((id, i) => {
-      const parts = reg.current.get(id);
-      if (parts) parts.body.style.height = `${heights[i]}px`;
-    });
-    for (let i = 1; i < ids.length; i++) {
-      const split = reg.current.get(ids[i])?.root.querySelector<HTMLElement>(":scope > .s-psec__split");
-      if (split) split.setAttribute("aria-valuenow", String(splitValue(heights[i - 1], heights[i])));
-    }
-  }, []);
-
-  const relayout = useCallback(() => {
-    frame.current = 0;
-    const stack = stackRef.current;
-    if (!stack || !resizable) return;
-    const ids = visible();
-    const open = ids.filter((id) => !isCollapsed(prefsRef.current, id));
-    let chrome = 0;
-    for (const id of ids) {
-      const parts = reg.current.get(id);
-      if (!parts) continue;
-      chrome += parts.root.offsetHeight - parts.body.offsetHeight;
-      if (isCollapsed(prefsRef.current, id)) parts.body.style.height = "0px";
-    }
-    const boxes = open.map((id) => {
-      const parts = reg.current.get(id);
-      return {
-        natural: parts?.content.offsetHeight ?? 0,
-        fill: parts?.fill ?? false,
-        stored: prefsRef.current.sizes[id],
-      };
-    });
-    const out = layoutStack(stack.clientHeight - chrome, boxes);
-    placed.current = { ids: open, heights: out.heights, mins: out.mins, caps: out.caps };
-    apply(open, out.heights);
-    stack.classList.toggle("s-pstack--overflow", out.overflow);
-    const key = open.slice(1).join(" ");
-    setSplits((prev) => (prev === key ? prev : key));
-  }, [apply, resizable, visible]);
-
-  const schedule = useCallback(() => {
-    if (frame.current) return;
-    frame.current = requestAnimationFrame(relayout);
-  }, [relayout]);
-
+  // A reorder re-mounts nothing, but the moved header must keep the focus.
   useLayoutEffect(() => {
-    const stack = stackRef.current;
-    if (!stack || !resizable) return;
-    const observer = new ResizeObserver(schedule);
-    ro.current = observer;
-    observer.observe(stack);
-    for (const parts of reg.current.values()) observer.observe(parts.content);
-    // The first layout lands without animating; after it, every change does.
-    relayout();
-    const settle = requestAnimationFrame(() => stack.classList.remove("s-pstack--still"));
-    return () => {
-      observer.disconnect();
-      ro.current = null;
-      cancelAnimationFrame(settle);
-      if (frame.current) cancelAnimationFrame(frame.current);
-      frame.current = 0;
-    };
-  }, [relayout, resizable, schedule]);
-
-  // A fold, a reorder or a forgotten size changes the layout's inputs without
-  // changing a single observed box.
-  useLayoutEffect(() => {
-    if (resizable) relayout();
     const id = refocus.current;
     if (id) {
       refocus.current = null;
       reg.current.get(id)?.toggle?.focus();
     }
-  }, [prefs, present, relayout, resizable]);
+  }, [prefs]);
 
   const register = useCallback((id: SectionId, parts: Parts) => {
     reg.current.set(id, parts);
-    ro.current?.observe(parts.content);
     setPresent((list) => (list.includes(id) ? list : [...list, id]));
     return () => {
       if (reg.current.get(id) === parts) reg.current.delete(id);
-      ro.current?.unobserve(parts.content);
       setPresent((list) => list.filter((x) => x !== id));
     };
   }, []);
@@ -278,83 +160,6 @@ export function PanelStack({
       });
     },
     [visible],
-  );
-
-  const resetSizes = useCallback(() => setPrefs((p) => ({ ...p, sizes: {} })), []);
-
-  /** Keep the heights a drag (or a key) left — every open section's, not
-   *  only the two it moved: a section left to size itself would ask for its
-   *  whole content on the next layout, and the sharing that follows would
-   *  hand back the very height the reader just took from it. */
-  const commit = useCallback((ids: SectionId[], after: number[]) => {
-    setPrefs((p) => {
-      const sizes = { ...p.sizes };
-      ids.forEach((id, i) => {
-        sizes[id] = after[i];
-      });
-      return { ...p, sizes };
-    });
-  }, []);
-
-  const onSplitDown = useCallback(
-    (id: SectionId, e: ReactPointerEvent<HTMLElement>) => {
-      const at = placed.current;
-      const stack = stackRef.current;
-      if (!at || !stack || e.button !== 0) return;
-      const index = at.ids.indexOf(id);
-      if (index <= 0) return;
-      e.preventDefault();
-      const handle = e.currentTarget;
-      handle.setPointerCapture(e.pointerId);
-      const y0 = e.clientY;
-      const start = { ...at, heights: [...at.heights] };
-      let next = start.heights;
-      stack.classList.add("s-pstack--drag");
-      const move = (ev: PointerEvent): void => {
-        next = dragSplit(start.heights, start.mins, start.caps, index, ev.clientY - y0);
-        apply(start.ids, next);
-      };
-      const end = (): void => {
-        handle.removeEventListener("pointermove", move);
-        handle.removeEventListener("pointerup", end);
-        handle.removeEventListener("pointercancel", end);
-        stack.classList.remove("s-pstack--drag");
-        if (next !== start.heights) commit(start.ids, next);
-      };
-      handle.addEventListener("pointermove", move);
-      handle.addEventListener("pointerup", end);
-      handle.addEventListener("pointercancel", end);
-    },
-    [apply, commit],
-  );
-
-  const onSplitKey = useCallback(
-    (id: SectionId, e: ReactKeyboardEvent<HTMLElement>) => {
-      const at = placed.current;
-      if (!at) return;
-      const index = at.ids.indexOf(id);
-      if (index <= 0) return;
-      const step = e.shiftKey ? KEY_STEP_BIG : KEY_STEP;
-      const delta =
-        e.key === "ArrowUp" ? -step
-        : e.key === "ArrowDown" ? step
-        : e.key === "PageUp" ? -KEY_STEP_BIG
-        : e.key === "PageDown" ? KEY_STEP_BIG
-        : e.key === "Home" ? -100_000
-        : e.key === "End" ? 100_000
-        : 0;
-      if (e.key === "Enter") {
-        e.preventDefault();
-        resetSizes();
-        return;
-      }
-      if (delta === 0) return;
-      e.preventDefault();
-      const next = dragSplit(at.heights, at.mins, at.caps, index, delta);
-      apply(at.ids, next);
-      commit(at.ids, next);
-    },
-    [apply, commit, resetSizes],
   );
 
   const onHeadDown = useCallback(
@@ -439,7 +244,6 @@ export function PanelStack({
     return was;
   }, []);
 
-  const splitSet = useMemo(() => new Set(splits.split(" ").filter(Boolean)), [splits]);
   const ordered = useMemo(() => {
     const byId = new Map(sections.map((s) => [s.id, s]));
     return prefs.order.map((id) => byId.get(id)).filter((s): s is StackSection => s !== undefined);
@@ -448,31 +252,23 @@ export function PanelStack({
 
   const api = useMemo<StackApi>(
     () => ({
-      resizable,
       collapsed: (id) => isCollapsed(prefs, id),
       setCollapsed,
       register,
-      splitAbove: (id) => resizable && splitSet.has(id),
       dragging,
-      onSplitDown,
-      onSplitKey,
-      resetSizes,
       onHeadDown,
       onHeadKey,
       takeClick,
       present: presentInOrder,
       setAll,
     }),
-    [dragging, onHeadDown, onHeadKey, onSplitDown, onSplitKey, prefs, presentInOrder, register, resetSizes, resizable, setAll, setCollapsed, splitSet, takeClick],
+    [dragging, onHeadDown, onHeadKey, prefs, presentInOrder, register, setAll, setCollapsed, takeClick],
   );
 
   return (
     <StackContext.Provider value={api}>
       {head}
-      <div
-        ref={stackRef}
-        className={`s-pstack ${resizable ? "s-pstack--sized s-pstack--still" : "s-pstack--flow"}${dragging ? " s-pstack--reorder" : ""}${className ? ` ${className}` : ""}`}
-      >
+      <div ref={stackRef} className={`s-pstack${dragging ? " s-pstack--reorder" : ""}${className ? ` ${className}` : ""}`}>
         {ordered.map((s) => (
           <Fragment key={s.id}>{s.node}</Fragment>
         ))}
@@ -482,8 +278,8 @@ export function PanelStack({
   );
 }
 
-/** One section: header, splitter, body. `count` null hides the badge;
- *  `fill` makes the body take whatever height it is given (the graph). */
+/** One section: a header that folds it, and its body at its own height.
+ *  `count` null hides the badge. */
 export function PanelSection({
   id,
   title,
@@ -491,7 +287,6 @@ export function PanelSection({
   actions,
   hint,
   className,
-  fill = false,
   children,
 }: {
   id: SectionId;
@@ -500,7 +295,6 @@ export function PanelSection({
   actions?: ReactNode;
   hint?: string;
   className?: string;
-  fill?: boolean;
   children: ReactNode;
 }) {
   const api = useContext(StackContext);
@@ -508,36 +302,15 @@ export function PanelSection({
   const headId = `${uid}-head`;
   const bodyId = `${uid}-body`;
   const rootRef = useRef<HTMLElement | null>(null);
-  const bodyRef = useRef<HTMLDivElement | null>(null);
-  const contentRef = useRef<HTMLDivElement | null>(null);
   const toggleRef = useRef<HTMLButtonElement | null>(null);
   const collapsed = api ? api.collapsed(id) : false;
-  const [shown, setShown] = useState(!collapsed);
-
-  useEffect(() => {
-    if (!collapsed) {
-      setShown(true);
-      return;
-    }
-    if (!api?.resizable || reducedMotion()) {
-      setShown(false);
-      return;
-    }
-    // The content stays while the body closes over it, then goes.
-    const timer = setTimeout(() => setShown(false), FOLD_MS);
-    return () => clearTimeout(timer);
-  }, [collapsed, api?.resizable]);
 
   const register = api?.register;
   useLayoutEffect(() => {
     const root = rootRef.current;
-    const body = bodyRef.current;
-    const content = contentRef.current;
-    if (!register || !root || !body || !content) return;
-    return register(id, { root, body, content, toggle: toggleRef.current, fill });
-  }, [register, id, fill]);
-
-  useEffect(() => attachScrollFade(bodyRef.current), []);
+    if (!register || !root) return;
+    return register(id, { root, toggle: toggleRef.current });
+  }, [register, id]);
 
   const label = typeof count === "number" ? localeNum(count) : count;
   const badge = label !== null && label !== "" ? <span className="s-panel-count">{label}</span> : null;
@@ -546,27 +319,10 @@ export function PanelSection({
   return (
     <section
       ref={rootRef}
-      className={`s-psec${fill ? " s-psec--fill" : ""}${collapsed ? " s-psec--collapsed" : ""}${api?.dragging === id ? " s-psec--lifted" : ""}${className ? ` ${className}` : ""}`}
+      className={`s-psec${collapsed ? " s-psec--collapsed" : ""}${api?.dragging === id ? " s-psec--lifted" : ""}${className ? ` ${className}` : ""}`}
       data-section={id}
       title={hint}
     >
-      {api?.splitAbove(id) && (
-        <div
-          className="s-psec__split"
-          role="separator"
-          aria-orientation="horizontal"
-          aria-label={tf("sectionResize", { name: title })}
-          aria-controls={bodyId}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={50}
-          tabIndex={0}
-          title={t("sectionResizeHint")}
-          onPointerDown={(e) => api.onSplitDown(id, e)}
-          onKeyDown={(e) => api.onSplitKey(id, e)}
-          onDoubleClick={api.resetSizes}
-        />
-      )}
       <header className="s-panel-header s-psec__head">
         {api ? (
           <button
@@ -598,19 +354,38 @@ export function PanelSection({
         )}
         {open && actions}
       </header>
-      <div
-        ref={bodyRef}
-        id={bodyId}
-        className="s-psec__body s-scrollfade"
-        role={open ? "region" : undefined}
-        aria-labelledby={open ? headId : undefined}
-      >
-        <div ref={contentRef} className="s-psec__content">
-          {(open || shown) && children}
-        </div>
+      <div id={bodyId} className="s-psec__body" role={open ? "region" : undefined} aria-labelledby={open ? headId : undefined} hidden={!open}>
+        {open && children}
       </div>
     </section>
   );
+}
+
+/** How many rows a long list in a section shows before "Show N more". */
+export const LIST_FIRST = 20;
+/** How many more each press of it adds. */
+export const LIST_STEP = 50;
+
+/** The first rows of a list that can run long, and the button that shows
+ *  more. The count comes back to LIST_FIRST when `resetKey` (the note)
+ *  changes, so a long list opened once does not stay long on every note. */
+export function useShowMore<T>(rows: readonly T[], resetKey: unknown): { shown: readonly T[]; more: ReactNode } {
+  const [limit, setLimit] = useState(LIST_FIRST);
+  const [key, setKey] = useState(resetKey);
+  if (key !== resetKey) {
+    setKey(resetKey);
+    setLimit(LIST_FIRST);
+  }
+  const hidden = rows.length - limit;
+  return {
+    shown: hidden > 0 ? rows.slice(0, limit) : rows,
+    more:
+      hidden > 0 ? (
+        <button type="button" className="s-psec__more" onClick={() => setLimit((n) => n + LIST_STEP)}>
+          {tf("showMoreRows", { count: localeNum(Math.min(hidden, LIST_STEP)) })}
+        </button>
+      ) : null,
+  };
 }
 
 /** Fold everything, or open everything: one button that says which. */

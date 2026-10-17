@@ -677,7 +677,7 @@ export default function LocalGraph() {
   if (!openPath || !hood) return null;
 
   return (
-    <PanelSection id="localgraph" className="s-localgraph" title={t("localGraph")} count={hood.neighborCount} fill={!isEmpty}>
+    <PanelSection id="localgraph" className="s-localgraph" title={t("localGraph")} count={hood.neighborCount}>
       {isEmpty ? (
           // A lone unlabeled disc with a 0 badge reads as broken — say why
           // the pane is quiet instead of drawing an empty sky.

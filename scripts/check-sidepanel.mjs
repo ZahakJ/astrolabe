@@ -3,24 +3,23 @@
 //   node scripts/check-sidepanel.mjs http://127.0.0.1:7451 <password>
 //   env: CHROMIUM=/usr/bin/chromium
 //
-// WHY THIS EXISTS. The panel used to be one scroller with eleven sections
-// poured into it, and the owner's report was the failure that shape makes:
-// Nearby and everything under the backlinks were below a list you had to
-// scroll past to find. The stack (client/components/PanelStack.tsx, the
-// arithmetic in client/sidePanel.ts) promises three things a screenshot
-// cannot check, and this gate holds them at three window heights, with every
-// section open:
+// WHY THIS EXISTS. 3.45.0 gave every section a box of its own that
+// scrolled, and splitters to share the panel's height between them; 3.45.1
+// put the panel back as it was — every open section showing all of itself,
+// the panel scrolling as a whole — and kept the folding headers.
+// This gate holds what that promises, with every section open, at two
+// window heights:
 //
-//   1. NO SECTION IS UNREACHABLE. Every header lies inside the stack's box,
-//      and the stack itself does not scroll — unless the window is too short
-//      for every open section's minimum, the one case it is allowed to.
-//   2. A SPLITTER KEEPS A MINIMUM. Dragged (and pushed with End and Home) as
-//      far as it goes, no open body is left below BODY_MIN, or its content
-//      when that is shorter; and the total height never changes.
+//   1. NOTHING SCROLLS BUT THE PANEL. No section body, and nothing inside
+//      one, is a scroller with hidden content: each is as tall as what it
+//      holds. When the sections are taller than the window the stack under
+//      the bar scrolls, and every header can be scrolled to. No splitter is
+//      left in the DOM.
+//   2. A LONG LIST IS CUT, NOT BOXED. A list that can run long shows at most
+//      LIST_FIRST rows and a "Show N more" button that adds rows.
 //   3. THE CONTROLS ARE WHAT THEY SAY. Each header is a button with
-//      aria-expanded that controls a labelled region; each splitter a
-//      focusable separator with a value; a fold, a drag and a reorder survive
-//      a reload; fold-all folds every section.
+//      aria-expanded that controls a labelled region; a fold and a reorder
+//      (drag and Alt+↑) survive a reload; fold-all folds every section.
 //
 // It seeds nothing in the vault: it opens the note with the most backlinks.
 
@@ -28,9 +27,8 @@ import { chromium } from "playwright";
 
 const [url = "http://127.0.0.1:7451", password = ""] = process.argv.slice(2);
 const executablePath = process.env.CHROMIUM;
-const BODY_MIN = 64;
-const BODY_FLOOR = 32;
-const HEIGHTS = [900, 700, 520];
+const LIST_FIRST = 20;
+const HEIGHTS = [900, 520];
 
 const errs = [];
 let checks = 0;
@@ -117,127 +115,84 @@ const read = (page) =>
     const stack = document.querySelector(".s-panel .s-pstack");
     if (!stack) return null;
     const sr = stack.getBoundingClientRect();
+    // Every element inside a section that clips content it could scroll to.
+    const scrollers = [];
+    for (const el of stack.querySelectorAll(".s-psec *")) {
+      const oy = getComputedStyle(el).overflowY;
+      if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight + 1) {
+        scrollers.push(`${el.closest(".s-psec").dataset.section}: ${el.className || el.tagName}`);
+      }
+    }
     return {
       top: sr.top,
-      bottom: sr.bottom,
-      scrolls: stack.scrollHeight > stack.clientHeight + 1,
-      overflow: stack.classList.contains("s-pstack--overflow"),
+      scrollTop: stack.scrollTop,
+      scrollHeight: stack.scrollHeight,
+      clientHeight: stack.clientHeight,
+      scrollers,
+      splitters: stack.querySelectorAll(".s-psec__split, [role=separator]").length,
       sections: [...stack.querySelectorAll(".s-psec")].map((s) => {
         const head = s.querySelector(".s-psec__head").getBoundingClientRect();
         const toggle = s.querySelector(".s-psec__toggle");
         const body = s.querySelector(".s-psec__body");
-        const content = s.querySelector(".s-psec__content");
-        const split = s.querySelector(":scope > .s-psec__split");
         const controls = toggle?.getAttribute("aria-controls");
         return {
           id: s.dataset.section,
-          headTop: head.top,
-          headBottom: head.bottom,
+          headTop: head.top - sr.top + stack.scrollTop,
+          headBottom: head.bottom - sr.top + stack.scrollTop,
           expanded: toggle?.getAttribute("aria-expanded"),
           isButton: toggle?.tagName === "BUTTON",
           controlsRegion: controls ? document.getElementById(controls) === body : false,
           region: body.getAttribute("role"),
           labelled: body.getAttribute("aria-labelledby") === toggle?.id,
           body: body.getBoundingClientRect().height,
-          content: content.getBoundingClientRect().height,
-          fill: s.classList.contains("s-psec--fill"),
-          split: split
-            ? {
-                role: split.getAttribute("role"),
-                tab: split.tabIndex,
-                value: split.getAttribute("aria-valuenow"),
-                label: split.getAttribute("aria-label"),
-              }
-            : null,
+          more: !!body.querySelector(".s-psec__more"),
         };
       }),
     };
   });
 
-const floorOf = (s) => (s.fill ? BODY_FLOOR : Math.min(BODY_FLOOR, s.content));
+/** The rows of the backlinks list: its cards. */
+const backlinkRows = (page) => page.locator(".s-panel [data-section=backlinks] .s-backlink").count();
 
 for (const height of HEIGHTS) {
   const where = `${height}px`;
   const { ctx, page, pageErrors } = await openAt(height, ALL_OPEN);
-  let m = await read(page);
+  const m = await read(page);
   ok(where, m !== null, "no stack in the panel");
   if (!m) {
     await ctx.close();
     continue;
   }
   ok(where, m.sections.length >= 3, `only ${m.sections.length} sections drawn`);
-  // 1. Every header inside the stack's box; the stack does not scroll.
+  // 1. Natural heights; the panel is the one scroller.
+  ok(where, m.scrollers.length === 0, `a section scrolls inside itself: ${m.scrollers.slice(0, 4).join(" | ")}`);
+  ok(where, m.splitters === 0, `${m.splitters} splitters left in the panel`);
   for (const s of m.sections) {
-    const inside = s.headTop >= m.top - 1 && s.headBottom <= m.bottom + 1;
-    ok(where, inside || m.overflow, `${s.id}'s header is out of reach (${Math.round(s.headTop)}–${Math.round(s.headBottom)} in ${Math.round(m.top)}–${Math.round(m.bottom)})`);
     ok(where, s.expanded === "true", `${s.id} did not open`);
     ok(where, s.isButton && s.controlsRegion, `${s.id}'s header is not a button controlling its body`);
     ok(where, s.region === "region" && s.labelled, `${s.id}'s open body is not a region labelled by its header`);
-    ok(where, s.body >= floorOf(s) - 1, `${s.id}'s body is ${Math.round(s.body)}px`);
+    ok(where, s.headBottom <= m.scrollHeight + 1, `${s.id}'s header is past the end of the panel's scroll`);
   }
-  ok(where, !m.scrolls || m.overflow, "the stack scrolls as a whole although its minimums fit");
-  // Splitters: one above every open section but the first.
-  const splits = m.sections.slice(1).filter((s) => s.split);
-  ok(where, splits.length === m.sections.length - 1, `${splits.length} splitters for ${m.sections.length} open sections`);
-  for (const s of splits) {
-    ok(where, s.split.role === "separator" && s.split.tab === 0 && s.split.value !== null && !!s.split.label, `${s.id}'s splitter is not a focusable, labelled separator with a value`);
+  const content = m.sections.reduce((a, s) => a + (s.headBottom - s.headTop) + s.body, 0);
+  if (content > m.clientHeight + 4) {
+    ok(where, m.scrollHeight > m.clientHeight, "the open sections are taller than the panel, yet it does not scroll");
+    const last = m.sections[m.sections.length - 1];
+    await page.locator(`.s-panel [data-section="${last.id}"] .s-psec__toggle`).scrollIntoViewIfNeeded();
+    const after = await read(page);
+    ok(where, after.scrollTop > 0, `scrolling to ${last.id}'s header did not scroll the panel`);
   }
 
-  // 2. Push every splitter to both ends; nothing goes below its minimum and
-  //    the total holds.
-  if (!m.overflow && splits.length > 0) {
-    const total = (x) => x.sections.reduce((a, s) => a + s.body, 0);
-    const before = total(m);
-    for (const key of ["End", "Home"]) {
-      for (const s of splits) {
-        await page.locator(`.s-panel [data-section="${s.id}"] > .s-psec__split`).focus();
-        await page.keyboard.press(key);
-      }
-      await page.waitForTimeout(300);
-      m = await read(page);
-      for (const s of m.sections) {
-        const min = s.fill ? BODY_MIN : Math.min(BODY_MIN, s.content);
-        ok(`${where} ${key}`, s.body >= Math.min(min, before / m.sections.length) - 1, `${s.id} squeezed to ${Math.round(s.body)}px (min ${Math.round(min)})`);
-      }
-      ok(`${where} ${key}`, Math.abs(total(m) - before) <= 2, `the total moved from ${Math.round(before)} to ${Math.round(total(m))}`);
-    }
-    // Every splitter dragged past the window's top edge and past its bottom
-    // one. Measured WHILE the button is held and again after: the live drag
-    // is the splitter's own arithmetic (dragSplit), the settled one is the
-    // layout's, and each must hold the minimum on its own. Which drag reaches
-    // a minimum depends on what can grow on the other side (a list stops at
-    // its content, the graph never does), so all of them are tried.
-    let box = null;
-    for (const s of splits) {
-      const handle = page.locator(`.s-panel [data-section="${s.id}"] > .s-psec__split`);
-      for (const toY of [0, height - 1]) {
-        box = await handle.boundingBox();
-        if (!box) continue;
-        await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-        await page.mouse.down();
-        await page.mouse.move(box.x + box.width / 2, toY, { steps: 10 });
-        for (const phase of ["held", "let go"]) {
-          if (phase === "let go") {
-            await page.mouse.up();
-            await page.waitForTimeout(250);
-          }
-          m = await read(page);
-          for (const x of m.sections) {
-            const min = x.fill ? BODY_MIN : Math.min(BODY_MIN, x.content);
-            ok(`${where} drag ${s.id}→${toY} ${phase}`, x.body >= Math.min(min, before / m.sections.length) - 1, `${x.id} squeezed to ${Math.round(x.body)}px`);
-          }
-          ok(`${where} drag ${s.id}→${toY} ${phase}`, Math.abs(total(m) - before) <= 2, `the total moved from ${Math.round(before)} to ${Math.round(total(m))}`);
-        }
-      }
-    }
-    if (box) {
-      // The drag is kept, exactly, across a reload.
-      const kept = m.sections.map((s) => Math.round(s.body));
-      await page.reload({ waitUntil: "networkidle" });
-      await page.waitForTimeout(1500);
-      const again = (await read(page)).sections.map((s) => Math.round(s.body));
-      ok(`${where} drag`, kept.every((h, i) => Math.abs(h - again[i]) <= 2), `a reload changed the heights ${kept} → ${again}`);
-    }
+  // 2. The backlinks list is cut at LIST_FIRST, and "Show more" adds rows.
+  const rows = await backlinkRows(page);
+  ok(where, rows <= LIST_FIRST, `the backlinks list draws ${rows} cards at first`);
+  const backlinks = m.sections.find((s) => s.id === "backlinks");
+  if (backlinks?.more) {
+    await page.locator(".s-panel [data-section=backlinks] .s-psec__more").click();
+    await page.waitForTimeout(200);
+    const grown = await backlinkRows(page);
+    ok(where, grown > rows, `"Show more" left the backlinks at ${grown} cards`);
+    const again = await read(page);
+    ok(where, again.scrollers.length === 0, `a longer list made a section scroll inside itself: ${again.scrollers.slice(0, 4).join(" | ")}`);
   }
   ok(where, pageErrors.length === 0, `page errors: ${pageErrors.slice(0, 3).join(" | ")}`);
   await ctx.close();
@@ -264,6 +219,12 @@ for (const height of HEIGHTS) {
   m = await read(page);
   ok(where, m.sections[0].id === last, `Alt+↑ did not bring ${last} to the top (${m.sections.map((s) => s.id)})`);
   ok(where, await page.evaluate((id) => document.activeElement?.closest(".s-psec")?.dataset.section === id, last), "the moved header lost the focus");
+  // Fold all: every section a header, so the whole stack is on screen for
+  // the pointer reorder that follows.
+  await page.locator(".s-panel .s-pstack__foldall").click();
+  await page.waitForTimeout(300);
+  m = await read(page);
+  ok(where, m.sections.every((s) => s.expanded === "false"), "fold-all left a section open");
   // A pointer reorder: the (new) first header dragged below the last.
   const a = await page.locator(`.s-panel [data-section="${last}"] .s-psec__toggle`).boundingBox();
   const end = await page.locator(".s-panel .s-psec").last().boundingBox();
@@ -275,17 +236,14 @@ for (const height of HEIGHTS) {
   await page.waitForTimeout(400);
   m = await read(page);
   ok(where, m.sections[m.sections.length - 1].id === last, `a header drag did not move ${last} to the end (${m.sections.map((s) => s.id)})`);
+  ok(where, m.sections.every((s) => s.expanded === "false"), "the drag's release opened a section");
   const order = m.sections.map((s) => s.id).join(",");
   await page.reload({ waitUntil: "networkidle" });
   await page.waitForTimeout(1500);
   m = await read(page);
   ok(where, m.sections.map((s) => s.id).join(",") === order, "a reload changed the order");
-  ok(where, m.sections.find((s) => s.id === first)?.expanded === "false", "a reload reopened a folded section");
-  // Fold all, then open all.
-  await page.locator(".s-panel .s-pstack__foldall").click();
-  await page.waitForTimeout(400);
-  m = await read(page);
-  ok(where, m.sections.every((s) => s.expanded === "false"), "fold-all left a section open");
+  ok(where, m.sections.every((s) => s.expanded === "false"), "a reload reopened a folded section");
+  // Open all.
   await page.locator(".s-panel .s-pstack__foldall").click();
   await page.waitForTimeout(400);
   m = await read(page);

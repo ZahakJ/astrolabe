@@ -394,12 +394,10 @@ const en = {
   paneNotes: "Notes sidebar",
   paneOutline: "Outline & backlinks",
   // The side panel's stack (client/components/PanelStack.tsx): the bar over
-  // it, each section's fold, and the splitters between sections.
+  // it and each section's fold.
   panelThisNote: "This note",
   sectionShow: "Show {name}",
   sectionHide: "Hide {name}",
-  sectionResize: "Resize {name}",
-  sectionResizeHint: "Drag to resize · double-click to share the height evenly",
   sectionCollapseAll: "Fold every section",
   sectionExpandAll: "Open every section",
   // The keystrokes moved: Ctrl/Cmd+B is BOLD in the editor now (every reader

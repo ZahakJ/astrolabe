@@ -305,8 +305,6 @@ const ar = {
   panelThisNote: "هذه الملاحظة",
   sectionShow: "إظهار {name}",
   sectionHide: "إخفاء {name}",
-  sectionResize: "تغيير ارتفاع {name}",
-  sectionResizeHint: "اسحب لتغيير الارتفاع · انقر مرتين لتوزيعه بالتساوي",
   sectionCollapseAll: "طيّ كل الأقسام",
   sectionExpandAll: "فتح كل الأقسام",
   rowScreenWarmth: "دفء الشاشة",
