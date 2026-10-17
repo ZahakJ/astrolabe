@@ -461,7 +461,7 @@ link opens its note and back from it comes home to Today; no page errors. Each p
 a thumb asks of it: Orbits lists its decks, a deck opens, and
 **Study starts the session full screen** (on a tablet it takes both columns) and back lands on the
 deck; Sigils lists its sigils, a sigil opens and **a tick answers at once and the server has it**;
-Media lists its shelves and a tracker opens its card; **a book wears one bar of its own** (no
+Media lists its shelves and a tracker opens its card; the Writing desk lists a piece and **a pick in a card's status menu writes the note's status**; **a book wears one bar of its own** (no
 desktop bar, no phone top bar) and **its scrubber moves the page**; the reader's ⋯ is an action
 sheet and **back closes it** and keeps the book; the theme picker (a layer on `<body>`) takes a
 history entry and back closes it; Settings is a list, a section is a screen, an edit raises the

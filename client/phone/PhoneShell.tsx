@@ -67,6 +67,7 @@ import {
   FEEDS_TAB,
   isSigilsTab,
   isTimelineTab,
+  isDeskTab,
   MEDIA_TAB,
   orbitsSessionOf,
   ORBITS_TAB,
@@ -115,6 +116,7 @@ const ReviewScreen = lazySurface(() => import("./screens/ReviewScreen.tsx"));
 const FeedsScreen = lazySurface(() => import("./screens/FeedsScreen.tsx"));
 const FeedItemScreen = lazySurface(() => import("./screens/FeedItemScreen.tsx"));
 const TimelineScreen = lazySurface(() => import("./screens/TimelineScreen.tsx"));
+const DeskScreen = lazySurface(() => import("./screens/DeskScreen.tsx"));
 const TagPickerSheet = lazySurface(() => import("./TagPickerSheet.tsx"));
 const ListSheet = lazySurface(() => import("./ListSheet.tsx"));
 // The note sheet and the move sheet reach the outline, the section surgery,
@@ -224,6 +226,7 @@ export function urlForScreen(screen: Screen, tab: TabId): string | null {
       if (isReviewWeekTab(s)) return "/review-week";
       if (isFeedsTab(s)) return "/feeds";
       if (isTimelineTab(s)) return "/timeline";
+      if (isDeskTab(s)) return "/desk";
       if (isOrbitsTab(s)) {
         const session = orbitsSessionOf(s);
         return orbitsUrl(session?.path ?? null, session?.section ?? null);
@@ -292,6 +295,7 @@ function applyScreen(screen: Screen): void {
   else if (isReviewWeekTab(tab)) s.setView("review-week");
   else if (isFeedsTab(tab)) s.setView("feeds");
   else if (isTimelineTab(tab)) s.setView("timeline");
+  else if (isDeskTab(tab)) s.setView("desk");
   else if (isOrbitsTab(tab)) {
     const session = orbitsSessionOf(tab);
     s.openOrbits(session?.path ?? null, session?.section ?? null);
@@ -838,6 +842,7 @@ export default function PhoneShell() {
         if (isReviewWeekTab(tab)) return <ReviewScreen onBack={back} />;
         if (isFeedsTab(tab)) return <FeedsScreen onBack={onBack} />;
         if (isTimelineTab(tab)) return <TimelineScreen onBack={back} />;
+        if (isDeskTab(tab)) return <DeskScreen onBack={back} />;
         return <SurfaceScreen key={tab} tab={tab} onBack={back} />;
       }
       case "settings":

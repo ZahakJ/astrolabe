@@ -1,0 +1,141 @@
+/* Astrolabe — a piece's status: the dot and the pill with its menu
+   (client/desk/StatusPill.tsx), on the desk and in the editor's piece bar.
+   Tokens only; logical properties. */
+
+/* ── the status hues ──────────────────────────────────────────────────────
+   A dot beside each status word: a NON-TEXT mark, painted from the room's own
+   callout hues so every theme draws seven separable dots it already
+   measured. The word beside the dot is always --text. */
+
+.s-desk-pill__dot {
+  flex: none;
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+[data-stage="idea"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="idea"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
+}
+[data-stage="researching"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="researching"] {
+  background: var(--callout-info);
+}
+[data-stage="outlining"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="outlining"] {
+  background: var(--callout-abstract);
+}
+[data-stage="drafting"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="drafting"] {
+  background: var(--callout-warning);
+}
+[data-stage="editing"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="editing"] {
+  background: var(--callout-example);
+}
+[data-stage="published"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="published"] {
+  background: var(--accent);
+}
+[data-stage="parked"] > .s-desk-pill__dot,
+.s-desk-pill__dot[data-stage="parked"] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--text-faint);
+  border-radius: 2px;
+}
+
+/* ── the status pill and its menu ─────────────────────────────────────── */
+
+.s-desk-pill {
+  position: relative;
+  flex: none;
+}
+
+.s-desk-pill__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.s-desk-pill__btn:hover {
+  background: var(--bg-hover);
+}
+
+.s-desk-pill__btn:focus-visible,
+.s-desk-pill__item:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-desk-pill__chev {
+  color: var(--text-muted);
+}
+
+.s-desk-pill__menu {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline-end: 0;
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 168px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-raised);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+.s-desk-pill__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-block-size: 30px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-desk-pill__item:hover {
+  background: var(--bg-hover);
+}
+
+.s-desk-pill__item[aria-checked="true"] {
+  background: var(--accent-soft);
+}
+
+/* A finger: the 44px floor, on the phone shell and on a touchscreen laptop. */
+.s-ph-screen .s-desk-pill__btn {
+  min-block-size: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+}
+
+.s-ph-screen .s-desk-pill__item {
+  min-block-size: 44px;
+  font-size: 15px;
+}
+
+@media (pointer: coarse) {
+  .s-desk-pill__btn,
+  .s-desk-pill__item {
+    min-block-size: 44px;
+  }
+}

@@ -13,7 +13,7 @@
 // buffer — they scroll independently, which is the point of having two, and
 // they share a document, which is the point of it being one note.
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { SPELL_DICTS_EVENT } from "../spellDicts.ts";
 import { EditorView } from "@codemirror/view";
 import { focusIsClaimed } from "../a11y.ts";
@@ -82,6 +82,12 @@ import {
 import { stripTashkeelNote } from "../editor/harakat.ts";
 import { autoFuriganaSelection, openFuriganaPopover } from "../editor/furigana.ts";
 import { applyTemplate, splitFrontmatter } from "../templates.ts";
+import { lazySurface } from "../lazySurface.tsx";
+import { isPieceSource, minimalChange, outlineToHeadings } from "../../shared/desk.ts";
+
+// The Writing desk's bar over a piece (client/desk/PieceBar.tsx): its own
+// chunk, fetched only when the note says `kind: essay`.
+const PieceBar = lazySurface(() => import("../desk/PieceBar.tsx"));
 import { carriedScrollTop, fractionOfElement, registerScrollSource, takeCarriedScroll } from "../scrollCarry.ts";
 
 // The properties card answers a right-click with "Hide properties"
@@ -235,6 +241,17 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
   const siteTextDirection = useStore((s) => s.textDirection);
   const siteTextAlign = useStore((s) => s.textAlign);
   const propsCard = useStore((s) => s.propsCard);
+  // A piece of writing (shared/desk.ts) wears the piece bar. Asked of the
+  // buffer when the view mounts and again after every save lands, so typing
+  // `kind: essay` brings the bar the moment the note is written.
+  const admin = useStore((s) => s.admin);
+  const preview = useStore((s) => s.previewVisitor);
+  const saved = useStore((s) => s.dirty[path] !== true);
+  const [piece, setPiece] = useState(false);
+  useEffect(() => {
+    const view = viewRef.current;
+    if (view !== null && saved) setPiece(isPieceSource(view.state.doc.sliceString(0, 8000)));
+  }, [saved, path]);
 
   useEffect(() => {
     let disposed = false;
@@ -273,6 +290,7 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
         });
         attach(path, view);
         viewRef.current = view;
+        setPiece(isPieceSource(view.state.doc.sliceString(0, 8000)));
 
         // Vim loads lazily; patch it into the fresh view once the module is in.
         if (useStore.getState().vimMode) setVim(view, true);
@@ -758,6 +776,24 @@ export default function Editor({ path, paneId = null }: { path: string; paneId?:
             {t("leaseTakeOver")}
           </button>
         </div>
+      )}
+      {piece && admin && !preview && (
+        <Suspense fallback={null}>
+          <PieceBar
+            path={path}
+            onOutline={() => {
+              // The outline's items as headings, in ONE dispatch: one undo
+              // step, the caret where it was (shared/desk.ts).
+              const view = viewRef.current;
+              if (view === null) return null;
+              const src = view.state.doc.toString();
+              const out = outlineToHeadings(src);
+              if (out === null || out.added === 0) return out === null ? null : 0;
+              view.dispatch({ changes: minimalChange(src, out.text) });
+              return out.added;
+            }}
+          />
+        </Suspense>
       )}
       <div className="s-editor" ref={hostRef} />
     </div>

@@ -15,7 +15,7 @@ import { useStore } from "../../state.ts";
 import { choiceLabel } from "../../themes.ts";
 import { openTour } from "../../tour.ts";
 import { inAndroidShell, returnToShell } from "../../androidShell.ts";
-import { FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB } from "../../workspace.ts";
+import { DESK_TAB, FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB } from "../../workspace.ts";
 import { usePhone } from "../context.ts";
 import { IconChevron } from "../icons.tsx";
 import LangPill from "../LangPill.tsx";
@@ -77,6 +77,7 @@ export default function MoreScreen() {
           {admin && <Item label={t("reviewWeek")} onClick={surface(REVIEW_WEEK_TAB)} />}
           {admin && <Item label={t("feeds")} onClick={surface(FEEDS_TAB)} />}
           {admin && <Item label={t("timeline")} onClick={surface(TIMELINE_TAB)} />}
+          {admin && !pocket && <Item label={t("desk")} onClick={surface(DESK_TAB)} />}
           <Item label={t("docTitleGraph")} onClick={surface(GRAPH_TAB)} />
         </Group>
         {admin && (

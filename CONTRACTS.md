@@ -20,7 +20,7 @@ feature gets a section in the area it belongs to (or its own file, added to the 
 | [editor.md](contracts/editor.md) | The open document (buffers, `AUTOSAVE_MS`), pointer mapping, selections, formatting, the selection menu and composer commands, block alignment, the properties card, coloured text, sectioning, fences, line endings, templates, tables, drawings, LaTeX notes, annotations. |
 | [reading.md](contracts/reading.md) | Banner resolution and generated banners, justification, the meta line, print, the library, the book reader (PDF) and EPUB. |
 | [public-site.md](contracts/public-site.md) | The blog shell, topics vs publishing, collections, the site design engine, the composed pages, the designer. |
-| [features.md](contracts/features.md) | Twins, trackers, Sigils, the Calendar page, Orbits, block references, queries, tasks, periodic notes, bookmarks, layouts, the month and margin, capture, Ask the vault, voice notes. |
+| [features.md](contracts/features.md) | Twins, trackers, Sigils, the Calendar page, Orbits, block references, queries, tasks, periodic notes, bookmarks, layouts, the month and margin, capture, Ask the vault, voice notes, the Writing desk. |
 | [sync-desktop-mobile.md](contracts/sync-desktop-mobile.md) | Settings that travel, git backup and sync, the desktop app, its updates and sessions, the pocket vault on the phone. |
 | [presence.md](contracts/presence.md) | Discord presence: the pure core in `shared/presence/`, the two hosts and the one sink, who owns the socket, the privacy policy as a contract, the rate, clear on exit, the reporter and the Settings page. |
 | [i18n.md](contracts/i18n.md) | Localization and RTL, numerals and calendars, note layout, tag labels, Arabic in labels. |

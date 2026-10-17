@@ -572,6 +572,62 @@ function sidePanelDemo(host: HTMLElement, lang: Lang): () => void {
 
 export const RELEASES: Release[] = [
   {
+    version: "3.46.0",
+    title: { en: "The Writing desk", ar: "مكتب الكتابة" },
+    slides: [
+      {
+        // ── Three columns of the board; a card arrives in each, one is held between two ──
+        title: { en: "Every piece you mean to write, on one desk", ar: "كل ما تنوي كتابته على مكتب واحد" },
+        body: {
+          en: "Give a note kind: essay and an angle, the one line that says what it argues, and it is a piece on the Writing desk: a board from Idea through Researching, Outlining, Drafting and Editing to Published, a list, and your series as lanes showing how many pieces are drafted. Drag a card, or use its status pill, to move it. A piece shows its words against a goal and its next step, and in the editor a slim bar carries its status, its angle, its sources and an Outline to headings button. New essay idea in the command palette needs only a title and an angle. Pieces stay private: only publishing with ✦ puts one on the site.",
+          ar: "أعطِ ملاحظةً kind: essay وزاويةً، أي السطر الذي يقول ما تريد أن تقوله، فتصير مقالة على مكتب الكتابة: لوحة من «فكرة» مرورًا بالبحث والتخطيط والمسودّة والتحرير إلى «منشورة»، وقائمة، وسلاسلك مسارات تُظهر كم مقالة كُتبت مسودّتها. اسحب البطاقة، أو استعمل زرّ مرحلتها، لتنقلها. وتُظهر المقالة كلماتها مقابل الهدف وخطوتها التالية، ويعلوها في المحرر شريط رفيع فيه مرحلتها وزاويتها ومصادرها وزرّ «المخطط إلى عناوين». و«فكرة مقالة جديدة» في لوحة الأوامر لا تحتاج إلا عنوانًا وزاوية. والمقالات تبقى خاصّة بك: لا يضعها على الموقع إلا النشر بـ ✦.",
+        },
+        visual: {
+          kind: "svg",
+          svg: (lang) => `<svg viewBox="0 0 560 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">
+  <rect x="12" y="12" width="536" height="196" rx="12" fill="var(--bg-raised)" stroke="var(--border)"/>
+  <g>
+    <rect x="32" y="30" width="156" height="164" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <circle cx="48" cy="48" r="4" fill="none" stroke="var(--text-faint)" stroke-width="1.5"/>
+    <text x="60" y="52" fill="var(--text-muted)" font-size="11" font-weight="600">${L(lang, "Idea", "فكرة")}</text>
+    <rect x="202" y="30" width="156" height="164" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <circle cx="218" cy="48" r="4" fill="var(--callout-warning)"/>
+    <text x="230" y="52" fill="var(--text-muted)" font-size="11" font-weight="600">${L(lang, "Drafting", "مسودّة")}</text>
+    <rect x="372" y="30" width="156" height="164" rx="8" fill="var(--bg)" stroke="var(--border)"/>
+    <circle cx="388" cy="48" r="4" fill="var(--accent)"/>
+    <text x="400" y="52" fill="var(--text-muted)" font-size="11" font-weight="600">${L(lang, "Published", "منشورة")}</text>
+  </g>
+  <g class="wa-drop" style="--i:1">
+    <rect x="42" y="64" width="136" height="52" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <rect x="52" y="76" width="90" height="7" rx="3.5" fill="var(--text)" opacity=".8"/>
+    <rect x="52" y="90" width="112" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+    <rect x="52" y="101" width="70" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+  </g>
+  <g class="wa-drop" style="--i:2">
+    <rect x="212" y="64" width="136" height="60" rx="6" fill="var(--bg-raised)" stroke="var(--border)"/>
+    <rect x="222" y="76" width="96" height="7" rx="3.5" fill="var(--text)" opacity=".8"/>
+    <rect x="222" y="90" width="108" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+    <rect x="222" y="108" width="116" height="3" rx="1.5" fill="var(--bg-hover)"/>
+  </g>
+  <rect class="wa-grow" style="--i:4" x="222" y="108" width="80" height="3" rx="1.5" fill="var(--accent)"/>
+  <g class="wa-drop" style="--i:3">
+    <rect x="382" y="64" width="136" height="52" rx="6" fill="var(--bg-raised)" stroke="var(--accent)"/>
+    <rect x="392" y="76" width="84" height="7" rx="3.5" fill="var(--text)" opacity=".8"/>
+    <rect x="392" y="90" width="104" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+    <rect x="392" y="101" width="60" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+  </g>
+  <g class="wa-late" style="--i:5">
+    <rect x="132" y="138" width="136" height="44" rx="6" fill="var(--bg-raised)" stroke="var(--accent)" stroke-dasharray="4 3"/>
+    <rect x="142" y="150" width="82" height="7" rx="3.5" fill="var(--text)" opacity=".8"/>
+    <rect x="142" y="164" width="104" height="5" rx="2.5" fill="var(--text-muted)" opacity=".6"/>
+  </g>
+</svg>`,
+        },
+        docs: "writing-desk",
+      },
+    ],
+  },
+  {
     version: "3.45.0",
     title: { en: "The side panel, rebuilt", ar: "اللوحة الجانبية من جديد" },
     slides: [

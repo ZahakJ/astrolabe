@@ -24,6 +24,8 @@ import LocalGraph from "./LocalGraph.tsx";
 import TrackerPanel from "./TrackerPanel.tsx";
 import MentionsPanel from "./MentionsPanel.tsx";
 import OnThisDayPanel from "./OnThisDayPanel.tsx";
+// The Writing desk's Sources section: its own chunk, for the owner only.
+const SourcesPanel = lazySurface(() => import("./SourcesPanel.tsx"));
 
 // NOTE HISTORY IS LAZY, and it is the only one of the three stacked sections
 // that is. It carries a markdown renderer (the revision viewer draws the whole
@@ -288,6 +290,7 @@ export default function BacklinksPanel() {
       { id: "footnotes", node: <FootnotesPanel /> },
       { id: "localgraph", node: <LocalGraph /> },
       { id: "tracker", node: <TrackerPanel /> },
+      ...(admin ? ([{ id: "sources", node: <Suspense fallback={null}><SourcesPanel /></Suspense> }] as StackSection[]) : []),
       { id: "history", node: <Suspense fallback={null}><HistoryPanel /></Suspense> },
       { id: "backlinks", node: <BacklinksSection /> },
       ...(admin

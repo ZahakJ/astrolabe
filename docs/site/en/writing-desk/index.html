@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Writing desk · Astrolabe Documentation</title>
+<meta name="description" content="Every piece you mean to write, from a passing idea to a published post: a board by status, a list, your series as lanes with their progress, and on each piece its status, its angle, its sources and how it has grown.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="Menu" data-menu>☰</button>
+  <a class="top__brand" href="../../en/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> Astrolabe <span class="top__docs">Documentation</span></a>
+  <label class="top__search"><input type="search" placeholder="Search the docs…" aria-label="Search the docs…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../ar/writing-desk/" hreflang="ar">العربية</a>
+  <button class="top__theme" type="button" title="Light / dark" aria-label="Light / dark" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../en/">Overview</a><div class="nav__section"><div class="nav__title">Getting started</div><a class="nav__link" href="../../en/configuration/">Configuration</a><a class="nav__link" href="../../en/publishing/">Publishing &amp; access</a><a class="nav__link" href="../../en/backup-and-sync/">Backup &amp; sync</a><a class="nav__link" href="../../en/offline/">Offline reading</a><a class="nav__link" href="../../en/capture/">Capture</a><a class="nav__link" href="../../en/feeds/">Feeds</a><a class="nav__link" href="../../en/import/">Import</a><a class="nav__link" href="../../en/export/">Export</a><a class="nav__link" href="../../en/desktop/">The desktop app</a><a class="nav__link" href="../../en/mobile/">The Android app</a><a class="nav__link" href="../../en/terminal/">In the terminal</a><a class="nav__link" href="../../en/presence/">Discord presence</a></div><div class="nav__section"><div class="nav__title">Writing</div><a class="nav__link" href="../../en/editor/">The editor &amp; reading view</a><a class="nav__link" href="../../en/templates-and-notes/">Templates, banners &amp; notes</a><a class="nav__link" href="../../en/latex/">LaTeX notes</a><a class="nav__link" href="../../en/trackers/">Trackers</a><a class="nav__link" href="../../en/sigils/">Sigils</a><a class="nav__link" href="../../en/today/">Today</a><a class="nav__link" href="../../en/calendar/">The Calendar</a><a class="nav__link" href="../../en/timeline/">The Timeline</a><a class="nav__link is-current" href="../../en/writing-desk/">The Writing desk</a><a class="nav__link" href="../../en/orbits/">Orbits</a><a class="nav__link" href="../../en/drawing/">Drawings</a><a class="nav__link" href="../../en/books/">The book reader</a><a class="nav__link" href="../../en/ask/">Ask the vault</a><a class="nav__link" href="../../en/workspace/">Panes, tabs &amp; windows</a><a class="nav__link" href="../../en/printing/">Printing &amp; PDF</a><a class="nav__link" href="../../en/keymap/">Keymap</a></div><div class="nav__section"><div class="nav__title">Your site</div><a class="nav__link" href="../../en/blog-mode/">Blog mode</a><a class="nav__link" href="../../en/designer/">Designed mode</a><a class="nav__link" href="../../en/library/">The library</a><a class="nav__link" href="../../en/webmentions/">Webmentions &amp; the fediverse</a></div><div class="nav__section"><div class="nav__title">Look &amp; language</div><a class="nav__link" href="../../en/theming/">Theming</a><a class="nav__link" href="../../en/typography/">Typography</a><a class="nav__link" href="../../en/arabic-and-rtl/">Arabic &amp; RTL</a><a class="nav__link" href="../../en/japanese/">Japanese &amp; furigana</a><a class="nav__link" href="../../en/read-aloud/">Read aloud</a></div><div class="nav__section"><div class="nav__title">Deeper</div><a class="nav__link" href="../../en/comparison/">Compared with other tools</a><a class="nav__link" href="../../en/development/">Development</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="the-writing-desk">The Writing desk</h1>
+<p><em>Every piece you mean to write, from a passing idea to a published post: a board by status, a list, your series as lanes with their progress, and on each piece its status, its angle, its sources and how it has grown.</em></p>
+<hr>
+<p>Ideas for essays tend to live in three places at once: a line in a daily note, a heading in a file
+called <em>Someday</em>, and the back of your head. The desk puts them in one place without asking you to
+move them anywhere new. A piece is still an ordinary note; the desk only reads what its frontmatter
+says and draws it.</p>
+<p><strong>Open it</strong> from the desk button at the top of the sidebar, by typing <strong>Open the Writing desk</strong> in
+the command palette, or at <code>/desk</code>. On a phone it is a row under <strong>More</strong>. It opens as a tab, like
+the Calendar and the Timeline.</p>
+<p><figure><img src="../../../screenshots/desk-board.png" alt="The Writing desk: seven columns from Idea to Parked, each card with its angle, its series, its words against a target and its next step" loading="lazy"></figure></p>
+<h2 id="a-piece-is-a-note"><a class="anchor" href="#a-piece-is-a-note">A piece is a note</a></h2>
+<p>Say you want to write about stone bridges. The note is <code>Writing/Stone bridges.md</code>, and the top of it
+reads:</p>
+<pre><code class="language-yaml">---
+kind: essay
+status: drafting
+angle: &quot;Why the Roman arch outlasted every empire that built one.&quot;
+series: &quot;[[Bridges]]&quot;
+lang: en
+goal: 2500
+due: 2026-11-02
+---
+</code></pre>
+<div class="table"><table><thead><tr><th>Key</th><th>What it says</th><th>Needed?</th></tr></thead><tbody><tr><td><code>kind: essay</code></td><td>This note is a piece of writing. <code>piece</code> and <code>post</code> mean the same</td><td>yes</td></tr><tr><td><code>status</code></td><td>Where it stands: <code>idea</code>, <code>researching</code>, <code>outlining</code>, <code>drafting</code>, <code>editing</code>, <code>published</code>, or <code>parked</code> for set aside. A note with no status is an idea</td><td>no</td></tr><tr><td><code>angle</code></td><td>One line: what the piece argues. It is the line that stops an idea being only a topic</td><td>no</td></tr><tr><td><code>series</code></td><td>The series it belongs to, as a link to the series note</td><td>no</td></tr><tr><td><code>lang</code></td><td><code>en</code> or <code>ar</code>. Left out, the desk reads the language off the text</td><td>no</td></tr><tr><td><code>priority</code></td><td><code>high</code>, <code>medium</code> or <code>low</code>; it orders the cards in a column</td><td>no</td></tr><tr><td><code>due</code></td><td>A date, <code>YYYY-MM-DD</code>. A card past its date says so</td><td>no</td></tr><tr><td><code>goal</code></td><td>A word target, the same <code>goal:</code> the status bar already counts against (see <a href="../editor/">the editor</a>)</td><td>no</td></tr><tr><td><code>next</code></td><td>The next step in your own words. Left out, the desk suggests one for the status</td><td>no</td></tr></tbody></table></div><p>Only <code>kind:</code> is required. A title and an angle are a whole piece as far as the desk is concerned,
+and everything else can come later.</p>
+<h2 id="a-series"><a class="anchor" href="#a-series">A series</a></h2>
+<p>A series is a note too, with <code>kind: series</code>, a <code>description:</code>, and its pieces in order under
+<code>series:</code>:</p>
+<pre><code class="language-yaml">---
+kind: series
+description: &quot;Nine bridges, nine centuries: how people learned to cross water.&quot;
+series:
+  - &quot;[[Rope bridges]]&quot;
+  - &quot;[[Stone bridges]]&quot;
+  - &quot;[[Iron bridges]]&quot;
+  - &quot;[[Suspension bridges]]&quot;
+---
+</code></pre>
+<p>An entry that names a note that does not exist yet is a <strong>planned slot</strong>: the series knows the piece
+is coming before there is a file for it. The desk shows it greyed with <strong>Start it</strong>, which makes the
+note beside the series, already in it.</p>
+<p>A piece can also join a series from its own side, with <code>series: &quot;[[Bridges]]&quot;</code> in its frontmatter;
+the desk lists it after the pieces the series note names. The order you care about goes in the
+series note.</p>
+<p>This is the same <code>series:</code> key the blog uses for <a href="../publishing/">a published series</a>, so a series
+that is finished and published becomes one card on the site with its parts in order, and nothing
+has to be written twice. On a piece the key means <em>the series I belong to</em>, and the blog leaves it
+alone.</p>
+<h2 id="the-desk"><a class="anchor" href="#the-desk">The desk</a></h2>
+<p>The bar at the top switches between three views and filters them all by series, by language and by
+status.</p>
+<ul>
+<li><strong>Board.</strong> One column per status, in the order a piece travels, then <strong>Parked</strong>. Each card shows
+the title, the angle, the series, the words against the target (or the plain count), the next
+step, and when you last touched it.</li>
+<li><strong>List.</strong> The same pieces as rows grouped by status, for reading down rather than across.</li>
+<li><strong>Series.</strong> Each series as a lane: its description, its pieces in order with planned slots among
+them, and how far it has come — <em>3 of 5 drafted</em> counts the pieces at drafting or past it.</li>
+</ul>
+<p><figure><img src="../../../screenshots/desk-series.png" alt="The series view: a lane for Bridges with its description, five pieces in order, two planned slots, and 2 of 5 drafted" loading="lazy"></figure></p>
+<p><strong>Moving a card</strong> changes its <code>status:</code> and nothing else. There are three ways to do it:</p>
+<ul>
+<li>drag the card onto another column with the mouse or a pen;</li>
+<li>from the keyboard, focus a card, press <code>Space</code> to lift it, use the arrow keys to move it between
+columns, and <code>Space</code> again to drop it (<code>Escape</code> puts it back);</li>
+<li>press the status pill on the card and choose a column. On a phone this is the way; a finger on the
+board scrolls it.</li>
+</ul>
+<h2 id="on-each-piece"><a class="anchor" href="#on-each-piece">On each piece</a></h2>
+<p>A piece opened in the editor has a slim bar above the text: its status pill, its series, its angle,
+a small line of how many words it held each day, and two buttons.</p>
+<p><figure><img src="../../../screenshots/desk-piece.png" alt="A piece in the editor: the bar above the text with its status, series, angle and a line of words over time, and the Sources section in the side panel" loading="lazy"></figure></p>
+<p><strong>Outline to headings.</strong> Write the plan as a list under a heading called <code>Outline</code>:</p>
+<pre><code class="language-markdown">## Outline
+
+- The first crossings
+- The arch and the keystone
+  - Voussoirs and centring
+- Why stone outlasted empires
+</code></pre>
+<p><strong>Outline to headings</strong> writes each item as a heading after the outline, a nested item one level
+deeper, and leaves the outline where it is. It is one change, so one <code>Ctrl/Cmd Z</code> takes it back, and
+pressing it again adds only the items that have no heading yet.</p>
+<p><strong>Sources.</strong> The side panel gains a <strong>Sources</strong> section on a piece. It is gathered from the links the
+piece already has, so there is nothing to keep up to date by hand:</p>
+<ul>
+<li><strong>Linked notes</strong>: notes the piece links to;</li>
+<li><strong>Books</strong>: PDFs and EPUBs it links to, which open in <a href="../books/">the book reader</a>;</li>
+<li><strong>Web clips</strong>: linked notes the <a href="../capture/">clipper</a> made, with the site they came from;</li>
+<li><strong>Linking here</strong>: notes that link to the piece.</li>
+</ul>
+<p><strong>Words over time.</strong> Every time a piece is saved, here or in another program, the server notes its
+length for the day. The line in the bar is one point a day; hover a day to read its count. The log
+lives in <code>desk-words.json</code> in the data folder, next to the rest of the app&#39;s own bookkeeping, and
+follows the note when you rename or move it.</p>
+<h2 id="capturing-an-idea"><a class="anchor" href="#capturing-an-idea">Capturing an idea</a></h2>
+<p>An idea needs only a title and its angle:</p>
+<ul>
+<li><strong>New essay idea…</strong> in the command palette, or the button on the desk (the <strong>+</strong> on a phone),
+asks for a title, an angle, and if you like a series and a language, and files the note in
+<code>Writing/</code>.</li>
+<li><strong>New series…</strong> does the same for a series.</li>
+<li>The <a href="../capture/">quick-capture sheet</a> has a third choice beside today&#39;s note and the inbox:
+<strong>A new essay idea</strong>. The first line becomes the title and a second line the angle.</li>
+</ul>
+<h2 id="publishing-stays-yours"><a class="anchor" href="#publishing-stays-yours">Publishing stays yours</a></h2>
+<p>A piece is private until you publish it, and the desk never publishes anything by itself.</p>
+<ul>
+<li>A new piece is written with no <code>publish:</code> key.</li>
+<li>Dropping a card on <strong>Published</strong> asks the same question publishing asks everywhere, and only your
+yes writes <code>publish: true</code>. Cancel, and nothing changes.</li>
+<li>A piece is under <strong>Published</strong> only when its note really carries <code>publish: true</code>. A note that says
+<code>status: published</code> without it is shown among the pieces being edited, marked <em>not on the site
+yet</em>.</li>
+<li>Moving a published piece to another column asks first, because it takes the piece off the site.</li>
+<li>The desk, the statuses, the angles and the planned slots are the owner&#39;s alone. They are not in
+the blog, the feed, the sitemap, search, or anything a visitor can ask the server for; the desk&#39;s
+own address answers a visitor with <em>sign in</em>.</li>
+</ul>
+<h2 id="in-obsidian"><a class="anchor" href="#in-obsidian">In Obsidian</a></h2>
+<p>Nothing here is a format of its own. Every key is a plain property, the series is a list of links,
+and the outline is a list, so the same vault opened in Obsidian shows the same notes with the same
+properties, and a status changed there is on the desk the next time it reads the vault.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/writing-desk.md" target="_blank" rel="noreferrer">Edit this page on GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../en/timeline/"><span class="pager__kicker">Previous</span><span class="pager__title">The Timeline</span></a><a class="pager__link pager__link--next" href="../../en/orbits/"><span class="pager__kicker">Next</span><span class="pager__title">Orbits</span></a></nav>
+    <footer class="foot">Astrolabe is free software. These pages are built from the Markdown in the repo's docs folder.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">On this page</div><a class="toc__link toc__link--2" href="#a-piece-is-a-note">A piece is a note</a><a class="toc__link toc__link--2" href="#a-series">A series</a><a class="toc__link toc__link--2" href="#the-desk">The desk</a><a class="toc__link toc__link--2" href="#on-each-piece">On each piece</a><a class="toc__link toc__link--2" href="#capturing-an-idea">Capturing an idea</a><a class="toc__link toc__link--2" href="#publishing-stays-yours">Publishing stays yours</a><a class="toc__link toc__link--2" href="#in-obsidian">In Obsidian</a></aside>
+</div>
+<script>window.__docs = { lang: "en", base: "../../", noResults: "Nothing matches" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

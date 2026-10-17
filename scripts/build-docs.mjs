@@ -58,6 +58,7 @@ export const SECTIONS = [
       { slug: "today", file: "today.md", title: { en: "Today", ar: "اليوم" } },
       { slug: "calendar", file: "calendar.md", title: { en: "The Calendar", ar: "التقويم" } },
       { slug: "timeline", file: "timeline.md", title: { en: "The Timeline", ar: "الخط الزمني" } },
+      { slug: "writing-desk", file: "writing-desk.md", title: { en: "The Writing desk", ar: "مكتب الكتابة" } },
       { slug: "orbits", file: "orbits.md", title: { en: "Orbits", ar: "المدارات" } },
       { slug: "drawing", file: "drawing.md", title: { en: "Drawings", ar: "الرسومات" } },
       { slug: "books", file: "books.md", title: { en: "The book reader", ar: "قارئ الكتب" } },

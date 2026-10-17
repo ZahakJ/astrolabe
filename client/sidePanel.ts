@@ -15,6 +15,7 @@ export const SECTION_IDS = [
   "footnotes",
   "localgraph",
   "tracker",
+  "sources",
   "history",
   "backlinks",
   "nearby",

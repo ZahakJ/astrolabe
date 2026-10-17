@@ -42,15 +42,18 @@ import { dropFolderMemos } from "./indexer/folders.ts";
 import { dropTwinsMemo, resolveLink } from "./indexer/resolve.ts";
 import { dropSeriesMemo } from "./indexer/series.ts";
 import { parseSeriesRefs } from "../shared/series.ts";
+import { deskMetaOf, type DeskMeta } from "../shared/desk.ts";
+import { countNoteWords } from "../shared/wordCount.ts";
+import { noteDeskWords } from "./deskWords.ts";
 import { flatBody, labelsOfFm, props } from "./indexer/queries.ts";
 export { isNoteVisibleToVisitor, publishedCensus, visibleUnder, publishedTopics } from "./indexer/language.ts";
 export type { FilterLang, PublishedCensus } from "./indexer/language.ts";
 export { resolveLink, aliasEntries, twinOf, twinSwapTable, twinPairs, twinFaceOf, resolveEmbed, noteAnchors, resolveLabel, resolveCitekey, resolveImageRef, resolveBannerRef, publishedBanner } from "./indexer/resolve.ts";
 export type { TwinLink } from "./indexer/resolve.ts";
-export { detectTemplatesFolder, detectHadithFolder, hadithLookup, detectTagsFolder, isTemplateNote } from "./indexer/folders.ts";
+export { detectTemplatesFolder, detectHadithFolder, hadithLookup, detectTagsFolder, isTemplateNote, templateMatcher } from "./indexer/folders.ts";
 export { exportSelection, notesReferencing, notesLinkingTo, notesLinkedFrom, notesWithTag, isNotePublished, isAllowedAttachment, publishedNotes, visibleNotesUnder, publishedPaths, publishedCounts, listImageAttachments, unreferencedAttachments, registerAttachment, noteTitle } from "./indexer/publish.ts";
 export type { ExportSelection } from "./indexer/publish.ts";
-export { folderMeta, libraryRefs, collectionRows, tagPageCollections, publicFolderCounts, libraryLessons, posts, pages, trackers, routines } from "./indexer/posts.ts";
+export { folderMeta, libraryRefs, collectionRows, tagPageCollections, publicFolderCounts, libraryLessons, posts, pages, trackers, routines, postBasics } from "./indexer/posts.ts";
 export type { PostsOptions } from "./indexer/posts.ts";
 export { seriesDeclarersOf } from "./indexer/series.ts";
 export { mentions, hasNote, linkSpellingFor, tasks, cards, decks, deckCards, onThisDay, timelineNotes, queryPaths, queryNotes, search, replaceCandidates, graph, backlinks, searchTerms, searchMatches, tags, props, tagPageLabels } from "./indexer/queries.ts";
@@ -195,6 +198,11 @@ export interface NoteRecord {
    *  wikilink brackets but not yet resolved (server/indexer/series.ts resolves
    *  them once per index change). Null when the note declares none. */
   seriesRefs: string[] | null;
+  /** What the Writing desk reads off the frontmatter (shared/desk.ts): a
+   *  piece (`kind: essay`) or a series (`kind: series`), or null for every
+   *  other note. On a piece, `series:` names the series it belongs to, so
+   *  `seriesRefs` is null there — a draft's membership is not a blog series. */
+  desk: DeskMeta | null;
   /** This face's own short label — frontmatter `face:`. What lets a pair of
    *  SAME-LANGUAGE faces ("short"/"long") say which is which; null for the
    *  ordinary bilingual pair, whose two languages say it already. */
@@ -806,6 +814,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
     ? texParts(relPath, indexed)
     : markdownParts(relPath, indexed);
   const fm = parts.fm;
+  const desk = deskMetaOf(fm);
   const record: NoteRecord = {
     path: relPath,
     title,
@@ -855,7 +864,8 @@ async function applyIndexFile(relPath: string): Promise<void> {
     citekeys: parts.citekeys,
     aliases: parseAliases(fm),
     twinRef: parseTwin(fm),
-    seriesRefs: parseSeriesRefs(fm),
+    seriesRefs: desk?.kind === "essay" ? null : parseSeriesRefs(fm),
+    desk,
     face: parseFace(fm),
     props: scalarProps(fm),
     excerptSource: parts.firstParagraph,
@@ -869,6 +879,10 @@ async function applyIndexFile(relPath: string): Promise<void> {
   addKeys(record);
   if (record.published) publishedSet.add(relPath);
   setScheduledPublish(relPath, scheduledPublish(fm));
+  // A piece's length, once a day (server/deskWords.ts): every door a note
+  // comes in by passes this line, so the desk's curve sees an edit made in
+  // Obsidian as readily as one made here.
+  if (desk?.kind === "essay") noteDeskWords(relPath, countNoteWords(content));
   invalidateDerived();
   if (graphSignature(record) !== wasGraph) graphRev++;
   if (shelfSignature(record) !== wasShelf) shelfRev++;
@@ -1149,7 +1163,8 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
     // answers to its aliases exactly as it answers to its title.
     aliases: parseAliases(fm),
     twinRef: parseTwin(fm),
-    seriesRefs: parseSeriesRefs(fm),
+    seriesRefs: deskMetaOf(fm)?.kind === "essay" ? null : parseSeriesRefs(fm),
+    desk: deskMetaOf(fm),
     face: parseFace(fm),
     excerptSource: null,
     tags: parseTags("", frontmatter),

@@ -1,0 +1,91 @@
+/* Astrolabe — the piece bar above a piece in the editor
+   (client/desk/PieceBar.tsx). One row at the top of the editor column, never
+   inside `.cm-content` (no margin there may exist; check-caret), the editor
+   strip's ground and hairline. It wraps rather than clipping on a narrow
+   pane. Tokens only; logical properties. */
+
+.s-piecebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 6px clamp(12px, 3vw, 24px);
+  border-block-end: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.s-piecebar__series {
+  max-inline-size: 16em;
+  padding: 2px 10px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text);
+  font: inherit;
+  overflow: clip visible;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.s-piecebar__series:disabled {
+  cursor: default;
+}
+
+.s-piecebar__series:focus-visible,
+.s-piecebar__act:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-piecebar__angle {
+  flex: 1 1 200px;
+  min-inline-size: 0;
+  margin: 0;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--text-muted);
+  overflow: clip visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-piecebar__angle--none {
+  font-style: normal;
+}
+
+.s-piecebar__curve {
+  flex: none;
+  color: var(--accent);
+}
+
+.s-piecebar__act {
+  flex: none;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.s-piecebar__act:hover,
+.s-piecebar__series:not(:disabled):hover {
+  background: var(--bg-hover);
+}
+
+.s-ph-screen .s-piecebar__act,
+.s-ph-screen .s-piecebar__series {
+  min-block-size: 44px;
+}
+
+@media (pointer: coarse) {
+  .s-piecebar__act,
+  .s-piecebar__series {
+    min-block-size: 44px;
+  }
+}

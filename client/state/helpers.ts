@@ -3,7 +3,7 @@
 // the delete toast, the dirty-map and path remaps, the surface table. Moved
 // out of client/state.ts unchanged.
 
-import { CALENDAR_TAB, FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB, TODAY_TAB, allPaths, type Workspace } from "../workspace.ts";
+import { CALENDAR_TAB, DESK_TAB, FEEDS_TAB, GRAPH_TAB, MEDIA_TAB, ORBITS_TAB, REVIEW_WEEK_TAB, SIGILS_TAB, TIMELINE_TAB, TODAY_TAB, allPaths, type Workspace } from "../workspace.ts";
 import type { FolderMark } from "../../shared/folderIcons.ts";
 import { t, tf, type Lang } from "../i18n.ts";
 import type { PublicFolderCard } from "../../shared/types.ts";
@@ -146,7 +146,7 @@ export async function guarded(
 
 /** The pages a pane can show that are not a note, by the name `setView`
  *  takes, and the virtual tab each one opens (client/workspace.ts). */
-export type SurfaceView = "graph" | "media" | "sigils" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline";
+export type SurfaceView = "graph" | "media" | "sigils" | "orbits" | "review-week" | "calendar" | "feeds" | "today" | "timeline" | "desk";
 export const SURFACE_TABS: Record<SurfaceView, string> = {
   graph: GRAPH_TAB,
   media: MEDIA_TAB,
@@ -156,6 +156,7 @@ export const SURFACE_TABS: Record<SurfaceView, string> = {
   calendar: CALENDAR_TAB,
   today: TODAY_TAB,
   timeline: TIMELINE_TAB,
+  desk: DESK_TAB,
   feeds: FEEDS_TAB,
 };
 export function isSurfaceView(view: string): view is SurfaceView {

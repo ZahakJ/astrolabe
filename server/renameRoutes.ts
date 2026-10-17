@@ -9,6 +9,7 @@ import { dirOf, rewriteAttachmentRename, rewriteDestinations, rewriteForMove } f
 import { isTexPath, stripNoteExt } from "../shared/noteFormat.ts";
 import { jsonBody, requiredString } from "./requestBody.ts";
 import { moveAnnotations } from "./annotations.ts";
+import { moveDeskWords } from "./deskWords.ts";
 import { moveFolder, normalizeRel, readNote, renameAttachment, renameNote, suppressWatcherEcho, writeNote } from "./vault.ts";
 
 export const renameRoutes = new Hono();
@@ -21,6 +22,8 @@ renameRoutes.post("/rename", async (c) => {
   // The note's annotations move with it (server/annotations.ts): keyed by
   // path, so the rename is the one moment they would otherwise be lost.
   moveAnnotations(from, to);
+  // …and so does a piece's word log (server/deskWords.ts), for the same reason.
+  moveDeskWords(normalizeRel(from), normalizeRel(to));
   return c.json({ ok: true });
 });
 

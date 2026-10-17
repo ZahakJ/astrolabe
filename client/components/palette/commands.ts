@@ -24,6 +24,7 @@ import { isNoteBookmarked, toggleBookmark } from "../../bookmarks.ts";
 import { moveViaPicker } from "../MovePicker.tsx";
 import { openDesigner } from "../design/openDesigner.ts";
 import { openExportDialog } from "../../export/door.ts";
+import { openNewPiece } from "../../desk/door.ts";
 import { openThemePicker } from "../ThemePicker.tsx";
 import { openTour } from "../../tour.ts";
 import { openWhatsNew } from "../../whatsnew/door.ts";
@@ -385,6 +386,26 @@ export const COMMANDS: Command[] = [
     id: "open-timeline",
     label: () => t("cmdOpenTimeline"),
     hint: () => t("cmdOpenTimelineHint"),
+    available: ({ admin }) => admin,
+  },
+  // The Writing desk (client/desk/, docs/writing-desk.md): every piece the
+  // owner means to write, by status and by series; and its two doors in.
+  {
+    id: "open-desk",
+    label: () => t("cmdOpenDesk"),
+    hint: () => t("cmdOpenDeskHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "new-essay",
+    label: () => t("cmdNewEssay"),
+    hint: () => t("cmdNewEssayHint"),
+    available: ({ admin }) => admin,
+  },
+  {
+    id: "new-series",
+    label: () => t("cmdNewSeries"),
+    hint: () => t("cmdNewSeriesHint"),
     available: ({ admin }) => admin,
   },
   // The year added up into `Reviews/<year>.md` (shared/yearReview.ts). The
@@ -1153,6 +1174,15 @@ export function runPaletteCommand(command: Command): void {
       break;
     case "open-timeline":
       store.setView("timeline");
+      break;
+    case "open-desk":
+      store.setView("desk");
+      break;
+    case "new-essay":
+      openNewPiece("essay");
+      break;
+    case "new-series":
+      openNewPiece("series");
       break;
     case "year-review":
       // Lazy: the generator and its reads are the Timeline chunk's, and a

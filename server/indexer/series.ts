@@ -108,13 +108,16 @@ export function seriesEntries(series: string): SeriesEntry[] {
   return table().entries.get(series) ?? [];
 }
 
-/** The series notes whose `series:` key names `path` — the rename flow's
- *  extra linkers (frontmatter is not in a note's body links). */
+/** The notes whose `series:` key names `path` — the rename flow's extra
+ *  linkers (frontmatter is not in a note's body links): the series notes that
+ *  list it as a part, and the Writing desk's pieces that name it as their
+ *  series (shared/desk.ts), so renaming a series keeps its pieces in it. */
 export function seriesDeclarersOf(path: string): string[] {
   const out: string[] = [];
   for (const record of notes.values()) {
-    if (record.seriesRefs === null) continue;
-    if (record.seriesRefs.some((ref) => resolveLink(ref, false, null) === path)) out.push(record.path);
+    const refs = record.seriesRefs ?? (record.desk?.series != null ? [record.desk.series] : null);
+    if (refs === null) continue;
+    if (refs.some((ref) => resolveLink(ref, false, null) === path)) out.push(record.path);
   }
   return out;
 }

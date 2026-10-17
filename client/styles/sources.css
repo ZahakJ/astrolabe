@@ -1,0 +1,85 @@
+/* Astrolabe — the side panel's Sources section, loaded with its lazy chunk.
+   Tokens only; logical properties. */
+
+.s-sources__group + .s-sources__group {
+  margin-block-start: 8px;
+}
+
+.s-sources__head {
+  margin: 0;
+  padding: 2px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.714rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-sources__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-sources__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  inline-size: 100%;
+  min-block-size: 28px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  text-align: start;
+  cursor: pointer;
+}
+
+.s-sources__row:hover {
+  background: var(--bg-hover);
+}
+
+.s-sources__row:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-sources__title {
+  min-inline-size: 0;
+  overflow: clip visible;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-sources__url {
+  flex: none;
+  max-inline-size: 45%;
+  overflow: clip visible;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.s-sources__empty {
+  margin: 0;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+@media (pointer: coarse) {
+  .s-sources__row {
+    min-block-size: 44px;
+  }
+}
+

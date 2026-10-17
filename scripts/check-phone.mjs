@@ -46,6 +46,9 @@
 //     is written into its note; on this day opens its note; the Timeline is
 //     a screen under More whose rows open notes, whose months are a sheet
 //     with an entry that Back closes; the Calendar's ⋯ offers the Timeline.
+//   · 3.46 — THE WRITING DESK is a screen under More; it lists a piece, the
+//     card's status pill opens a menu of thumb-sized rows, and a pick writes
+//     the note's status.
 //   · A WIKILINK OUTSIDE A NOTE IS A LINK (the owner: "I see
 //     [[orbits/japanese/kana]] on phone"): a sigil whose slot links a note
 //     draws the link as an anchor, not its brackets, and a tap on it opens
@@ -1261,6 +1264,39 @@ try {
           await back();
         }
         await back();
+      }
+
+      // THE WRITING DESK (3.46): a screen under More, the board stacked, every
+      // card moved by its status pill — a menu whose rows are thumb targets —
+      // and a tap on a card's title opens the piece. A piece is written for
+      // the run and removed after it, so the desk is measured with a card on it.
+      {
+        const PIECE = "check-phone-desk/Piece.md";
+        await page.evaluate(async (p) => {
+          await fetch(`/api/note?path=${encodeURIComponent(p)}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: '---\nkind: essay\nstatus: drafting\nangle: "A line saying what it argues"\ngoal: 1000\n---\n\n## Outline\n\n- One\n' }) });
+        }, PIECE);
+        if (await moreRow(/^(Writing desk|مكتب الكتابة)/)) {
+          check((await state()).screens.includes("desk"), tag("More opens the Writing desk"));
+          await page.waitForSelector(`[data-path="${PIECE}"]`, { timeout: 8000 }).catch(() => {});
+          check((await page.locator(`[data-path="${PIECE}"]`).count()) > 0, tag("the desk lists the run's piece"));
+          await measure("desk");
+          const pill = page.locator(`[data-path="${PIECE}"] .s-desk-pill__btn`).first();
+          if ((await pill.count()) > 0) {
+            await press(pill);
+            await settle(500);
+            check((await page.locator(".s-desk-pill__menu").count()) > 0, tag("a card's status pill opens its menu"));
+            await measure("desk-pill");
+            await press(page.locator('.s-desk-pill__menu [data-stage="editing"]'));
+            await settle(1500);
+            const text = await page.evaluate(async (p) => (await (await fetch(`/api/note?path=${encodeURIComponent(p)}`)).json()).content, PIECE);
+            check(/^status: editing$/m.test(text ?? ""), tag("a pick in the menu writes the status"), (text ?? "").slice(0, 80));
+          }
+          await back();
+        } else check(false, tag("More has a Writing desk row"));
+        await page.evaluate(async (p) => {
+          await fetch(`/api/note?path=${encodeURIComponent(p)}&permanent=1`, { method: "DELETE" });
+          await fetch(`/api/folder?path=${encodeURIComponent(p.slice(0, p.indexOf("/")))}&permanent=1`, { method: "DELETE" }).catch(() => {});
+        }, PIECE);
       }
 
       // FEEDS (3.28): the list, an item, Keep from its ⋯ sheet — and the note

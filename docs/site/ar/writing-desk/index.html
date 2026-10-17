@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مكتب الكتابة · دليل أسطرلاب</title>
+<meta name="description" content="كل ما تنوي كتابته، من فكرة عابرة إلى مقالة منشورة: لوحة بحسب المرحلة، وقائمة، وسلاسلك مسارًا لكل منها مع ما أُنجز منها، وعلى كل مقالة مرحلتها وزاويتها ومصادرها وكيف نمت.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23c9a227' d='M12 2l2.4 7.6H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.5 2.4-7.4L2 9.6h7.6z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Noto+Naskh+Arabic:wght@400;600&family=Noto+Sans:wght@400;600&family=Noto+Sans+Arabic:wght@400;600&display=swap">
+<link rel="stylesheet" href="../../docs.css">
+</head>
+<body>
+<header class="top">
+  <button class="top__menu" type="button" aria-label="القائمة" data-menu>☰</button>
+  <a class="top__brand" href="../../ar/"><span class="top__star"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="22" height="22" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="9" r="5" stroke-width="2.6"/><circle cx="50" cy="55" r="40" stroke-width="4"/><circle cx="50" cy="55" r="28" stroke-width="1.6"/><path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/><path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/><circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/></svg></span> <span class="top__docs">دليل</span> أسطرلاب</a>
+  <label class="top__search"><input type="search" placeholder="ابحث في الدليل…" aria-label="ابحث في الدليل…" data-search autocomplete="off"><div class="top__results" data-results hidden></div></label>
+  <a class="top__lang" href="../../en/writing-desk/" hreflang="en">English</a>
+  <button class="top__theme" type="button" title="فاتح / داكن" aria-label="فاتح / داكن" data-theme>◐</button>
+  <a class="top__repo" href="https://github.com/ZahakJ/astrolabe" target="_blank" rel="noreferrer">GitHub</a>
+</header>
+<div class="layout">
+  <nav class="nav" data-nav><a class="nav__link nav__home" href="../../ar/">نظرة عامة</a><div class="nav__section"><div class="nav__title">البداية</div><a class="nav__link" href="../../ar/configuration/">الإعداد</a><a class="nav__link" href="../../ar/publishing/">النشر والوصول</a><a class="nav__link" href="../../ar/backup-and-sync/">النسخ الاحتياطي والمزامنة</a><a class="nav__link" href="../../ar/offline/">القراءة دون اتصال</a><a class="nav__link" href="../../ar/capture/">الالتقاط</a><a class="nav__link" href="../../ar/feeds/">الخلاصات</a><a class="nav__link" href="../../ar/import/">الاستيراد</a><a class="nav__link" href="../../ar/export/">التصدير</a><a class="nav__link" href="../../ar/desktop/">تطبيق سطح المكتب</a><a class="nav__link" href="../../ar/mobile/">تطبيق أندرويد</a><a class="nav__link" href="../../ar/terminal/">في الطرفية</a><a class="nav__link" href="../../ar/presence/">الحضور على Discord</a></div><div class="nav__section"><div class="nav__title">الكتابة</div><a class="nav__link" href="../../ar/editor/">المحرر وعرض القراءة</a><a class="nav__link" href="../../ar/templates-and-notes/">القوالب واللافتات والملاحظات</a><a class="nav__link" href="../../ar/latex/">ملاحظات LaTeX</a><a class="nav__link" href="../../ar/trackers/">المتتبِّعات</a><a class="nav__link" href="../../ar/sigils/">السِّجِلّ</a><a class="nav__link" href="../../ar/today/">اليوم</a><a class="nav__link" href="../../ar/calendar/">التقويم</a><a class="nav__link" href="../../ar/timeline/">الخط الزمني</a><a class="nav__link is-current" href="../../ar/writing-desk/">مكتب الكتابة</a><a class="nav__link" href="../../ar/orbits/">المدارات</a><a class="nav__link" href="../../ar/drawing/">الرسومات</a><a class="nav__link" href="../../ar/books/">قارئ الكتب</a><a class="nav__link" href="../../ar/ask/">اسأل الخزانة</a><a class="nav__link" href="../../ar/workspace/">اللوحات والتبويبات والنوافذ</a><a class="nav__link" href="../../ar/printing/">الطباعة وPDF</a><a class="nav__link" href="../../ar/keymap/">اختصارات لوحة المفاتيح</a></div><div class="nav__section"><div class="nav__title">موقعك</div><a class="nav__link" href="../../ar/blog-mode/">وضع المدونة</a><a class="nav__link" href="../../ar/designer/">وضع التصميم</a><a class="nav__link" href="../../ar/library/">المكتبة</a><a class="nav__link" href="../../ar/webmentions/">إشارات الويب والفيديفيرس</a></div><div class="nav__section"><div class="nav__title">المظهر واللغة</div><a class="nav__link" href="../../ar/theming/">السمات</a><a class="nav__link" href="../../ar/typography/">الخطوط</a><a class="nav__link" href="../../ar/arabic-and-rtl/">العربية والكتابة من اليمين</a><a class="nav__link" href="../../ar/japanese/">اليابانية والفوريغانا</a><a class="nav__link" href="../../ar/read-aloud/">القراءة بصوت عالٍ</a></div><div class="nav__section"><div class="nav__title">أعمق</div><a class="nav__link" href="../../ar/comparison/">مقارنة بأدوات أخرى</a><a class="nav__link" href="../../ar/development/">التطوير</a></div></nav>
+  <main class="main">
+    
+    <article class="doc"><h1 id="مكتب-الكتابة">مكتب الكتابة</h1>
+<p><em>كل ما تنوي كتابته، من فكرة عابرة إلى مقالة منشورة: لوحة بحسب المرحلة، وقائمة، وسلاسلك مسارًا لكل منها مع ما أُنجز منها، وعلى كل مقالة مرحلتها وزاويتها ومصادرها وكيف نمت.</em></p>
+<hr>
+<p>أفكار المقالات تعيش عادةً في ثلاثة أماكن معًا: سطر في ملاحظة يومية، وعنوان في ملف اسمه <em>يومًا ما</em>،
+وفي مؤخرة الرأس. المكتب يجمعها في مكان واحد من غير أن يطلب منك نقلها إلى أي مكان جديد. فالمقالة
+تبقى ملاحظة عادية؛ والمكتب يقرأ ما تقوله مقدّمتها فقط ويرسمه.</p>
+<p><strong>افتحه</strong> من زر المكتب أعلى الشريط الجانبي، أو بكتابة <strong>افتح مكتب الكتابة</strong> في لوحة الأوامر، أو على
+<code>/desk</code>. وعلى الهاتف هو سطر تحت <strong>المزيد</strong>. يُفتح تبويبًا، مثل التقويم والخط الزمني.</p>
+<p><figure><img src="../../../screenshots/desk-board.png" alt="مكتب الكتابة: سبعة أعمدة من فكرة إلى مؤجَّلة، وعلى كل بطاقة زاويتها وسلسلتها وكلماتها مقابل الهدف وخطوتها التالية" loading="lazy"></figure></p>
+<h2 id="المقالة-ملاحظة"><a class="anchor" href="#المقالة-ملاحظة">المقالة ملاحظة</a></h2>
+<p>لنقل إنك تريد أن تكتب عن الجسور الحجرية. الملاحظة هي <code>Writing/Stone bridges.md</code>، وأعلاها:</p>
+<pre><code class="language-yaml">---
+kind: essay
+status: drafting
+angle: &quot;Why the Roman arch outlasted every empire that built one.&quot;
+series: &quot;[[Bridges]]&quot;
+lang: en
+goal: 2500
+due: 2026-11-02
+---
+</code></pre>
+<div class="table"><table><thead><tr><th>المفتاح</th><th>ما يقوله</th><th>أهو لازم؟</th></tr></thead><tbody><tr><td><code>kind: essay</code></td><td>هذه الملاحظة مقالة. و<code>piece</code> و<code>post</code> بالمعنى نفسه</td><td>نعم</td></tr><tr><td><code>status</code></td><td>أين وصلت: <code>idea</code> (فكرة)، <code>researching</code> (بحث)، <code>outlining</code> (تخطيط)، <code>drafting</code> (مسودّة)، <code>editing</code> (تحرير)، <code>published</code> (منشورة)، أو <code>parked</code> لما أُجِّل. وملاحظة بلا مرحلة فكرة</td><td>لا</td></tr><tr><td><code>angle</code></td><td>سطر واحد: ما الذي تقوله المقالة. هو السطر الذي يجعل الفكرة أكثر من موضوع</td><td>لا</td></tr><tr><td><code>series</code></td><td>السلسلة التي تنتمي إليها، رابطًا إلى ملاحظة السلسلة</td><td>لا</td></tr><tr><td><code>lang</code></td><td><code>en</code> أو <code>ar</code>. وإن تُرك قرأ المكتب اللغة من النص</td><td>لا</td></tr><tr><td><code>priority</code></td><td><code>high</code> أو <code>medium</code> أو <code>low</code>؛ ترتّب البطاقات داخل العمود</td><td>لا</td></tr><tr><td><code>due</code></td><td>تاريخ بصيغة <code>YYYY-MM-DD</code>. والبطاقة التي فات موعدها تقول ذلك</td><td>لا</td></tr><tr><td><code>goal</code></td><td>هدف بعدد الكلمات، وهو <code>goal:</code> نفسه الذي يعدّ شريط الحالة مقابله (انظر <a href="../editor/">المحرر</a>)</td><td>لا</td></tr><tr><td><code>next</code></td><td>الخطوة التالية بكلماتك. وإن تُركت اقترح المكتب خطوة بحسب المرحلة</td><td>لا</td></tr></tbody></table></div><p>لا يلزم إلا <code>kind:</code>. العنوان والزاوية مقالة كاملة في نظر المكتب، وكل ما سواهما يأتي لاحقًا.</p>
+<h2 id="السلسلة"><a class="anchor" href="#السلسلة">السلسلة</a></h2>
+<p>السلسلة ملاحظة أيضًا، فيها <code>kind: series</code> و<code>description:</code>، ومقالاتها مرتّبة تحت <code>series:</code>:</p>
+<pre><code class="language-yaml">---
+kind: series
+description: &quot;Nine bridges, nine centuries: how people learned to cross water.&quot;
+series:
+  - &quot;[[Rope bridges]]&quot;
+  - &quot;[[Stone bridges]]&quot;
+  - &quot;[[Iron bridges]]&quot;
+  - &quot;[[Suspension bridges]]&quot;
+---
+</code></pre>
+<p>البند الذي يسمّي ملاحظة لم توجد بعد <strong>موضع مخطَّط</strong>: تعرف السلسلة أن المقالة آتية قبل أن يكون لها
+ملف. يعرضه المكتب باهتًا ومعه <strong>ابدأها</strong>، فتُنشأ الملاحظة بجانب السلسلة وهي فيها من الأصل.</p>
+<p>ويمكن للمقالة أن تنضمّ إلى سلسلة من جهتها أيضًا، بكتابة <code>series: &quot;[[Bridges]]&quot;</code> في مقدّمتها؛ فيسردها
+المكتب بعد المقالات التي تسمّيها ملاحظة السلسلة. والترتيب الذي يهمّك مكانه ملاحظة السلسلة.</p>
+<p>وهذا هو مفتاح <code>series:</code> نفسه الذي تستعمله المدونة <a href="../publishing/">للسلسلة المنشورة</a>، فالسلسلة التي
+اكتملت ونُشرت تصير بطاقة واحدة على الموقع بأجزائها مرتّبة، ولا يُكتب شيء مرتين. وعلى المقالة يعني
+المفتاح <em>السلسلة التي أنتمي إليها</em>، والمدونة لا تمسّه.</p>
+<h2 id="المكتب"><a class="anchor" href="#المكتب">المكتب</a></h2>
+<p>يبدّل الشريط أعلاه بين ثلاثة عروض، ويرشّحها كلها بحسب السلسلة واللغة والمرحلة.</p>
+<ul>
+<li><strong>لوحة.</strong> عمود لكل مرحلة، بالترتيب الذي تمضي فيه المقالة، ثم <strong>مؤجَّلة</strong>. على كل بطاقة العنوان
+والزاوية والسلسلة والكلمات مقابل الهدف (أو عددها وحده) والخطوة التالية ومتى عدّلتها آخر مرة.</li>
+<li><strong>قائمة.</strong> المقالات نفسها صفوفًا مجموعة بحسب المرحلة، لتُقرأ نزولًا لا عرضًا.</li>
+<li><strong>سلاسل.</strong> كل سلسلة مسارًا: وصفها، ومقالاتها بالترتيب والمواضع المخطَّطة بينها، وكم قطعت —
+<em>3 من 5 في المسودّة أو بعدها</em> تعدّ المقالات التي بلغت المسودّة أو تجاوزتها.</li>
+</ul>
+<p><figure><img src="../../../screenshots/desk-series.png" alt="عرض السلاسل: مسار لسلسلة الجسور بوصفها، وخمس مقالات بالترتيب، وموضعان مخطَّطان، و2 من 5 في المسودّة أو بعدها" loading="lazy"></figure></p>
+<p><strong>نقل البطاقة</strong> يغيّر <code>status:</code> ولا شيء غيره. وله ثلاث طرق:</p>
+<ul>
+<li>اسحب البطاقة إلى عمود آخر بالفأرة أو القلم؛</li>
+<li>ومن لوحة المفاتيح: ضع التركيز على بطاقة، واضغط <code>Space</code> لترفعها، وانقلها بين الأعمدة بالأسهم، ثم
+<code>Space</code> مرة أخرى لتضعها (و<code>Escape</code> يعيدها مكانها)؛</li>
+<li>أو اضغط زرّ المرحلة على البطاقة واختر عمودًا. وعلى الهاتف هذه هي الطريقة؛ فالإصبع على اللوحة
+يمرّرها.</li>
+</ul>
+<h2 id="على-كل-مقالة"><a class="anchor" href="#على-كل-مقالة">على كل مقالة</a></h2>
+<p>المقالة المفتوحة في المحرر يعلوها شريط رفيع: زرّ مرحلتها، وسلسلتها، وزاويتها، وخط صغير لعدد
+كلماتها في كل يوم، وزرّان.</p>
+<p><figure><img src="../../../screenshots/desk-piece.png" alt="مقالة في المحرر: الشريط فوق النص بمرحلتها وسلسلتها وزاويتها وخط الكلمات عبر الأيام، وقسم المصادر في اللوحة الجانبية" loading="lazy"></figure></p>
+<p><strong>المخطط إلى عناوين.</strong> اكتب الخطة قائمةً تحت عنوان اسمه <code>Outline</code> (أو <code>المخطط</code>):</p>
+<pre><code class="language-markdown">## المخطط
+
+- العبور الأول
+- القوس وحجر الغلق
+  - الصنج والقالب
+- لماذا عاش الحجر بعد الإمبراطوريات
+</code></pre>
+<p>يكتب <strong>المخطط إلى عناوين</strong> كل بند عنوانًا بعد المخطط، والبند المتداخل أعمق بدرجة، ويترك المخطط
+مكانه. وهو تغيير واحد، فيعيده <code>Ctrl/Cmd Z</code> واحد، والضغط عليه ثانية لا يضيف إلا البنود التي لا عنوان
+لها بعد.</p>
+<p><strong>المصادر.</strong> تكسب اللوحة الجانبية قسم <strong>المصادر</strong> على المقالة. يُجمع من الروابط التي في المقالة
+أصلًا، فلا شيء تحدّثه بيدك:</p>
+<ul>
+<li><strong>ملاحظات مرتبطة</strong>: الملاحظات التي تربط إليها المقالة؛</li>
+<li><strong>كتب</strong>: ملفات PDF وEPUB التي تربط إليها، وتُفتح في <a href="../books/">قارئ الكتب</a>؛</li>
+<li><strong>قصاصات من الويب</strong>: ملاحظات مرتبطة صنعها <a href="../capture/">القاصّ</a>، ومعها الموقع الذي جاءت منه؛</li>
+<li><strong>تشير إليها</strong>: الملاحظات التي تربط إلى المقالة.</li>
+</ul>
+<p><strong>الكلمات عبر الأيام.</strong> كلما حُفظت مقالة، هنا أو في برنامج آخر، سجّل الخادم طولها لذلك اليوم. والخط
+في الشريط نقطة لكل يوم؛ مرّر المؤشر على يوم لتقرأ عدده. يُحفظ السجل في <code>desk-words.json</code> في مجلد
+البيانات، بجانب سائر حسابات التطبيق نفسه، ويتبع الملاحظة إذا أعدت تسميتها أو نقلتها.</p>
+<h2 id="التقاط-فكرة"><a class="anchor" href="#التقاط-فكرة">التقاط فكرة</a></h2>
+<p>لا تحتاج الفكرة إلا إلى عنوان وزاويته:</p>
+<ul>
+<li><strong>فكرة مقالة جديدة…</strong> في لوحة الأوامر، أو الزر على المكتب (وعلى الهاتف <strong>+</strong>)، يسأل عن عنوان
+وزاوية، وإن شئت سلسلة ولغة، ويحفظ الملاحظة في <code>Writing/</code>.</li>
+<li>و<strong>سلسلة جديدة…</strong> مثله للسلسلة.</li>
+<li>و<a href="../capture/">ورقة الالتقاط السريع</a> فيها خيار ثالث بجانب ملاحظة اليوم والوارد: <strong>فكرة مقالة
+جديدة</strong>. السطر الأول يصير العنوان، والسطر الثاني الزاوية.</li>
+</ul>
+<h2 id="النشر-يبقى-بيدك"><a class="anchor" href="#النشر-يبقى-بيدك">النشر يبقى بيدك</a></h2>
+<p>المقالة خاصّة بك حتى تنشرها، والمكتب لا ينشر شيئًا من تلقاء نفسه.</p>
+<ul>
+<li>المقالة الجديدة تُكتب بلا مفتاح <code>publish:</code>.</li>
+<li>وضع بطاقة على <strong>منشورة</strong> يسأل السؤال نفسه الذي يسأله النشر في كل مكان، ولا يكتب <code>publish: true</code>
+إلا جوابك بنعم. ألغِ، ولا يتغيّر شيء.</li>
+<li>لا تكون المقالة تحت <strong>منشورة</strong> إلا إذا كانت ملاحظتها تحمل <code>publish: true</code> فعلًا. والملاحظة التي
+تقول <code>status: published</code> من غيره تظهر بين ما يُحرَّر، معلَّمةً <em>ليست على الموقع بعد</em>.</li>
+<li>نقل مقالة منشورة إلى عمود آخر يسأل أولًا، لأنه ينزعها من الموقع.</li>
+<li>المكتب والمراحل والزوايا والمواضع المخطَّطة لصاحب الخزانة وحده. ليست في المدونة ولا الخلاصة ولا
+خريطة الموقع ولا البحث ولا أي شيء يستطيع الزائر أن يطلبه من الخادم؛ وعنوان المكتب نفسه يجيب الزائر
+بأن <em>سجّل الدخول</em>.</li>
+</ul>
+<h2 id="في-obsidian"><a class="anchor" href="#في-obsidian">في Obsidian</a></h2>
+<p>لا شيء هنا صيغة خاصة. كل مفتاح خاصية عادية، والسلسلة قائمة روابط، والمخطط قائمة، فالخزانة نفسها
+مفتوحة في Obsidian تُظهر الملاحظات نفسها بالخصائص نفسها، والمرحلة التي تغيّرها هناك تظهر على المكتب
+في المرة التالية التي يقرأ فيها الخزانة.</p>
+</article>
+    <p class="edit"><a href="https://github.com/ZahakJ/astrolabe/edit/main/docs/ar/writing-desk.md" target="_blank" rel="noreferrer">حرّر هذه الصفحة على GitHub</a></p>
+    <nav class="pager"><a class="pager__link pager__link--prev" href="../../ar/timeline/"><span class="pager__kicker">السابق</span><span class="pager__title">الخط الزمني</span></a><a class="pager__link pager__link--next" href="../../ar/orbits/"><span class="pager__kicker">التالي</span><span class="pager__title">المدارات</span></a></nav>
+    <footer class="foot">أسطرلاب برنامج حر. هذه الصفحات مبنية من ملفات Markdown في مجلد docs بالمستودع.</footer>
+  </main>
+  <aside class="toc"><div class="toc__title">في هذه الصفحة</div><a class="toc__link toc__link--2" href="#المقالة-ملاحظة">المقالة ملاحظة</a><a class="toc__link toc__link--2" href="#السلسلة">السلسلة</a><a class="toc__link toc__link--2" href="#المكتب">المكتب</a><a class="toc__link toc__link--2" href="#على-كل-مقالة">على كل مقالة</a><a class="toc__link toc__link--2" href="#التقاط-فكرة">التقاط فكرة</a><a class="toc__link toc__link--2" href="#النشر-يبقى-بيدك">النشر يبقى بيدك</a><a class="toc__link toc__link--2" href="#في-obsidian">في Obsidian</a></aside>
+</div>
+<script>window.__docs = { lang: "ar", base: "../../", noResults: "لا نتائج" };</script>
+<script src="../../docs.js" defer></script>
+</body>
+</html>

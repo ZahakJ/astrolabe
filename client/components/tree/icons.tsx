@@ -67,6 +67,18 @@ export function IconDrawing() {
   );
 }
 
+/** The Writing desk: a desk's top with pages on it, the nearest sheet ruled. */
+export function IconDesk() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 20h18" />
+      <path d="M6 20v-4h12v4" />
+      <path d="M8 16V5h8l2 2v9" />
+      <path d="M10.5 9h4.5M10.5 12h4.5" />
+    </svg>
+  );
+}
+
 export function IconClip() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

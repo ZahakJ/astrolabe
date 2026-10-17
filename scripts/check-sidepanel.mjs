@@ -80,7 +80,7 @@ const noteUrl = `${url}/${note.replace(/\.md$/, "").split("/").map(encodeURIComp
 
 const ALL_OPEN = JSON.stringify({
   collapsed: Object.fromEntries(
-    ["outline", "footnotes", "localgraph", "tracker", "history", "backlinks", "nearby", "related", "suggest", "mentions", "onthisday"].map((id) => [id, false]),
+    ["outline", "footnotes", "localgraph", "tracker", "sources", "history", "backlinks", "nearby", "related", "suggest", "mentions", "onthisday"].map((id) => [id, false]),
   ),
 });
 

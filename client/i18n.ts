@@ -254,7 +254,10 @@ export type CountUnit =
   | "followers"
   | "mentions"
   // Read aloud's voices folder: "French: 3 voices" (docs/read-aloud.md).
-  | "voices";
+  | "voices"
+  // The Writing desk's header: how many pieces and series it holds.
+  | "pieces"
+  | "seriesCount";
 
 const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: string; few: string; many: string } }> = {
   // What a bulk tab-close is about to FLUSH. It is a count with a consequence
@@ -294,6 +297,8 @@ const UNITS: Record<CountUnit, { en: [string, string]; ar: { one: string; two: s
     ar: { one: "ملاحظة منشورة واحدة", two: "ملاحظتان منشورتان", few: "ملاحظات منشورة", many: "ملاحظة منشورة" },
   },
   links: { en: ["link", "links"], ar: { one: "رابط واحد", two: "رابطان", few: "روابط", many: "رابطًا" } },
+  pieces: { en: ["piece", "pieces"], ar: { one: "مقالة واحدة", two: "مقالتان", few: "مقالات", many: "مقالة" } },
+  seriesCount: { en: ["series", "series"], ar: { one: "سلسلة واحدة", two: "سلسلتان", few: "سلاسل", many: "سلسلة" } },
   words: { en: ["word", "words"], ar: { one: "كلمة واحدة", two: "كلمتان", few: "كلمات", many: "كلمة" } },
   chars: { en: ["char", "chars"], ar: { one: "حرف واحد", two: "حرفان", few: "أحرف", many: "حرفًا" } },
   comments: { en: ["comment", "comments"], ar: { one: "تعليق واحد", two: "تعليقان", few: "تعليقات", many: "تعليقًا" } },

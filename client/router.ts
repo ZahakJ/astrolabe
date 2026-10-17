@@ -15,6 +15,7 @@
 //   /feeds                → Feeds: the reading list's unread items
 //   /today                → Today: what the day asks of the reader
 //   /timeline             → the Timeline: the vault by date
+//   /desk                 → the Writing desk: the pieces being written
 //   /folder/Note          → the note folder/Note.md (".md" stripped, segments
 //                           URL-encoded; matching is case-insensitive)
 //   /folder/Note#Heading  → same note, scrolled to the heading
@@ -34,7 +35,7 @@ import { collectNotes, resolveLink } from "./editor/links.ts";
 import { t } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
-import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isReviewWeekTab, isTimelineTab, isTodayTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
+import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isReviewWeekTab, isTimelineTab, isTodayTab, isDeskTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
 
 /** The focused pane is showing the graph tab. */
 function graphTabActive(ws: Workspace): boolean {
@@ -77,6 +78,11 @@ function timelineTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
   const tab = pane === null ? null : activeTabOf(pane);
   return tab !== null && isTimelineTab(tab.path);
+}
+function deskTabActive(ws: Workspace): boolean {
+  const pane = paneAt(ws, ws.focus);
+  const tab = pane === null ? null : activeTabOf(pane);
+  return tab !== null && isDeskTab(tab.path);
 }
 function sigilsTabActive(ws: Workspace): boolean {
   const pane = paneAt(ws, ws.focus);
@@ -207,6 +213,7 @@ function urlForState(view: string, openPath: string | null, ws: Workspace): stri
   if (view === "editor" && calendarTabActive(ws)) return "/calendar";
   if (view === "editor" && todayTabActive(ws)) return "/today";
   if (view === "editor" && timelineTabActive(ws)) return "/timeline";
+  if (view === "editor" && deskTabActive(ws)) return "/desk";
   if (view === "editor" && reviewWeekTabActive(ws)) return "/review-week";
   if (view === "editor" && feedsTabActive(ws)) return "/feeds";
   const orbits = view === "editor" ? orbitsTabActive(ws) : null;
@@ -254,6 +261,8 @@ function setTitle(openPath: string | null, view: string): void {
     document.title = `${t("todayPage")} · ${base}`;
   } else if (view === "editor" && timelineTabActive(useStore.getState().workspace)) {
     document.title = `${t("timeline")} · ${base}`;
+  } else if (view === "editor" && deskTabActive(useStore.getState().workspace)) {
+    document.title = `${t("desk")} · ${base}`;
   } else if (view === "editor" && orbitsTabActive(useStore.getState().workspace) !== null) {
     // A session is titled by the note it studies; the shelf by the page.
     const at = orbitsTabActive(useStore.getState().workspace);
@@ -337,6 +346,10 @@ export function applyUrl(initial = false): boolean {
       store.setView("timeline");
       return true;
     }
+    if (location.pathname === "/desk") {
+      store.setView("desk");
+      return true;
+    }
     // `/review` was the shelf's address until 3.16; a bookmark still opens
     // the shelf, and the bar then shows `/orbits`.
     const orbits = orbitsRouteOf(location.pathname, location.hash);
@@ -398,6 +411,7 @@ export function applyUrl(initial = false): boolean {
         feedsTabActive(store.workspace) ||
         todayTabActive(store.workspace) ||
         timelineTabActive(store.workspace) ||
+        deskTabActive(store.workspace) ||
         orbitsTabActive(store.workspace) !== null
       ) {
         store.closeAllTabs();

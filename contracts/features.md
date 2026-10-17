@@ -1522,3 +1522,48 @@ two settings deciding what a launch opens would need a rule for which wins. Time
 **BUDGETS.** Entry +7.3 kB (dictionary, surface table, router, chord), phone first paint +20.4 kB
 (the entry, `today/hooks`, `shared/tasks.ts`, TodayScreen's sections); both pages are lazy chunks
 asserted in MUST_SPLIT.
+
+## The Writing desk (`shared/desk.ts`, `server/desk.ts`, `server/deskWords.ts`, `client/desk/`)
+
+**A PIECE IS A NOTE; THE DESK ONLY READS IT.** `kind: essay` (or `piece`, `post`) makes a piece,
+`kind: series` a series; `deskMetaOf(fm)` reads `status` (folded by `parseDeskStatus`, unknown →
+`idea`), `angle`, `series`, `lang`, `priority`, `due`, `next` and a series' `description` into
+`NoteRecord.desk` at both record literals. No key is invented: the word target is the status bar's
+`goal:`, the series list is the blog's `series:`. **`series:` means two things and `kind:` says
+which**: on a piece it is membership, so the indexer sets `seriesRefs` to null there and a draft never
+becomes a blog series of one; on any other note it lists parts. An entry that resolves to nothing is a
+planned slot. `seriesDeclarersOf` also returns pieces naming the path, so a series rename rewrites
+their `series:`.
+
+**PUBLISHED IS THE FLAG, NEVER THE STATUS.** `stageOf(status, published)`: `publish: true` puts a
+piece under Published whatever it says; `status: published` without it is drawn under Editing with
+"not on the site yet". The desk writes `status:` only, through `POST /api/frontmatter`
+(`client/desk/actions.ts moveTo`); a drop on Published asks the phone's publish question and runs the
+store's `togglePublish`, a move off Published asks before unpublishing. New pieces
+(`newPieceContent`) carry no `publish:` key.
+
+**OWNER-ONLY, BY CONSTRUCTION.** `GET /api/desk` and `GET /api/desk/piece` 401 a limited session
+before reading anything; `/api/desk/piece` answers `null` (not a 404) for a note that is not a piece,
+because the side panel asks of every note. Nothing the desk adds is read by `posts()`, the feed, the
+sitemap or search, which see the published set only. `tests/desk.test.ts` "THE PRIVACY GUARD" walks a
+visitor through the desk routes, `/api/posts`, `/tree`, `/search`, `/props`, `/query` on `prop:kind`
+and `prop:status`, `/tags`, `/graph`, `/aliases`, `/backlinks`, `/note`, the feed and the sitemap with
+a drafting piece in the vault, and requires its name, its words, its series and its status to appear
+on none of them.
+
+**WORDS OVER TIME** are a ledger, `ASTROLABE_DATA/desk-words.json` (mode 0600, tmp+rename, written in
+bursts and flushed on shutdown): the indexer reports a piece's `countNoteWords` on every index, so
+every door a note comes in by is counted; one point per day, the last count of the day, at most
+`WORD_LOG_DAYS`; a rename and a folder move carry the log, a delete leaves it.
+
+**THE SURFACES.** `~desk` / `/desk` is a pane surface like the Timeline; `client/desk/DeskBoard.tsx`
+is the content both shells mount (the phone stacks the board's columns and moves cards by the pill
+only). Three ways to move a card, one write: a pointer drag (mouse and pen; a finger scrolls), the
+keyboard lift (`Space`, arrows in the reading direction, `Space`, `Escape`; announced in a live region),
+and the status pill's menu. Doors: the sidebar's desk button, the palette (`open-desk`, `new-essay`,
+`new-series`), More on the phone, and the capture sheet's third target (first line title, second line
+angle). The piece bar (`PieceBar.tsx`) is lazy and mounted by the editor only when `isPieceSource`
+says so; its Outline to headings is `outlineToHeadings` applied as one `minimalChange` dispatch (one
+undo step, the outline kept, items with a heading skipped). The Sources section (`sources` in
+`SECTION_IDS`) is lazy and admin-only: linked notes, linked PDFs/EPUBs, linked notes with a `source:`
+URL (clips), and backlinks.

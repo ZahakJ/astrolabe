@@ -60,6 +60,8 @@ import { SEED_GUIDE, seedAvailable, seedVault } from "./seed.ts";
 import { VaultError, createFolder, createNote, assertNotePath, deleteAttachment, deleteFolder, deleteNote, emitEvent, getVaultRoot, noteExists, noteMtime, normalizeRel, readNote, suppressWatcherEcho, writeNote } from "./vault.ts";
 import { jsonBody, requiredQuery, requiredString } from "./requestBody.ts";
 import { moveFolderWithLinkRewrite } from "./renameRoutes.ts";
+import { deskData, deskPiece } from "./desk.ts";
+import { moveDeskWordsFolder } from "./deskWords.ts";
 import { trashRoutes } from "./trashRoutes.ts";
 import { tagRoutes } from "./tagRoutes.ts";
 import { replaceRoutes } from "./replaceRoutes.ts";
@@ -731,6 +733,7 @@ api.post("/folder/move", async (c) => {
   const to = requiredString(body, "toPath");
   const result = await moveFolderWithLinkRewrite(from, to);
   moveAnnotationsFolder(from, to);
+  moveDeskWordsFolder(normalizeRel(from), normalizeRel(to));
   // A FOLDER'S GLYPH IS PART OF THE FOLDER. settings.folderIcons is keyed by
   // path, and this route is where a folder's path changes — rename and move
   // are the same operation here (Sidebar's renameTo dispatches both to it).
@@ -1281,6 +1284,23 @@ api.get("/onthisday", (c) => {
 api.get("/timeline", (c) => {
   if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
   return c.json(timelineNotes());
+});
+
+// The Writing desk (docs/writing-desk.md, server/desk.ts): every piece and
+// series, and one piece with its sources and its words over time. ADMIN ONLY,
+// and the refusal is the same 401 whether or not the vault holds a single
+// piece: the desk is the owner's plans, and a visitor may not learn that a
+// plan exists, let alone what it is called.
+api.get("/desk", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  return c.json(deskData());
+});
+
+api.get("/desk/piece", (c) => {
+  if (isPublishLimited(c)) throw new VaultError(401, "Admin session required");
+  // Null, not a 404, for a note that is not a piece: the side panel asks of
+  // every note the owner opens, and "not a piece" is the usual answer.
+  return c.json(deskPiece(normalizeRel(requiredQuery(c.req.query("path"), "path"))));
 });
 
 // ── Capture ─────────────────────────────────────────────────────────────

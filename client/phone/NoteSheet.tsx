@@ -39,6 +39,8 @@ import { publishWithConfirmation } from "./publish.ts";
 import Sheet from "./Sheet.tsx";
 
 const TocPanel = lazySurface(() => import("../reading/TocPanel.tsx"));
+// The Writing desk's Sources section: its own chunk, for the owner only.
+const SourcesPanel = lazySurface(() => import("../components/SourcesPanel.tsx"));
 const HistoryPanel = lazySurface(() => import("../components/HistoryPanel.tsx"));
 const NearbyPanel = lazySurface(() => import("../components/NearbyPanel.tsx"));
 const RelatedSection = lazySurface((): Promise<{ default: ComponentType }> => import("../components/NearbyPanel.tsx").then((m) => ({ default: m.RelatedSection })));
@@ -316,6 +318,7 @@ export default function NoteSheet({ leaving }: { leaving: boolean }) {
             { id: "footnotes", node: <FootnotesPanel /> },
             { id: "localgraph", node: <LocalGraph /> },
             { id: "tracker", node: <TrackerPanel /> },
+            ...(admin ? ([{ id: "sources", node: <Suspense fallback={null}><SourcesPanel /></Suspense> }] as StackSection[]) : []),
             { id: "history", node: <Suspense fallback={null}><div className="s-ph-history"><HistoryPanel /></div></Suspense> },
             { id: "backlinks", node: <Backlinks path={path} /> },
             ...(admin

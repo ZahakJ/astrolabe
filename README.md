@@ -27,6 +27,7 @@ git clone https://github.com/ZahakJ/astrolabe.git && cd astrolabe && npm install
 - **Search** with operators (`tag:`, `path:`, `before:`) that ignores accents and diacritics, so `cafe` finds `café`; search and replace across the vault with a preview and undo.
 - **Math and LaTeX.** KaTeX in any note, and whole `.tex` files edited, linked and published like Markdown.
 - **Focus.** Word goals from a note's properties, typewriter scrolling, and zen mode.
+- **A writing desk.** The essays and series you mean to write, on a board from idea to published, each with its angle, its sources and its words over time. Plain notes underneath, and private until you publish.
 - **Right-to-left text.** Arabic, Persian and Hebrew render and edit natively beside English, line by line, with their diacritics; the interface is also available in Arabic.
 - **Templates and daily notes,** with `{{date}}` fields, plus drawings in the Excalidraw format.
 

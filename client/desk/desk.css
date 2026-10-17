@@ -1,0 +1,758 @@
+/* Astrolabe — the Writing desk (client/desk/, docs/writing-desk.md). Loaded
+   with its lazy chunk. Three parts: the content both shells mount (the bar of
+   views and filters, the board, the list, the series lanes), the desktop
+   page's frame under `.s-desk`, and the phone's sizes under `.s-ph-desk`.
+   Tokens only; logical properties throughout, so the board reads from the
+   right in Arabic with no rule of its own. */
+
+/* ── the bar: views and filters ───────────────────────────────────────── */
+
+.s-desk-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-block: 4px 14px;
+}
+
+.s-desk-views,
+.s-desk-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.s-desk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-block-size: 28px;
+  max-inline-size: 16em;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.s-desk-chip:hover {
+  background: var(--bg-hover);
+}
+
+.s-desk-chip:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-desk-view[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.s-desk-select {
+  padding-inline-end: 6px;
+  text-overflow: ellipsis;
+}
+
+.s-desk-chip--clear {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.s-desk-note {
+  margin: 24px 0;
+  color: var(--text-muted);
+  font-size: 0.929rem;
+}
+
+/* ── the board ─────────────────────────────────────────────────────────
+   Seven columns side by side, each wide enough for a card's angle to read
+   as a sentence. When the pane is narrower than seven of them the BOARD
+   scrolls along its own axis, inside itself; the page never does. */
+
+.s-desk-board {
+  flex: 1;
+  min-block-size: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(200px, 1fr);
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-block-end: 12px;
+  overscroll-behavior-x: contain;
+}
+
+.s-desk-col {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 0;
+  min-inline-size: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.s-desk-col[data-column="parked"] {
+  border-style: dashed;
+}
+
+.s-desk-col--over {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-soft) 60%, var(--bg-raised));
+}
+
+.s-desk-col__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.786rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.s-desk-col__name {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.s-desk-col__count {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.s-desk-col__cards {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px 10px;
+  overflow-y: auto;
+}
+
+.s-desk-col__empty {
+  margin: 4px 4px 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+}
+
+/* Where the lifted card will land: a dashed accent socket, the designer
+   board's own drop preview. */
+.s-desk-col__socket {
+  flex: none;
+  block-size: 56px;
+  border: 1.5px dashed var(--accent);
+  border-radius: var(--radius);
+}
+
+.s-desk-slot {
+  position: relative;
+}
+
+.s-desk-slot[style] {
+  z-index: 2;
+}
+
+/* ── a card ───────────────────────────────────────────────────────────── */
+
+.s-desk-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.s-desk-card:hover {
+  border-color: var(--accent-soft);
+}
+
+.s-desk-card:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.s-desk-card--lifted {
+  border-color: var(--accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.s-desk-board--lifting .s-desk-card {
+  cursor: grabbing;
+}
+
+.s-desk-card__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--heading);
+  overflow-wrap: anywhere;
+}
+
+.s-desk-card__angle {
+  margin: 0;
+  font-size: 0.857rem;
+  line-height: var(--snippet-leading, 1.45);
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+
+.s-desk-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+}
+
+.s-desk-card__series,
+.s-desk-card__lang {
+  display: inline-block;
+  max-inline-size: 100%;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--bg-hover);
+  color: var(--text);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  overflow: clip visible;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-desk-card__lang {
+  color: var(--text-muted);
+}
+
+.s-desk-card__words {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-desk-card__bar {
+  display: block;
+  block-size: 3px;
+  border-radius: 2px;
+  background: var(--bg-hover);
+  overflow: hidden;
+}
+
+.s-desk-card__bar > span {
+  display: block;
+  block-size: 100%;
+  background: var(--accent);
+}
+
+.s-desk-card__next {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-desk-card__nextlabel {
+  color: var(--text-muted);
+}
+
+.s-desk-card__warn {
+  margin: 0;
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-desk-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-block-start: 2px;
+}
+
+.s-desk-card__when {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.s-desk-card__due--late {
+  color: var(--danger);
+}
+
+/* On the chip's --bg-hover ground the word stays --text and the lateness is
+   the ring: --danger is measured as text on the page grounds, not on hover. */
+.s-desk-card__tags .s-desk-card__due--late {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--danger);
+}
+
+/* ── the list ─────────────────────────────────────────────────────────── */
+
+.s-desk-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-block-end: 24px;
+}
+
+.s-desk-list__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding-block-end: 6px;
+  border-block-end: 1px solid var(--border);
+  font-family: var(--font-serif);
+  font-size: 1.071rem;
+  font-weight: 500;
+  color: var(--heading);
+}
+
+.s-desk-list__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.s-desk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius);
+}
+
+.s-desk-row:hover {
+  background: var(--bg-hover);
+}
+
+.s-desk-row__open {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.s-desk-row__open:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-desk-row__title {
+  font-family: var(--font-serif);
+  font-size: 0.982rem;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.s-desk-row__angle {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  overflow: clip visible;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-desk-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-desk-row .s-desk-pill {
+  margin-inline-end: 8px;
+}
+
+/* ── the series lanes ─────────────────────────────────────────────────── */
+
+.s-desk-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-block-end: 24px;
+}
+
+.s-desk-lane {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-raised);
+  padding: 14px 16px;
+}
+
+.s-desk-lane__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-block-end: 10px;
+}
+
+.s-desk-lane__titles {
+  min-inline-size: 0;
+  flex: 1 1 260px;
+}
+
+.s-desk-lane__title {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: var(--font-serif);
+  font-size: 1.214rem;
+  font-weight: 500;
+  color: var(--heading);
+  text-align: start;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.s-desk-lane__title:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+.s-desk-lane__title--bare {
+  cursor: default;
+}
+
+.s-desk-lane__title--bare:hover {
+  text-decoration: none;
+}
+
+.s-desk-lane__desc {
+  margin: 4px 0 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.s-desk-lane__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 1 200px;
+  min-inline-size: 140px;
+  font-size: 0.82rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-desk-lane__pub {
+  color: var(--text-muted);
+}
+
+.s-desk-lane__empty {
+  margin: 0;
+  font-size: 0.857rem;
+  color: var(--text-muted);
+}
+
+.s-desk-lane__entries {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.s-desk-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: var(--radius);
+}
+
+.s-desk-entry:hover {
+  background: var(--bg-hover);
+}
+
+.s-desk-entry__n {
+  flex: none;
+  inline-size: 2em;
+  text-align: end;
+  font-family: var(--font-serif);
+  font-size: 0.929rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.s-desk-entry__open {
+  flex: 1;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  border-radius: var(--radius);
+}
+
+.s-desk-entry__open:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.s-desk-entry__open--planned {
+  cursor: default;
+}
+
+.s-desk-entry__title {
+  font-size: 0.929rem;
+  overflow-wrap: anywhere;
+}
+
+.s-desk-entry--planned .s-desk-entry__title {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.s-desk-entry__angle {
+  font-size: 0.786rem;
+  color: var(--text-muted);
+  overflow: clip visible;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.s-desk-entry .s-desk-pill,
+.s-desk-entry__start {
+  margin-inline-end: 6px;
+}
+
+.s-desk-entry__start {
+  flex: none;
+  border: 1px dashed var(--accent);
+}
+
+/* ── the empty desk ───────────────────────────────────────────────────── */
+
+.s-desk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-inline-size: 440px;
+  margin: 48px auto;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.929rem;
+  line-height: 1.5;
+}
+
+.s-desk-empty p {
+  margin: 0;
+}
+
+.s-desk-empty__glyph {
+  color: var(--text-faint);
+}
+
+.s-desk-empty__acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.s-desk-empty .s-btn,
+.s-desk__acts .s-btn {
+  border: 1px solid var(--border);
+}
+
+/* ── the new-piece form ───────────────────────────────────────────────── */
+
+.s-desk-form {
+  inline-size: min(520px, calc(100vw - 32px));
+}
+
+.s-desk-form__select {
+  inline-size: 100%;
+}
+
+/* ── the desktop page ─────────────────────────────────────────────────── */
+
+.s-desk {
+  flex: 1;
+  min-block-size: 0;
+  min-inline-size: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 20px clamp(16px, 3vw, 40px) 0;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.s-desk__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-block-end: 6px;
+}
+
+.s-desk__titles {
+  min-inline-size: 0;
+}
+
+.s-desk__h1 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.714rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--heading);
+}
+
+.s-desk__count {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.s-desk__acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.s-desk__body {
+  flex: 1;
+  min-block-size: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* The list and the lanes are a page to read down; they scroll here. */
+.s-desk__body > .s-desk-list,
+.s-desk__body > .s-desk-lanes,
+.s-desk__body > .s-desk-empty {
+  overflow-y: auto;
+  max-inline-size: 980px;
+  inline-size: 100%;
+}
+
+.s-desk__body > .s-desk-empty {
+  max-inline-size: 440px;
+}
+
+/* ── the phone ────────────────────────────────────────────────────────
+   Mounted inside the phone shell only, so a class asks the question a width
+   would. Every control is a 44px target, every row a thumb's, and the board's
+   columns stack: seven columns side by side is a desktop's picture. */
+
+.s-ph-desk__body {
+  padding: 8px 16px 24px;
+}
+
+.s-ph-desk .s-desk-bar {
+  gap: 8px;
+}
+
+.s-ph-desk .s-desk-chip {
+  min-block-size: 44px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.s-ph-desk .s-desk-board--stacked {
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.s-ph-desk .s-desk-col__cards {
+  overflow: visible;
+}
+
+.s-ph-desk .s-desk-row__open,
+.s-ph-desk .s-desk-entry__open {
+  min-block-size: 52px;
+}
+
+.s-ph-desk .s-desk-row__title {
+  font-size: 16px;
+}
+
+.s-ph-desk .s-desk-lane__title {
+  min-block-size: 44px;
+}
+
+.s-ph-desk .s-desk-entry__start,
+.s-ph-desk .s-desk-empty .s-btn {
+  min-block-size: 44px;
+}
+
+.s-ph-desk .s-desk-card {
+  cursor: default;
+}
+
+/* A finger on a desktop shell (a touchscreen laptop): the same 44px floor. */
+@media (pointer: coarse) {
+  .s-desk-chip,
+  .s-desk__acts .s-btn,
+  .s-desk-entry__start {
+    min-block-size: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .s-desk-card,
+  .s-desk-col,
+  .s-desk-chip {
+    transition: none;
+  }
+}

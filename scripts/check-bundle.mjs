@@ -460,7 +460,9 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // THE SIDE PANEL'S STACK (3.45.0): 925.1 → 926.8 kB, the entry's +1.2 kB and
 // the note sheet's This note page in phone.css; the sections themselves are
 // in the sheet's lazy chunk. 926 → 927.
-const PHONE_BUDGET = 927 * 1024;
+// THE WRITING DESK (3.46.0): 926.8 → 932.7 kB, the entry's dictionary share
+// and the More row; the desk screen is a lazy chunk. 927 → 933.
+const PHONE_BUDGET = 933 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1167,7 +1169,14 @@ const AUDIENCES = [
   // the reorder line; the old per-section toggle rules they replace came
   // out). The dictionary came out smaller: seven strings in, the nineteen
   // per-section show/hide strings out. 796 → 797.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 797 * 1024 },
+  // THE WRITING DESK (3.46.0): 797.0 → 801.6 kB against 04faaa8e. Nearly all
+  // of it is the dictionary in the larger language — the desk's ~110 strings
+  // (statuses, next steps, the board's live-region sentences, the form, the
+  // piece bar, Sources) in Arabic; the rest is the palette's three rows, the
+  // `~desk` tab in the router and workspace, and the sidebar's desk glyph. The
+  // desk, its stylesheets, the form, the piece bar and the Sources section are
+  // lazy chunks. 797 → 802.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 802 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1586,7 +1595,9 @@ const AUDIENCES = [
   // and nothing of the blog's own. 1107 → 1110.
   // THE SIDE PANEL'S STACK (3.45.0): 1109.1 → 1110.2 kB, the entry's
   // (see its note) and nothing of the blog's own. 1110 → 1111.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1111 * 1024 },
+  // THE WRITING DESK (3.46.0): 1110.2 → 1115.7 kB, the entry's (see its note)
+  // and nothing of the blog's own. 1111 → 1116.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1116 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1913,7 +1924,9 @@ const AUDIENCES = [
   // the same footnotes, graph, tracker, mentions and on-this-day sections,
   // so they left BacklinksPanel's chunk (24.1 → 8.0 kB) for two shared ones
   // the admin was already paying for. 1061 → 1074.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1074 * 1024 },
+  // THE WRITING DESK (3.46.0): → 1074.1 kB, the entry's dictionary share; the
+  // side panel's Sources section is a lazy chunk. 1074 → 1075.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1075 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The

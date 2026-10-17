@@ -60,6 +60,7 @@ import type { EntryPatch } from "../shared/routine.ts";
 import type { Grade, Schedule } from "../shared/srs.ts";
 import type { DeckKind, DeckMeta, NewCard, DeckCard } from "../shared/decks.ts";
 import type { TrackerFields } from "../shared/tracker.ts";
+import type { DeskData, DeskPieceDetail } from "../shared/desk.ts";
 
 // ── Visitor preview (admin-only) ────────────────────────────────────────────
 // While on, every API call carries X-Astrolabe-Preview: visitor and the server —
@@ -740,6 +741,17 @@ export function getOnThisDay(iso: string): Promise<OnThisDayHit[]> {
 /** Every note with its day, for the Timeline and the year in review (admin). */
 export function getTimelineNotes(): Promise<TimelineNote[]> {
   return request<TimelineNote[]>("/api/timeline");
+}
+
+/** The Writing desk: every piece and series (admin only, docs/writing-desk.md). */
+export function getDesk(): Promise<DeskData> {
+  return request<DeskData>("/api/desk");
+}
+
+/** One piece with its sources and its words over time (admin only); null
+ *  for a note that is not a piece. */
+export function getDeskPiece(path: string): Promise<DeskPieceDetail | null> {
+  return request<DeskPieceDetail | null>(`/api/desk/piece?path=${encodeURIComponent(path)}`);
 }
 
 /** Every task in the vault (admin), and the flip of one line. */

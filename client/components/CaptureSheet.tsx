@@ -38,7 +38,10 @@ export default function CaptureSheet() {
   useStore((s) => s.language);
   const [voice, setVoice] = useState(() => useStore.getState().captureVoice);
   const [text, setText] = useState("");
-  const [target, setTarget] = useState<CaptureTarget>("daily");
+  // A third door beside today's note and the inbox: the line becomes a new
+  // piece on the Writing desk (client/desk/, docs/writing-desk.md) — its
+  // first line the title, a second line its angle.
+  const [target, setTarget] = useState<CaptureTarget | "essay">("daily");
   const [inbox, setInbox] = useState<string | null>(null);
   const [today, setToday] = useState<string>(() => dailyNotePath());
   const [busy, setBusy] = useState(false);
@@ -101,6 +104,13 @@ export default function CaptureSheet() {
     if (line === "" || busy) return;
     setBusy(true);
     try {
+      if (target === "essay") {
+        const [title, ...rest] = line.split(/\r?\n/);
+        const { createPiece } = await import("../desk/actions.ts");
+        const made = await createPiece(title.trim(), { kind: "essay", angle: rest.join(" ").trim() });
+        if (made !== null) close();
+        return;
+      }
       const path = await capture(line, target);
       if (path === null) return; // the daily door has said why
       close();
@@ -127,6 +137,7 @@ export default function CaptureSheet() {
   const todayName = dailyNoteLabel(today) ?? noteTitleOf(today);
   const options = [
     { value: "daily", label: tf("captureTargetDaily", { name: todayName }) },
+    { value: "essay", label: t("captureTargetEssay") },
     // "Inbox (Reading list)" names the note; a note that is itself called
     // Inbox would read "Inbox (Inbox)", so it gets the bare word.
     ...(inbox
@@ -194,23 +205,19 @@ export default function CaptureSheet() {
             <div className="s-capture__row">
               <div className="s-capture__where">
                 <span className="s-capture__where-label">{t("captureWhere")}</span>
-                {inbox ? (
-                  // A segmented pair, not the dropdown Select: two choices is a
-                  // pair of radios, and the Select's popover is portaled to the
-                  // body at a z-index below this sheet's overlay, where it would
-                  // open underneath the very control that asked for it.
-                  <SegmentedControl
-                    label={t("captureWhere")}
-                    value={target}
-                    onChange={(v) => setTarget(v === "inbox" ? "inbox" : "daily")}
-                    segments={options}
-                  />
-                ) : (
-                  <span className="s-capture__target" dir="auto">{options[0].label}</span>
-                )}
+                {/* Segments, not the dropdown Select: a few choices is a set of
+                    radios, and the Select's popover is portaled to the body at
+                    a z-index below this sheet's overlay, where it would open
+                    underneath the very control that asked for it. */}
+                <SegmentedControl
+                  label={t("captureWhere")}
+                  value={target}
+                  onChange={(v) => setTarget(v === "inbox" ? "inbox" : v === "essay" ? "essay" : "daily")}
+                  segments={options}
+                />
               </div>
             </div>
-            {!inbox && <p className="s-capture__hint">{t("captureNoInboxHint")}</p>}
+            {target === "essay" ? <p className="s-capture__hint">{t("captureEssayHint")}</p> : !inbox && <p className="s-capture__hint">{t("captureNoInboxHint")}</p>}
             <div className="s-capture__actions">
               <button type="button" className="s-capture__cancel" onClick={close}>
                 {t("cancel")}

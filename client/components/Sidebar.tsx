@@ -49,7 +49,7 @@ import type { FolderMark } from "../../shared/folderIcons.ts";
 import { toast } from "../toast.ts";
 import "../styles/move.css";
 import { ensureMd } from "../../shared/noteFormat.ts";
-import { IconClip, IconCollapseAll, IconDrawing, IconNewFolder, IconNewNote } from "./tree/icons.tsx";
+import { IconClip, IconCollapseAll, IconDesk, IconDrawing, IconNewFolder, IconNewNote } from "./tree/icons.tsx";
 import { useTreeCursor, type MenuState } from "./tree/useTreeCursor.ts";
 import { PubRow, TopicSection, TreeChildren } from "./tree/TreeRow.tsx";
 import { TREE_ALL_EVENT, TREE_REVEAL_EVENT, buildTopics, countAttachments, countNotes, setFoldersUnder } from "./tree/expansion.ts";
@@ -1089,6 +1089,17 @@ export default function Sidebar() {
               onClick={() => void promptNewDrawing(useStore.getState().drawingsFolder)}
             >
               <IconDrawing />
+            </button>
+            {/* The Writing desk (docs/writing-desk.md): the pieces being
+                written, one click from the top of the vault they live in. */}
+            <button
+              type="button"
+              className="s-iconbtn"
+              title={t("desk")}
+              aria-label={t("desk")}
+              onClick={() => useStore.getState().setView("desk")}
+            >
+              <IconDesk />
             </button>
             <button
               type="button"

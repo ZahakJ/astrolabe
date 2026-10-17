@@ -18,11 +18,11 @@
 // the stack going back down to the screen that shows it, rather than by a
 // second copy of that screen pushed on top.
 
-import { FEEDS_TAB, isBookPath, isFeedsTab, isMediaTab, isOrbitsTab, isSigilsTab, isTimelineTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, SIGILS_TAB } from "../workspace.ts";
+import { FEEDS_TAB, isBookPath, isDeskTab, isFeedsTab, isMediaTab, isOrbitsTab, isSigilsTab, isTimelineTab, MEDIA_TAB, orbitsSessionOf, ORBITS_TAB, SIGILS_TAB } from "../workspace.ts";
 import type { Screen } from "./nav.ts";
 
 const LIST_SURFACES = (tab: string): boolean =>
-  tab === "~library" || isSigilsTab(tab) || isTimelineTab(tab) || isMediaTab(tab) || isFeedsTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
+  tab === "~library" || isSigilsTab(tab) || isTimelineTab(tab) || isDeskTab(tab) || isMediaTab(tab) || isFeedsTab(tab) || (isOrbitsTab(tab) && orbitsSessionOf(tab) === null);
 
 export function isList(s: Screen): boolean {
   switch (s.kind) {

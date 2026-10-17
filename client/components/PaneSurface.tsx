@@ -21,6 +21,7 @@ const FeedsView = lazySurface(() => import("../feeds/FeedsView.tsx"));
 const OrbitsSurface = lazySurface(() => import("../orbits/OrbitsSurface.tsx"));
 const TodayView = lazySurface(() => import("../today/TodayView.tsx"));
 const TimelineView = lazySurface(() => import("../timeline/TimelineView.tsx"));
+const DeskView = lazySurface(() => import("../desk/DeskView.tsx"));
 const Editor = lazySurface(() => import("./Editor.tsx"));
 const ReadingView = lazySurface(() => import("../reading/ReadingView.tsx"));
 // The books surface keeps its own chunk boundary (scripts/check-bundle.mjs
@@ -135,6 +136,11 @@ export default function PaneSurface({ id, children }: { id: string; children?: R
       // The Timeline (3.28): the vault by date, newest first.
       <Suspense fallback={<div className="s-timeline" />}>
         <TimelineView />
+      </Suspense>
+    ) : surface === "desk" ? (
+      // The Writing desk: the pieces being written, by status and by series.
+      <Suspense fallback={<div className="s-desk" />}>
+        <DeskView />
       </Suspense>
     ) : surface === "review-week" ? (
       // The weekly review: the week added up, a tab like the Sigils page.

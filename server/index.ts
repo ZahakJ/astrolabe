@@ -9,6 +9,7 @@ import { Hono } from "hono";
 import type { Context } from "hono";
 import { api, contentTypeFor } from "./api.ts";
 import { staticAssets } from "./assets.ts";
+import { flushDeskWords } from "./deskWords.ts";
 import { ConfigError, canRead, initAuth, isPublishLimited, servedLayout } from "./auth.ts";
 import { injectHead, renderFeed, renderRobots, renderSitemap, requestOrigin } from "./blog.ts";
 import { compressDynamic } from "./compress.ts";
@@ -427,6 +428,12 @@ let leaving = false;
 function shutdown(code: number, signal?: NodeJS.Signals): void {
   if (leaving) return;
   leaving = true;
+  // The desk's word log is written in bursts; the last one lands now.
+  try {
+    flushDeskWords();
+  } catch (err) {
+    console.warn("astrolabe: could not write desk-words.json:", err);
+  }
   const cap = new Promise<void>((resolve) => setTimeout(resolve, STOP_CAP_MS).unref());
   void Promise.race([stopPresence().catch(() => {}), cap]).then(() => {
     // Re-raised rather than turned into an exit code, so a supervisor sees
