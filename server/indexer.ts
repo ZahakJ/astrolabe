@@ -49,7 +49,7 @@ import { noteDeskWords } from "./deskWords.ts";
 import { flatBody, labelsOfFm, props } from "./indexer/queries.ts";
 export { isNoteVisibleToVisitor, publishedCensus, visibleUnder, publishedTopics } from "./indexer/language.ts";
 export type { FilterLang, PublishedCensus } from "./indexer/language.ts";
-export { resolveLink, aliasEntries, twinOf, twinSwapTable, twinPairs, twinFaceOf, resolveEmbed, noteAnchors, resolveLabel, resolveCitekey, resolveImageRef, resolveBannerRef, publishedBanner } from "./indexer/resolve.ts";
+export { noteLanguage, resolveLink, aliasEntries, twinOf, twinSwapTable, twinPairs, twinFaceOf, resolveEmbed, noteAnchors, resolveLabel, resolveCitekey, resolveImageRef, resolveBannerRef, publishedBanner } from "./indexer/resolve.ts";
 export type { TwinLink } from "./indexer/resolve.ts";
 export { detectTemplatesFolder, detectHadithFolder, hadithLookup, detectTagsFolder, isTemplateNote, templateMatcher } from "./indexer/folders.ts";
 export { exportSelection, notesReferencing, notesLinkingTo, notesLinkedFrom, notesWithTag, isNotePublished, isAllowedAttachment, publishedNotes, visibleNotesUnder, publishedPaths, publishedCounts, listImageAttachments, unreferencedAttachments, registerAttachment, noteTitle } from "./indexer/publish.ts";

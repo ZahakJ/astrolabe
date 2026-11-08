@@ -8,11 +8,11 @@
 import type { Context } from "hono";
 import type { PostMeta } from "../shared/types.ts";
 import type { FilterLang } from "./indexer.ts";
-import { posts, publishedBanner } from "./indexer.ts";
+import { noteLanguage, posts, publishedBanner } from "./indexer.ts";
 import { staticPagesActive } from "./pages.ts";
 import { faviconPath } from "./settings.ts";
 import { siteScope, type LanguageScope } from "./language.ts";
-import { blogLocale, siteLanguage, siteName, siteUrl, tagline } from "./site.ts";
+import { blogLocale, languageFilterMode, siteLanguage, siteName, siteUrl, tagline } from "./site.ts";
 import { noteCandidates, stripNoteExt } from "../shared/noteFormat.ts";
 
 // ------------------------------------------------------------------ helpers
@@ -336,11 +336,19 @@ export const HEAD_PLACEHOLDER = "<!--astrolabe:head-->";
  *  unknown — gets the generic site meta (no existence leak). Callers that must
  *  not reveal reads (PUBLIC=false without a session) pass "/" as pathname. */
 export function injectHead(html: string, origin: string, pathname: string, extra: string[] = []): string {
-  // Crawler-facing and session-less: it speaks for the SITE, so it takes the
-  // site scope rather than a reader's. Under "follow" that is the site
-  // language — the honest default for a request with no reader behind it.
-  const post = matchPublished(pathname, siteScope().lang);
+  // Crawler-facing and session-less, but it speaks for the POST at this
+  // address, whatever its language. Under "follow" both languages are on the
+  // site — each reader gets their own — so the post is matched across both:
+  // matching in the site's language gave every English permalink on an Arabic
+  // site the site's name as its title, the tagline as its description and no
+  // article meta, the card every shared link carried. A PINNED filter ("ar" /
+  // "en") curates the other language off the site, and the head keeps it off
+  // too; "off" is already unscoped.
+  const post = matchPublished(pathname, languageFilterMode() === "follow" ? null : siteScope().lang);
   const name = siteName();
+  // og:locale: the post's own language; a page that is no post, or a post
+  // with no prose to judge, speaks the site's.
+  const locale = (post ? noteLanguage(post.path) : null) ?? siteLanguage();
   const title = post ? `${post.title} — ${name}` : name;
   const description = post ? post.excerpt : (tagline() ?? "");
   const canonical = origin + (post ? notePathToUrl(post.path) : "/");
@@ -364,6 +372,7 @@ export function injectHead(html: string, origin: string, pathname: string, extra
   tags.push(
     `<meta property="og:type" content="${post ? "article" : "website"}" />`,
     `<meta property="og:site_name" content="${xmlEscape(name)}" />`,
+    `<meta property="og:locale" content="${locale === "ar" ? "ar_AR" : "en_US"}" />`,
     `<link rel="canonical" href="${xmlEscape(canonical)}" />`,
     `<link rel="alternate" type="application/rss+xml" title="${xmlEscape(name)}" href="/feed.xml" />`,
     // …and the other face of this piece, when it has one in the other

@@ -329,6 +329,14 @@ export function twinPairs(): TwinPair[] {
  *
  *  Published-gated and NOT language-gated, deliberately: the whole value of
  *  the field is that it names the face the reader is not being shown. */
+/** The language a note's prose is in ("ar" / "en"), or null when it has no
+ *  prose letters to judge (shared/twins.ts faceLang). The served head's
+ *  og:locale reads it. */
+export function noteLanguage(relPath: string): "ar" | "en" | null {
+  const record = notes.get(relPath);
+  return record === undefined ? null : faceLang(record.arabic);
+}
+
 export function twinFaceOf(relPath: string): TwinFaceRef | null {
   const link = twinOf(relPath);
   if (link === null || !publishedSet.has(link.path)) return null;
