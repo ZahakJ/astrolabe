@@ -182,7 +182,7 @@ function postMeta(record: NoteRecord, hidden: ReadonlySet<string>, collectionRow
   const basics = postBasics(record);
   const meta: PostMeta = {
     path: record.path,
-    title: record.title,
+    title: record.publicTitle,
     date: new Date(record.dateMs).toISOString(),
     // A body that is only a fence has no paragraph to cut; say what the fence
     // holds rather than shipping an empty slot. See fenceSummary().
@@ -645,7 +645,7 @@ export function posts(
           const rec = notes.get(part);
           if (!rec) return [];
           const pm = postMeta(rec, hidden, rows);
-          pm.series = { title: record.title, path: notePath, index: i + 1, count: parts.length };
+          pm.series = { title: record.publicTitle, path: notePath, index: i + 1, count: parts.length };
           return [pm];
         });
         const own = new Set(meta.tags.map((t) => t.toLowerCase()));
@@ -679,7 +679,7 @@ export function posts(
 function seriesRefFor(series: string, part: string, visitor: boolean, lang: FilterLang): PostMeta["series"] {
   const parts = visibleParts(series, visitor, lang);
   return {
-    title: notes.get(series)?.title ?? series,
+    title: notes.get(series)?.publicTitle ?? series,
     path: series,
     index: parts.indexOf(part) + 1,
     count: parts.length,
@@ -696,7 +696,7 @@ export function pages(visitor: boolean, lang: FilterLang): PageMeta[] {
     const record = notes.get(notePath);
     if (!record || !record.page) continue;
     if (visitor && languageHidden(record, lang)) continue;
-    out.push({ path: record.path, title: record.title });
+    out.push({ path: record.path, title: visitor ? record.publicTitle : record.title });
   }
   return out.sort((a, b) => a.title.localeCompare(b.title) || a.path.localeCompare(b.path));
 }

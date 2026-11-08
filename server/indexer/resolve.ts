@@ -337,7 +337,7 @@ export function twinFaceOf(relPath: string): TwinFaceRef | null {
   const me = notes.get(relPath);
   return {
     path: other.path,
-    title: other.title,
+    title: other.publicTitle,
     face: other.face,
     lang: faceLang(other.arabic),
     differs: me !== undefined && facesDiffer(faceLang(me.arabic), faceLang(other.arabic)),

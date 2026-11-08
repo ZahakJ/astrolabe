@@ -548,7 +548,7 @@ export function search(
     : ranked;
   const hits: SearchHit[] = readable.slice(0, 50).map(({ result, record, id, title }) => ({
     path: id,
-    title,
+    title: publishedOnly && record ? record.publicTitle : title,
     snippet: record
       ? publishedOnly
         ? snippetOf(publicFlatBody(record), Object.keys(result.match))
@@ -590,7 +590,7 @@ export function search(
           : undefined;
         return [{
           path: p,
-          title: record.title,
+          title: publishedOnly ? record.publicTitle : record.title,
           snippet: makeSnippet(record, [bare]),
           score,
           ...(alias === undefined ? {} : { alias: stripBidiControls(alias) }),
@@ -657,7 +657,7 @@ function filteredNotes(
   );
   return out.slice(0, 50).map(({ record }, i) => ({
     path: record.path,
-    title: record.title,
+    title: publishedOnly ? record.publicTitle : record.title,
     snippet: makeSnippet(record, []),
     // Descending, so a client that sorts by score keeps the order chosen here.
     score: out.length - i,
@@ -774,7 +774,7 @@ export function graph(publishedOnly: boolean, lang: FilterLang): GraphData {
   }
   const nodes = [...merged].map(([id, tags]) => ({
     id,
-    title: notes.get(id)?.title ?? noteTitleOf(id),
+    title: (publishedOnly ? notes.get(id)?.publicTitle : notes.get(id)?.title) ?? noteTitleOf(id),
     links: degree.get(id) ?? 0,
     // Visitors group the sidebar by these tags — honor EXCLUDE_TAGS so
     // workflow/status tags never become published topic headings.
@@ -892,7 +892,7 @@ function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLa
       }
       hits.push({
         path: record.path,
-        title: record.title,
+        title: publishedOnly ? record.publicTitle : record.title,
         context,
         line: fileLine(record, link.lineIdx),
       });
@@ -907,7 +907,7 @@ function backlinksOne(targetPath: string, publishedOnly: boolean, lang: FilterLa
       seen.add(key);
       hits.push({
         path: record.path,
-        title: record.title,
+        title: publishedOnly ? record.publicTitle : record.title,
         context: xref.line,
         line: fileLine(record, xref.lineIdx),
       });

@@ -20,6 +20,7 @@ import { t } from "../i18n.ts";
 import { renderNoteContent } from "../reading/renderNote.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
+import { titleCase } from "../../shared/titleCase.ts";
 import { useStore } from "../state.ts";
 import { NavLink } from "../blog/util.tsx";
 import "../reading/reading.css";
@@ -38,7 +39,7 @@ export default function PageView({ path }: { path: string }) {
   const tree = useStore((s) => s.tree);
   const language = useStore((s) => s.language);
   const [failed, setFailed] = useState(false);
-  const title = stripBidiControls(noteTitleOf(path));
+  const title = titleCase(stripBidiControls(noteTitleOf(path)));
 
   // Keep the store's notion of "the open note" in step — same-note heading
   // links and the hover cards read it.

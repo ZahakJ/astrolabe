@@ -5,6 +5,7 @@ import path from "node:path";
 import MiniSearch from "minisearch";
 import type { VaultEvent } from "../shared/types.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
+import { publicTitleOf } from "../shared/titleCase.ts";
 import { createdMs, forgetCreated, seedFromGit } from "./created.ts";
 import { idStampMs } from "../shared/idStamp.ts";
 import { foldTerm } from "../shared/fold.ts";
@@ -62,6 +63,11 @@ export type { SearchOptions } from "./indexer/queries.ts";
 export interface NoteRecord {
   path: string;
   title: string;
+  /** The title a READER is shown (shared/titleCase.ts publicTitleOf): the
+   *  frontmatter `title:` as written, else `title` in Title Case. Every public
+   *  surface — post lists, the article, RSS, og: tags, a visitor's search —
+   *  reads this; everything that RESOLVES a note keeps reading `title`. */
+  publicTitle: string;
   body: string; // content minus frontmatter
   /** `flatBody` with the author-only comments taken out (stripPrivateComments):
    *  what a visitor's search may match and quote. Filled lazily. */
@@ -818,6 +824,7 @@ async function applyIndexFile(relPath: string): Promise<void> {
   const record: NoteRecord = {
     path: relPath,
     title,
+    publicTitle: publicTitleOf(title, typeof fm.title === "string" ? stripBidiControls(fm.title) : fm.title),
     body: parts.body,
     bodyStartLine: parts.bodyStartLine,
     links: parts.links,
@@ -1151,6 +1158,7 @@ async function indexOversized(relPath: string, abs: string, stat: { size: number
   const record: NoteRecord = {
     path: relPath,
     title: stripBidiControls(rawTitle),
+    publicTitle: publicTitleOf(stripBidiControls(rawTitle), typeof fm.title === "string" ? stripBidiControls(fm.title) : fm.title),
     body: "",
     bodyStartLine: 0,
     links: [],

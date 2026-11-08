@@ -27,6 +27,7 @@ import AnnotationsMount from "../annotations/AnnotationsMount.tsx";
 import { renderMarkdown } from "../reading/render.ts";
 import { applyNoteLayoutTo } from "../textLayout.ts";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
+import { titleCase } from "../../shared/titleCase.ts";
 import { notePathToUrl } from "../router.ts";
 import { useStore } from "../state.ts";
 import { SectionError } from "./DesignBoundary.tsx";
@@ -94,10 +95,11 @@ export default function DesignedArticle({
   // one reorders every word after it.
   const fileTitle = stripBidiControls(noteTitleOf(path));
   const meta = posts?.find((post) => post.path === path) ?? null;
-  // On the live site the H1 is the FILENAME, which is what a permalink names.
-  // A preview may be drawing a sample row, whose path is a slot number, so
-  // there the post's own title is the honest heading.
-  const title = preview ? (meta?.title ?? fileTitle) : fileTitle;
+  // On the live site the H1 is the post's public title (NoteRecord.publicTitle),
+  // else the filename in the same Title Case. A preview may be drawing a
+  // sample row, whose path is a slot number, so there the row's own title is
+  // the honest heading.
+  const title = preview ? (meta?.title ?? fileTitle) : (meta?.title ?? titleCase(fileTitle));
 
   // Raised after every hook has run — see the note in Sections.tsx::NoteBlock.
   // NOT in a preview: the canvas is a picture, and a picture of an article

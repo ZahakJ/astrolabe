@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import type { PostMeta } from "../../shared/types.ts";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import { isTexPath, noteTitleOf } from "../../shared/noteFormat.ts";
+import { titleCase } from "../../shared/titleCase.ts";
 import { getNote } from "../api.ts";
 import { bannerSrc } from "../banner.ts";
 import { installHoverCards } from "../hovercard.ts";
@@ -14,8 +15,10 @@ import { useStore } from "../state.ts";
 import { previewExcerpt, previewPath } from "./postPreview.ts";
 import { formatDate } from "./util.tsx";
 
-function noteTitle(path: string): string {
-  return stripBidiControls(noteTitleOf(path));
+/** The card's header: the title the post list carries for this path
+ *  (NoteRecord.publicTitle), else the filename in the same Title Case. */
+function noteTitle(path: string, posts: ReadonlyMap<string, PostMeta>): string {
+  return posts.get(path)?.title ?? titleCase(stripBidiControls(noteTitleOf(path)));
 }
 
 export function usePostPreviews(
@@ -53,7 +56,7 @@ export function usePostPreviews(
         };
       },
       resolve: previewPath,
-      title: noteTitle,
+      title: (path) => noteTitle(path, byPath.current),
       render: async (path) => {
         let content: string;
         try {
@@ -65,7 +68,7 @@ export function usePostPreviews(
         }
         const md = isTexPath(path)
           ? texPreviewSource(content, null)
-          : previewExcerpt(content, noteTitle(path));
+          : previewExcerpt(content, noteTitle(path, byPath.current));
         if (!md) return null;
         const tags = postTags.current.get(path);
         return renderNoteContent(md, {

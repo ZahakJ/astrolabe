@@ -14,6 +14,7 @@ import { useBannerSrc } from "../components/BannerImg.tsx";
 import { t, tf } from "../i18n.ts";
 import LoginModal from "../components/LoginModal.tsx";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
+import { titleCase } from "../../shared/titleCase.ts";
 import { notePathToUrl, urlToNoteGuess, urlToNotePath } from "../router.ts";
 import { useStore } from "../state.ts";
 import { choiceGroup, counterpartChoice } from "../themes.ts";
@@ -34,6 +35,7 @@ import { parseLibraryRoute, libraryDocumentTitle, type LibraryRoute } from "../l
 import { useLibrary } from "../library/libraryData.ts";
 import { go, setNavHandler, topicUrl } from "./nav.ts";
 import { NavLink } from "./util.tsx";
+import { findPost } from "./series.tsx";
 import "../styles/blog.css";
 import Ambient from "../ambient.tsx";
 
@@ -321,7 +323,9 @@ export default function BlogShell() {
   // Per-page document title.
   useEffect(() => {
     if (route.kind === "article") {
-      const title = stripBidiControls(noteTitleOf(route.path));
+      // The heading's own title (BlogArticle): the post list's, else the
+      // filename in the same Title Case the server serves in <title>.
+      const title = findPost(posts, route.path)?.title ?? titleCase(stripBidiControls(noteTitleOf(route.path)));
       document.title = `${title} · ${siteName}`;
     } else if (route.kind === "topic") {
       document.title = `${route.tag} · ${siteName}`;
@@ -336,7 +340,7 @@ export default function BlogShell() {
     } else {
       document.title = tagline ? `${siteName} — ${tagline}` : siteName;
     }
-  }, [route, siteName, tagline, folders, shelf]);
+  }, [route, siteName, tagline, folders, shelf, posts]);
 
   // Route change closes the burger row (NavTopics closes its own menu off the
   // routeKey below).

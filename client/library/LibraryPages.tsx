@@ -12,9 +12,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import SiteMark from "../components/SiteMark.tsx";
-import { stripBidiControls } from "../../shared/bidi.ts";
 import { libraryUrl } from "../../shared/library.ts";
-import { noteTitleOf } from "../../shared/noteFormat.ts";
 import type { LibraryPath, LibraryUnit } from "../../shared/types.ts";
 import { getNote } from "../api.ts";
 import { countPhrase, localeNum, t, tf } from "../i18n.ts";
@@ -344,7 +342,8 @@ function LessonPage({ path, n }: { path: LibraryPath; n: number }) {
   const { read } = useProgress(path);
   const language = useStore((s) => s.language);
   const lessonPath = step?.lesson.path ?? null;
-  const title = lessonPath ? stripBidiControls(noteTitleOf(lessonPath)) : "";
+  // The lesson row's title is the server's public one (NoteRecord.publicTitle).
+  const title = step ? step.lesson.title : "";
 
   useEffect(() => {
     const host = bodyRef.current;

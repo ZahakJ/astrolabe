@@ -1597,7 +1597,10 @@ const AUDIENCES = [
   // (see its note) and nothing of the blog's own. 1110 → 1111.
   // THE WRITING DESK (3.46.0): 1110.2 → 1115.7 kB, the entry's (see its note)
   // and nothing of the blog's own. 1111 → 1116.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1116 * 1024 },
+  // TITLE CASE ON PUBLIC TITLES: 1115.7 → 1117.0 kB, +1.3, all the blog's own:
+  // shared/titleCase.ts, which the article H1, document.title and the hover
+  // cards need for the first paint before /api/posts arrives. 1116 → 1118.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1118 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,

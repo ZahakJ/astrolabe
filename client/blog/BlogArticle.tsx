@@ -25,6 +25,7 @@ import { numberRendered } from "../reading/headingNumbers.ts";
 import { findPost, SeriesBar, seriesNeighbours, SeriesParts } from "./series.tsx";
 import "../reading/reading.css";
 import { noteTitleOf } from "../../shared/noteFormat.ts";
+import { titleCase } from "../../shared/titleCase.ts";
 
 /** Notes often open with "# <their own title>" — the page already shows it
  *  as the article title, so drop the duplicate from the rendered body. */
@@ -84,13 +85,14 @@ export default function BlogArticle({
   // chrome (properties card, transclusion cards) built as imperative DOM.
   const language = useStore((s) => s.language);
 
-  // Bidi controls out: the H1 is the note's own filename, and an RLO in it
-  // reorders the headline. Same normalization the server applies to the title
-  // it puts in /api/posts, RSS and the og: tags.
-  const title = stripBidiControls(noteTitleOf(path));
   // findPost: a PART of a series is not a top-level row of /api/posts (the
   // series card carries it in `partList`), and its page still needs its meta.
   const meta = findPost(posts, path);
+  // The H1 is the title the server put in /api/posts, RSS and the og: tags
+  // (NoteRecord.publicTitle). Before the list arrives, the same Title Case of
+  // the filename — bidi controls out, since an RLO in a filename reorders the
+  // headline — so the heading does not change under the reader.
+  const title = meta?.title ?? titleCase(stripBidiControls(noteTitleOf(path)));
 
   // The post's server-filtered tag list (EXCLUDE_TAGS already applied) is
   // the allowlist for inline #tag pills in the body — an excluded workflow

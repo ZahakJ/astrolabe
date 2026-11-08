@@ -21,6 +21,8 @@ Dates on posts take their month names from the interface language (an English in
 
 The home page starts with your `HOME_NOTE`, rendered as an introduction, when that note is published. Below it comes the list of posts, newest first. Each topic has its own page at `/topic/<tag>`. An article's address is the note's ordinary address; nothing changes there.
 
+A post's title is the note's filename, shown in Title Case so every title on the site reads the same way: `Tracing from first principles.md` is listed as "Tracing from First Principles". Small words (a, the, and, of, to, vs. …) stay lowercase in the middle of a title. A word with a capital inside it, a digit or a dot (IEEE, C1, e.g.) is left as you typed it, and a title that starts with a lowercase letter (`perf record`) or is written in Arabic is shown exactly as named. The file and its address keep their name. To choose a title yourself, write `title:` in the note's frontmatter; it is used exactly as written.
+
 ## What counts as a post
 
 Every note with `publish: true` is a post, and the list is sorted newest first. The date of a post is decided in this order:

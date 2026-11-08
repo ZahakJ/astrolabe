@@ -4,6 +4,15 @@ What a visitor sees: the blog shell, publishing and topics, collections, and the
 
 ## Blog surface (the public shell's own furniture)
 
+- **A post wears its public title.** `NoteRecord.publicTitle` (`shared/titleCase.ts`
+  `publicTitleOf`) is the frontmatter `title:` as written, else the filename in Chicago Title
+  Case: minor words lowercase mid-title, each compound part capitalised, words with an inner
+  capital, digit, underscore or dot left alone, and a title that starts lowercase or holds a
+  non-Latin letter untouched. `PostMeta.title` (lists, series, twins, lessons, RSS,
+  `<title>`/og:title), pages and a VISITOR's search, backlinks and graph carry it;
+  the admin's surfaces, resolution, paths and slugs keep `title`. The client's article H1,
+  `document.title` and hover cards read the post's title and fall back to `titleCase()` of the
+  filename, so the first paint and the loaded page agree.
 - **One column per page.** `.s-blog-page` sets the measure (720px, 24px gutters; 18px on a
   phone) and everything inside it lives in that column. `.s-blog-article .s-marginalia`
   therefore clears comments.css's own `max-width: 760px` + 56px gutters, which in the app are
