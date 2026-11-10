@@ -462,7 +462,10 @@ const withLanguage = (keys) => (LANGUAGE_KEY ? closure(LANGUAGE_KEY, new Set(key
 // in the sheet's lazy chunk. 926 → 927.
 // THE WRITING DESK (3.46.0): 926.8 → 932.7 kB, the entry's dictionary share
 // and the More row; the desk screen is a lazy chunk. 927 → 933.
-const PHONE_BUDGET = 933 * 1024;
+// THE 2026-11 PURGE (3.46.1): +0.4 kB on the entry — the router's offer to create
+// a missing note (the action toast's module joins the entry), the save
+// retry's policy, the focus trap's fold test, and six strings a language: 932.7 → 933.5 kB. 933 → 934.
+const PHONE_BUDGET = 934 * 1024;
 // VOICE NOTES WITHOUT A GPU: 862.8 → 863.4 kB, +0.6 kB against 6dfd491 — the
 // same dictionary keys as the entry's (the transcription row). 863 → 864.
 // THE WAY BACK (the always-visible chrome-language switch), measured against
@@ -1176,7 +1179,10 @@ const AUDIENCES = [
   // `~desk` tab in the router and workspace, and the sidebar's desk glyph. The
   // desk, its stylesheets, the form, the piece bar and the Sources section are
   // lazy chunks. 797 → 802.
-{ name: "entry (everyone)", keys: withLanguage(entry), budget: 802 * 1024 },
+  // THE 2026-11 PURGE (3.46.1): +0.4 kB on the entry — the router's offer to create
+  // a missing note (the action toast's module joins the entry), the save
+  // retry's policy, the focus trap's fold test, and six strings a language: 801.6 → 802.4 kB. 802 → 803.
+{ name: "entry (everyone)", keys: withLanguage(entry), budget: 803 * 1024 },
   // VOICE NOTES WITHOUT A GPU: 753.8 → 754.4 kB, +0.6 kB, measured against a
   // build of 3.31.1 (6dfd491). All of it is the dictionary — the transcription
   // row's second control (Auto / Processor only), each model's cost on two
@@ -1600,7 +1606,9 @@ const AUDIENCES = [
   // TITLE CASE ON PUBLIC TITLES: 1115.7 → 1117.0 kB, +1.3, all the blog's own:
   // shared/titleCase.ts, which the article H1, document.title and the hover
   // cards need for the first paint before /api/posts arrives. 1116 → 1118.
-{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1118 * 1024 },
+  // THE 2026-11 PURGE (3.46.1): 1117.0 → 1118.5 kB, the entry's +0.4 (see its
+  // note) and the article's own-meta fetch for a post in the other language. 1118 → 1119.
+{ name: "anonymous blog reader", keys: withLanguage(blog), budget: 1119 * 1024 },
   // THE AUDIT'S LEFTOVERS: the entry's +271 bytes (the RTL glyph rules,
   // above) and nothing else: 1,076,993 → 1,077,264. Budget 1052 → 1053.
   // RE-BASELINED for PER-FOLDER TREE ICONS (1089.4 kB actual → 1099.4 kB,
@@ -1929,7 +1937,9 @@ const AUDIENCES = [
   // the admin was already paying for. 1061 → 1074.
   // THE WRITING DESK (3.46.0): → 1074.1 kB, the entry's dictionary share; the
   // side panel's Sources section is a lazy chunk. 1074 → 1075.
-  { name: "admin first paint", keys: withLanguage(app), budget: 1075 * 1024 },
+  // THE 2026-11 PURGE (3.46.1): 1074.1 → 1075.0 kB, the entry's +0.4 (see its
+  // note) and the Related section's language-following error line. 1075 → 1076.
+  { name: "admin first paint", keys: withLanguage(app), budget: 1076 * 1024 },
 
   // THE PHONE SHELL'S FIRST PAINT (3.26.0): the entry, the shell's own chunk
   // (nav, sheets, the tab bar, phone.css) and its home screen, Today. The
