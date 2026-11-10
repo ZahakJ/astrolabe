@@ -50,6 +50,7 @@ import { isTexPath } from "../../shared/noteFormat.ts";
 import { t } from "../i18n.ts";
 import { toast } from "../toast.ts";
 import { notePathFacet } from "./livePreview.ts";
+import { blockPrefixLength } from "./linePrefix.ts";
 
 /** Every wrapping format the editor knows. `color` is dynamic (the opening tag
  *  carries the chosen value), so it is not in this table. */
@@ -209,7 +210,9 @@ function perLineTargets(
   const out: Target[] = [];
   for (let n = first; n <= last; n++) {
     const line = doc.line(n);
-    let a = Math.max(from, line.from);
+    // Never inside the line's block marker: a selection that starts at or
+    // before the end of `- `, `## `, `> ` or `1. [ ] ` wraps the words after it.
+    let a = Math.max(from, line.from + blockPrefixLength(line.text));
     let b = Math.min(to, line.to);
     const text = doc.sliceString(a, b);
     const lead = text.length - text.replace(/^\s+/, "").length;

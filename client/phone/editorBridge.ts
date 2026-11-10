@@ -20,6 +20,7 @@ import { enterFocus, selectSection, setFoldsBelow } from "../editor/sectioning.t
 import { copySectionLink, copySectionMarkdown, extractSection, noteContent } from "../sectionActions.ts";
 import { sectionAtHeading, sectionsOf } from "../sections.ts";
 import { t } from "../i18n.ts";
+import { HEADING, cycleHeadingEdit } from "./headingCycle.ts";
 
 export type AccessoryAction = "link" | "tag" | "task" | "bold" | "heading" | "undo" | "redo" | "hide";
 
@@ -42,18 +43,17 @@ export function embedTargetAt(root: Element | null, target: EventTarget | null, 
   return { note, source: span.source, el, surface: "editor", view, span: { from: span.from, to: span.to }, lines: null };
 }
 
-const HEADING = /^(\s{0,3})(#{1,6})\s/;
-
-/** None → ## → ### → none: the three a phone writer actually uses, in the
- *  order they are wanted. A `#` title is typed, not cycled into. */
+/** The H key: see headingCycle.ts for the cycle and where the caret goes. */
 function cycleHeading(view: EditorView): boolean {
-  const line = view.state.doc.lineAt(view.state.selection.main.head);
-  const m = HEADING.exec(line.text);
-  const from = line.from + (m ? m[1].length : 0);
-  const to = m ? line.from + m[0].length : from;
-  const level = m ? m[2].length : 0;
-  const next = level === 0 ? "## " : level === 2 ? "### " : "";
-  view.dispatch({ changes: { from, to, insert: next }, userEvent: "input.format", scrollIntoView: true });
+  const head = view.state.selection.main.head;
+  const line = view.state.doc.lineAt(head);
+  const edit = cycleHeadingEdit(line.text, head - line.from);
+  view.dispatch({
+    changes: { from: line.from + edit.from, to: line.from + edit.to, insert: edit.insert },
+    selection: { anchor: line.from + edit.caret },
+    userEvent: "input.format",
+    scrollIntoView: true,
+  });
   return true;
 }
 

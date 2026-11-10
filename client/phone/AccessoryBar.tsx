@@ -18,7 +18,9 @@ import { runAccessory, viewIn, type AccessoryAction } from "./editorBridge.ts";
 import { IconKeyboardDown, IconRedo, IconUndo } from "./icons.tsx";
 
 const KEYS: { action: AccessoryAction; label: I18nKey; glyph: React.ReactNode }[] = [
-  { action: "link", label: "phKeyLink", glyph: "[[" },
+  // Brackets mirror in a right-to-left run: the Arabic chrome drew "]]"
+  // (2026-11 purge, E8). The key types `[[`, so it shows `[[`.
+  { action: "link", label: "phKeyLink", glyph: <span dir="ltr">[[</span> },
   { action: "tag", label: "phKeyTag", glyph: "#" },
   { action: "task", label: "phKeyTask", glyph: "☐" },
   { action: "bold", label: "phKeyBold", glyph: <b>B</b> },

@@ -47,7 +47,7 @@ import {
   resolveLink,
   WIKILINK_RE,
 } from "./links.ts";
-import { noteAnchors } from "../../shared/anchors.ts";
+import { noteAnchors, type NoteAnchor } from "../../shared/anchors.ts";
 import { foldTerm } from "../../shared/fold.ts";
 import { isNotePath, stripNoteExt } from "../../shared/noteFormat.ts";
 import { notePathFacet } from "./livePreview.ts";
@@ -109,12 +109,21 @@ async function headingOptions(
 ): Promise<string[] | null> {
   if (!target.trim()) {
     // [[#…]] — the note being edited.
-    return noteAnchors(hostPath(context), context.state.doc.toString()).map((a) => a.id);
+    return noteAnchors(hostPath(context), context.state.doc.toString()).map(anchorLinkText);
   }
   const path = resolveLink(target, useStore.getState().tree);
   if (!path) return null;
   const content = await noteContent(path);
-  return content === null ? null : noteAnchors(path, content).map((a) => a.id);
+  return content === null ? null : noteAnchors(path, content).map(anchorLinkText);
+}
+
+/** What `[[Note#…]]` is completed with: a heading's own words, as the manual
+ *  writes the link (`[[Note#Derivation]]`, resolved by findAnchor's slug pass),
+ *  and a label or block id as its id. Offering the heading's SLUG wrote
+ *  `[[Gödel's Incompleteness#details]]`, which reads "› details" in the note
+ *  (2026-11 purge, E4). */
+function anchorLinkText(a: NoteAnchor): string {
+  return a.kind === "heading" ? a.title : a.id;
 }
 
 /** The path of the note being edited, for anchor extraction on the open doc. */
@@ -581,5 +590,8 @@ export function wikilinkAutocomplete(): Extension {
     icons: false,
     activateOnTyping: true,
     addToOptions: [{ render: calloutIconRender, position: 20 }],
+    // A row whose detail is raw syntax (the slash menu's `![[name.png]]`) is
+    // marked, and the theme sets that detail left to right (2026-11 purge, E6).
+    optionClass: (c) => ((c as { syntaxDetail?: boolean }).syntaxDetail ? "cm-s-syntax-detail" : ""),
   });
 }

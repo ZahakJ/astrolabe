@@ -297,7 +297,12 @@ export function slashSource(context: CompletionContext): CompletionResult | null
   const options: Completion[] = slashItems().map((item) => ({
     label: item.label,
     displayLabel: t(item.displayLabel),
+    // A raw syntax hint is code, read left to right: its row says so (the
+    // theme sets the detail LTR and isolated), or the Arabic chrome's bidi
+    // turned `![[name.png]]` into `[[name.png]]!` (2026-11 purge, E6). A
+    // translated hint keeps the chrome's direction.
     detail: item.detailKey ? t(item.detailKey) : item.detail,
+    syntaxDetail: !item.detailKey && !!item.detail,
     boost: item.boost,
     // The match region starts after "/" (so typing filters by label), but the
     // insert must also swallow the slash itself.

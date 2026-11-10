@@ -199,6 +199,14 @@ export function editorTheme(): Extension {
       color: "var(--accent)",
       fontWeight: "600",
     },
+    // A syntax hint (`![[name.png]]`) is code: left to right in either chrome.
+    ".cm-s-syntax-detail .cm-completionDetail": {
+      direction: "ltr",
+      unicodeBidi: "isolate",
+      // Its own direction moves its inline start: in a right-to-left list the
+      // gap from the label is on its right, so it keeps one on each side.
+      marginInline: "0.75em",
+    },
     ".cm-completionDetail": {
       color: "var(--text-muted)",
       fontStyle: "normal",
