@@ -1931,6 +1931,16 @@ function renderNote(md: string, ctx: Ctx, root: HTMLElement): void {
     }
     sec.appendChild(ol);
     root.appendChild(sec);
+    // THE MARK IN THE TEXT IS THE NUMBER IN THE LIST. A named footnote
+    // (`[^source]`) drew its NAME as the superscript while the list numbered
+    // it "2." — two labels for one note (2026-11 purge, P17). The list is an
+    // <ol> in definition order, so the reference takes that number; ids and
+    // hrefs keep the label, which is what links and sidenotes key on.
+    const order = new Map(ctx.footnotes.map((f, i) => [f.label, i + 1]));
+    for (const a of root.querySelectorAll<HTMLAnchorElement>(".s-rv-fnref a[data-fn]")) {
+      const n = order.get(a.dataset.fn ?? "");
+      if (n !== undefined) a.textContent = String(n);
+    }
   }
 
   // A SAME-NOTE `[[#Heading]]` BECOMES A REAL DESTINATION, resolved here

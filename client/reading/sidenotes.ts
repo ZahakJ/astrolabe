@@ -56,7 +56,8 @@ export function installSidenotes(host: HTMLElement, content: HTMLElement): () =>
     num.dataset.fnback = label;
     num.setAttribute("role", "link");
     num.tabIndex = 0;
-    num.textContent = label;
+    // The list's own number, as the reference in the text shows it.
+    num.textContent = String(items.indexOf(li) + 1);
     const back = li.querySelector<HTMLElement>(".s-rv-fnback");
     if (back) {
       num.title = back.title;

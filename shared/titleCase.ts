@@ -57,6 +57,11 @@ function casePart(part: string, capitalise: boolean): string {
   if (m === null) return part;
   const [, lead, core, tail] = m;
   if (core === "" || LEAVE_ALONE.test(core)) return part;
+  // An abbreviation's dot sits in the tail once punctuation is split off, so
+  // "(2nd ed.)" came out "Ed." though the rule leaves a dotted word alone
+  // (2026-11 purge, P14): a short lowercase word written with its dot is an
+  // abbreviation — ed., vol., pp., cf., etc. — and keeps its spelling.
+  if (tail.startsWith(".") && core.length <= 4 && core === core.toLowerCase()) return part;
   if (!capitalise && MINOR.has(core.toLowerCase())) return lead + core.toLowerCase() + tail;
   return lead + core.charAt(0).toUpperCase() + core.slice(1) + tail;
 }

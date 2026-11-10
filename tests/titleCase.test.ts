@@ -67,6 +67,10 @@ describe("titleCase: the rules", () => {
     assert.equal(titleCase("Using IEEE 1588 in practice"), "Using IEEE 1588 in Practice");
     assert.equal(titleCase("Notes on v2 and pdf_tex"), "Notes on v2 and pdf_tex");
     assert.equal(titleCase("Sorting e.g. by date"), "Sorting e.g. by Date");
+    // An abbreviation's dot is split off with its punctuation; it still marks
+    // the word (2026-11 purge, P14: "(2nd ed.)" became "Ed.").
+    assert.equal(titleCase("Calculus (2nd ed.)"), "Calculus (2nd ed.)");
+    assert.equal(titleCase("Collected works vol. 3"), "Collected Works vol. 3");
   });
 
   it("looks through quotes and brackets around a word", () => {

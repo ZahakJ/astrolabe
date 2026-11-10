@@ -1585,6 +1585,18 @@
   .s-blog-footer__hint {
     display: none;
   }
+  /* A finger's 44px (DESIGN.md) for the series' doors: the part titles and the
+     "Part 2 of 5 · ‹series›" link were 22px tall (2026-11 purge, P19). The
+     box grows; the type and the row's rhythm do not. */
+  .s-blog-series__body > .s-blog-related__link,
+  .s-blog-series-bar a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .s-blog-series__item {
+    padding: 2px 0;
+  }
 }
 
 /* ── Dashboard home (settings.home.mode = "dashboard") ─────────────────────
