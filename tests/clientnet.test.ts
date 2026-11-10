@@ -12,7 +12,7 @@
 import "../client/i18n/both.ts";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { staleRetryStep } from "../client/editor/saveRetry.ts";
+import { retriesOnItsOwn, staleRetryStep } from "../client/editor/saveRetry.ts";
 import { ApiError, getNote, requestSignal, timeoutError } from "../client/api.ts";
 import { errorSentence } from "../client/safety.ts";
 import { setLang } from "../client/i18n.ts";
@@ -22,6 +22,20 @@ import { setLang } from "../client/i18n.ts";
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+describe("a save that did not land retries by itself", () => {
+  // 2026-11 purge, E1: with the server down, a save failed, was toasted once
+  // and then waited for the next keystroke — a reader who had stopped typing
+  // kept their last paragraph only in the tab long after the server was back.
+  it("retries what waiting can cure: no answer, a 5xx, a lapsed session, a busy server", () => {
+    for (const status of [undefined, 500, 502, 503, 504, 401, 403, 408, 429]) {
+      assert.equal(retriesOnItsOwn(status), true, String(status));
+    }
+  });
+  it("leaves a request the server will always refuse to the reader", () => {
+    for (const status of [400, 404, 413, 422]) assert.equal(retriesOnItsOwn(status), false, String(status));
+  });
+});
 
 describe("the stale-save backoff", () => {
   it("speaks on the FIRST failure — the whole point of the fix", () => {

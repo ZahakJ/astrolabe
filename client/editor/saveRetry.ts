@@ -53,3 +53,27 @@ export function staleRetryStep(attempt: number): RetryStep {
     attempt <= 0 || attempt === CEILING || (attempt > CEILING && (attempt - CEILING) % REANNOUNCE_EVERY === 0);
   return { waitMs: WAITS[i], announce };
 }
+
+/** WHETHER A WRITE THAT SIMPLY DID NOT LAND IS WORTH TRYING AGAIN BY ITSELF.
+ *
+ *  The bug (2026-11 purge, E1): a save that failed because the server was
+ *  down — a restart, a dropped wifi — was announced once and then left alone,
+ *  "the next edit reschedules the save". A reader who had stopped typing came
+ *  back to a server that had been up for minutes and a note on disk without
+ *  their last paragraph; the text lived only in the tab, and closing it or a
+ *  crash lost it. Waiting fixes most failures, so most failures retry on the
+ *  same backoff as the stale case above:
+ *
+ *   - no status at all: the request never got an answer (network, server down);
+ *   - 5xx: the server answered and failed — it may not next time;
+ *   - 401 / 403: the session lapsed; signing in again in any tab revives it;
+ *   - 408 / 429: the server asked for time.
+ *
+ *  What waiting cannot fix is a request the server will refuse forever as
+ *  written (413 too large, 400 malformed, 404 a path it will not create):
+ *  those are said once and wait for the reader, as before. */
+export function retriesOnItsOwn(status: number | undefined): boolean {
+  if (status === undefined) return true;
+  if (status >= 500) return true;
+  return status === 401 || status === 403 || status === 408 || status === 429;
+}

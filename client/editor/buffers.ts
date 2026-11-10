@@ -36,11 +36,11 @@ import {
   type TransactionSpec,
 } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
-import { flushNoteBeacon, getNote, getNoteStates, isStaleWriteError, putNote } from "../api.ts";
+import { ApiError, flushNoteBeacon, getNote, getNoteStates, isStaleWriteError, putNote } from "../api.ts";
 import type { HeadingRepairOffer, NoteData } from "../../shared/types.ts";
 import { markSelfWrite, recentSelfWrite } from "../state.ts";
 import { revalidationFor } from "./revalidate.ts";
-import { staleRetryStep } from "./saveRetry.ts";
+import { retriesOnItsOwn, staleRetryStep } from "./saveRetry.ts";
 import { DOC_STATS_EVENT, registerBufferBridge, type DocStats } from "./bufferBridge.ts";
 import { countWords, noteProse } from "../../shared/wordCount.ts";
 import { announceWrite } from "../windows/coherence.ts";
@@ -464,10 +464,18 @@ export function applyToBuffer(path: string, spec: TransactionSpec): boolean {
  *  and a re-read that succeeds next time lands the reader in the ordinary
  *  conflict strip — which is the state they can actually resolve. */
 function retryStale(buf: Buffer, err: unknown): void {
+  retryOnBackoff(buf, new SaveStuckError(err));
+}
+
+/** The backoff itself, shared by the stale case above and by a write that
+ *  did not land at all (`retriesOnItsOwn`): the next attempt is scheduled
+ *  whether or not the reader types again, and `announced` is what the reader
+ *  is told on the attempts the plan says to speak on. */
+function retryOnBackoff(buf: Buffer, announced: unknown): void {
   const attempt = buf.staleRetries;
   buf.staleRetries = attempt + 1;
   const step = staleRetryStep(attempt);
-  if (step.announce) onSaveError(buf.path, new SaveStuckError(err));
+  if (step.announce) onSaveError(buf.path, announced);
   window.clearTimeout(buf.saveTimer);
   buf.saveTimer = window.setTimeout(() => void save(buf.path), step.waitMs);
 }
@@ -548,10 +556,16 @@ export async function save(path: string, explicit = false): Promise<void> {
       return;
     }
     // Not a conflict: the write simply did not land. The buffer stays DIRTY on
-    // purpose — the text is still here, the tab still shows its dot, and the
-    // next edit reschedules the save. Rethrowing instead would leave an
-    // unhandled rejection and tell the reader nothing.
-    onSaveError(path, err);
+    // purpose — the text is still here and the tab still shows its dot.
+    // Rethrowing instead would leave an unhandled rejection and tell the
+    // reader nothing. A failure that waiting can cure (the server down or
+    // restarting, a lapsed session) is tried again on the backoff by itself:
+    // "the next edit reschedules the save" left a reader who had stopped
+    // typing with their last paragraph only in the tab, minutes after the
+    // server was back (saveRetry.ts, `retriesOnItsOwn`).
+    const status = err instanceof ApiError ? err.status : undefined;
+    if (retriesOnItsOwn(status)) retryOnBackoff(buf, err);
+    else onSaveError(path, err);
   } finally {
     buf.saving = false;
   }
@@ -577,6 +591,13 @@ export async function save(path: string, explicit = false): Promise<void> {
 export async function revalidateOpen(): Promise<void> {
   const paths = [...buffers.keys()];
   if (paths.length === 0) return;
+  // A write that failed while we were out of the room is waiting on its
+  // backoff (up to 15 s). The stream coming back is the best news it will
+  // get, so it goes now; a 409 it meets is answered by save() itself.
+  for (const path of paths) {
+    const buf = buffers.get(path);
+    if (buf && buf.dirty && buf.staleRetries > 0 && buf.diverged === null && !buf.saving) void save(path);
+  }
   const states = await getNoteStates(paths).catch(() => null);
   if (states === null) return;
   await Promise.all(

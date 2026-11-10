@@ -113,6 +113,12 @@ and so it is testable without standing a server up (`tests/durability.test.ts`).
   has decided on their behalf that the server is not coming back. `SaveStuckError` carries
   `code: "saveStuck"` so the sentence is the reader's language, not a bare "Failed to save". A
   buffer with `staleRetries > 0` keeps ITS timer: a keystroke does not reset the backoff to 600ms.
+  **A write that did not land at all rides the same backoff** (2026-11 purge): no answer, a 5xx, a
+  401/403 or a 408/429 (`retriesOnItsOwn`) — the server down or restarting, a lapsed session — is
+  retried by itself, said on the first failure, and flushed at once when the event stream
+  reconnects (`revalidateOpen`). It used to be toasted once and left for the next keystroke, so a
+  reader who had stopped typing kept their last paragraph only in the tab. A request the server will
+  always refuse as written (400, 404, 413) is still said once and waits for the reader.
 - **A transaction may be BUFFER-WIDE.** Mirroring carries `changes` and nothing else, which is right
   for typing and wrong for the one thing that is neither text nor per-caret: an in-flight upload's
   placeholder decoration. Annotating a transaction with `bufferWide` forwards its EFFECTS to the
