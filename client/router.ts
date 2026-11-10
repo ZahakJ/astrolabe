@@ -29,10 +29,10 @@
 import { stripBidiControls } from "../shared/bidi.ts";
 import { parseEpubAnchor } from "../shared/epubAnchor.ts";
 import type { TreeNode } from "../shared/types.ts";
-import { getNote } from "./api.ts";
+import { ApiError, getNote } from "./api.ts";
 import { booksRouteFor, urlForBooksRoute } from "./books/door.ts";
 import { collectNotes, resolveLink } from "./editor/links.ts";
-import { t } from "./i18n.ts";
+import { t, tf } from "./i18n.ts";
 import { isNotePath, noteCandidates, noteTitleOf, stripNoteExt } from "../shared/noteFormat.ts";
 import { useStore } from "./state.ts";
 import { activeTabOf, isBookPath, isCalendarTab, isFeedsTab, isGraphTab, isMediaTab, isSigilsTab, isOrbitsTab, isReviewWeekTab, isTimelineTab, isTodayTab, isDeskTab, paneAt, orbitsSessionOf, surfaceOf, type Workspace } from "./workspace.ts";
@@ -127,6 +127,7 @@ function orbitsRouteOf(pathname: string, hash: string): { path: string | null; s
   }
 }
 import { toast } from "./toast.ts";
+import { actionToast } from "./undoToast.ts";
 import { swapInPlace } from "./twins.ts";
 
 /** True while we are applying a URL to the store (popstate / initial load):
@@ -473,9 +474,18 @@ function probeNote(pathname: string): boolean {
         applying = false;
       }
     })
-    .catch(() => {
+    .catch((err: unknown) => {
       if (location.pathname !== pathname) return;
-      toast(t("noteGone"));
+      // The owner following a link to a note that is not there yet is one
+      // press from making it — a bare "does not exist" toast and a jump to
+      // "/" lost the name they asked for (2026-11 purge, N9). A visitor, and
+      // any failure but a plain 404, gets the old sentence.
+      const store = useStore.getState();
+      if (store.admin && err instanceof ApiError && err.status === 404) {
+        actionToast(tf("noteMissingOffer", { name: noteTitleOf(guess) }), t("noteMissingCreate"), () => {
+          void store.createNote(guess);
+        });
+      } else toast(t("noteGone"));
       syncUrl();
     });
   return true;

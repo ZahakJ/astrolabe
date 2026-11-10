@@ -480,6 +480,8 @@ const ar = {
   password: "كلمة المرور",
   signingIn: "جارٍ تسجيل الدخول…",
   signInFailed: "فشل تسجيل الدخول",
+  signInWrongPassword: "كلمة المرور غير صحيحة",
+  tooManyTries: "محاولات كثيرة — انتظر دقيقة ثم أعد المحاولة",
 
   // ── Moderation panel ────────────────────────────────────────────────────
   moderationTitle: "الحواشي — الإشراف",
@@ -896,6 +898,8 @@ const ar = {
   exitZen: "إنهاء وضع التركيز (Esc)",
   zenEscHint: "مفتاح Esc",
   noteGone: "هذه الملاحظة لم تعد موجودة",
+  noteMissingOffer: "لا توجد بعدُ ملاحظة باسم «{name}»",
+  noteMissingCreate: "أنشئها",
   changedOnDisk: "تغيّرت {path} على القرص — وبقيت تعديلاتك غير المحفوظة",
   publishedToast: "نُشرت الملاحظة — أصبحت متاحة للزوار",
   publishedFirstToast: "نُشرت أولى ملاحظاتك — الموقع علنيّ الآن.",
@@ -1423,6 +1427,7 @@ const ar = {
   scSave: "حفظ فوري",
   scUndo: "تراجع",
   scRedo: "إعادة",
+  scRedoMac: "على ماك: Cmd Shift Z",
   scFind: "بحث واستبدال داخل الملاحظة",
   scReplaceVault: "بحث واستبدال في الخزانة كلها",
   scMoveLine: "نقل السطر لأعلى/لأسفل",
@@ -2697,7 +2702,6 @@ const ar = {
   bookShelfFailed: "تعذّرت قراءة المكتبة.",
   bookShelfTruncated: "تُعرض أول {count} كتاب في هذه الخزانة.",
   bookProgress: "قُرئ {percent}٪",
-  bookPages: "{count} صفحة",
   bookLoading: "جارٍ الفتح…",
   bookOpenFailed: "تعذّر فتح هذا الكتاب.",
   bookReaderLabel: "قراءة {title}",
@@ -2750,7 +2754,6 @@ const ar = {
   // ── The EPUB reader ──────────────────────────────────────────────────────
   epubOpenFailed: "تعذّر فتح كتاب EPUB هذا.",
   epubChapterOf: "الفصل {chapter} من {total}",
-  epubChapters: "{count} فصلًا",
   cmdOpenLibraryHint: "كل كتب هذه الخزانة",
   epubTypeBigger: "تكبير الخط",
   epubTypeSmaller: "تصغير الخط",

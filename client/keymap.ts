@@ -218,19 +218,10 @@ export interface ResolvedOverlap {
   why: string;
 }
 
-export const RESOLVED: ResolvedOverlap[] = [
-  {
-    chord: "Mod+Shift+z",
-    rows: ["scRedo", "cmdZen"],
-    why:
-      "Redo is CodeMirror's, zen is the shell's, and on macOS Cmd+Shift+Z is CodeMirror's ONLY " +
-      "redo binding (redo is Mod-y everywhere else) — so the editor cannot simply give it up. " +
-      "client/App.tsx breaks the tie by CARET: `if (e.metaKey && inEditor(e.target)) return` " +
-      "hands the keystroke to the editor when the caret is in it on a Mac, and takes it for zen " +
-      "everywhere else, stopPropagation included so one press can never both redo and leave zen. " +
-      "Ctrl+Shift+Z, the palette row and zen's own ✕ all still enter zen from inside the editor.",
-  },
-];
+// Empty since the sheet's redo row says what the key really is off a Mac
+// (Ctrl Y): Ctrl/Cmd Shift Z is zen's alone in the ledger, and the Mac editor's
+// Cmd Shift Z is still handed to CodeMirror by the caret test in globalKeys.ts.
+export const RESOLVED: ResolvedOverlap[] = [];
 
 // ── Parsing the ledger out of the .tsx source ──────────────────────────────
 

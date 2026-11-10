@@ -1010,6 +1010,9 @@ export function searchMatches(
 
 export function tags(publishedOnly: boolean, lang: FilterLang): TagCount[] {
   const counts = new Map<string, number>();
+  // Distinct notes under each prefix (`logic` for `logic/history`): a set of
+  // prefixes per note, so a note is counted once under each.
+  const under = new Map<string, number>();
   const hidden = publishedOnly ? excludedTags() : null;
   for (const record of notes.values()) {
     if (publishedOnly && !record.published) continue;
@@ -1017,13 +1020,24 @@ export function tags(publishedOnly: boolean, lang: FilterLang): TagCount[] {
     // a visible pill with a count is exactly the existence leak the filter
     // has to avoid, and its topic page would come back empty anyway.
     if (publishedOnly && languageHidden(record, lang)) continue;
+    const prefixes = new Set<string>();
     for (const tag of record.tags) {
       if (hidden?.has(tag.toLowerCase())) continue; // EXCLUDE_TAGS: visitor pills
       counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      const parts = tag.split("/");
+      for (let i = 1; i <= parts.length; i++) prefixes.add(parts.slice(0, i).join("/"));
     }
+    for (const prefix of prefixes) under.set(prefix, (under.get(prefix) ?? 0) + 1);
+  }
+  // `under` rides only on a tag something nests under — the one row whose
+  // tree count is not simply its own.
+  const parents = new Set<string>();
+  for (const tag of counts.keys()) {
+    const parts = tag.split("/");
+    for (let i = 1; i < parts.length; i++) parents.add(parts.slice(0, i).join("/"));
   }
   return [...counts]
-    .map(([tag, count]) => ({ tag, count }))
+    .map(([tag, count]): TagCount => (parents.has(tag) ? { tag, count, under: under.get(tag) ?? count } : { tag, count }))
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 }
 

@@ -64,7 +64,7 @@ is handed straight back to the browser.
 | `Ctrl/Cmd D` | Select the next occurrence of the word under the cursor |
 | `Ctrl/Cmd S` | Save now (autosave runs regardless, 600 ms after you stop) |
 | `Ctrl/Cmd ↑` / `↓` | Move the current line up / down |
-| `Ctrl/Cmd Z` / `Ctrl/Cmd Shift Z` | Undo / redo (inside the editor; see the note on zen below) |
+| `Ctrl/Cmd Z` / `Ctrl/Cmd Y` | Undo / redo, inside the editor. On a Mac redo is Cmd Shift Z; everywhere else `Ctrl/Cmd Shift Z` is zen (see the note below) |
 | `Ctrl/Cmd F` | Find and replace within the note |
 | `Ctrl/Cmd Shift F` | Search and replace across the vault |
 

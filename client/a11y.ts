@@ -32,12 +32,27 @@ export const FOCUSABLE_SELECTOR = [
   "[tabindex]",
 ].join(",");
 
+/** Is `el` hidden by a closed <details> — any ancestor fold, except that a
+ *  fold's own summary is what opens it and stays reachable. */
+function inClosedFold(el: HTMLElement): boolean {
+  for (let fold = el.closest("details"); fold !== null; fold = fold.parentElement?.closest("details") ?? null) {
+    const ownSummary = el.tagName === "SUMMARY" && el.parentElement === fold;
+    if (!fold.open && !ownSummary) return true;
+  }
+  return false;
+}
+
 /** Tabbable descendants of `root`, in document order, minus anything parked at
  *  tabindex="-1", hidden, or sitting inside an aria-hidden subtree. */
 export function tabbables(root: HTMLElement): HTMLElement[] {
   return [...root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)].filter((el) => {
     if (el.tabIndex < 0) return false;
     if (el.closest("[aria-hidden='true']") !== null) return false;
+    // Inside a CLOSED <details> (its summary aside) a control still has an
+    // offsetParent in Chromium, so the trap took the last field of a folded
+    // "Advanced" section for its last stop, and Tab walked out of Settings
+    // onto the page behind it (2026-11 purge, N2).
+    if (inClosedFold(el)) return false;
     // offsetParent is null for display:none; visibility:hidden needs the
     // computed style (a collapsed pane in this app uses exactly that).
     if (el.offsetParent === null && getComputedStyle(el).position !== "fixed") return false;

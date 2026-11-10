@@ -373,6 +373,18 @@ export default function CommandPalette() {
     // hint are two haystacks over one row, which is why `textOf` hands over
     // both. The thunks are evaluated HERE — the table is built once at import
     // and the chrome language changes at runtime.
+    // `>` FIRST: commands only, as in the editors this palette is learned
+    // from. It used to fall through to the create row, and `>trash` + Enter
+    // made a note called ">trash" (2026-11 purge, N12).
+    if (q.startsWith(">")) {
+      const wanted = q.slice(1).trim();
+      if (!wanted) return available.map<Item>((command) => ({ kind: "command", command, indices: [] }));
+      return rankCommands(wanted, available, (command) => ({
+        label: command.label(),
+        hint: command.hint?.(),
+        aliases: command.aliases?.(),
+      })).map<Item>(({ command, indices }) => ({ kind: "command", command, indices }));
+    }
     const matchedCommands = rankCommands(q, available, (command) => ({
       label: command.label(),
       hint: command.hint?.(),

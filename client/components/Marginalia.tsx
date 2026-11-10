@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CommentData } from "../../shared/types.ts";
-import { withPreview } from "../api.ts";
+import { ApiError, withPreview } from "../api.ts";
 import { siteDate } from "../dates.ts";
 import { countPhrase, localeDigits, t } from "../i18n.ts";
 import { useStore } from "../state.ts";
@@ -185,7 +185,10 @@ export default function Marginalia({ path }: { path: string }) {
       .catch((err: unknown) => {
         setComments((list) => (list ?? []).filter((cm) => cm.id !== temp.id));
         setBody(text); // give the words back
-        toast(err instanceof Error ? err.message : t("marginaliaFailed"));
+        toast(
+          err instanceof ApiError && err.status === 429 ? t("tooManyTries")
+          : err instanceof Error ? err.message : t("marginaliaFailed"),
+        );
       })
       .finally(() => setPosting(false));
   };

@@ -567,7 +567,10 @@ export function sessionSlice(set: StoreSet, get: StoreGet, ctx: StoreCtx) {
       // Counts always refresh (cheap, drives the "N published" segment).
       try {
         const me = await api.getMe();
-        set({ publishedCounts: me.published ?? null });
+        // …and the reach pill ("4/14 public") with them: it is the same
+        // census, and copying only the counts left the pill one publish
+        // behind until a reload (2026-11 purge, P5).
+        set({ publishedCounts: me.published ?? null, visibility: me.visibility ?? null });
       } catch {
         // keep last known counts
       }

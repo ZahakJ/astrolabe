@@ -5,6 +5,7 @@
 import BrandMark from "./BrandMark.tsx";
 import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
+import { ApiError } from "../api.ts";
 import { useDialog } from "../a11y.ts";
 import { t, tf } from "../i18n.ts";
 import { useStore } from "../state.ts";
@@ -39,7 +40,14 @@ export default function LoginModal() {
       .getState()
       .login(password)
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : t("signInFailed"));
+        // The server's refusals are English prose; the two a reader meets are
+        // said in their own language (2026-11 purge, N6/P6).
+        const status = err instanceof ApiError ? err.status : 0;
+        setError(
+          status === 401 ? t("signInWrongPassword")
+          : status === 429 ? t("tooManyTries")
+          : err instanceof Error ? err.message : t("signInFailed"),
+        );
         setShaking(true);
         setPassword("");
         setBusy(false);

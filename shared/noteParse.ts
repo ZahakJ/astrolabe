@@ -49,13 +49,24 @@ export function splitFrontmatter(content: string): { body: string; frontmatter: 
   return { body: content.slice(match[0].length), frontmatter: match[1] ?? "", bodyStartLine: cut };
 }
 
+/** Inline code spans (`` `…` ``, any run of backticks) blanked to spaces of
+ *  the same length, so offsets hold. A `[[Note]]` written in code is an
+ *  example of the syntax, not a link: it showed up as a second backlink with
+ *  the same snippet, counted in the graph, and a rename would have rewritten
+ *  the example (2026-11 purge, N5). Fenced blocks are NOT blanked here — the
+ *  app's own fences (sigil, tracker, orbit) carry real links in their slots. */
+export function blankInlineCode(line: string): string {
+  return line.replace(/(`+)(?!`)([\s\S]*?[^`])\1(?!`)/g, (span) => " ".repeat(span.length));
+}
+
 export function parseLinks(body: string): ParsedLink[] {
   const links: ParsedLink[] = [];
   const lines = body.split("\n");
   const re = wikilinkRegex();
   for (let i = 0; i < lines.length; i++) {
     const line = (lines[i] ?? "").trimEnd();
-    for (let m = re.exec(line); m !== null; m = re.exec(line)) {
+    const scan = line.includes("`") ? blankInlineCode(line) : line;
+    for (let m = re.exec(scan); m !== null; m = re.exec(scan)) {
       const target = (m[1] ?? "").trim();
       if (target) links.push({ target, line: line.trim(), lineIdx: i });
     }

@@ -650,6 +650,8 @@ const en = {
   password: "Password",
   signingIn: "Signing in…",
   signInFailed: "Sign-in failed",
+  signInWrongPassword: "Wrong password",
+  tooManyTries: "Too many tries — wait a minute and try again",
 
   // ── Moderation panel ────────────────────────────────────────────────────
   moderationTitle: "Marginalia — moderation",
@@ -1149,6 +1151,8 @@ const en = {
   // route, this is the one that works when the chrome has faded.
   zenEscHint: "Esc",
   noteGone: "That note does not exist (anymore)",
+  noteMissingOffer: "There is no note called “{name}” yet",
+  noteMissingCreate: "Create it",
   changedOnDisk: "{path} changed on disk — your unsaved edits were kept",
   publishedToast: "Published — live for visitors",
   /** The first note an instance ever publishes is the moment it stops being a
@@ -1865,6 +1869,7 @@ const en = {
   scSave: "Save now",
   scUndo: "Undo",
   scRedo: "Redo",
+  scRedoMac: "on a Mac, Cmd Shift Z",
   scFind: "Find and replace in this note",
   scReplaceVault: "Search and replace across the vault",
   scMoveLine: "Move line up / down",
@@ -3344,7 +3349,6 @@ const en = {
   bookShelfFailed: "The library could not be read.",
   bookShelfTruncated: "Showing the first {count} books in this vault.",
   bookProgress: "{percent}% read",
-  bookPages: "{count} pages",
   // The reader.
   bookLoading: "Opening…",
   bookOpenFailed: "This book could not be opened.",
@@ -3408,7 +3412,6 @@ const en = {
   // place a reader checks.
   epubOpenFailed: "This EPUB could not be opened.",
   epubChapterOf: "Chapter {chapter} of {total}",
-  epubChapters: "{count} chapters",
   cmdOpenLibraryHint: "Every book in this vault",
   epubTypeBigger: "Larger type",
   epubTypeSmaller: "Smaller type",

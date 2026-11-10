@@ -259,7 +259,15 @@ export interface TimelineNote {
 
 export interface SearchMatch { line: number; text: string }
 
-export interface TagCount { tag: string; count: number }
+export interface TagCount {
+  tag: string;
+  count: number;
+  /** Distinct notes carrying this tag OR any tag nested under it, when that
+   *  differs from `count` — what the tag pane's tree shows on a parent. A
+   *  note tagged both `logic` and `logic/history` is one note under `logic`,
+   *  and summing the rows counted it twice (2026-11 purge, N3). */
+  under?: number;
+}
 
 /** `GET /api/props` — one frontmatter key the index knows, how many notes
  *  carry it, and its most common distinct values (a list value counts once

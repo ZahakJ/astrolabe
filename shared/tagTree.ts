@@ -21,7 +21,11 @@ export interface TagNode {
 export type TagSort = "count" | "name";
 
 /** Build the tree from `{ tag, count }` rows; children sorted like the top. */
-export function tagTree(rows: readonly { tag: string; count: number }[], sort: TagSort = "count"): TagNode[] {
+export function tagTree(rows: readonly { tag: string; count: number; under?: number }[], sort: TagSort = "count"): TagNode[] {
+  // A row's `under` (server/indexer/queries.ts tags()) is the distinct-note
+  // count of its subtree; without it the sum of the parts is the best guess.
+  const distinct = new Map<string, number>();
+  for (const row of rows) if (row.under !== undefined) distinct.set(row.tag, row.under);
   const roots = new Map<string, TagNode>();
   const nodeFor = (full: string): TagNode => {
     const parts = full.split("/").filter((p) => p !== "");
@@ -47,9 +51,9 @@ export function tagTree(rows: readonly { tag: string; count: number }[], sort: T
     node.children = [...childMap(node).values()];
     let total = node.own;
     for (const child of node.children) total += finish(child);
-    node.count = total;
+    node.count = distinct.get(node.tag) ?? total;
     sortNodes(node.children, sort);
-    return total;
+    return node.count;
   };
   const out = [...roots.values()];
   for (const n of out) finish(n);

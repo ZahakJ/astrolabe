@@ -472,7 +472,7 @@ with the source editable beside it. A broken embed gets a dashed placeholder.
 - **Command palette.** `Ctrl/Cmd P` searches notes and commands together. A command only appears
   when the query genuinely matches it, at most five of them, and they sit above or below your notes
   depending on which matched better. Start the query with `@` or `#` to jump to a heading (or a LaTeX `\label`) inside the note
-  you are reading instead.
+  you are reading instead, or with `>` to list commands only.
   It is a **quick switcher** too. When no note is called what you typed, the list ends with
   **Create “…”**: Enter makes the note, in the folder of the note you are in (or exactly where a
   typed path says), and opens it. Every [saved layout](workspace.md) is a row — **Load layout:

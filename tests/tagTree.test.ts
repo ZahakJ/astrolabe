@@ -14,6 +14,16 @@ describe("the tag tree", () => {
     assert.deepEqual(tree.map((n) => [n.tag, n.own, n.count]), [["book", 2, 10], ["zettel", 7, 7]]);
     assert.deepEqual(tree[0].children.map((n) => [n.tag, n.count]), [["book/history", 5], ["book/fiction", 3]]);
   });
+  it("counts a note carrying the parent and a child once (2026-11 purge, N3)", () => {
+    // Ten notes tagged `logic`, six of them also `logic/foundations`, four
+    // `logic/history`: the pane said "logic 20". The server sends `under`.
+    const tree = tagTree([
+      { tag: "logic", count: 10, under: 10 },
+      { tag: "logic/foundations", count: 6 },
+      { tag: "logic/history", count: 4 },
+    ]);
+    assert.equal(tree[0].count, 10);
+  });
   it("sorts by name when asked", () => {
     const tree = tagTree(rows, "name");
     assert.deepEqual(tree[0].children.map((n) => n.name), ["fiction", "history"]);

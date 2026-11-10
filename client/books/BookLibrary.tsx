@@ -19,7 +19,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { boundingRect, progressOf, type BookAnchor, type BookState } from "../../shared/bookAnchor.ts";
 import type { BookEntry, BookHighlightHit } from "../../shared/types.ts";
-import { localeNum, t, tf } from "../i18n.ts";
+import { countPhrase, localeNum, t, tf } from "../i18n.ts";
 import { shortcutKey } from "../keys.ts";
 import { formatSize } from "../components/AttachmentViewer.tsx";
 import { getAllHighlights, getBooks } from "./api.ts";
@@ -140,7 +140,7 @@ function BookCard({ entry, onOpen }: CardProps) {
       )}
       <span className="s-shelf__meta" dir="auto">
         {pages > 0
-          ? `${tf(isEpub(entry) ? "epubChapters" : "bookPages", { count: localeNum(pages) })} · ${meta}`
+          ? `${countPhrase(pages, isEpub(entry) ? "chapters" : "pages")} · ${meta}`
           : meta}
       </span>
     </button>

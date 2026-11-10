@@ -35,6 +35,9 @@ const root = makeVault({
   "Commented flow.md": `---\npublish: true\ntags: [kappa, lambda]   # the pair\n---\nbody\n`,
   "Hash inside quotes.md": `---\npublish: true\ntags: ["mu#nu"]\n---\nbody\n`,
   "Color.md": note({ publish: "true" }, "The accent is #c9a227 in the dark themes.\n"),
+  // A parent tag and its children on the same notes (2026-11 purge, N3).
+  "Logic one.md": note({ tags: "[logic]" }, "#logic/history\n"),
+  "Logic two.md": note({ tags: "[logic]" }, "#logic/proof\n"),
 });
 
 // `tags()` is scoped by audience AND by language (a visitor's tag list drops
@@ -158,5 +161,17 @@ describe("ordering", () => {
         `out of order: ${prev.tag}(${prev.count}) before ${cur.tag}(${cur.count})`,
       );
     }
+  });
+});
+
+describe("a parent tag's subtree counts each note once", () => {
+  it("sends `under` on a tag something nests under, and only there", () => {
+    const rows = tags();
+    const logic = rows.find((r) => r.tag === "logic");
+    // Two notes, each carrying `logic` and one child: two under `logic`, not four.
+    assert.deepEqual(logic, { tag: "logic", count: 2, under: 2 });
+    assert.equal(rows.find((r) => r.tag === "logic/history")?.under, undefined);
+    // `zettel` exists only as a prefix of `zettel/seed`: no row of its own.
+    assert.equal(rows.find((r) => r.tag === "zettel"), undefined);
   });
 });

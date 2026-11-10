@@ -216,7 +216,10 @@ const GROUPS: Group[] = [
     items: [
       { label: "scSave", keys: ["Ctrl/Cmd", "S"], admin: true },
       { label: "scUndo", keys: ["Ctrl/Cmd", "Z"], admin: true },
-      { label: "scRedo", keys: ["Ctrl/Cmd", "Shift", "Z"], admin: true },
+      // Ctrl Shift Z is zen everywhere but in a Mac's editor (globalKeys.ts),
+      // so the row that said it was redo sent Windows and Linux readers into
+      // zen (2026-11 purge, E5). Ctrl Y is redo there; Cmd Shift Z on a Mac.
+      { label: "scRedo", keys: ["Ctrl/Cmd", "Y"], via: "scRedoMac", admin: true },
       { label: "scFind", keys: ["Ctrl/Cmd", "F"], admin: true },
       { label: "scReplaceVault", keys: ["Ctrl/Cmd", "Shift", "F"], admin: true },
       { label: "scMoveLine", keys: ["Ctrl/Cmd", "↑ / ↓"], admin: true },

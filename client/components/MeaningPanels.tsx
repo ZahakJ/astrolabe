@@ -34,7 +34,12 @@ const VAULT_EVENT = "astrolabe:vault";
 /** Load `fetcher(openPath)` now and again after every burst of vault events. */
 function useLive<T>(openPath: string | null, enabled: boolean, fetcher: (path: string, signal: AbortSignal) => Promise<T[]>) {
   const [rows, setRows] = useState<T[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  // The failure's CODE, said at render time: a sentence made when the fetch
+  // failed stayed in the old language after a language switch (2026-11
+  // purge, N7). `false` is "no error"; `undefined` is an unnamed failure.
+  const [failed, setFailed] = useState<string | undefined | false>(false);
+  useStore((s) => s.language); // re-render the chrome strings on language change
+  const error = failed === false ? null : askErrorLine(failed);
   const load = useCallback(
     (signal: AbortSignal): void => {
       if (!openPath || !enabled) {
@@ -45,12 +50,12 @@ function useLive<T>(openPath: string | null, enabled: boolean, fetcher: (path: s
         .then((r) => {
           if (signal.aborted) return;
           setRows(r);
-          setError(null);
+          setFailed(false);
         })
         .catch((err: unknown) => {
           if (signal.aborted) return;
           setRows([]);
-          setError(askErrorLine(err instanceof ApiError ? err.code : undefined));
+          setFailed(err instanceof ApiError ? err.code : undefined);
         });
     },
     [openPath, enabled, fetcher],
