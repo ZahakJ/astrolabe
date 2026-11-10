@@ -3,6 +3,7 @@
 // Moved out of server/indexer.ts, which keeps the store these read.
 
 import { notes, publishedSet, type NoteRecord } from "../indexer.ts";
+import { stripPrivateComments } from "../../shared/privateText.ts";
 
 // -------------------------------------------------------- language detection
 
@@ -35,6 +36,12 @@ const NON_PROSE: { re: RegExp; keepGroup: boolean }[] = [
   { re: /!?\[([^\]]*)\]\([^)]*\)/g, keepGroup: true },
   // Reference-link definitions ("[label]: https://…") are destinations too.
   { re: /^[ \t]*\[[^\]]+\]:[^\n]*$/gm, keepGroup: false },
+  // Math is notation, not the note's language: `$\forall x$` is Latin letters
+  // in every Arabic essay that uses it. Display first, then inline.
+  { re: /\$\$[\s\S]*?\$\$/g, keepGroup: false },
+  { re: /\$[^$\n]+\$/g, keepGroup: false },
+  // A wikilink with an alias shows the alias; the target is an address.
+  { re: /!?\[\[[^\]|\n]*\|([^\]\n]*)\]\]/g, keepGroup: true },
   // Bare URLs pasted straight into the text.
   { re: /\b(?:https?|mailto|obsidian|zotero):\/*\S+/gi, keepGroup: false },
   { re: /\bwww\.[^\s)\]]+/gi, keepGroup: false },
@@ -43,7 +50,11 @@ const NON_PROSE: { re: RegExp; keepGroup: boolean }[] = [
 /** The note's prose: what a reader actually reads, with markup, code and link
  *  destinations removed. `[text](url)` keeps `text` (visible), drops the url. */
 function proseOnly(markdown: string): string {
-  let out = markdown;
+  // The author-only comments first (`%% … %%`, `<!-- … -->`, code left alone):
+  // no visitor ever reads them, and an English note-to-self at the foot of an
+  // Arabic essay tipped it to English and took it off the Arabic site
+  // (2026-11 purge, P1).
+  let out = stripPrivateComments(markdown);
   for (const { re, keepGroup } of NON_PROSE) {
     out = keepGroup ? out.replace(re, (_match, text: string) => ` ${text} `) : out.replace(re, " ");
   }

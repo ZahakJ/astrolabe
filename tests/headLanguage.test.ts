@@ -12,7 +12,7 @@
 
 import assert from "node:assert/strict";
 import { after, before, describe, it } from "node:test";
-import { HEAD_PLACEHOLDER, injectHead } from "../server/blog.ts";
+import { HEAD_PLACEHOLDER, injectHead, renderFeed } from "../server/blog.ts";
 import { initIndexer } from "../server/indexer.ts";
 import { patchSettings } from "../server/settings.ts";
 import { initSite } from "../server/site.ts";
@@ -83,5 +83,19 @@ describe("injectHead under a pinned filter", () => {
     } finally {
       patchSettings({ languageFilter: "follow" });
     }
+  });
+});
+
+describe("the other language's feed on an Arabic site (2026-11 purge, P4)", () => {
+  it("/feed.xml?lang=en declares English and points rel=self at itself", () => {
+    const feed = renderFeed(ORIGIN, { mode: "follow", lang: "en", fallbackFrom: null });
+    assert.match(feed, /<language>en<\/language>/);
+    assert.match(feed, /<atom:link href="https:\/\/astrolabe\.example\/feed\.xml\?lang=en" rel="self"/);
+    assert.match(feed, /Sloppy Evolution/);
+  });
+  it("the site's own feed keeps its locale and plain address", () => {
+    const feed = renderFeed(ORIGIN, { mode: "follow", lang: "ar", fallbackFrom: null });
+    assert.match(feed, /<language>ar<\/language>/);
+    assert.match(feed, /<atom:link href="https:\/\/astrolabe\.example\/feed\.xml" rel="self"/);
   });
 });

@@ -47,7 +47,7 @@ import { deskMetaOf, type DeskMeta } from "../shared/desk.ts";
 import { countNoteWords } from "../shared/wordCount.ts";
 import { noteDeskWords } from "./deskWords.ts";
 import { flatBody, labelsOfFm, props } from "./indexer/queries.ts";
-export { isNoteVisibleToVisitor, publishedCensus, visibleUnder, publishedTopics } from "./indexer/language.ts";
+export { detectArabic, isNoteVisibleToVisitor, publishedCensus, visibleUnder, publishedTopics } from "./indexer/language.ts";
 export type { FilterLang, PublishedCensus } from "./indexer/language.ts";
 export { noteLanguage, resolveLink, aliasEntries, twinOf, twinSwapTable, twinPairs, twinFaceOf, resolveEmbed, noteAnchors, resolveLabel, resolveCitekey, resolveImageRef, resolveBannerRef, publishedBanner } from "./indexer/resolve.ts";
 export type { TwinLink } from "./indexer/resolve.ts";
@@ -56,7 +56,7 @@ export { exportSelection, notesReferencing, notesLinkingTo, notesLinkedFrom, not
 export type { ExportSelection } from "./indexer/publish.ts";
 export { folderMeta, libraryRefs, collectionRows, tagPageCollections, publicFolderCounts, libraryLessons, posts, pages, trackers, routines, postBasics } from "./indexer/posts.ts";
 export type { PostsOptions } from "./indexer/posts.ts";
-export { seriesDeclarersOf } from "./indexer/series.ts";
+export { seriesDeclarersOf, seriesEntries } from "./indexer/series.ts";
 export { mentions, hasNote, linkSpellingFor, tasks, cards, decks, deckCards, onThisDay, timelineNotes, queryPaths, queryNotes, search, replaceCandidates, graph, backlinks, searchTerms, searchMatches, tags, props, tagPageLabels } from "./indexer/queries.ts";
 export type { SearchOptions } from "./indexer/queries.ts";
 

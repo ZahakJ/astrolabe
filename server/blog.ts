@@ -116,15 +116,22 @@ export function renderFeed(origin: string, scope: LanguageScope): string {
       ].join("\n");
     });
   const description = tagline() ?? siteName();
+  // The OTHER language's feed (`/feed.xml?lang=en` on an Arabic site) says
+  // so: it declared the site's `ar` and pointed rel=self at the Arabic feed,
+  // so a reader subscribed to it was told it was the other one (2026-11
+  // purge, P4). The site's own language keeps the configured blog locale.
+  const otherSide = scope.lang !== null && scope.fallbackFrom === null && scope.lang !== siteLanguage() ? scope.lang : null;
+  const feedLanguage = otherSide ?? blogLocale();
+  const selfHref = `${origin}/feed.xml${otherSide ? `?lang=${otherSide}` : ""}`;
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
     "  <channel>",
     `    <title>${xmlEscape(siteName())}</title>`,
     `    <link>${xmlEscape(`${origin}/`)}</link>`,
-    `    <atom:link href="${xmlEscape(`${origin}/feed.xml`)}" rel="self" type="application/rss+xml"/>`,
+    `    <atom:link href="${xmlEscape(selfHref)}" rel="self" type="application/rss+xml"/>`,
     `    <description>${xmlEscape(description)}</description>`,
-    `    <language>${xmlEscape(blogLocale())}</language>`,
+    `    <language>${xmlEscape(feedLanguage)}</language>`,
     `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>`,
     // The quiet note, in the one place an XML document has for one: this feed
     // is wider than the site's own setting asked for, because the language it

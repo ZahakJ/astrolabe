@@ -21,7 +21,7 @@ import { deleteAnnotation, listAnnotations, moveAnnotationsFolder, publicAnnotat
 import { visibilityFor, type VisibilityQuery } from "./visibility.ts";
 import { commentCounts, commentsEnabled } from "./comments.ts";
 import type { FilterLang } from "./indexer.ts";
-import { aliasEntries, backlinks, indexFile, indexUnder, isAllowedAttachment, isNotePublished, isNoteVisibleToVisitor, noteAnchors, notesLinkingTo, resolveLink, posts, publishedNotes, publishedPaths, resolveBannerRef, resolveCitekey, resolveEmbed, resolveLabel, search, queryNotes, mentions, tasks, onThisDay, timelineNotes, linkSpellingFor, hasNote, searchMatches, queryPaths, trackers, routines, hadithLookup, twinOf, twinPairs, twinSwapTable, whenIndexed } from "./indexer.ts";
+import { aliasEntries, noteLanguage, backlinks, indexFile, indexUnder, isAllowedAttachment, isNotePublished, isNoteVisibleToVisitor, noteAnchors, notesLinkingTo, resolveLink, posts, publishedNotes, publishedPaths, resolveBannerRef, resolveCitekey, resolveEmbed, resolveLabel, search, queryNotes, mentions, tasks, onThisDay, timelineNotes, linkSpellingFor, hasNote, searchMatches, queryPaths, trackers, routines, hadithLookup, twinOf, twinPairs, twinSwapTable, whenIndexed } from "./indexer.ts";
 import { sendEncoded } from "./compress.ts";
 import { nearbyNotes } from "./nearby.ts";
 import { askRoutes } from "./ask.ts";
@@ -55,7 +55,7 @@ import { fontSlots, moveFolderIcons, moveLibraryFolders, settingsAssetPaths } fr
 // Localised tag labels: display names for canonical tags, plus the query
 // rewrite that makes search answer to both spellings.
 import { canonicalTag, expandTagQuery, visibleTagLabels } from "./tagLabels.ts";
-import { customCssPath, fontsDir, LANGUAGE_FILTER_MODES } from "./site.ts";
+import { customCssPath, fontsDir, LANGUAGE_FILTER_MODES, languageFilterMode } from "./site.ts";
 import { SEED_GUIDE, seedAvailable, seedVault } from "./seed.ts";
 import { VaultError, createFolder, createNote, assertNotePath, deleteAttachment, deleteFolder, deleteNote, emitEvent, getVaultRoot, noteExists, noteMtime, normalizeRel, readNote, suppressWatcherEcho, writeNote } from "./vault.ts";
 import { jsonBody, requiredQuery, requiredString } from "./requestBody.ts";
@@ -75,7 +75,7 @@ import { versionRoutes } from "./versionRoutes.ts";
 import { eventRoutes } from "./eventRoutes.ts";
 import { webmentionApi } from "./webmentionRoutes.ts";
 import { renameRoutes } from "./renameRoutes.ts";
-import { stripPrivateComments } from "../shared/privateText.ts";
+import { visitorNoteContent } from "./visitorNote.ts";
 export type { MoveFolderResponse } from "./renameRoutes.ts";
 // The rename flow, for tests that drive it without a session (tests/series.test.ts).
 export { renameWithLinkRewrite } from "./renameRoutes.ts";
@@ -458,9 +458,11 @@ api.get("/note", async (c) => {
     throw new VaultError(404, `Note not found: ${normalizeRel(notePath)}`);
   }
   const note = await readNote(notePath);
-  // A reader gets the note without its author-only comments: the reading
-  // view never drew them, and the raw text is one "view source" away.
-  return c.json(limited ? { ...note, content: stripPrivateComments(note.content) } : note);
+  // A reader gets the note without its author-only comments and without the
+  // series' unpublished parts or the desk's working notes in its frontmatter:
+  // the reading view never drew them, and the raw text is one "view source"
+  // away (server/visitorNote.ts).
+  return c.json(limited ? { ...note, content: visitorNoteContent(normalizeRel(notePath), note.content) } : note);
 });
 
 /** How many notes one revalidation may ask about. The caller is a client's set
@@ -1537,6 +1539,27 @@ api.get("/posts", (c) => {
     for (const post of list) post.commentCount = counts.get(post.path) ?? 0;
   }
   return c.json(list);
+});
+
+// ONE POST'S OWN META, for a permalink outside the reader's language
+// (2026-11 purge, P2). /api/posts is the reader's LIST, scoped to the language
+// they read in, and the article page looked its post up there — so on an
+// Arabic site an English permalink (the page every shared English link lands
+// on) drew no date, no reading time, no tags, no series and a generated
+// banner, while its served head carried the real ones. Under "follow" both
+// languages are on the site, one per reader, so the post is answered in its
+// OWN language scope, as the head is (server/blog.ts injectHead). A pinned
+// filter curated the other language off the site: then this answers exactly
+// what /api/posts would, and a post outside it is a 404 as before.
+api.get("/post", (c) => {
+  const rel = normalizeRel(requiredQuery(c.req.query("path"), "path"));
+  const limited = isPublishLimited(c);
+  const scoped = languageScope(c, limited).lang;
+  const lang = limited && languageFilterMode() === "follow" ? (noteLanguage(rel) ?? scoped) : scoped;
+  const post = posts(limited, lang, false, { parts: "show" }).find((p) => p.path === rel);
+  if (post === undefined) throw new VaultError(404, `Post not found: ${rel}`);
+  if (commentsEnabled()) post.commentCount = commentCounts(!limited).get(post.path) ?? 0;
+  return c.json(post);
 });
 
 // TWINS: the two faces of one note (shared/twins.ts).

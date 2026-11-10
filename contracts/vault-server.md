@@ -21,6 +21,13 @@ that is the pre-existing pattern, and the door is now open.
 
 - `GET  /api/tree` → `TreeNode` (root folder node, path ""). Admin: notes **and** attachments (see "Attachments in the tree"). Visitor: the flat published-note list, notes only.
 - `GET  /api/note?path=a/b.md` → `NoteData`
+  — a visitor's copy (server/visitorNote.ts) has the author's `%% %%` / `<!-- -->` comments
+  blanked, a published series' `series:` cut to its published parts, and a desk piece's working
+  fields (`status`, `angle`, `next`, `priority`, `due`, an unpublished `series`) removed; every other
+  byte is the file's.
+- `GET  /api/post?path=` → `PostMeta` — one post's own meta, in its OWN language under "follow" (the
+  article page of a post in the site's other language); under a pinned filter exactly what
+  `/api/posts` would list, else 404.
 - `GET  /api/note/state?path=&path=…` → `{ states: NoteState[] }` — the mtime of each named note
   and nothing else (`mtimeMs: null` = not there, which is also what a visitor-scoped session is
   told about a note it may not know exists). Max 64 paths, because the caller is a client's OPEN

@@ -673,6 +673,13 @@ export function getPosts(): Promise<PostMeta[]> {
   return request<PostMeta[]>("/api/posts");
 }
 
+/** One post's own meta, answered in the post's language scope under "follow"
+ *  (server/api.ts GET /api/post) — for a permalink the reader's list does not
+ *  carry because it is in the site's other language. */
+export function getPost(path: string): Promise<PostMeta> {
+  return request<PostMeta>(`/api/post?path=${encodeURIComponent(path)}`);
+}
+
 /** A note's annotations: every one for the owner, the public ones for a
  *  visitor (server/annotations.ts). A 404 means the note is not published to
  *  this session and the caller shows nothing. */

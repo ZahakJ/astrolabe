@@ -6,7 +6,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { stripBidiControls } from "../../shared/bidi.ts";
 import type { PostMeta } from "../../shared/types.ts";
-import { getNote } from "../api.ts";
+import { getNote, getPost } from "../api.ts";
 import { bannerSrc, generatedBannerCss } from "../banner.ts";
 import { useNoteNeighborhood } from "../graphCache.ts";
 import { countPhrase, t, tf } from "../i18n.ts";
@@ -87,7 +87,26 @@ export default function BlogArticle({
 
   // findPost: a PART of a series is not a top-level row of /api/posts (the
   // series card carries it in `partList`), and its page still needs its meta.
-  const meta = findPost(posts, path);
+  const listed = findPost(posts, path);
+  // NOT IN THE READER'S LIST: a post in the site's other language (an English
+  // permalink on an Arabic site under "follow", or after the EN/ع switch).
+  // Its page still gets its own date, tags, series and banner — the list only
+  // decides what is LISTED (2026-11 purge, P2). Asked once the list is in.
+  const [own, setOwn] = useState<PostMeta | null>(null);
+  useEffect(() => {
+    setOwn(null);
+    if (posts === null || listed !== null) return;
+    let gone = false;
+    getPost(path)
+      .then((post) => {
+        if (!gone) setOwn(post);
+      })
+      .catch(() => {}); // not a post this reader may list: the page stays as it was
+    return () => {
+      gone = true;
+    };
+  }, [path, posts, listed]);
+  const meta = listed ?? (own?.path === path ? own : null);
   // The H1 is the title the server put in /api/posts, RSS and the og: tags
   // (NoteRecord.publicTitle). Before the list arrives, the same Title Case of
   // the filename — bidi controls out, since an RLO in a filename reorders the
