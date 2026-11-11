@@ -30,9 +30,11 @@
 <p>Astrolabe has two kinds of people: <strong>visitors</strong>, who read, and <strong>the admin</strong>, who edits. You are
 the admin. A visitor is anyone else who opens the site.</p>
 <p>Fresh out of the box there is no password, so the app runs in <strong>open local mode</strong>: every visitor
-is treated as the admin, and a warning says so at startup. That is fine on your own laptop. It is
-not fine on a network you do not fully trust, so before you put a vault there, set an admin
-password:</p>
+is treated as the admin, and a warning says so at startup. It listens on this machine only
+(<code>HOST=127.0.0.1</code>), answers only to <code>localhost</code> and IP addresses (<code>ALLOWED_HOSTS</code> adds a name), and
+takes writes only from its own pages, so another website you visit cannot reach into it through
+your browser. That is fine on your own laptop. It is not fine on a network you do not fully trust,
+so before you serve one (<code>HOST=0.0.0.0</code>), set an admin password:</p>
 <pre><code class="language-sh">cp .env.example .env
 npm run hash-password        # prompts for a password, prints an argon2id hash
 </code></pre>

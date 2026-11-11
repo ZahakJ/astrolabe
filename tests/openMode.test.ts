@@ -54,7 +54,7 @@ describe("open local mode: writes come only from the instance's own pages", () =
       { "Content-Type": "text/plain", "Sec-Fetch-Site": "same-site", Origin: "http://other.localhost:6801" },
       { "Content-Type": "text/plain", Origin: "https://evil.example" },
       { "Content-Type": "text/plain", Origin: "null" },
-    ]) {
+    ] as Record<string, string>[]) {
       const res = await put("Evil.md", headers);
       assert.equal(res.status, 403, JSON.stringify(headers));
     }
