@@ -18,7 +18,7 @@ The app opens one of two doors, and you choose which on its first screen.
 
 ## Connecting
 
-1. Open the app and type your server's address — `notes.example.com`, or `192.168.1.24:6801`. A bare name is taken to be `https`; an address on your own network (`10.x`, `192.168.x`, `172.16–31.x`, `*.local`, `*.lan`, `localhost`) is taken to be `http`. Typing the scheme yourself always wins.
+1. Open the app and type your server's address — `notes.example.com`, or `192.168.1.24:6801` (a server on your own network has to listen there: `HOST=0.0.0.0`; it listens on its own machine only by default). A bare name is taken to be `https`; an address on your own network (`10.x`, `192.168.x`, `172.16–31.x`, `*.local`, `*.lan`, `localhost`) is taken to be `http`. Typing the scheme yourself always wins.
 2. The app checks the address before it goes anywhere, so a typo is a sentence on this screen rather than a blank page.
 3. It remembers what worked. The next launch reconnects without a tap; the back gesture from your instance's first page brings you here to choose another server, and back from here leaves the app.
 4. Sign in on your instance's own login screen, once. The session persists — your server gives it a sliding life of seven days, so a writer who opens the app most days never meets the login screen again.

@@ -55,7 +55,8 @@ git clone https://github.com/ZahakJ/astrolabe.git && cd astrolabe && npm install
 ## Running it
 
 Astrolabe needs Node 24 or later. After `npm start`, open http://localhost:6801. The first run
-creates `./vault` with starter notes that double as a short manual.
+creates `./vault` with starter notes that double as a short manual. It listens on this machine
+only; to open it from your phone or another computer, set a password (below) and `HOST=0.0.0.0`.
 
 To use a folder of notes you already have:
 

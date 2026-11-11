@@ -29,7 +29,7 @@ import { htmlTitle, htmlToMarkdown } from "../shared/htmlToMarkdown.ts";
 import { keptNote } from "../shared/feeds.ts";
 import { DAILY_FORMAT_DEFAULT, periodicPath } from "../shared/periodic.ts";
 import { stripBidiControls } from "../shared/bidi.ts";
-import { clientIp, isPublishLimited } from "./auth.ts";
+import { clientIp, isProtected, isPublishLimited, isSameOriginRequest } from "./auth.ts";
 import { notePathToUrl } from "./blog.ts";
 import { invalidateGraph } from "./graphCache.ts";
 import { indexFile } from "./indexer.ts";
@@ -299,7 +299,11 @@ clipRoutes.post("/clip", async (c) => {
   // its token inside the body, so it is read — but an anonymous form is
   // capped at a fraction of the general limit, because a share is a title,
   // a URL and a selection, not a page.
-  const sessionAllowed = !isPublishLimited(c);
+  // In open local mode everyone is "the session", so a page on another site
+  // could clip into the vault: there the session counts only for this
+  // instance's own pages (the share sheet, the app), and a bookmarklet on
+  // another site needs the token as it does on a protected instance.
+  const sessionAllowed = !isPublishLimited(c) && (isProtected() || isSameOriginRequest(c));
   const bearerHeader = /^Bearer\s+(\S+)$/i.exec(c.req.header("authorization") ?? "")?.[1] ?? null;
   if (!sessionAllowed && bearerHeader === null) {
     if (!asForm) return c.json({ error: "Admin session or clip token required" }, 401, CORS);

@@ -26,7 +26,7 @@ import { commentsEnabled } from "./comments.ts";
 import { siteFontsSignature } from "./fonts.ts";
 import { VERSION, dateCalendar, dateOrder, dateSeparator, drawingsFolder, emptyPropsCard, fontSlots, getSettings, propsCard, textAlign, textDirection } from "./settings.ts";
 import { FOLLOW_THEME } from "../shared/themes.ts";
-import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
+import { attachmentLocation, bannerFallback, blogLocale, customCssPath, dataDir, footerLine, publicLayout, siteLanguage, siteName, siteUrl, tagline, themePinnedByEnv, themePref, visitorTheme } from "./site.ts";
 import { activeDesign, activeDesignFontRefs, customThemesSig, hasThemeChoice } from "./designs.ts";
 import { authorSiteCards } from "./authorSites.ts";
 import { getVaultRoot, normalizeRel } from "./vault.ts";
@@ -70,6 +70,7 @@ interface AuthConfig {
   homeNote: string | null;
   trustedProxies: IpRange[];   // X-Forwarded-For honored only from these peers
   secureCookies: boolean | null; // SECURE_COOKIES override; null → derive per request
+  allowedHosts: string[];      // ALLOWED_HOSTS: names open local mode answers to besides loopback and IPs
 }
 
 let config: AuthConfig = {
@@ -79,6 +80,7 @@ let config: AuthConfig = {
   homeNote: null,
   trustedProxies: [],
   secureCookies: null,
+  allowedHosts: [],
 };
 
 /** A boot-time configuration error: printed plainly and the process stops.
@@ -150,6 +152,13 @@ export function initAuth(env: NodeJS.ProcessEnv = process.env): void {
   // and right for plain http on a LAN.
   const secureRaw = env.SECURE_COOKIES?.trim().toLowerCase() ?? "";
   const secureCookies = secureRaw === "" ? null : /^(1|true|yes|on)$/.test(secureRaw);
+  // ALLOWED_HOSTS: in open local mode, the host names (as typed in the
+  // address bar, no port) this instance answers to besides localhost and IP
+  // addresses — say `mybox.local` for a LAN name. See openModeGuard.
+  const allowedHosts = (env.ALLOWED_HOSTS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase().replace(/^\[|\]$/g, ""))
+    .filter(Boolean);
   config = {
     passwordHash,
     sessionSecret: sessionSecret || randomBytes(32).toString("hex"),
@@ -157,6 +166,7 @@ export function initAuth(env: NodeJS.ProcessEnv = process.env): void {
     homeNote,
     trustedProxies,
     secureCookies,
+    allowedHosts,
   };
   sessionEpoch = null; // re-read from ASTROLABE_DATA on first use
 }
@@ -1005,6 +1015,113 @@ authRoutes.get("/me", (c) => {
   return c.json(me);
 });
 
+// ------------------------------------------------------- open local mode
+
+// With no password every visitor is an admin, so the browser is the only
+// thing between another website and the vault. Two things a page elsewhere
+// could otherwise do to an open instance it can reach (on this machine or on
+// the LAN):
+//
+//   · WRITE: a cross-site POST/PUT with a "simple" body (text/plain, a form)
+//     needs no CORS preflight, and the server parsed JSON whatever the type.
+//   · READ, by DNS rebinding: a name the attacker controls is re-pointed at
+//     127.0.0.1, and the page then reads this server as its own origin.
+//
+// So in open local mode a request must name a host this instance answers to
+// (openModeGuard), and a write must come from this instance's own pages and
+// carry JSON or an upload form (openWriteRefusal). A request that is not from
+// a browser page at all (curl, a script, the phone app's native HTTP) sends
+// neither Origin nor Sec-Fetch-Site and is unaffected. With a password set
+// none of this applies: the session cookie is SameSite=Lax and the admin
+// check decides.
+
+/** A host header's name, lowercased, without port or IPv6 brackets. */
+function hostName(host: string): string {
+  const h = host.trim().toLowerCase();
+  if (h.startsWith("[")) return h.slice(1, h.indexOf("]") === -1 ? undefined : h.indexOf("]"));
+  const colon = h.lastIndexOf(":");
+  return colon !== -1 && h.indexOf(":") === colon ? h.slice(0, colon) : h;
+}
+
+/** Whether open local mode answers to this Host. Loopback names, any IP
+ *  address (a rebinding attack needs a NAME it controls; it cannot make the
+ *  browser send a bare IP for one), SITE_URL's host and ALLOWED_HOSTS. */
+export function isAllowedOpenHost(host: string | undefined): boolean {
+  if (!host) return true; // HTTP/1.0 without Host: not a browser
+  const name = hostName(host);
+  if (name === "localhost" || name.endsWith(".localhost") || isIP(name) !== 0) return true;
+  if (config.allowedHosts.includes(name)) return true;
+  const site = siteUrl();
+  if (site) {
+    try {
+      if (new URL(site).hostname.toLowerCase().replace(/^\[|\]$/g, "") === name) return true;
+    } catch {
+      /* an unparsable SITE_URL names no host */
+    }
+  }
+  return false;
+}
+
+/** The request comes from this instance's own pages, or not from a browser
+ *  page at all. Sec-Fetch-Site when the browser sends it (every current one
+ *  does); else the Origin header against the Host; neither → not a browser
+ *  page (a cross-site browser POST always carries one of them). */
+export function isSameOriginRequest(c: Context): boolean {
+  const site = c.req.header("sec-fetch-site")?.trim().toLowerCase();
+  if (site) return site === "same-origin" || site === "none";
+  const origin = c.req.header("origin");
+  if (origin === undefined) return true;
+  let from: URL;
+  try {
+    from = new URL(origin);
+  } catch {
+    return false; // "null" (a sandboxed frame, a file:// page) or garbage
+  }
+  const hosts = new Set<string>();
+  hosts.add(new URL(c.req.url).host.toLowerCase());
+  const host = c.req.header("host");
+  if (host) hosts.add(host.trim().toLowerCase());
+  let peer = "unknown";
+  try {
+    peer = canonicalIp(getConnInfo(c).remote.address ?? "unknown");
+  } catch {
+    /* no socket (tests): no proxy to trust */
+  }
+  const forwarded = c.req.header("x-forwarded-host")?.split(",")[0]?.trim().toLowerCase();
+  if (forwarded && isTrustedProxy(peer)) hosts.add(forwarded);
+  return hosts.has(from.host.toLowerCase());
+}
+
+/** Why open local mode refuses this write, or null when it may go ahead.
+ *  Only for mutating methods; the caller decides that. */
+export function openWriteRefusal(c: Context): { status: 403 | 415; error: string } | null {
+  if (config.passwordHash) return null;
+  if (!isSameOriginRequest(c)) {
+    return { status: 403, error: "Cross-site write refused: this vault has no password, so it takes writes only from its own pages" };
+  }
+  const type = (c.req.header("content-type") ?? "").split(";")[0].trim().toLowerCase();
+  const hasBody = Number(c.req.header("content-length") ?? "0") > 0 || c.req.header("transfer-encoding") !== undefined;
+  const json = type === "application/json" || /^application\/[a-z0-9.+-]+\+json$/.test(type);
+  if ((hasBody || type !== "") && !json && type !== "multipart/form-data") {
+    return { status: 415, error: "A write to this vault must send JSON (Content-Type: application/json) or an upload form" };
+  }
+  return null;
+}
+
+/** For every request, before any route, in open local mode only: refuse a
+ *  Host this instance does not answer to (DNS rebinding). The writes check
+ *  is in authGuard and the clipper. */
+export const openModeGuard: MiddlewareHandler = async (c, next) => {
+  if (!config.passwordHash && !isAllowedOpenHost(c.req.header("host"))) {
+    return c.text(
+      "This Astrolabe vault has no password and does not answer to this host name.\n" +
+        "Use localhost or the machine's IP address, list the name in ALLOWED_HOSTS, or set ADMIN_PASSWORD_HASH.\n",
+      403,
+    );
+  }
+  return next();
+};
+
 // --------------------------------------------------------------------- guard
 
 /** Always reachable, even with PUBLIC=false (the SPA shell is served outside /api). */
@@ -1055,7 +1172,14 @@ export const authGuard: MiddlewareHandler = async (c, next) => {
   // Preview: the admin session walks the visitor branch below — mutations
   // 401 and PUBLIC=false locks reads, exactly as they would for a stranger.
   if (!isPreviewingVisitor(c)) {
-    if (!config.passwordHash) return next(); // local mode: everything open
+    if (!config.passwordHash) {
+      // Local mode: everything open, to this instance's own pages.
+      if (c.req.method !== "GET" && c.req.method !== "HEAD" && c.req.method !== "OPTIONS") {
+        const refused = openWriteRefusal(c);
+        if (refused) return c.json({ error: refused.error }, refused.status);
+      }
+      return next();
+    }
     if (isAdmin(c)) return next();
   }
   // Posting a comment is read-level, not vault mutation: visitors may do it

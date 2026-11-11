@@ -205,6 +205,19 @@ more than one name".
   that answered `/api/me` with `{"admin":true,"protected":false}` and accepted anonymous
   `PUT /api/note`, `GET /api/settings` and `PATCH gitSync` → `POST /api/sync/now`. A non-loopback
   `HOST` with no hash is a loud warning, not a refusal: open-on-the-LAN is a documented use.
+- **`HOST` defaults to `127.0.0.1`.** Serving the network is a decision (`HOST=0.0.0.0`), not the
+  default; a reverse proxy on the same machine and the desktop app (which sets `HOST` itself) need
+  nothing more.
+- **Open local mode keeps other websites out** (`server/auth.ts`, "open local mode"). With every
+  visitor an admin, the browser is the only thing between another site and the vault, so:
+  `openModeGuard` (before every route) answers 403 to a `Host` that is not loopback, an IP
+  address, `SITE_URL`'s host or in `ALLOWED_HOSTS` (DNS rebinding); and `authGuard` refuses a
+  mutating request whose `Sec-Fetch-Site` is not `same-origin`/`none` (or, without it, whose `Origin`
+  names another host) with 403, and one whose body is not JSON or `multipart/form-data` with 415 (a
+  cross-site `text/plain` or form POST needs no CORS preflight). `POST /api/clip` counts the open
+  session only for same-origin requests; a bookmarklet elsewhere needs the token. A caller that
+  sends neither `Origin` nor `Sec-Fetch-Site` (curl, scripts, the Android app's native HTTP) is
+  not a browser page and is unaffected. With a password none of this applies.
 - **Backup & sync needs a real credential in EVERY mode** (`isProtected()`): `POST /api/sync/init`,
   `POST /api/sync/now`, `GET /api/sync/status` and any `PATCH /api/settings` carrying
   `gitSync`/`gitToken`/`gitUser` answer `403 sync_needs_password` in open local mode. "Everyone is

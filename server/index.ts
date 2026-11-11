@@ -10,7 +10,7 @@ import type { Context } from "hono";
 import { api, contentTypeFor } from "./api.ts";
 import { staticAssets } from "./assets.ts";
 import { flushDeskWords } from "./deskWords.ts";
-import { ConfigError, canRead, initAuth, isPublishLimited, servedLayout } from "./auth.ts";
+import { ConfigError, canRead, initAuth, isPublishLimited, openModeGuard, servedLayout } from "./auth.ts";
 import { injectHead, renderFeed, renderRobots, renderSitemap, requestOrigin } from "./blog.ts";
 import { compressDynamic } from "./compress.ts";
 import { startGitSyncTimer, syncAtLaunch } from "./gitSync.ts";
@@ -43,7 +43,9 @@ import { initVault, resolveVaultRoot, startWatcher, statAttachment } from "./vau
 
 const projectRoot = fileURLToPath(new URL("..", import.meta.url));
 const port = Number(process.env.PORT) || 6801;
-const host = process.env.HOST?.trim() || "0.0.0.0";
+// Loopback unless HOST says otherwise: a server reachable from the network is
+// a decision, made by setting HOST=0.0.0.0 (or an interface address).
+const host = process.env.HOST?.trim() || "127.0.0.1";
 const vaultDir = resolveVaultRoot(process.argv.slice(2), process.env);
 
 // The starter vault. Seeded ONLY when the directory did not exist — the rule,
@@ -197,6 +199,10 @@ function shellCsp(): string {
 // and every link anyone ever posted to it should still land. Reads only — a
 // POST carries a body that a redirect would drop, and nothing should be
 // posting to a name the site no longer answers to.
+// Open local mode (no password) answers only to its own host names: the
+// DNS-rebinding guard, before anything else can answer (server/auth.ts).
+app.use("*", openModeGuard);
+
 app.use("*", async (c, next) => {
   if (c.req.method === "GET" || c.req.method === "HEAD") {
     const url = new URL(c.req.url);
@@ -517,6 +523,6 @@ serve({ fetch: app.fetch, port, hostname: host }, (info) => {
   ${gold}  a s t r o l a b e${reset}
   ${dim}  ─────────────────${reset}
     vault   ${vaultDir}
-    serving ${gold}http://${shownHost}:${info.port}${reset}${host !== "0.0.0.0" ? `${dim}  (bound to ${host})${reset}` : ""}
+    serving ${gold}http://${shownHost}:${info.port}${reset}${host !== "0.0.0.0" ? `${dim}  (bound to ${host})${reset}` : ""}${host === "127.0.0.1" && !process.env.HOST?.trim() ? `\n            ${dim}this machine only; HOST=0.0.0.0 serves your network${reset}` : ""}
 `);
 });

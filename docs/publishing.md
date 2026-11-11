@@ -12,9 +12,11 @@ Astrolabe has two kinds of people: **visitors**, who read, and **the admin**, wh
 the admin. A visitor is anyone else who opens the site.
 
 Fresh out of the box there is no password, so the app runs in **open local mode**: every visitor
-is treated as the admin, and a warning says so at startup. That is fine on your own laptop. It is
-not fine on a network you do not fully trust, so before you put a vault there, set an admin
-password:
+is treated as the admin, and a warning says so at startup. It listens on this machine only
+(`HOST=127.0.0.1`), answers only to `localhost` and IP addresses (`ALLOWED_HOSTS` adds a name), and
+takes writes only from its own pages, so another website you visit cannot reach into it through
+your browser. That is fine on your own laptop. It is not fine on a network you do not fully trust,
+so before you serve one (`HOST=0.0.0.0`), set an admin password:
 
 ```sh
 cp .env.example .env
