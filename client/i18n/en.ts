@@ -1572,7 +1572,7 @@ const en = {
   // The type SPECIMENS are not here: a Latin sample must stay Latin in an
   // Arabic UI (and the Arabic one Arabic in an English UI) or the preview
   // stops previewing what it claims to. They live in SettingsModal.tsx.
-  // Sub-heads inside the merged Appearance & language tab.
+  // The Layout & type page.
   typographyNote: "Change a face when the default reads poorly in your language or on your screen. Faces are fetched once when you save, then served from this machine.",
   rowFontProse: "Reading text",
   hintFontProse: "The font for reading text and the editor's prose.",
@@ -2151,7 +2151,7 @@ const en = {
   templateNoProps: "No properties — body only",
   templateBodyLabel: "Body",
   templatePublishWarn: "Publishes the note to the public site",
-  templatesNoFolder: "No templates folder yet. Name one in Settings → Vault.",
+  templatesNoFolder: "No templates folder yet. Name one in Settings → New notes & templates.",
   templatesFolderEmpty: "“{folder}” holds no notes yet.",
   templatesFolderIs: "Templates: {folder}",
   templatesFolderDetected: "Templates: {folder} (detected)",
@@ -2197,7 +2197,7 @@ const en = {
   layoutSourceSite: "the site default",
   layoutSegmentLabel: "Text layout",
 
-  // Settings → Appearance & language: the calendar.
+  // Settings → Dates & calendar: the calendar.
   rowDateCalendar: "Date calendar",
   hintDateCalendar: "The calendar every date on the site is printed in.",
   calGregorian: "Gregorian",
@@ -2214,7 +2214,7 @@ const en = {
   calFeedNote: "RSS keeps Gregorian RFC-822 dates, which is what aggregators parse.",
   calArabicSuggest: "Many Arabic sites date their writing by the Hijri calendar.",
 
-  // Settings → Appearance & language: note direction and alignment.
+  // Settings → Layout & type: note direction and alignment.
   rowTextDirection: "Text direction",
   hintTextDirection: "Base direction (LTR or RTL) for note prose; Auto lets each paragraph decide.",
   rowTextAlign: "Text alignment",
@@ -2227,7 +2227,7 @@ const en = {
   hintTextAlign: "Where lines sit in the column; code and tables never move.",
   noteLayoutOverride: "Change it when most of your notes are in one script — RTL for an Arabic vault — so paragraphs stop guessing. A note's own frontmatter — dir, align — overrides both.",
 
-  // Settings → Appearance & language: localised tag labels.
+  // Settings → Writing: localised tag labels.
   tagLabelsNote: "Give a tag a label when its spelling in the vault is not how readers should see it — an English slug on an Arabic site. Display only: links, search and the vault keep the real tag.",
   rowTagsFolder: "Tags folder",
   hintTagsFolder: "Where a tag's own page lives; that page names the tag.",
@@ -2598,7 +2598,7 @@ const en = {
   designCaseUpper: "Uppercase",
   designHeadingFamily: "Heading face",
   designBodyFamily: "Body face",
-  designFamilyHint: "Which of the instance's three stacks — pick the faces themselves in Settings → Site.",
+  designFamilyHint: "Which of the instance's three stacks — pick the faces themselves in Settings → Layout & type.",
   designSerif: "Serif",
   designSans: "Sans",
   designMono: "Mono",
@@ -2675,7 +2675,7 @@ const en = {
   designStickyNav: "The menu",
   designStickyHeader: "The header",
   designShowLogo: "Logo",
-  designShowLogoHint: "Uses the logo set in Settings → Site.",
+  designShowLogoHint: "Uses the logo set in Settings → Site identity → Logo.",
   designShowName: "Site name",
   designShowTagline: "Tagline",
   designDivider: "Hairline under the header",
@@ -3899,8 +3899,8 @@ const en = {
   yearlyTemplateLabel: "Yearly note template",
   cmdMonthlyNote: "This month's note",
   cmdYearlyNote: "This year's note",
-  monthlyNotesOff: "Monthly notes are off — set a monthly note name in Settings → Vault",
-  yearlyNotesOff: "Yearly notes are off — set a yearly note name in Settings → Vault",
+  monthlyNotesOff: "Monthly notes are off — set a monthly note name in Settings → New notes & templates",
+  yearlyNotesOff: "Yearly notes are off — set a yearly note name in Settings → New notes & templates",
   periodWeekLabel: "Week {n} · {range}",
   // ── Open on launch (shared/launch.ts) ──
   rowLaunch: "Open on launch",
@@ -3958,7 +3958,7 @@ const en = {
   cmdTomorrowNote: "Tomorrow's note",
   cmdWeeklyNote: "This week's note",
   cmdPeriodicHint: "From the open daily note when it is one, else from today",
-  weeklyNotesOff: "Weekly notes are off — set a weekly note name in Settings → Vault",
+  weeklyNotesOff: "Weekly notes are off — set a weekly note name in Settings → New notes & templates",
   cmdRandomNote: "Random note",
   cmdRandomNoteHint: "Somewhere you have not looked in a while",
   // ── On this day (client/components/OnThisDayPanel.tsx) ──
@@ -4300,7 +4300,7 @@ const en = {
   captureTargetDaily: "Today's note ({name})",
   captureTargetInbox: "Inbox ({name})",
   captureTargetInboxBare: "Inbox",
-  captureNoInboxHint: "Pin a second target in Settings → Vault → Capture inbox.",
+  captureNoInboxHint: "Pin a second target in Settings → New notes & templates → Capture inbox.",
   captureSend: "Capture",
   capturedTo: "Captured to {name}",
   captureOpenNote: "Open",
@@ -4367,18 +4367,18 @@ const en = {
   speakPocketReading: "A pocket vault has no speaker of its own — reading with this phone's voice:",
   speakPocketNote: "A pocket vault has no speaker of its own: this phone's voices read, and you choose which below.",
   speakInstallAppVoices: "Install the app's voices",
-  speakNoDeviceVoice: "No voice on this device speaks {language}. Install the app's voices (Settings → Language & dates → Read aloud), or add a system voice.",
+  speakNoDeviceVoice: "No voice on this device speaks {language}. Install the app's voices (Settings → Read aloud & voice notes → Read aloud), or add a system voice.",
   speakNoDeviceVoicePocket: "No voice on this phone speaks {language}. Add one in the phone's text-to-speech settings.",
   speakNoDeviceVoiceVisitor: "No voice on this device speaks {language}.",
   speakDeviceVoiceUnnamed: "the device's default voice",
   speakDeviceVoicePick: "This device's voice for {language}",
-  // Settings → Language & dates → Read aloud, the device's half.
+  // Settings → Read aloud & voice notes → Read aloud, the device's half.
   speakDeviceVoicesHead: "This device's voices",
   speakDeviceVoicesNote: "They read when the app's voices are not installed for a language. Chosen for this device only.",
   speakDeviceVoiceAuto: "Automatic — {name}",
   speakDeviceVoicesNone: "This device offers no voices of its own: only the app's voices can read here.",
   speakDeviceVoicesMissing: "No voice on this device for {languages}.",
-  // Settings → Language → Read aloud.
+  // Settings → Read aloud & voice notes → Read aloud.
   rowReadAloud: "Read aloud",
   hintReadAloud: "Voices on this machine's processor read a selection; no graphics card needed.",
   moreReadAloud: "Install a voice when you want your notes read to you well, without a network. Light (Piper) is quick on any computer: English, French, Arabic. Natural (Kokoro) sounds closer to a person and wants a recent processor: English, French, Japanese, Spanish, Italian, Portuguese. Both run on the processor. With nothing installed, this device's own voices read instead, and the player says so.",
@@ -4426,7 +4426,7 @@ const en = {
   speakCheckAgain: "Check again",
   speakExternalFailed: "Your external speaker failed on this sentence, so nothing was read. The server's log has the program's own message.",
   speakExternalOpen: "Open Your own voices",
-  // ── Settings → Language & dates → Your own voices (docs/read-aloud.md) ──
+  // ── Settings → Read aloud & voice notes → Your own voices (docs/read-aloud.md)
   rowOwnVoices: "Your own voices",
   hintOwnVoices: "Piper or Kokoro voices already on this computer, in every voice picker.",
   moreOwnVoices: "Point it at a folder when you already have Piper or Kokoro voices, or want one this app does not offer. The server looks through the folder and every folder inside it. A Piper voice is two files side by side: name.onnx and name.onnx.json (the catalogue's own layout, such as fr/fr_FR/upmc/medium/, is read as it is). A model with several speakers is one voice per speaker. The folder must be a full path on the machine the server runs on, outside the vault. The external speaker is offered only where the server's operator set SPEAK_EXTERNAL=on in .env; it runs with that server's own user and permissions, so whatever that user may do, the command may do. Only name a program you trust.",
@@ -4628,7 +4628,7 @@ const en = {
   feedsRefresh: "Check now",
   feedsChecking: "Checking…",
   feedsRefreshFailed: "The feeds could not be checked.",
-  feedsOffToast: "Fetching feeds is off — turn it on in Settings → Vault → Feeds.",
+  feedsOffToast: "Fetching feeds is off — turn it on in Settings → Reading → Feeds.",
   feedsTurnOn: "Turn fetching on…",
   feedsEditList: "Edit the list",
   feedsStatusOff: "Fetching is off: nothing new arrives until you turn it on.",

@@ -36,7 +36,7 @@ In dev mode you open port 5801; requests to `/api` are passed through to the ser
 | `npm run typecheck` | `tsc --noEmit` — the strict TypeScript gate |
 | `npm test` | The unit suite, `node --test tests/*.test.ts`: the pure logic under `shared/`, `server/` and `client/`, no browser. It is the release gate, and it runs the same code as several of the gates below (`check-keymap`, `check-docs`) from a second door |
 | `npm run build-docs` | Build this manual, both languages, into `docs/site/` |
-| `npm run check-docs` | Every link, anchor, image and settings path in this manual resolves, in both languages (below) |
+| `npm run check-docs` | Every link, anchor, image and settings path in this manual, and every settings path in the interface's strings, resolves, in both languages (below) |
 | `npm run gen-icons` | Redraw the folder-mark glyph set from its catalog; `npm run check-icons` fails when the drawing is stale |
 | `npm run check-desktop` | The desktop wrapper's own checks, then its `tsc` |
 | `npm run check-sidepanel` | The right panel's stack of sections: nothing scrolls but the panel, long lists cut with "Show more", folds and order kept (below) |
@@ -415,8 +415,12 @@ dropped rather than hyphenated, Arabic letters kept — so a link that passes he
 site and on GitHub both. Every `Settings → Tab → Row` path in the prose is read against the
 panel's own source (the tab table, the group headings and the row index, with labels resolved
 through `client/i18n.ts` in the page's language), and every page in the site's table must exist
-in Arabic with the same heading structure as its English twin. `tests/docs.test.ts` runs the same
-function under `npm test`.
+in Arabic with the same heading structure as its English twin. The interface's own strings are
+read by the same rule: a toast or a hint in `client/i18n/en.ts` or `ar.ts` that names a settings
+page, a group or a row the panel does not have fails the gate. A string that names another
+program's settings (Chrome's, Notion's, macOS's) is listed by key in `FOREIGN_SETTINGS` in the
+script, and a listed key that no longer carries such a path fails too. `tests/docs.test.ts` runs
+the same function under `npm test`.
 
 ### `npm run check-settings` — the settings index
 

@@ -1,5 +1,6 @@
 // THE MANUAL, TRUE AND LINKED. Assert: every link in the docs lands, in both
-// languages; every "Settings → …" path names a tab and a row that exist;
+// languages; every "Settings → …" path, in the docs and in the interface's
+// own strings, names a tab and a row that exist;
 // every image is on disk; and every page ships in Arabic with the same
 // headings as its English twin.
 //
@@ -24,9 +25,14 @@
 // SettingsModal.tsx, the group headings it renders, and the checked-in row
 // index (settingsIndex.ts, itself held to the source by check-settings), with
 // the labels resolved through client/i18n.ts in the page's language. A path
-// may stop after any segment and run on into prose ("Settings → Vault under
-// the daily rows"); what it may not do is name a tab, a group or a row that
+// may stop after any segment and run on into prose ("Settings → Writing to
+// switch it off"); what it may not do is name a tab, a group or a row that
 // is not there, in either language.
+//
+// The same rule reads the interface's own strings, every value in
+// client/i18n/en.ts and ar.ts: a toast that says "Settings → Vault" after the
+// page was renamed is the same lie as a manual page that says it, and the
+// 3.46 audit found nine of them in each language (`checkStrings` below).
 //
 // tests/docs.test.ts runs the same function under `npm test`.
 
@@ -37,7 +43,7 @@ import { marked } from "marked";
 import { PAGES, headingIds } from "./build-docs.mjs";
 import { SETTINGS_INDEX } from "../client/components/settings/settingsIndex.ts";
 import { parseSettings } from "./settings-index.mjs";
-import { readDictionary } from "./dictionary.mjs";
+import { DICTIONARY_FILES, readDictionary } from "./dictionary.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
 const read = (p) => readFileSync(join(root, p), "utf8");
@@ -123,12 +129,16 @@ function labelAt(segment, labels) {
   return hit ?? null;
 }
 
-function checkSettingsPaths(file, markdown, lang, p, errors) {
+/** Every "Settings → …" path in `prose` that names a page, a group or a row
+ *  the panel does not have, as `{ at, what }` with `at` the match's offset.
+ *  The manual and the dictionary are both read through this one function. */
+function badPaths(prose, lang, p) {
+  const found = [];
   const settingsWord = lang === "ar" ? "الإعدادات" : "Settings";
+  const A = lang === "ar" ? " ← " : " → "; // the arrow the language writes
   const re = new RegExp(`${settingsWord}\\s*${ARROW}\\s*((?:[^\\n]|\\n(?!\\n)){1,200})`, "g");
-  const prose = proseOf(markdown);
   for (const m of prose.matchAll(re)) {
-    const line = prose.slice(0, m.index).split("\n").length;
+    const at = m.index;
     const segs = segmentsOf(m[1]);
     // The LONGEST page name that opens the segment: "Read aloud & voice notes"
     // begins with a word that another page's name might, and in Arabic
@@ -137,7 +147,7 @@ function checkSettingsPaths(file, markdown, lang, p, errors) {
       .filter((t) => labelAt(segs[0], [t.label?.[lang]]))
       .sort((a, b) => b.label[lang].length - a.label[lang].length)[0];
     if (!tab) {
-      errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]}" names no settings tab (${p.tabs.map((t) => t.label?.[lang]).join(" · ")})`);
+      found.push({ at, what: `"${settingsWord}${A}${segs[0]}" names no settings tab (${p.tabs.map((t) => t.label?.[lang]).join(" · ")})` });
       continue;
     }
     // Prose may follow a page's name ("Settings → Reading to switch it on"),
@@ -147,7 +157,7 @@ function checkSettingsPaths(file, markdown, lang, p, errors) {
     const rest = segs[0].slice(tab.label[lang].length).trim();
     const oneWord = rest.split(/\s+/).length <= 1;
     if (segs[0] !== tab.label[lang] && (/^&/.test(rest) || (oneWord && /^(?:and\b|و)/.test(rest)) || (segs.length >= 2 && rest.split(/\s+/).length <= 2))) {
-      errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]}" is not a page name (the page is "${tab.label[lang]}")`);
+      found.push({ at, what: `"${settingsWord}${A}${segs[0]}" is not a page name (the page is "${tab.label[lang]}")` });
       continue;
     }
     if (segs[0] !== tab.label[lang] || segs.length < 2) continue; // prose follows the tab, or the path ends there
@@ -155,15 +165,64 @@ function checkSettingsPaths(file, markdown, lang, p, errors) {
     const rows = p.rows.get(tab.id).map((r) => r?.[lang]);
     const second = labelAt(segs[1], [...groups, ...rows]);
     if (!second) {
-      errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]} → ${segs[1]}" names no row or group on the ${tab.label.en} tab`);
+      found.push({ at, what: `"${settingsWord}${A}${segs[0]}${A}${segs[1]}" names no row or group on the ${tab.label.en} tab` });
       continue;
     }
     if (segs[1] !== second || segs.length < 3) continue;
     // Under a group comes a row, or a smaller group ("Typography → Your own fonts").
     if (groups.includes(second) && !labelAt(segs[2], [...rows, ...groups])) {
-      errors.push(`${file}:${line}: "${settingsWord} → ${segs[0]} → ${segs[1]} → ${segs[2]}" names no row under ${second} on the ${tab.label.en} tab`);
+      found.push({ at, what: `"${settingsWord}${A}${segs[0]}${A}${segs[1]}${A}${segs[2]}" names no row under ${second} on the ${tab.label.en} tab` });
     }
   }
+  return found;
+}
+
+function checkSettingsPaths(file, markdown, lang, p, errors) {
+  const prose = proseOf(markdown);
+  for (const { at, what } of badPaths(prose, lang, p)) {
+    errors.push(`${file}:${prose.slice(0, at).split("\n").length}: ${what}`);
+  }
+}
+
+/** Strings that name ANOTHER program's settings, and so are not paths in
+ *  this panel: Chrome's spell-check page, Notion's export, macOS's keyboard
+ *  settings. A key listed here that no longer carries such a path is itself
+ *  an error, so the list cannot outlive its reason. */
+export const FOREIGN_SETTINGS = new Map([
+  ["moreSpellDicts", "Chrome's own settings"],
+  ["importNotionHint", "Notion's settings"],
+  ["spellDictsSystem", "macOS's System Settings"],
+]);
+
+/** The interface's own sentences: a toast or a hint that sends the reader to
+ *  "Settings → Vault" after the page was renamed sends them nowhere, and the
+ *  3.46 docs audit found nine such strings in each language that the manual
+ *  check never read. Every value in client/i18n/en.ts and ar.ts goes through
+ *  the same path rule as the manual's prose. `entries` is `key → { en, ar }`,
+ *  as scripts/dictionary.mjs reads it. */
+export function checkStrings(entries, p = panel(dictionary())) {
+  const errors = [];
+  for (const [key, values] of entries) {
+    const foreign = FOREIGN_SETTINGS.has(key);
+    let named = false;
+    for (const lang of ["en", "ar"]) {
+      const text = values[lang];
+      if (typeof text !== "string") continue;
+      const word = lang === "ar" ? "الإعدادات" : "Settings";
+      if (new RegExp(`${word}\\s*${ARROW}`).test(text)) named = true;
+      if (foreign) continue;
+      for (const { what } of badPaths(proseOf(text), lang, p)) {
+        errors.push(`${DICTIONARY_FILES[lang]}: ${key}: ${what}`);
+      }
+    }
+    if (foreign && !named) {
+      errors.push(`scripts/check-docs.mjs: ${key} is listed as naming ${FOREIGN_SETTINGS.get(key)} but carries no settings path; take it off FOREIGN_SETTINGS`);
+    }
+  }
+  for (const key of FOREIGN_SETTINGS.keys()) {
+    if (!entries.has(key)) errors.push(`scripts/check-docs.mjs: FOREIGN_SETTINGS names ${key}, which the dictionary no longer has`);
+  }
+  return errors;
 }
 
 function checkLinks(file, markdown, errors) {
@@ -250,6 +309,7 @@ export function checkDocs() {
     checkLinks(file, markdown, errors);
     checkSettingsPaths(file, markdown, lang, p, errors);
   }
+  errors.push(...checkStrings(dict, p));
   checkPairs(errors);
   return { errors, files: files.length, pages: PAGES.length };
 }

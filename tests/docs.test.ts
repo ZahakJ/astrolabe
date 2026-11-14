@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { headingIds, slugify } from "../scripts/build-docs.mjs";
-import { checkDocs } from "../scripts/check-docs.mjs";
+import { checkDocs, checkStrings, FOREIGN_SETTINGS } from "../scripts/check-docs.mjs";
 
 describe("the slug rule is GitHub's", () => {
   it("drops punctuation instead of hyphenating it", () => {
@@ -40,5 +40,49 @@ describe("the manual", () => {
   it("has no dead link, anchor, image or settings path, and every page in both languages", () => {
     const { errors } = checkDocs();
     assert.deepEqual(errors, []);
+  });
+});
+
+// The interface's strings go through the same path rule (3.46.3): nine toasts
+// and hints in each language still sent the reader to "Settings → Vault" and
+// "Settings → Language & dates" pages that had been renamed.
+describe("the interface's strings name real settings pages", () => {
+  const entry = (en: string | null, ar: string | null) => ({ en, ar });
+  it("fails a page that is gone, in either language", () => {
+    const errors = checkStrings(new Map([
+      ["stale", entry("Name one in Settings → Vault.", "حدّده في الإعدادات ← الخزانة.")],
+      ...[...FOREIGN_SETTINGS.keys()].map((k) => [k, entry("Elsewhere: Settings → Somewhere", null)] as const),
+    ]));
+    assert.equal(errors.length, 2);
+    assert.match(errors[0], /^client\/i18n\/en\.ts: stale: "Settings → Vault" names no settings tab/);
+    assert.match(errors[1], /^client\/i18n\/ar\.ts: stale: "الإعدادات ← الخزانة" names no settings tab/);
+  });
+  it("fails a page name that runs on past the real one, and a row the page does not have", () => {
+    const errors = checkStrings(new Map([
+      ["merged", entry("(Settings → Language & dates → Read aloud)", null)],
+      ["noRow", entry("Turn it on in Settings → Reading → Fonts.", null)],
+      ...[...FOREIGN_SETTINGS.keys()].map((k) => [k, entry("Elsewhere: Settings → Somewhere", null)] as const),
+    ]));
+    assert.deepEqual(errors.map((e) => e.split(": ")[1]), ["merged", "noRow"]);
+    assert.match(errors[0], /is not a page name \(the page is "Language"\)/);
+    assert.match(errors[1], /names no row or group on the Reading tab/);
+  });
+  it("passes a page, a page and its row, and a page that runs on into prose", () => {
+    const errors = checkStrings(new Map([
+      ["page", entry("Name one in Settings → New notes & templates.", "حدّده في الإعدادات ← الملاحظات الجديدة والقوالب.")],
+      ["row", entry("Turn it on in Settings → Reading → Feeds.", "شغّله من الإعدادات ← القراءة ← الخلاصات.")],
+      ["prose", entry("Show them again in Settings → Writing.", null)],
+      ...[...FOREIGN_SETTINGS.keys()].map((k) => [k, entry("Elsewhere: Settings → Somewhere", null)] as const),
+    ]));
+    assert.deepEqual(errors, []);
+  });
+  it("leaves another program's settings alone, and drops an exemption that has lost its reason", () => {
+    const keys = [...FOREIGN_SETTINGS.keys()];
+    const errors = checkStrings(new Map([
+      [keys[0], entry("(Chrome: Settings → Languages → Spell check)", null)],
+      ...keys.slice(1).map((k) => [k, entry("No path here any more.", null)] as const),
+    ]));
+    assert.equal(errors.length, keys.length - 1);
+    for (const e of errors) assert.match(e, /carries no settings path; take it off FOREIGN_SETTINGS/);
   });
 });
