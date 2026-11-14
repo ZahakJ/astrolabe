@@ -36,6 +36,7 @@ git clone https://github.com/ZahakJ/astrolabe.git && cd astrolabe && npm install
 - **Book reader** for PDF and EPUB. Highlights and citations go straight into the note beside the book.
 - **Read aloud** in English, French, Arabic and Japanese, with voices that run on your own machine.
 - **Trackers, sigils and orbits.** Trackers follow the books and courses you are working through, sigils mark daily habits, and orbits is spaced repetition over cards kept in your notes, with Anki import.
+- **Today, the Calendar and the Timeline.** The day's note, sigils, cards and tasks on one page; the month with every day's note and what you did on it; and the whole vault by date.
 - **Ask the vault.** Search your notes by meaning and get cited answers, from a local model through Ollama or from Anthropic if you choose it.
 
 **Publishing**
@@ -47,9 +48,11 @@ git clone https://github.com/ZahakJ/astrolabe.git && cd astrolabe && npm install
 **Everywhere**
 
 - **Desktop app** for Linux (AppImage, deb, pacman) and Windows, and an **Android app** that can also work on a vault kept in a private GitHub repository.
+- **Capture.** `Ctrl/Cmd Shift D` drops a line into today's note from anywhere; a voice note is transcribed by your own server; a bookmarklet clips a web page into the vault; and a phone can share into it.
 - **Offline.** The web app installs as a PWA and keeps the notes you have opened readable without a connection.
 - **Backup and history** in a git remote you own.
-- **Import** from Obsidian, Notion and Evernote.
+- **Import** from Obsidian, Notion and Evernote; **export** a note, a folder, a tag or the whole vault as a ZIP, any note as a standalone HTML page, or a PDF with bookmarks.
+- **In the terminal,** [Astrolabe CLI](https://github.com/ZahakJ/astrolabe-cli) reads, edits and searches the same vault as plain files, without a server.
 - **No telemetry.** No analytics, no CDN requests, no account.
 
 ## Running it

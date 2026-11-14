@@ -168,6 +168,27 @@ borders are counted and margins are not — put the air on a wrapper's padding, 
 transparent border with `background-clip: padding-box`, never in a margin. The gate restores the
 instance language and deletes its fixture however the run ends.
 
+### `npm run check-fidelity` — the editor and the reading view agree
+
+The live preview and the reading view must draw the same markdown the same way. The gate writes one
+note that holds a callout and an Arabic callout, two tables (one Arabic, one too wide for the
+column), pictures, a transclusion, a code fence, maths, a footnote, ruby, lists, a task, a quote
+and every inline mark. It reads the computed style of each of them in the editor, switches to the
+reading view and reads them again, and fails when a colour, a size or an offset differs by more
+than a rounding (half a pixel for lengths, 8px for a horizontal offset, which is the editor's own
+line inset). Vertical spacing is not compared, because the editor draws a blank line as a line
+and the reading view turns it into a margin. It runs again in the Arabic interface, and once more
+at a phone's width to check that no single-word table cell breaks inside its word.
+
+The same run carries the browser checks of the features that draw into a note since then: an embed
+picked up and moved, a film in a note, an Arabic interface that never shows English before its
+dictionary has loaded, the status bar's language key, read aloud and your own voices, reading
+sittings in the calendar, and a walk through every page of Settings. Start the scratch server
+with `ASTROLABE_SPEAK_FAKE=1` and a tone stands in for the voice engines; without it, read aloud
+must answer that nothing is installed. Every fixture is deleted however the run ends.
+
+    CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=… npm run check-fidelity -- http://127.0.0.1:8177
+
 ### `npm run check-ink` — Arabic marks, measured
 
 An Arabic line's layout box is the font's content area, and its marks are painted outside it: a

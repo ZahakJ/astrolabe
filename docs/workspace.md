@@ -69,9 +69,11 @@ version** (undoably). The full story, including the two-server case, is in
 ## The side panel
 
 The panel beside the note holds everything about the open note, one section under another:
-**Outline**, **Footnotes**, **Local graph**, **History**, **Backlinks**, **Nearby**, **Related**,
-**Suggest links**, **Unlinked mentions** and **On this day**, each shown only when it has something
-to say. Every section has a header with a count; click it, or press Enter on it, to fold or open
+**Outline**, **Footnotes**, **Local graph**, the tracker section (**Tracked in** on a note inside a
+tracked folder, **Notes of this work** on the tracker note; see [Trackers](trackers.md)), **Sources**
+on a piece of the [Writing desk](writing-desk.md), **History**, **Backlinks**, **Nearby**,
+**Related**, **Suggest links**, **Unlinked mentions** and **On this day**, each shown only when it
+has something to say. Every section has a header with a count; click it, or press Enter on it, to fold or open
 the section.
 
 - **Every open section shows all of itself.** Nothing inside the panel scrolls on its own; when the

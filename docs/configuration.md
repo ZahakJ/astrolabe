@@ -276,7 +276,7 @@ type-ahead, `Enter` to confirm and `Esc` to put the old value back. Switches are
 three-way rows (*inherit* / on / off) show all three states at once; numbers carry their unit
 inside the field.
 
-**On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of the same nine sections, in the same order and under the same names — More → **Settings** — with the same search above it, and each section is a screen of its own showing the same rows. As soon as a section holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the section any other way with changes unsaved asks first. A row marked **This device** saves itself as you choose and never raises the bar.
+**On a phone** ([the phone layout](workspace.md#on-a-phone)) the panel is a list of the same nineteen pages under the same four groups, in the same order and under the same names — More → **Settings** — with the same search above it, and each page is a screen of its own showing the same rows. As soon as a page holds a change, a bar rises from the bottom with **Discard** and **Save**; leaving the page any other way with changes unsaved asks first. A row marked **This device** saves itself as you choose and never raises the bar.
 
 ## Settings keys
 
@@ -358,6 +358,9 @@ Two more keys are **write-only**: `gitToken` and `gitUser`. `PATCH /api/settings
 and stores them in `ASTROLABE_DATA/git-credentials.json`, readable only by the system user the
 server runs as (mode `0600`). They never go into `settings.json` and can never be read back: a read answers
 `gitSync.tokenSet: true` and the username, nothing more.
+`anthropicKey`, the key for [Ask the vault](ask.md), is write-only in the same way: it is stored
+in `ASTROLABE_DATA/ask-credentials.json` (mode `0600`), a read answers only `ask.keySet`, and
+`null` removes it.
 
 `settings.json` is written atomically, meaning the file is either fully old or fully new — a
 crash in the middle cannot leave it half-written. Changes apply live: the site name, the layout,

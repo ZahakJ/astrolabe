@@ -14,7 +14,7 @@ You can read this manual as a website, with search, a page outline and both lang
 
 | | |
 | --- | --- |
-| [Configuration](configuration.md) | Every setting you can change, where each one lives (the `.env` file or the Settings panel's nine sections), [where attachments are stored](configuration.md#attachments), and which setting wins when two disagree |
+| [Configuration](configuration.md) | Every setting you can change, where each one lives (the `.env` file or the Settings panel's nineteen pages), [where attachments are stored](configuration.md#attachments), and which setting wins when two disagree |
 | [Publishing & access](publishing.md) | How visitors read your site while only you can edit it: the `publish:` flag, previewing the site as a visitor, HTTPS, and comments |
 | [Backup & sync](backup-and-sync.md) | Saving your vault to a private git repository, by hand or on a timer; [reading an old version of a note](backup-and-sync.md#note-history-reading-what-the-backup-kept) from that backup; and the [versions the app keeps on every save](backup-and-sync.md#versions-before-and-beside-git), with or without git |
 | [Offline reading](offline.md) | The notes you have already opened stay readable when the network is gone: what is kept, what is not, and the strip that tells you |
