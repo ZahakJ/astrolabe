@@ -72,6 +72,7 @@ comment explaining it. The table below is the short version.
 | `LANGUAGE_FILTER` | Which published notes the public site shows, by the language they are written in: `off` (default, show all) · `follow` (each reader sees their own language) · `ar` · `en`. The old values `true` and `false` still work — see [Language filter](arabic-and-rtl.md#language-filter) |
 | `ATTACHMENTS_DIR` | The vault folder that uploads from inside the app are saved into (default `Attachments`, or `مرفقات` on an Arabic site; an existing `attachments` folder is kept). It is created when first needed. The **Attachments** setting can send uploads elsewhere entirely — see [Attachments](#attachments) |
 | `BANNER_FALLBACK` | The header image for blog posts that have no `banner:` of their own — `generated` (default: an abstract gradient made from the note's title, always the same for the same title) or `none` |
+| `ASTROLABE_WHISPER_GPU` | `off` keeps [voice-note](capture.md#voice) transcription on the processor whatever the panel says: with **Where it runs** at **Auto**, the server then never loads a graphics-card build of whisper. It is the operator's way to make **Processor only** hold for every vault the server opens (default unset: **Auto** tries CUDA, then Vulkan, then the processor; Metal on a Mac) |
 | `ASTROLABE_GIT_SSH_COMMAND` | The one `GIT_*` variable Astrolabe passes on to git, unchanged, as `GIT_SSH_COMMAND` — see [Backup & sync](backup-and-sync.md#things-worth-knowing) |
 
 **If you installed this when it was called Vellum.** Every key above still answers to its old
