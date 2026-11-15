@@ -185,8 +185,19 @@ picked up and moved, a film in a note, an Arabic interface that never shows Engl
 dictionary has loaded, the status bar's language key, read aloud and your own voices, reading
 sittings in the calendar, and a walk through every page of Settings. Start the scratch server
 with `ASTROLABE_SPEAK_FAKE=1` and a tone stands in for the voice engines; without it, read aloud
-must answer that nothing is installed. Every fixture is deleted however the run ends.
+must answer that nothing is installed, and the player's own voice picker is skipped.
 
+The scratch server needs a password. The walk saves the Backup & sync page, and an instance in
+open local mode refuses every write there, so without `ADMIN_PASSWORD_HASH` the walk fails nine
+checks on that page.
+
+A full run takes 15 to 30 minutes, so give it no time limit. Stopped by Ctrl+C or a runner's
+`timeout`, the gate prints how long it ran and its last check, deletes its fixtures and exits.
+Before 3.46.3 the only trace was Playwright's "Target page, context or browser has been closed",
+which looked like a crash in whatever stage was running when the limit fell, and a ten-minute
+limit can fall in the read-aloud stage.
+
+    ADMIN_PASSWORD_HASH='…' ASTROLABE_VAULT=/tmp/scratch/vault ASTROLABE_DATA=/tmp/scratch/data PORT=8177 node server/index.ts
     CHROMIUM=/usr/bin/chromium ASTROLABE_PASSWORD=… npm run check-fidelity -- http://127.0.0.1:8177
 
 ### `npm run check-ink` — Arabic marks, measured

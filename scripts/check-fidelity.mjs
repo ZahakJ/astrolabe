@@ -5,7 +5,9 @@
 //        ASTROLABE_PASSWORD=<pw>  — when the instance sets ADMIN_PASSWORD_HASH;
 //                                without an admin session no editor mounts and
 //                                the run refuses loudly instead of "passing".
-// Exits 1 on any miss. Run it like check-caret / check-i18n.
+//        The settings walk saves the Backup & sync page, which an instance in
+//        open local mode refuses, so the scratch server needs a password.
+// Exits 1 on any miss. A whole run takes 15 to 30 minutes; give it no limit.
 //
 // CONTRACTS.md "Tables": one renderer, four surfaces — and where the editor
 // cannot reuse the renderer (a callout is a run of lines, a fence is a run of
@@ -276,7 +278,10 @@ const VIEW = `(() => { const c = document.querySelector(".cm-content"); const t 
 
 mkdirSync(out, { recursive: true });
 const fail = [];
+const started = Date.now();
+let lastLabel = "(before the first check)";
 const check = (ok, label, detail = "") => {
+  lastLabel = label;
   if (!ok) fail.push(`${label} ${detail}`);
   console.log(`  ${ok ? "PASS" : "FAIL"}  ${label}${detail ? `  ${detail}` : ""}`);
 };
@@ -318,10 +323,18 @@ const api = (path, init) =>
     [path, init ?? null],
   );
 
+const pageApi = (path, init) => api(path, init);
+// The same requests from Node, for when the browser is already gone (a
+// signal from `timeout` reaches the whole process group, Chromium included).
+const nodeApi = async (path, init) => {
+  const cookie = cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  const r = await fetch(new URL(path, url), { ...(init ?? {}), headers: { ...(init?.headers ?? {}), cookie, origin: new URL(url).origin } });
+  return { status: r.status, body: null };
+};
 let pngPath = null;
 let filmPath = null;
 let cookies = [];
-const cleanup = async () => {
+const cleanup = async (api = pageApi) => {
   await api(`/api/note?path=${encodeURIComponent(NOTE_PATH)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   await api(`/api/note?path=${encodeURIComponent(EMBED_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (pngPath) await api(`/api/attachment?path=${encodeURIComponent(pngPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
@@ -329,6 +342,31 @@ const cleanup = async () => {
   await api(`/api/note?path=${encodeURIComponent(SITTINGS_NOTE)}&permanent=true`, { method: "DELETE" }).catch(() => {});
   if (filmPath) await api(`/api/attachment?path=${encodeURIComponent(filmPath)}&permanent=true`, { method: "DELETE" }).catch(() => {});
 };
+
+// STOPPED FROM OUTSIDE. A whole run takes fifteen to thirty minutes. A runner
+// that kills it at its own limit (ten minutes is a common one, and it falls
+// in the read-aloud stage) used to leave one line, Playwright's "Target page,
+// context or browser has been closed", which reads as a crash of whatever was
+// running, and the fixtures stayed in the vault because `finally` never ran.
+// A signal now says what it is, where the run had got to, and deletes the
+// fixtures from Node, since the browser may have been killed with it.
+let stopping = false;
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  process.on(signal, () => {
+    if (stopping) return;
+    stopping = true;
+    const minutes = ((Date.now() - started) / 60000).toFixed(1);
+    console.error(`\ncheck-fidelity: stopped by ${signal} after ${minutes} min; the last check was "${lastLabel}". A full run takes 15 to 30 minutes: give it no time limit.`);
+    Promise.race([cleanup(nodeApi), new Promise((r) => setTimeout(r, 10000))]).finally(() => process.exit(signal === "SIGINT" ? 130 : 143));
+  });
+}
+// Once stopping, the step that was waiting on the browser fails with "closed";
+// that is the signal's doing and has been reported above.
+process.on("uncaughtException", (err) => {
+  if (stopping) return;
+  console.error(err);
+  process.exit(1);
+});
 
 try {
   let me = (await api("/api/me")).body;
@@ -1244,5 +1282,6 @@ try {
   await browser.close();
 }
 
-console.log(fail.length === 0 ? "\ncheck-fidelity: all green" : `\ncheck-fidelity: ${fail.length} failure(s)`);
+const took = `${((Date.now() - started) / 60000).toFixed(1)} min`;
+console.log(fail.length === 0 ? `\ncheck-fidelity: all green (${took})` : `\ncheck-fidelity: ${fail.length} failure(s) (${took})`);
 process.exit(fail.length === 0 ? 0 : 1);
