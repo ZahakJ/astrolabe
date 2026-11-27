@@ -1,0 +1,11 @@
+b702a4dcca75c4c1f030e37dbdacd4096dbd6f9b:tests/desk.test.ts:generic-api-key:339
+f316942fc622e4efb7b80f4f25d23c625a24b4aa:tests/presenceRoutes.test.ts:generic-api-key:36
+094ebba7831671eda74b29c5107fac80eac9140c:tests/presenceRoutes.test.ts:generic-api-key:36
+09f401aa890573fb243650cf58043ab5c94ac6cb:tests/speakRoutes.test.ts:generic-api-key:344
+553a191a6f3d60720bf4f63553c200a276a19a3b:tests/speakRoutes.test.ts:generic-api-key:344
+f4112fccd73714c64b6b0bb09b946e3182be19e6:tests/speakRoutes.test.ts:generic-api-key:156
+f4112fccd73714c64b6b0bb09b946e3182be19e6:tests/speakRoutes.test.ts:generic-api-key:172
+279e9913adb6a79c2c407440e59add7f8a61c28e:tests/speakRoutes.test.ts:generic-api-key:156
+279e9913adb6a79c2c407440e59add7f8a61c28e:tests/speakRoutes.test.ts:generic-api-key:172
+2a49c44fbaeb88bd0bad3258feeae89b6d18ad0c:tests/federation.test.ts:generic-api-key:200
+cb94eadb0d7d5d92607f423e589aed306043edb4:tests/federation.test.ts:generic-api-key:200
